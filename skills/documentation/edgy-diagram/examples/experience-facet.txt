@@ -1,0 +1,13 @@
+facet: experience
+elements:
+  - task: "Tehtävä - Asiakasrekisteröityminen"
+  - channel: "Kanava - Verkkosivusto"
+  - journey: "Matka - Asiakasmatka"
+  - brand: "Brändi - Käyttäjäystävällinen"
+  - product: "Tuote - SaaS-sovellus"
+relationships:
+  - task -> journey: "osa"
+  - channel -> task: "mahdollistaa"
+  - journey -> brand: "heijastaa"
+  - product -> task: "tukee"
+  - brand -> product: "edustaa"

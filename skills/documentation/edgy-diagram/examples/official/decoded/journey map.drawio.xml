@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxGraphModel dx="1635" dy="17" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="MI8V8XOswKlP8g8yvddt-1" value="Research options" style="html=1;shadow=0;dashed=0;align=center;verticalAlign=middle;shape=mxgraph.arrows2.arrow;dy=0;dx=22;notch=0;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#ff99bd;" parent="1" vertex="1">
+      <mxGeometry x="451" y="950" width="140" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="MI8V8XOswKlP8g8yvddt-2" value="Plan travel" style="html=1;shadow=0;dashed=0;align=center;verticalAlign=middle;shape=mxgraph.arrows2.arrow;dy=0;dx=22;notch=0;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#ff99bd;" parent="1" vertex="1">
+      <mxGeometry x="611" y="950" width="140" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="MI8V8XOswKlP8g8yvddt-3" value="Make &lt;br&gt;arrangements" style="html=1;shadow=0;dashed=0;align=center;verticalAlign=middle;shape=mxgraph.arrows2.arrow;dy=0;dx=22;notch=0;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#ff99bd;" parent="1" vertex="1">
+      <mxGeometry x="771" y="950" width="140" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="MI8V8XOswKlP8g8yvddt-4" value="Prepare departure" style="html=1;shadow=0;dashed=0;align=center;verticalAlign=middle;shape=mxgraph.arrows2.arrow;dy=0;dx=22;notch=0;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#ff99bd;" parent="1" vertex="1">
+      <mxGeometry x="931" y="950" width="140" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="MI8V8XOswKlP8g8yvddt-5" value="Travel" style="html=1;shadow=0;dashed=0;align=center;verticalAlign=middle;shape=mxgraph.arrows2.arrow;dy=0;dx=22;notch=0;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#ff99bd;" parent="1" vertex="1">
+      <mxGeometry x="1091" y="950" width="140" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="MI8V8XOswKlP8g8yvddt-6" value="Arrive and &lt;br&gt;follow up" style="html=1;shadow=0;dashed=0;align=center;verticalAlign=middle;shape=mxgraph.arrows2.arrow;dy=0;dx=22;notch=0;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#ff99bd;" parent="1" vertex="1">
+      <mxGeometry x="1251" y="950" width="140" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="MI8V8XOswKlP8g8yvddt-7" value="Consider travel" style="html=1;shadow=0;dashed=0;align=center;verticalAlign=middle;shape=mxgraph.arrows2.arrow;dy=0;dx=22;notch=0;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#ff99bd;" parent="1" vertex="1">
+      <mxGeometry x="290" y="950" width="140" height="80" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

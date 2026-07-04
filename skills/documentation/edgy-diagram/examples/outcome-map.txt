@@ -1,0 +1,12 @@
+map_type: outcome
+elements:
+  - outcome: "Reliable mobility"
+  - outcome: "Reduced commute time"
+  - outcome: "Lower emissions"
+  - outcome: "Customer trust"
+  - outcome: "Operational efficiency"
+  - outcome: "Profitable growth"
+relationships:
+  - "Reliable mobility" -> "Reduced commute time": "contains"
+  - "Reliable mobility" -> "Lower emissions": "contains"
+  - "Reliable mobility" -> "Customer trust": "contains"

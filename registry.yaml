@@ -1,0 +1,40 @@
+version: "2026-7"
+updated: "2026-07-05"
+
+skills:
+  - id: edgy-assessment
+    path: skills/architecture/edgy-assessment
+    version: 1.5.0
+    category: architecture
+    tags: [edgy, enterprise-design, architecture, analysis, assessment, diagram, fi, en, fr, de]
+    agents: [claude-code, cursor, vibe, generic]
+    description: >
+      Comprehensive EDGY 23 Enterprise Design assessment: analysis, diagrams, and recommendations. Orchestrating skill that chains edgy-framework and edgy-diagram skills into a unified workflow. Locks PDF report layout via shared preamble (assets/pdf-preamble.md) while keeping analysis content adaptive per customer.
+
+  - id: edgy-deep-dive
+    path: skills/architecture/edgy-deep-dive
+    version: 1.0.0
+    category: architecture
+    tags: [edgy, enterprise-design, architecture, analysis, deep-dive, intersection, fi, en]
+    agents: [claude-code, cursor, generic]
+    description: >
+      Targeted EDGY 23 deep-dive analysis of a specific element pair or facet combination. Requires an existing edgy-model.json produced by the edgy-assessment skill. Analyses the chosen elements through one of four analytical lenses (dependency, alignment, gaps, opportunities) using both direct core links and 2-hop paths. Produces a focused markdown report and a pairwise draw.io diagram.
+
+  - id: edgy-framework
+    path: skills/architecture/edgy-framework
+    version: 1.2.0
+    category: architecture
+    tags: [edgy, enterprise-design, architecture, analysis, reframing, fi, en, fr, de]
+    agents: [claude-code, cursor, generic]
+    description: >
+      EDGY 23 enterprise design analysis: challenge reframing, facet intersection analysis, and element identification from natural language.
+
+  - id: edgy-diagram
+    path: skills/documentation/edgy-diagram
+    version: 1.7.0
+    category: documentation
+    tags: [diagram, drawio, visualization, documentation, edgy, enterprise-design, fi, en, fr, de]
+    agents: [claude-code, cursor, generic]
+    description: >
+      Create EDGY-notation diagrams as draw.io XML or PlantUML source and export them to PNG/SVG/PDF. Uses the EDGY facet model with draw.io CLI or the plantuml-stdlib `<edgy/edgy>` library for rendering.
+

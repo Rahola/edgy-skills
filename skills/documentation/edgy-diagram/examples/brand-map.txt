@@ -1,0 +1,14 @@
+map_type: brand
+elements:
+  - brand: "Nordic Trains"
+  - story: "Connecting Europe by rail"
+  - content: "Reliable, sustainable, accessible"
+  - task: "Buy ticket"
+  - journey: "First-time traveller"
+  - product: "Smart booking app"
+  - purpose: "Reliable European mobility for all"
+relationships:
+  - "Nordic Trains" -> "Connecting Europe by rail": "evokes"
+  - "Nordic Trains" -> "Reliable, sustainable, accessible": "represents"
+  - "Nordic Trains" -> "Buy ticket": "supports"
+  - "Nordic Trains" -> "First-time traveller": "appears in"

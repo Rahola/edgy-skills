@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxGraphModel dx="1640" dy="876" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="2" value="Receive request" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="60" y="200" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="3" value="Validate request" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="270" y="200" width="150" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="4" value="Allocate resources" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="480" y="200" width="170" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="5" value="Execute work" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="690" y="200" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="6" value="Quality check" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="900" y="200" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="7" value="Deliver outcome" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="1110" y="200" width="140" height="60" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

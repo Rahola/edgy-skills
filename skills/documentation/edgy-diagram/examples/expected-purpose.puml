@@ -1,0 +1,16 @@
+@startuml
+!include <edgy/edgy>
+
+$purpose("Reliable European mobility for all", purpose1)
+$story("From regional rail to international high-speed", story2)
+$content("On-time, on-promise, every day", content3)
+$capability("Train operations", capability4)
+$capability("Network maintenance", capability5)
+$product("Smart booking platform", product6)
+$brand("Nordic Trains", brand7)
+
+$link(story2, purpose1, "contextualises")
+$link(content3, purpose1, "expresses")
+$link(brand7, purpose1, "represents")
+
+@enduml

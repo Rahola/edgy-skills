@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxGraphModel dx="1635" dy="817" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-1" value="&lt;font size=&quot;1&quot;&gt;&lt;b style=&quot;font-size: 20px&quot;&gt;Train Operations&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=top;arcSize=8;" parent="1" vertex="1">
+      <mxGeometry x="80" y="210" width="890" height="300" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-2" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px&quot;&gt;Run Trains&lt;/font&gt;&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=top;fillColor=#FFFFFF;arcSize=10;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="275" y="248" width="160" height="242" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-3" value="&lt;font size=&quot;1&quot;&gt;&lt;b style=&quot;font-size: 20px&quot;&gt;Railway Infrastructure Management&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=top;arcSize=8;" parent="1" vertex="1">
+      <mxGeometry x="80" y="520" width="890" height="310" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-4" value="&lt;font size=&quot;1&quot;&gt;&lt;span style=&quot;font-size: 15px&quot;&gt;&lt;b&gt;Planning&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=top;fillColor=#FFFFFF;arcSize=10;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="105" y="560" width="160" height="250" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-5" value="&lt;font size=&quot;1&quot;&gt;&lt;b style=&quot;font-size: 15px&quot;&gt;Building &amp;amp; Maintaining&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=top;fillColor=#FFFFFF;arcSize=5;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="275" y="560" width="331" height="250" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-6" value="Strategic Planning" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="120" y="668" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-7" value="Budgeting" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="120" y="737" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-8" value="Construction Site Planning" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="290" y="668" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-9" value="Powerplants" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="290" y="737" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-10" value="Stations" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="460" y="598" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-11" value="Tracks" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="460" y="668" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-12" value="Powerlines" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="460" y="737" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-13" value="&amp;nbsp;Project Management" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="290" y="598" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-14" value="&lt;font size=&quot;1&quot;&gt;&lt;b style=&quot;font-size: 15px&quot;&gt;Resource Management&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=top;fillColor=#FFFFFF;arcSize=5;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="616" y="560" width="329" height="250" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-15" value="Logistics" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="630" y="668" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-16" value="Asset Accounting" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="630" y="737" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-17" value="Machines" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="800" y="598" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-18" value="Material" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="800" y="667" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-19" value="Procurement" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="630" y="598" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-20" value="&lt;font size=&quot;1&quot;&gt;&lt;span style=&quot;font-size: 15px&quot;&gt;&lt;b&gt;Train Scheduling&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=top;fillColor=#FFFFFF;arcSize=10;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="105" y="250" width="160" height="240" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-21" value="Optimise Capacities" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="120" y="280" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-22" value="Route Planning" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="120" y="350" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-23" value="Train Scheduling" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="120" y="420" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-24" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px&quot;&gt;Energy Management&lt;/font&gt;&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=top;fillColor=#FFFFFF;arcSize=10;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="616" y="250" width="160" height="240" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-25" value="Operate Power Plant" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="632" y="280" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-26" value="Trade Energy" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="632" y="350" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-27" value="Distribute Energy" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="632" y="420" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-28" value="Drive Train" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="292.5" y="350" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-29" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px&quot;&gt;Train Routing&lt;/font&gt;&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=top;fillColor=#FFFFFF;arcSize=10;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="785" y="250" width="160" height="240" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-30" value="Railway Signaling" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="799" y="280" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-31" value="Control Railway Switches" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="799" y="350" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-32" value="&lt;font size=&quot;1&quot;&gt;&lt;b style=&quot;font-size: 20px&quot;&gt;Customer Interaction&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=top;arcSize=8;" parent="1" vertex="1">
+      <mxGeometry x="80" y="40" width="890" height="157" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-33" value="&lt;font size=&quot;1&quot;&gt;&lt;span style=&quot;font-size: 15px&quot;&gt;&lt;b&gt;Passenger Services&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=top;fillColor=#FFFFFF;arcSize=20;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="105" y="80" width="505" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-34" value="Passenger Information" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="120" y="110" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-35" value="Sell Tickets" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="290" y="110" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-36" value="&lt;font size=&quot;1&quot;&gt;&lt;b style=&quot;font-size: 20px&quot;&gt;Support&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=top;arcSize=8;" parent="1" vertex="1">
+      <mxGeometry x="980" y="40" width="200" height="790" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-37" value="Executive Management" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=middle;strokeColor=none;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1015" y="110" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-38" value="HR" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=middle;strokeColor=none;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1015" y="200" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-39" value="Facility Management" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=middle;strokeColor=none;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1015" y="289" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-40" value="Legal Compliance" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=middle;strokeColor=none;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1015" y="379" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-41" value="Risk Management" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=middle;strokeColor=none;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1015" y="468" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-42" value="Marketing &amp;amp; Communication" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=middle;strokeColor=none;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1015" y="558" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-43" value="IT" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=middle;strokeColor=none;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1015" y="647" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-44" value="Finance" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=middle;strokeColor=none;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1015" y="737" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-45" value="&lt;font size=&quot;1&quot;&gt;&lt;b style=&quot;font-size: 20px&quot;&gt;Change&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=top;arcSize=8;" parent="1" vertex="1">
+      <mxGeometry x="1190" y="40" width="200" height="790" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-46" value="Strategic&lt;br&gt;Management" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=middle;strokeColor=none;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1225" y="110" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-47" value="Research &amp;amp; Development" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=middle;strokeColor=none;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1225" y="200" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-48" value="Enterprise Design" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=middle;strokeColor=none;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1225" y="289" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-49" value="Innovation" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=middle;strokeColor=none;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1225" y="379" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-50" value="Train Restaurant" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="462.5" y="110" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-51" value="Billing and Booking" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="800" y="420" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-52" value="Product Management" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=middle;strokeColor=none;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1225" y="468" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-53" value="Investment" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=middle;strokeColor=none;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1225" y="558" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-54" value="Customer and Market Analytics" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=middle;strokeColor=none;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1225" y="647" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-55" value="Regulatory Relations" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=middle;strokeColor=none;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1225" y="737" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-56" value="EU Coordination" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="120" y="598" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-57" value="&lt;font size=&quot;1&quot;&gt;&lt;span style=&quot;font-size: 15px&quot;&gt;&lt;b&gt;Night Services&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=top;fillColor=#FFFFFF;arcSize=20;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="616" y="80" width="334" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-58" value="Shunting" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="290" y="420" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-59" value="Conciergerie" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="632" y="110" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-60" value="Breakfast" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="799" y="110" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-61" value="Clean and prepare" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="290" y="280" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-62" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px&quot;&gt;Night Trains&lt;/font&gt;&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;verticalAlign=top;fillColor=#FFFFFF;arcSize=10;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="446" y="250" width="160" height="240" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-63" value="Luggage" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="462.5" y="280" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-64" value="Furnishing" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="462.5" y="350" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="t7q-1-TB7nn-4Ap3fjkN-65" value="Crew" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#a6c0ff;fontSize=14;verticalAlign=middle;" parent="1" vertex="1">
+      <mxGeometry x="799" y="737" width="130" height="60" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

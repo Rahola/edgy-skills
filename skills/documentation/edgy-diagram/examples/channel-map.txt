@@ -1,0 +1,11 @@
+map_type: channel
+elements:
+  - channel: "Mobile app" [digital, asynchronous]
+  - channel: "Website" [digital, asynchronous]
+  - channel: "Ticket vending machine" [physical, synchronous]
+  - channel: "Station kiosk" [physical, synchronous]
+  - channel: "On-board staff" [physical, synchronous]
+  - channel: "Email" [digital, asynchronous]
+  - channel: "Customer service phone" [hybrid, synchronous]
+  - channel: "Social media" [digital, asynchronous]
+  - channel: "Loyalty newsletter" [digital, asynchronous]

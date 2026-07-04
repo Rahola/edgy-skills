@@ -1,0 +1,215 @@
+{
+  "company": "Globex Oy",
+  "assessed_at": "2026-04-25T10:00:00",
+  "language": "fi",
+  "elements": {
+    "purpose": {
+      "name": "Digimuutoskumppani kasvuyrityksille",
+      "description": "Globex auttaa pk-yrityksiä kasvamaan digitaalisen transformaation ja räätälöidyn ohjelmistokehityksen avulla.",
+      "tags": ["growth", "transformation", "b2b"]
+    },
+    "story": {
+      "name": "Suomalainen tekijä, kansainvälinen kasvu",
+      "description": "Globex on perustettu 2015 Helsingissä. Yritys on kasvanut 15 henkilöstä yli 80:aan, laajentuu Ruotsiin 2026. Tarinan ytimessä on käytännönläheinen, asiakaslähtöinen kulttuuri.",
+      "tags": ["founded-2015", "growth-story", "expansion"]
+    },
+    "content": {
+      "name": "Ajatusjohtajuus ja case-sisällöt",
+      "description": "Globex julkaisee blogia, case-kertomuksia ja osallistuu alan tapahtumiin. Sisältö on teknologiapainotteista eikä aina vastaa tarkoituksen kasvuyhtiö-narratiivia.",
+      "tags": ["blog", "cases", "events"]
+    },
+    "capability": [
+      {
+        "name": "Cloud-arkkitehtuuri (AWS/Azure)",
+        "description": "Monipilavisessa ympäristössä toimiva suunnittelu- ja toteutuskyvykkyys. Sertifioituja arkkitehteja 12 kpl.",
+        "nature": "Core",
+        "level": "Strategic"
+      },
+      {
+        "name": "Räätälöity ohjelmistokehitys",
+        "description": "Full-stack-kehitys React/TypeScript + .NET/Python. Suurin henkilöstöryhmä (45 kehittäjää).",
+        "nature": "Core",
+        "level": "Operational"
+      },
+      {
+        "name": "DevOps ja jatkuva toimitus",
+        "description": "CI/CD-putkistot, Kubernetes-orkestraatio. Sisäisessä käytössä; asiakasprojekteissa vaihteleva käyttöaste.",
+        "nature": "Enabling",
+        "level": "Operational"
+      },
+      {
+        "name": "Myynti ja asiakkuudenhallinta (Ruotsi)",
+        "description": "Uusi kyvykkyys: Tukholmaan rekrytoitu Sales Manager Q1/2026. Prosessit kesken, playbook puuttuu.",
+        "nature": "Enabling",
+        "level": "Strategic"
+      }
+    ],
+    "asset": [
+      {
+        "name": "Kehittäjätiimi (80 hlö)",
+        "description": "Pääasiallinen tuotannollinen resurssi. Korkea senioriteetti (65% senior/lead). Kasvu 20 rekrytointia 2026."
+      },
+      {
+        "name": "Azure-partneriasema (Gold)",
+        "description": "Microsoft Gold Partner -status avaa enterprise-asiakkaita ja alennettuja lisenssejä."
+      },
+      {
+        "name": "Asiakasreferenssit",
+        "description": "12 julkista case-kertomusta, 3 Suomen top-50-yritystä referenssinä."
+      }
+    ],
+    "process": [
+      {
+        "name": "Projektitoimitusmalli (agile)",
+        "description": "2-viikon sprintit, asiakas mukana sprint review -sessioissa. Toimii hyvin olemassaolevilla asiakkailla."
+      },
+      {
+        "name": "Myyntiprosessi",
+        "description": "Inbound-painotteinen, ei dokumentoitua outbound-playbooka. Ruotsin markkinalla prosessi puuttuu kokonaan."
+      },
+      {
+        "name": "Rekrytointiprosessi",
+        "description": "HR-tiimi 3 hlö + ulkoinen headhunter isoihin rekrytointeihin. Tavoite: 20 rekrytointia 2026."
+      }
+    ],
+    "task": [
+      {
+        "name": "Teknologiastrategian muotoilu",
+        "description": "Asiakkaan CTO/CPO arvioi teknologiavaihtoehtoja ja -arkkitehtuuria. Globex tukee workshopeilla ja arkkitehtipalveluilla."
+      },
+      {
+        "name": "Ohjelmistokehitysprojektin käynnistys",
+        "description": "Asiakkaan projektitiimi kilpailuttaa toimittajia, arvioi tarjouksia, aloittaa yhteistyön."
+      },
+      {
+        "name": "Jatkuva kehitys ja ylläpito",
+        "description": "Olemassaoleva asiakas tilaa jatkuvaa kapasiteettia tai ylläpitosopimuksen."
+      }
+    ],
+    "channel": [
+      {
+        "name": "Verkkosivut + blogi",
+        "description": "Pääasiallinen inbound-kanava. 3500 kuukausikävijää. Konversio heikko (0.8%)."
+      },
+      {
+        "name": "LinkedIn",
+        "description": "Aktiivinen, 4800 seuraajaa. Pääasiassa rekrytointi- ja thought leadership -sisältö."
+      },
+      {
+        "name": "Suora myynti / referrallit",
+        "description": "60% liideistä tulee referralleista. Tukholmassa ei vielä verkostoa."
+      }
+    ],
+    "journey": {
+      "name": "Digimuutoskumppanin valinta",
+      "description": "Asiakkaan matka tarpeesta toimittajaksi.",
+      "stages": [
+        "Tietoisuus (LinkedIn, blogi, referral)",
+        "Arviointi (verkkosivut, case-kertomukset, vertailu)",
+        "Kontaktointi (yhteydenottolomake, LinkedIn-DM, tapahtuma)",
+        "Tarjous ja neuvottelu",
+        "Kick-off ja onboarding"
+      ]
+    },
+    "organisation": {
+      "name": "Globex Oy organisaatio",
+      "description": "Toiminnallinen rakenne: Kehitys (45), Arkkitehtuuri & Konsultointi (15), Myynti & Markkinointi (10), HR & Hallinto (10). Ruotsin toimisto perustetaan Q2/2026. Ei erillistä tuote-/palveluomistajuutta."
+    },
+    "product": [
+      {
+        "name": "Projektitoimitus (time & material)",
+        "description": "Yleisin sopimusmalli. Asiakas maksaa käytetystä kapasiteetista."
+      },
+      {
+        "name": "Jatkuva kehitys -sopimus",
+        "description": "Kuukausipohjainen kapasiteettisopimus. Arvo asiakkaalle: ennakoitavuus."
+      },
+      {
+        "name": "Arkkitehtuuri­konsultointi",
+        "description": "Kiinteähintainen arkkitehtuurikatselmus tai -suunnittelu. Myydään usein projektin esipalveluna."
+      }
+    ],
+    "brand": {
+      "name": "Globex — Käytännönläheinen digimuutoskumppani",
+      "description": "Brändi viestii asiantuntemuksesta ja luotettavuudesta. Ei erotu selkeästi toimiala- tai segmenttiosaamisella. Ruotsissa täysin tuntematon."
+    }
+  },
+  "core_links": [
+    { "source": "story", "target": "purpose", "verb_fi": "kontekstualisoi", "verb_en": "contextualises" },
+    { "source": "content", "target": "purpose", "verb_fi": "ilmaisee", "verb_en": "expresses" },
+    { "source": "brand", "target": "purpose", "verb_fi": "edustaa", "verb_en": "represents" },
+    { "source": "organisation", "target": "purpose", "verb_fi": "tavoittelee", "verb_en": "pursues" },
+    { "source": "organisation", "target": "story", "verb_fi": "kirjoittaa", "verb_en": "authors" },
+    { "source": "organisation", "target": "capability", "verb_fi": "omistaa", "verb_en": "has" },
+    { "source": "organisation", "target": "process", "verb_fi": "suorittaa", "verb_en": "performs" },
+    { "source": "organisation", "target": "brand", "verb_fi": "rakentaa", "verb_en": "builds" },
+    { "source": "organisation", "target": "product", "verb_fi": "valmistaa", "verb_en": "makes" },
+    { "source": "process", "target": "capability", "verb_fi": "toteuttaa", "verb_en": "realises" },
+    { "source": "process", "target": "product", "verb_fi": "luo", "verb_en": "creates" },
+    { "source": "product", "target": "capability", "verb_fi": "vaatii", "verb_en": "requires" },
+    { "source": "product", "target": "task", "verb_fi": "palvelee", "verb_en": "serves" },
+    { "source": "task", "target": "channel", "verb_fi": "käyttää", "verb_en": "uses" },
+    { "source": "brand", "target": "task", "verb_fi": "tukee", "verb_en": "supports" }
+  ],
+  "coherence": {
+    "organisation": {
+      "alignment": "Weak",
+      "contradictions": [
+        "Toiminnallinen org-rakenne ei tue asiakkuuskohtaisia kyvykkyyksiä",
+        "Ruotsin myyntikyvykkyys on olemassa (rekrytoitu), mutta sille ei ole prosessia tai omistajuutta"
+      ],
+      "gaps": [
+        "Ei erillistä tuote-/palveluomistajuutta organisaatiossa",
+        "Myyntiprosessi puuttuu kansainvälistymiseen"
+      ]
+    },
+    "product": {
+      "alignment": "Good",
+      "contradictions": [
+        "Arkkitehtuuri­konsultointi-tuote myydään esipalveluna, mutta ei ole yhdistetty jatkuva kehitys -sopimukseen"
+      ],
+      "gaps": [
+        "Yksikään tuote ei palvele eksplisiittisesti Ruotsin markkinaa"
+      ]
+    },
+    "brand": {
+      "alignment": "Good",
+      "contradictions": [
+        "Sisältö (blogi) on teknologiapainotteista, brändi lupaa kasvukumppanuutta — ristiriita"
+      ],
+      "gaps": [
+        "Ruotsissa brändi ei ole tunnettu — ei paikallista tarinaa"
+      ]
+    }
+  },
+  "suggested_deep_dives": [
+    {
+      "pair": ["capability", "organisation"],
+      "lens": "dependency",
+      "rationale": "Koherenssipiste Weak — toiminnallinen org-rakenne ei tue asiakkuuskohtaisia kyvykkyyksiä. Myyntikyvykkyys Ruotsissa on olemassa mutta ilman prosessia tai omistajuutta.",
+      "priority": "High",
+      "source_section": 5
+    },
+    {
+      "pair": ["capability", "process"],
+      "lens": "gaps",
+      "rationale": "Myynti- ja kansainvälistymiskyvykkyys puuttuvat prosesseista kokonaan. DevOps-kyvykkyys ei ole johdonmukaisesti käytössä asiakasprojekteissa.",
+      "priority": "High",
+      "source_section": 7
+    },
+    {
+      "pair": ["product", "task"],
+      "lens": "alignment",
+      "rationale": "Tuotteet on kuvattu myyntimalleina, ei asiakastehtvien kautta. Epäselvää palveleeko arkkitehtuuri­konsultointi-tuote oikeaa tehtävää.",
+      "priority": "Medium",
+      "source_section": 4
+    },
+    {
+      "pair": ["brand", "purpose"],
+      "lens": "alignment",
+      "rationale": "Brändi ei erotu toimiala- tai segmenttiosaamisella, vaikka tarkoitus on olla kasvuyritysten kumppani. Ruotsissa brändi täysin tuntematon.",
+      "priority": "Medium",
+      "source_section": 2
+    }
+  ]
+}

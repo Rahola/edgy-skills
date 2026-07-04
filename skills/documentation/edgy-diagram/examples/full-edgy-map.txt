@@ -1,0 +1,46 @@
+facet: all
+elements:
+  # Identity Elements
+  - purpose: "Yrityksen tarkoitus"
+  - content: "Laadukas sisältö"
+  - story: "Yhteinen tarina"
+  - brand: "Brändi"
+  - organisation: "Organisaatio"
+  
+  # Architecture Elements
+  - capability: "Kehitysosaaminen"
+  - asset: "Resurssit"
+  - process: "Prosessit"
+  - product: "Tuote"
+  
+  # Experience Elements
+  - task: "Tehtävä"
+  - channel: "Kanava"
+  - journey: "Matka"
+
+relationships:
+  # Identity relationships
+  - purpose -> content: "ohjaa"
+  - purpose -> story: "muodostaa"
+  - content -> brand: "vahvistaa"
+  - story -> brand: "kertoo"
+  - organisation -> purpose: "toteuttaa"
+  
+  # Architecture relationships
+  - capability -> process: "mahdollistaa"
+  - asset -> capability: "tukee"
+  - process -> product: "luo"
+  - organisation -> capability: "hallinnoi"
+  - organisation -> asset: "omistaa"
+  
+  # Experience relationships
+  - task -> journey: "osa"
+  - channel -> task: "mahdollistaa"
+  - journey -> brand: "heijastaa"
+  - product -> task: "tukee"
+  - brand -> product: "edustaa"
+  
+  # Cross-facet relationships
+  - purpose -> capability: "ohjaa"
+  - product -> brand: "edustaa"
+  - organisation -> task: "määrittelee"

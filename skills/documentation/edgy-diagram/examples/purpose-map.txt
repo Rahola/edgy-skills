@@ -1,0 +1,13 @@
+map_type: purpose
+elements:
+  - purpose: "Reliable European mobility for all"
+  - story: "From regional rail to international high-speed"
+  - content: "On-time, on-promise, every day"
+  - capability: "Train operations"
+  - capability: "Network maintenance"
+  - product: "Smart booking platform"
+  - brand: "Nordic Trains"
+relationships:
+  - "From regional rail to international high-speed" -> "Reliable European mobility for all": "contextualises"
+  - "On-time, on-promise, every day" -> "Reliable European mobility for all": "expresses"
+  - "Nordic Trains" -> "Reliable European mobility for all": "represents"

@@ -1,0 +1,8 @@
+map_type: process
+elements:
+  - process: "Receive request"
+  - process: "Validate request"
+  - process: "Allocate resources"
+  - process: "Execute work"
+  - process: "Quality check"
+  - process: "Deliver outcome"

@@ -1,0 +1,8 @@
+map_type: activity
+elements:
+  - activity: "Identify need"
+  - activity: "Plan solution"
+  - activity: "Procure resources"
+  - activity: "Build solution"
+  - activity: "Test outcome"
+  - activity: "Operate service"

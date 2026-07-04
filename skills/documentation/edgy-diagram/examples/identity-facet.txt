@@ -1,0 +1,13 @@
+facet: identity
+elements:
+  - purpose: "Yrityksen tarkoitus - Luoda kestävää arvoa asiakkaille"
+  - content: "Laadukas sisältö - Ammattitaitoinen viestintä"
+  - story: "Yhteinen tarina - Innovatiivinen historia"
+  - brand: "Brändi - Luotettava ja moderni"
+  - organisation: "Organisaatio - Tiimipohjainen rakenne"
+relationships:
+  - purpose -> content: "ohjaa"
+  - purpose -> story: "muodostaa"
+  - content -> brand: "vahvistaa"
+  - story -> brand: "kertoo"
+  - organisation -> purpose: "toteuttaa"

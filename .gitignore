@@ -1,0 +1,51 @@
+# --- Tietosuoja: paikallinen asiakasnimilista — EI KOSKAAN committiin --------
+# (malli: .blocklist.example, joka ON versionhallinnassa)
+.blocklist
+
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+
+# Build artifacts
+dist/
+build/
+__pycache__/
+*.pyc
+
+# Agent-/skillikonfiguraatiot (per-käyttäjä, ei jaeta)
+.agent/
+.agents/
+.claude/
+.vibe/
+
+# ...mutta .claude/settings.json sisältää jaetut projektitason Claude Code
+# -hookit (postedit-check / precommit-gate / agent-log-reminder) jotka
+# committataan tarkoituksella. settings.local.json pysyy ignoorattuna.
+!.claude/
+.claude/*
+!.claude/settings.json
+
+# Lukkotiedostot
+*.lock
+
+# Logit
+tmp/
+logs/
+*.log
+
+# Käyttöjärjestelmän roskatiedostot
+.DS_Store
+Thumbs.db
+
+# Skill-hakemistojen ZIP-snapshotit (kansion sisältö on autoritatiivinen)
+skills/**/*.zip
+
+# Väliaikaiset suunnitelmatiedostot
+plan.md

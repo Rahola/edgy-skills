@@ -1,0 +1,25 @@
+# .blocklist.example — malli paikalliselle tietosuoja-termilistalle.
+#
+# KÄYTTÖ:
+#   1. Kopioi tämä tiedosto nimelle `.blocklist` repon juuressa:
+#        cp .blocklist.example .blocklist
+#   2. Lisää sinne OMAT yksityiset asiakas-/toimeksiantonimesi (yksi per rivi).
+#   3. Asenna git-hook:  bash tools/install-git-hooks.sh
+#
+# `.blocklist` on .gitignore:ssa — sitä EI koskaan committoida. Se elää vain
+# sinun koneellasi ja estää committiin päätyvät asiakasnimet ennen pushia.
+#
+# Tämä on tarkoituksella PAIKALLINEN suoja: asiakaslistaa ei tallenneta CI:hin
+# eikä GitHub-secretiin (se vain kopioisi arkaluontoisen datan pilveen).
+# CI ajaa nimettömän examples/-muistutuksen (tools/examples-heuristic.sh).
+#
+# (Skanneri osaa lukea myös $PRIVACY_BLOCKLIST-ympäristömuuttujan, jos haluat
+# ajaa sen jossain putkessa — mutta oletusarvoisesti sitä ei ole kytketty.)
+#
+# Rivit ovat case-insensitive ERE-patterneja. Kommentit (#) ja tyhjät rivit
+# ohitetaan.
+
+# --- Esimerkkejä (korvaa omillasi, poista nämä) ---
+# asiakas-oy
+# toinen-asiakas
+# projektikoodinimi

@@ -1,0 +1,9 @@
+map_type: story
+elements:
+  - story: "Founded 1923 to connect rural villages"
+  - story: "Electrified network 1965"
+  - story: "First high-speed line 2001"
+  - story: "Carbon-neutral operations 2024"
+  - story: "Employees as customers"
+  - story: "Reliability through hardship"
+  - story: "From regional to European reach"

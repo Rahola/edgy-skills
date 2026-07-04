@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxGraphModel dx="2435" dy="1217" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="fFYh1A-N3OijV_MnbYJQ-1" value="&lt;span style=&quot;font-size: 14px;&quot;&gt;Track Infrastructure Maintenance&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;/span&gt;" style="html=1;shadow=0;dashed=0;align=center;verticalAlign=middle;shape=mxgraph.arrows2.arrow;dy=0;dx=33.6;notch=0;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#A6C0FF;" parent="1" vertex="1">
+      <mxGeometry x="-580" y="-30" width="740" height="130" as="geometry"/>
+    </mxCell>
+    <mxCell id="QPVNSDaob5duZM0BHt-Y-1" value="&lt;span style=&quot;font-size: 14px&quot;&gt;Strategic &lt;br&gt;Infrastructure &lt;br&gt;Planning&lt;/span&gt;" style="html=1;shadow=0;dashed=0;align=center;verticalAlign=middle;shape=mxgraph.arrows2.arrow;dy=0;dx=22;notch=0;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#A6C0FF;" parent="1" vertex="1">
+      <mxGeometry x="-560" y="10" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="QPVNSDaob5duZM0BHt-Y-2" value="&lt;span style=&quot;font-size: 14px&quot;&gt;Budgeting&lt;/span&gt;" style="html=1;shadow=0;dashed=0;align=center;verticalAlign=middle;shape=mxgraph.arrows2.arrow;dy=0;dx=22;notch=0;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#A6C0FF;" parent="1" vertex="1">
+      <mxGeometry x="-420" y="10" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="QPVNSDaob5duZM0BHt-Y-3" value="&lt;span style=&quot;font-size: 14px&quot;&gt;Plan Track&lt;/span&gt;" style="html=1;shadow=0;dashed=0;align=center;verticalAlign=middle;shape=mxgraph.arrows2.arrow;dy=0;dx=22;notch=0;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#A6C0FF;" parent="1" vertex="1">
+      <mxGeometry x="-280" y="10" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="QPVNSDaob5duZM0BHt-Y-4" value="&lt;span style=&quot;font-size: 14px&quot;&gt;Build Track&lt;/span&gt;" style="html=1;shadow=0;dashed=0;align=center;verticalAlign=middle;shape=mxgraph.arrows2.arrow;dy=0;dx=22;notch=0;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#A6C0FF;" parent="1" vertex="1">
+      <mxGeometry x="-140" y="10" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="QPVNSDaob5duZM0BHt-Y-5" value="&lt;span style=&quot;font-size: 14px&quot;&gt;Maintain Track&lt;/span&gt;" style="html=1;shadow=0;dashed=0;align=center;verticalAlign=middle;shape=mxgraph.arrows2.arrow;dy=0;dx=22;notch=0;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#A6C0FF;" parent="1" vertex="1">
+      <mxGeometry y="10" width="130" height="80" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

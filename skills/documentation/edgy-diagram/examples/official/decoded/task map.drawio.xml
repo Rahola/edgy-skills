@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxGraphModel dx="1635" dy="817" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-1" value="Inspiration" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#ff99bd;verticalAlign=top;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="280" y="470" width="150" height="310" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-2" value="Make first plans" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#ff99bd;verticalAlign=top;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="640" y="290" width="150" height="490" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-3" value="Cover my needs" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#ff99bd;verticalAlign=top;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="960" y="290" width="150" height="490" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-4" value="&lt;span&gt;Trip ideas&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="290" y="510" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-5" value="&lt;span&gt;Exchange with friends, or colleagues&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="290" y="600" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-6" value="Occasions" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#ff99bd;verticalAlign=top;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="440" y="290" width="150" height="490" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-7" value="&lt;meta charset=&quot;utf-8&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-family: helvetica; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-align: center; text-indent: 0px; text-transform: none; word-spacing: 0px; background-color: rgb(248, 249, 250); display: inline; float: none;&quot;&gt;City breaks&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="450" y="420" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-8" value="&lt;span&gt;Business trips&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="450" y="690" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-9" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: helvetica; font-size: 14px; font-style: normal; font-weight: 400; letter-spacing: normal; text-align: center; text-indent: 0px; text-transform: none; word-spacing: 0px; display: inline; float: none;&quot;&gt;Visiting friends and family&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="450" y="510" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-10" value="Events" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="450" y="600" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-11" value="&lt;span&gt;Choose preliminary date range&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="650" y="330" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-12" value="Find out how to get there (and back)" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="650" y="420" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-13" value="&lt;span&gt;Check personal or professional constraints&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="650" y="510" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-14" value="Reduce carbon footprint" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="650" y="600" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-15" value="&lt;span&gt;Find accomodation&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="650" y="690" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-16" value="Make arrangements" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#ff99bd;verticalAlign=top;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="800" y="190" width="150" height="590" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-17" value="&lt;span&gt;Choose route&lt;/span&gt;&lt;br&gt;&lt;span&gt;&amp;nbsp;and time&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;fillColor=#FFFFFF;" parent="1" vertex="1">
+      <mxGeometry x="810" y="240" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-18" value="&lt;span&gt;Compare&lt;/span&gt;&lt;br&gt;&lt;span&gt;alternative modes&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="810" y="330" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-19" value="&lt;span&gt;Compare fares and offers&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="810" y="420" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-20" value="&lt;span&gt;Make reservations&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="810" y="510" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-21" value="&lt;span&gt;Check destination details&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="810" y="600" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-22" value="&lt;span&gt;Get visa/health clearance&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="810" y="690" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-23" value="&lt;span&gt;Make / deal with last minute changes&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="970" y="330" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-24" value="&lt;span&gt;Get confirmation or approval&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="970" y="420" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-25" value="Spend time with family and kids" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="970" y="510" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-26" value="Travelling comfort" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="970" y="600" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-27" value="Take pets with me" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="970" y="690" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-28" value="On the way" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#ff99bd;verticalAlign=top;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1320" y="190" width="150" height="590" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-29" value="Entertainment" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="1330" y="240" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-30" value="Work comfortably" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="1330" y="330" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-31" value="Borders and &lt;br&gt;checks" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="1330" y="420" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-32" value="Change means of transportation" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="1330" y="510" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-33" value="Food and drinks" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="1330" y="600" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-34" value="Delays and cancellations" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="1330" y="690" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-35" value="Arrival" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#ff99bd;verticalAlign=top;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1481" y="380" width="150" height="400" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-36" value="Get to final destination" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="1491" y="420" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-37" value="Enjoy stay" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="1491" y="510" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-38" value="&lt;span&gt;Plan return or&lt;/span&gt;&lt;br&gt;&lt;span&gt;next leg&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="1491" y="600" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-39" value="Claim&lt;br&gt;compensation" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="1491" y="690" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-40" value="Departure" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#ff99bd;verticalAlign=top;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="1160" y="470" width="150" height="310" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-41" value="Pack and prepare" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="1170" y="510" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-42" value="Leave on time" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="1170" y="600" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-43" value="Meet with others" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="1170" y="690" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-44" value="Get around" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=14;fillColor=#ff99bd;verticalAlign=top;fontStyle=1" parent="1" vertex="1">
+      <mxGeometry x="120" y="560" width="150" height="220" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-45" value="&lt;span&gt;Commuting and regular trips&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="130" y="690" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-46" value="Business meetings or working elsewhere" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="290" y="690" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-47" value="&lt;span&gt;Manage my transport options&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="130" y="600" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-48" value="Holidays" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=14;strokeColor=none;" parent="1" vertex="1">
+      <mxGeometry x="450" y="330" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-49" value="&lt;h1 style=&quot;font-size: 17px&quot;&gt;&lt;span style=&quot;font-size: 17px&quot;&gt;Dream&lt;/span&gt;&lt;/h1&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;fontStyle=0;align=center;fontSize=17;" parent="1" vertex="1">
+      <mxGeometry x="120" y="789" width="470" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-50" value="&lt;h1 style=&quot;font-size: 17px&quot;&gt;&lt;span style=&quot;font-size: 17px&quot;&gt;Plan&lt;/span&gt;&lt;/h1&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;fontStyle=0;align=center;fontSize=17;" parent="1" vertex="1">
+      <mxGeometry x="640" y="789" width="470" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="pl-5ltzoXY2r3TBaJVzn-51" value="&lt;h1 style=&quot;font-size: 17px&quot;&gt;&lt;span style=&quot;font-size: 17px&quot;&gt;Travel&lt;/span&gt;&lt;/h1&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;fontStyle=0;align=center;fontSize=17;" parent="1" vertex="1">
+      <mxGeometry x="1160" y="786" width="470" height="40" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

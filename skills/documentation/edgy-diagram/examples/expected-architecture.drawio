@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxGraphModel dx="1440" dy="876" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="2" value="Kehitysosaaminen - Ohjelmistokehitys" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#fff;strokeWidth=2;arcSize=30;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="80" y="100" width="120" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="3" value="Resurssit - Pilvi-infrastruktuuri" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#fff;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="260" y="100" width="120" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="4" value="Prosessit - Ketterä kehitys" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#fff;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="440" y="100" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="5" value="Organisaatio - Teknologiaosasto" style="whiteSpace=wrap;html=1;fillColor=#80eaff;strokeColor=#fff;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="620" y="100" width="120" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="6" value="Tuote - SaaS-alusta" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#fff;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="80" y="200" width="120" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="7" value="mahdollistaa" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;" edge="1" source="2" target="4" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="8" value="tukee" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;" edge="1" source="3" target="2" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="9" value="luo" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;" edge="1" source="4" target="6" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="10" value="hallinnoi" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;" edge="1" source="5" target="2" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="11" value="omistaa" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;" edge="1" source="5" target="3" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

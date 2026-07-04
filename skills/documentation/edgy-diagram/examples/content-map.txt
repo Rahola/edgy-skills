@@ -1,0 +1,10 @@
+map_type: content
+elements:
+  - content: "Sustainability promise"
+  - content: "On-time guarantee"
+  - content: "Customer testimonials"
+  - content: "Annual report"
+  - content: "Service alerts"
+  - content: "Travel inspiration blog"
+  - content: "Loyalty programme rules"
+  - content: "Pricing FAQ"

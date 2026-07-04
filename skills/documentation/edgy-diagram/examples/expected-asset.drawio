@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxGraphModel dx="1440" dy="876" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="2" value="&lt;b&gt;Train fleet&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;material | owned&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="80" y="80" width="120" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="3" value="&lt;b&gt;Track network&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;material | owned&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="290" y="80" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="4" value="&lt;b&gt;Power grid&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;material | owned&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="80" y="180" width="120" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="5" value="&lt;b&gt;Booking platform&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;application | owned&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="290" y="180" width="150" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="6" value="&lt;b&gt;Customer database&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;data | owned&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="80" y="280" width="160" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="7" value="&lt;b&gt;Maintenance depots&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;material | owned&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="290" y="280" width="170" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="8" value="&lt;b&gt;Mobile app&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;application | owned&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="80" y="380" width="120" height="80" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

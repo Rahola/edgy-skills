@@ -1,0 +1,12 @@
+map_type: people
+elements:
+  - people: "Daily commuter"
+  - people: "Business traveller"
+  - people: "Tourist"
+  - people: "Family with children"
+  - people: "Elderly passenger"
+  - people: "Wheelchair user"
+  - people: "On-board crew"
+  - people: "Station staff"
+  - people: "Maintenance technician"
+  - people: "Operations controller"

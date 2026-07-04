@@ -1,0 +1,43 @@
+name: Validate Skills
+
+on:
+  pull_request:
+    paths:
+      - 'skills/**'
+      - 'registry.yaml'
+      - 'tools/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'skills/**'
+      - 'registry.yaml'
+      - 'tools/**'
+
+jobs:
+  validate:
+    name: Validate SKILL.md files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Run check.sh (validator + registry-sync + examples-refs)
+        # Huom: privacy-scan on osa check.sh:ta mutta ohittuu CI:ssä (ei
+        # .blocklist-tiedostoa eikä secrettiä — tietoinen valinta, ei tallenneta
+        # asiakaslistaa pilveen). Asiakasnimien esto tehdään PAIKALLISESTI
+        # pre-commit-hookilla (tools/install-git-hooks.sh + .blocklist).
+        run: bash tools/check.sh --verbose
+
+      - name: Examples heuristic (nameless privacy reminder)
+        if: always()
+        run: bash tools/examples-heuristic.sh

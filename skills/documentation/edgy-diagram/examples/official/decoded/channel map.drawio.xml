@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxGraphModel dx="1635" dy="-1583" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-1" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+      <mxGeometry x="160" y="2760" width="460" height="200" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-2" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+      <mxGeometry x="620" y="2760" width="460" height="200" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-3" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+      <mxGeometry x="620" y="2560" width="460" height="200" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-4" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+      <mxGeometry x="160" y="2560" width="460" height="200" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-5" value="Website" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#ff99bd;fontSize=14;shadow=0;dashed=0;align=center;" parent="1" vertex="1">
+      <mxGeometry x="790" y="2820" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-6" value="Mobile App" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#ff99bd;fontSize=14;shadow=0;dashed=0;align=center;" parent="1" vertex="1">
+      <mxGeometry x="928" y="2820" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-7" value="Travel Store" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#ff99bd;fontSize=14;shadow=0;dashed=0;align=center;" parent="1" vertex="1">
+      <mxGeometry x="330" y="2620" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-8" value="Onboard" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#ff99bd;fontSize=14;shadow=0;dashed=0;align=center;" parent="1" vertex="1">
+      <mxGeometry x="190" y="2620" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-9" value="Phone" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#ff99bd;fontSize=14;shadow=0;dashed=0;align=center;" parent="1" vertex="1">
+      <mxGeometry x="470" y="2820" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-10" value="E-Mail" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#ff99bd;fontSize=14;shadow=0;dashed=0;align=center;" parent="1" vertex="1">
+      <mxGeometry x="651" y="2820" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-11" value="Messenger" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#ff99bd;fontSize=14;shadow=0;dashed=0;align=center;" parent="1" vertex="1">
+      <mxGeometry x="330" y="2820" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-12" value="Chatbot" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#ff99bd;fontSize=14;shadow=0;dashed=0;align=center;" parent="1" vertex="1">
+      <mxGeometry x="190" y="2820" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-13" value="Physical" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;rotation=-90;" parent="1" vertex="1">
+      <mxGeometry x="100" y="2645" width="60" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-14" value="Digital" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;rotation=-90;" parent="1" vertex="1">
+      <mxGeometry x="100" y="2850" width="60" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-15" value="Synchronous" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+      <mxGeometry x="360" y="2970" width="60" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-16" value="Asynchronous" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+      <mxGeometry x="831" y="2970" width="60" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-17" value="Mail" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#ff99bd;fontSize=14;shadow=0;dashed=0;align=center;" parent="1" vertex="1">
+      <mxGeometry x="651" y="2620" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-18" value="TV Campaigns" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#ff99bd;fontSize=14;shadow=0;dashed=0;align=center;" parent="1" vertex="1">
+      <mxGeometry x="790" y="2620" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="u_dmN3-9ZquaRcBa7lhC-19" value="Print Ads" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fillColor=#ff99bd;fontSize=14;shadow=0;dashed=0;align=center;" parent="1" vertex="1">
+      <mxGeometry x="928" y="2620" width="130" height="80" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

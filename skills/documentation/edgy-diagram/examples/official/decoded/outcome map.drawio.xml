@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxGraphModel dx="1635" dy="417" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="6JsX6Ax6GvrWWCUcvHLA-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;curved=1;" parent="1" source="6JsX6Ax6GvrWWCUcvHLA-3" target="6JsX6Ax6GvrWWCUcvHLA-5" edge="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="6JsX6Ax6GvrWWCUcvHLA-3" value="More passengers taking the night train" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#FFFFFF;fontSize=14;strokeColor=#B3B3B3;align=center;" parent="1" vertex="1">
+      <mxGeometry x="60" y="531" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="6JsX6Ax6GvrWWCUcvHLA-4" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="6JsX6Ax6GvrWWCUcvHLA-5" target="6JsX6Ax6GvrWWCUcvHLA-13" edge="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="6JsX6Ax6GvrWWCUcvHLA-5" value="Increase train capacity" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#FFFFFF;fontSize=14;strokeColor=#B3B3B3;align=center;" parent="1" vertex="1">
+      <mxGeometry x="256" y="471" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="6JsX6Ax6GvrWWCUcvHLA-6" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="6JsX6Ax6GvrWWCUcvHLA-3" target="6JsX6Ax6GvrWWCUcvHLA-9" edge="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="383" y="624" as="sourcePoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="6JsX6Ax6GvrWWCUcvHLA-8" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="6JsX6Ax6GvrWWCUcvHLA-9" target="6JsX6Ax6GvrWWCUcvHLA-11" edge="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="6JsX6Ax6GvrWWCUcvHLA-9" value="Better integration with infrastructure partners" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#FFFFFF;fontSize=14;strokeColor=#B3B3B3;align=center;" parent="1" vertex="1">
+      <mxGeometry x="476" y="605" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="6JsX6Ax6GvrWWCUcvHLA-10" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="6JsX6Ax6GvrWWCUcvHLA-11" target="6JsX6Ax6GvrWWCUcvHLA-18" edge="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="6JsX6Ax6GvrWWCUcvHLA-11" value="Route optimisation and coordination" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#FFFFFF;fontSize=14;strokeColor=#B3B3B3;align=center;" parent="1" vertex="1">
+      <mxGeometry x="675" y="619" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="6JsX6Ax6GvrWWCUcvHLA-12" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="6JsX6Ax6GvrWWCUcvHLA-13" target="6JsX6Ax6GvrWWCUcvHLA-15" edge="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="6JsX6Ax6GvrWWCUcvHLA-13" value="Upgrade to next model of sleeper wagon" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#FFFFFF;fontSize=14;strokeColor=#B3B3B3;align=center;" parent="1" vertex="1">
+      <mxGeometry x="452" y="451" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="6JsX6Ax6GvrWWCUcvHLA-14" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="6JsX6Ax6GvrWWCUcvHLA-15" target="6JsX6Ax6GvrWWCUcvHLA-16" edge="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="6JsX6Ax6GvrWWCUcvHLA-15" value="Increased level of comfort and convenience" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#FFFFFF;fontSize=14;strokeColor=#B3B3B3;align=center;" parent="1" vertex="1">
+      <mxGeometry x="651" y="469" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="6JsX6Ax6GvrWWCUcvHLA-16" value="Customer experience quality (en route)" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#FFFFFF;fontSize=14;strokeColor=#B3B3B3;align=center;" parent="1" vertex="1">
+      <mxGeometry x="912" y="416" width="130" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="6JsX6Ax6GvrWWCUcvHLA-17" style="edgeStyle=orthogonalEdgeStyle;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="6JsX6Ax6GvrWWCUcvHLA-18" target="6JsX6Ax6GvrWWCUcvHLA-16" edge="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="6JsX6Ax6GvrWWCUcvHLA-18" value="More accurate passenger information" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fillColor=#FFFFFF;fontSize=14;strokeColor=#B3B3B3;align=center;" parent="1" vertex="1">
+      <mxGeometry x="874" y="562" width="130" height="80" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

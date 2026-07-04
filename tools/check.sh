@@ -1,0 +1,202 @@
+#!/usr/bin/env bash
+# check.sh — yhteinen validointi-entry-point edgy-skills-repolle.
+#
+# Sama skripti, jota ajavat: CI (.github/workflows/validate-skills.yml),
+# Claude Code -hookit (.claude/settings.json), git pre-commit (asennetaan
+# tools/install-git-hooks.sh:lla) ja manuaalinen kontribuoija.
+#
+# Käyttö:
+#   bash tools/check.sh                          # täysi tarkistus
+#   bash tools/check.sh --quick <polku>          # rajaa validator yhteen polkuun
+#   bash tools/check.sh --no-registry            # ohita registry-sync
+#   bash tools/check.sh --verbose                # täysi alavaiheiden output
+#
+# Exit-koodit:
+#   0  kaikki tarkistukset OK
+#   1  virhe — CI/pre-commit pitää blokata
+#   2  ympäristövaroitus (esim. pyyaml puuttuu) — Claude Code -hookit eivät
+#      blokkaa committia tähän, CI sen sijaan failaa (CI omistaa ympäristönsä
+#      ja pyyamlin pitää olla asennettuna)
+
+set -u
+
+# Siirry repon juureen jos ollaan jossain alihakemistossa
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")"
+cd "$REPO_ROOT"
+
+MODE="full"
+TARGET="skills/"
+SKIP_REGISTRY=0
+VERBOSE=0
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --quick)
+            MODE="quick"
+            shift
+            if [ $# -gt 0 ] && [ "${1:0:2}" != "--" ]; then
+                TARGET="$1"
+                shift
+            fi
+            ;;
+        --no-registry)
+            SKIP_REGISTRY=1
+            shift
+            ;;
+        --verbose)
+            VERBOSE=1
+            shift
+            ;;
+        --help|-h)
+            sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'
+            exit 0
+            ;;
+        *)
+            echo "check.sh: tuntematon argumentti: $1" >&2
+            exit 1
+            ;;
+    esac
+done
+
+START_TS=$(date +%s)
+EXIT_CODE=0
+WARN=0
+
+log_ok()    { printf '[check.sh] %-15s OK%s\n' "$1" "${2:+   ($2)}"; }
+log_fail()  { printf '[check.sh] %-15s FAIL\n' "$1"; }
+log_warn()  { printf '[check.sh] %-15s WARN  %s\n' "$1" "$2"; }
+
+run_step() {
+    # run_step <nimi> <komento...>
+    local name="$1"; shift
+    local out
+    if [ "$VERBOSE" -eq 1 ]; then
+        "$@"
+        local rc=$?
+    else
+        out=$("$@" 2>&1)
+        local rc=$?
+    fi
+    if [ $rc -eq 0 ]; then
+        log_ok "$name"
+    else
+        log_fail "$name"
+        if [ "$VERBOSE" -eq 0 ]; then
+            printf '%s\n' "$out" >&2
+        fi
+        EXIT_CODE=1
+    fi
+    return $rc
+}
+
+# --- Vaihe 0: riippuvuustarkistus -------------------------------------------
+if ! python3 -c "import yaml" 2>/dev/null; then
+    log_warn "deps" "pyyaml puuttuu — aja: pip3 install pyyaml"
+    exit 2
+fi
+
+# --- Vaihe 1: SKILL.md-validointi -------------------------------------------
+if [ "$MODE" = "quick" ]; then
+    run_step "validator" python3 tools/skill-validator.py "$TARGET"
+else
+    run_step "validator" python3 tools/skill-validator.py skills/
+fi
+
+# --- Vaihe 2: registry-sync-diff --------------------------------------------
+if [ "$SKIP_REGISTRY" -eq 0 ]; then
+    REG_TMP=$(mktemp)
+    trap 'rm -f "$REG_TMP"' EXIT
+    cp registry.yaml "$REG_TMP"
+    if ! UPDATER_OUT=$(python3 tools/registry-updater.py 2>&1); then
+        # Palauta alkuperäinen registry.yaml — updater on saattanut kirjoittaa
+        # osittaisen tilan ennen kaatumistaan
+        cp "$REG_TMP" registry.yaml
+        log_fail "registry-sync"
+        printf '%s\n' "$UPDATER_OUT" >&2
+        EXIT_CODE=1
+    else
+        if python3 - "$REG_TMP" "registry.yaml" <<'PY' 2>/dev/null
+import sys, yaml
+
+def load_normalized(path):
+    with open(path, encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    if isinstance(data, dict):
+        data = dict(data)
+        data.pop("version", None)
+        data.pop("updated", None)
+    return data
+
+before = load_normalized(sys.argv[1])
+after = load_normalized(sys.argv[2])
+sys.exit(0 if before == after else 1)
+PY
+        then
+            # Palauta alkuperäinen registry.yaml — updaterin "updated"-kenttä
+            # ja id-järjestys voivat muuttua ilman semanttista eroa
+            cp "$REG_TMP" registry.yaml
+            log_ok "registry-sync"
+        else
+            # Palauta alkuperäinen myös virhetilassa — käyttäjä ajaa
+            # updaterin itse ja committaa muutoksen
+            cp "$REG_TMP" registry.yaml
+            log_fail "registry-sync"
+            echo "  registry.yaml ei ole ajan tasalla." >&2
+            echo "  Aja: python3 tools/registry-updater.py" >&2
+            echo "  ja committaa muutos." >&2
+            EXIT_CODE=1
+        fi
+    fi
+fi
+
+# --- Vaihe 3: examples-viittausten tarkistus --------------------------------
+check_examples() {
+    local missing=0
+    local skill_dir skill_md example_ref example_path
+    while IFS= read -r skill_dir; do
+        skill_md="$skill_dir/SKILL.md"
+        grep -q "examples/" "$skill_md" 2>/dev/null || continue
+        while IFS= read -r example_ref; do
+            example_path="$skill_dir/$example_ref"
+            if [[ "$example_ref" == */ ]]; then
+                [ -d "$example_path" ] || {
+                    echo "  ⚠ Puuttuva esimerkkihakemisto: $example_path (viitattu $skill_md)"
+                    missing=$((missing + 1))
+                }
+            elif [[ "$example_ref" == *"*"* ]]; then
+                compgen -G "$example_path" > /dev/null || {
+                    echo "  ⚠ Glob-pattern ei matsaa mitään: $example_path (viitattu $skill_md)"
+                    missing=$((missing + 1))
+                }
+            else
+                [ -f "$example_path" ] || {
+                    echo "  ⚠ Puuttuva esimerkkitiedosto: $example_path (viitattu $skill_md)"
+                    missing=$((missing + 1))
+                }
+            fi
+        done < <(grep -oE 'examples/[^[:space:]`"]+' "$skill_md" | sort -u)
+    done < <(find skills -name "SKILL.md" -exec dirname {} \;)
+    return $missing
+}
+
+if examples_out=$(check_examples 2>&1); then
+    log_ok "examples-refs"
+else
+    log_fail "examples-refs"
+    printf '%s\n' "$examples_out" >&2
+    EXIT_CODE=1
+fi
+
+# --- Vaihe 4: privacy-scan (asiakasreferenssien vuototarkistus) --------------
+# Estää yksityisten asiakas-/toimeksiantonimien päätymisen julkiseen repoon.
+# Paikallinen suoja: termilista gitignored .blocklist-tiedostosta (ei repossa).
+# Ilman listaa step ohitetaan (exit 0), joten se ei riko kontribuoijia joilla
+# ei ole listaa — eikä CI:tä (jossa .blocklist:ia ei ole).
+run_step "privacy-scan" bash tools/privacy-scan.sh --all
+
+# --- Yhteenveto -------------------------------------------------------------
+ELAPSED=$(( $(date +%s) - START_TS ))
+if [ $EXIT_CODE -eq 0 ] && [ $WARN -eq 0 ]; then
+    echo "✓ kaikki tarkistukset läpi (${ELAPSED}s)"
+fi
+exit $EXIT_CODE

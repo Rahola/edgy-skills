@@ -1,0 +1,16 @@
+map_type: product
+elements:
+  - product: "Smart booking platform"
+  - capability: "Real-time pricing"
+  - capability: "Route optimisation"
+  - capability: "Loyalty management"
+  - task: "Buy ticket"
+  - task: "Plan connections"
+  - journey: "First-time traveller"
+  - brand: "Nordic Trains"
+relationships:
+  - "Smart booking platform" -> "Real-time pricing": "requires"
+  - "Smart booking platform" -> "Route optimisation": "requires"
+  - "Smart booking platform" -> "Buy ticket": "serves"
+  - "Smart booking platform" -> "First-time traveller": "features in"
+  - "Smart booking platform" -> "Nordic Trains": "embodies"

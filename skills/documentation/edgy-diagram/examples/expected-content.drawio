@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxGraphModel dx="1440" dy="876" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="2" value="Sustainability promise" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="80" y="80" width="200" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="3" value="On-time guarantee" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="330" y="80" width="160" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="4" value="Customer testimonials" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="80" y="180" width="190" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="5" value="Annual report" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="330" y="180" width="130" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="6" value="Service alerts" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="80" y="280" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="7" value="Travel inspiration blog" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="330" y="280" width="210" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="8" value="Loyalty programme rules" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="80" y="380" width="210" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="9" value="Pricing FAQ" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="330" y="380" width="120" height="60" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

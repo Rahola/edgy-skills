@@ -1,0 +1,12 @@
+map_type: object
+elements:
+  - object: "Booking record"
+  - object: "Passenger profile"
+  - object: "Payment receipt"
+  - object: "Boarding pass"
+  - object: "Train schedule"
+  - object: "Loyalty card"
+relationships:
+  - "Booking record" -> "Passenger profile": "tuottaa dataa"
+  - "Booking record" -> "Payment receipt": "tuottaa dataa"
+  - "Booking record" -> "Boarding pass": "tuottaa dataa"

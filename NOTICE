@@ -1,0 +1,41 @@
+edgy-skills
+Copyright 2026 edgy-skills contributors
+
+This product includes software developed by the edgy-skills contributors,
+licensed under the Apache License, Version 2.0 (see LICENSE).
+
+================================================================================
+Third-party attribution — EDGY 23 (Intersection Group)
+================================================================================
+
+These skills implement and reference the EDGY visual language for Enterprise
+Design ("EDGY 23"), created by the Intersection Group and Milan Guenther.
+
+EDGY is published under the Creative Commons Attribution-ShareAlike 4.0
+International licence (CC BY-SA 4.0):
+    https://creativecommons.org/licenses/by-sa/4.0/
+    https://intersection.group/
+
+The following materials in this repository are DERIVED FROM or DIRECTLY
+REPRODUCE EDGY 23 content and therefore remain subject to CC BY-SA 4.0
+(attribution + share-alike), independently of the Apache-2.0 licence that
+covers the rest of this repository:
+
+  - skills/documentation/edgy-diagram/assets/stencils/**
+        EDGY 23 draw.io stencils and SVG shape/icon set.
+  - skills/documentation/edgy-diagram/examples/official/**
+        The 16 official EDGY 23 example maps ("Intersection Railways"),
+        downloaded from the EDGY 23 specification.
+  - skills/architecture/edgy-assessment/examples/intersection-edgy-analysis.*
+        Reference analysis of the Intersection Group (public information),
+        used as the PDF layout reference.
+  - EDGY facet/element names, notation and colour conventions used throughout
+    the skill instructions.
+
+If you redistribute or adapt these EDGY-derived materials, you must:
+  1. Attribute the Intersection Group / EDGY 23, and
+  2. License your adaptations of those materials under CC BY-SA 4.0.
+
+The skill instructions, tooling (tools/**), CI, and other original content in
+this repository are licensed under Apache-2.0 and are NOT subject to the
+share-alike obligation above.

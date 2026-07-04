@@ -1,0 +1,12 @@
+map_type: task
+elements:
+  - task: "Search timetable" [functional]
+  - task: "Compare prices" [functional]
+  - task: "Buy ticket" [functional]
+  - task: "Plan connections" [functional]
+  - task: "Reserve seat" [functional]
+  - task: "Validate ticket" [functional]
+  - task: "Find platform" [functional]
+  - task: "Board train" [functional]
+  - task: "Reach destination" [emotional]
+  - task: "Claim refund" [functional]

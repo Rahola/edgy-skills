@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxGraphModel dx="1635" dy="817" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="7ROyrohieyGjDNt49tiy-1" value="Bring people together" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="400.00450794595713" y="219.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-2" value="Realize seamless mobility" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="560.0045079459571" y="99.99931200182806" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-3" value="Pioneer in &lt;br&gt;customer-oriented rail" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="200.00450794595724" y="39.99931200182789" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-4" value="Build new data-driven services" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="240.00450794595713" y="159.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-5" value="Reach countryside places" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="80.00450794595713" y="279.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-6" value="Pursue ultimate safety levels" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="560.0045079459571" y="279.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-7" value="Punctuality" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="560.0045079459571" y="219.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-8" value="Reduce carbon footprint per passenger" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="80.00450794595713" y="159.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-9" value="Run a shared infrastructure platform" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="80.00450794595713" y="219.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-10" value="Adaptive for new transportation technologies" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="240.00450794595713" y="99.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-11" value="Cost efficiency" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="560.0045079459571" y="339.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-12" value="Comfort and Convenience" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="560.0045079459571" y="159.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-13" value="Service delivery excellence" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="520.0045079459571" y="39.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-14" value="Revolutionise transportation in Europe" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="40.00450794595713" y="39.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-15" value="Sustainable&lt;br&gt;profit" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="400.00450794595713" y="99.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-16" value="Door to door with three clicks" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="240.00450794595713" y="219.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-17" value="Contribute to people's lives" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="360.00450794595724" y="39.99931200182789" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-18" value="Build trusted partnerships" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="240.00450794595713" y="279.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-19" value="Manage compliance and risk" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="560.0045079459571" y="399.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-20" value="Employee happiness and development" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="400.00450794595713" y="158.249312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-21" value="Preserve the environment" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="80.00450794595713" y="339.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-22" value="Utilise night time capacity" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="80.00450794595713" y="99.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+    <mxCell id="7ROyrohieyGjDNt49tiy-23" value="Offer a viable alternative to air traffic" style="whiteSpace=wrap;html=1;strokeColor=#FFFFFF;strokeWidth=2;fontSize=10;fillColor=#80ffb7;shadow=0;dashed=0;fontFamily=Helvetica;fontColor=#000000;rounded=1;arcSize=17;" parent="1" vertex="1">
+      <mxGeometry x="240.00450794595713" y="339.999312001828" width="81.82864527651138" height="46.75234720486041" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

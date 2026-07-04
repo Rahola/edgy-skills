@@ -1,0 +1,13 @@
+facet: architecture
+elements:
+  - capability: "Kehitysosaaminen - Ohjelmistokehitys"
+  - asset: "Resurssit - Pilvi-infrastruktuuri"
+  - process: "Prosessit - Ketterä kehitys"
+  - organisation: "Organisaatio - Teknologiaosasto"
+  - product: "Tuote - SaaS-alusta"
+relationships:
+  - capability -> process: "mahdollistaa"
+  - asset -> capability: "tukee"
+  - process -> product: "luo"
+  - organisation -> capability: "hallinnoi"
+  - organisation -> asset: "omistaa"

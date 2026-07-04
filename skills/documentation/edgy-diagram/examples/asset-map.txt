@@ -1,0 +1,9 @@
+map_type: asset
+elements:
+  - asset: "Train fleet" [material, owned]
+  - asset: "Track network" [material, owned]
+  - asset: "Power grid" [material, owned]
+  - asset: "Booking platform" [application, owned]
+  - asset: "Customer database" [data, owned]
+  - asset: "Maintenance depots" [material, owned]
+  - asset: "Mobile app" [application, owned]
