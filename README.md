@@ -48,6 +48,62 @@ scripts (or set the documented env var) if you use a fork.
 or the plantuml-stdlib `<edgy/edgy>` library. These are external tools; the skill
 degrades gracefully to emitting source XML/PUML if they are not installed.
 
+## Use-case examples
+
+Once the skills are installed (or their `SKILL.md` pasted into your agent),
+prompt in plain language. A few common workflows:
+
+### 1. Assessment from a public website
+
+Point the assessment at a company and its website — the agent gathers public
+information and produces the full analysis, model and diagrams.
+
+> *"Run an EDGY assessment of Acme Oy. Use their website https://acme.example
+> as the primary source."*
+
+Produces an analysis MD, an `edgy-model.json`, four facet TXTs and four draw.io
+diagrams. Good starting point when you know the target but not the internals.
+
+### 2. Assessment from your own / local materials
+
+Feed the assessment your own documents — strategy decks, a product brief,
+meeting notes, an intranet export — instead of (or alongside) public sources.
+
+> *"Run an EDGY assessment of our team based on the files in `./strategy-2026/`
+> and the product brief in `brief.md`. Language: English."*
+
+The `sources` input accepts URLs **and** local paths/materials; the resulting
+`edgy-model.json` becomes the context object for any follow-up deep-dive.
+
+### 3. Reframing a specific problem
+
+Use `edgy-framework` in `reframing` mode to broaden a single, narrow problem
+into an enterprise-design view across EDGY facets — no full assessment needed.
+
+> *"Reframe this challenge through EDGY: 'Customer churn is rising and support
+> tickets keep growing.'"*
+
+Returns a structured markdown reframing that surfaces the identity, experience
+and architecture angles behind the stated symptom.
+
+### 4. Deep-dive on a specific intersection
+
+After an assessment, drill into a chosen pair or trio of elements through one
+of four lenses (`dependency`, `alignment`, `gaps`, `opportunities`).
+
+> *"Deep-dive the `capability` ↔ `organisation` pair in `edgy-model.json`
+> through the `gaps` lens."*
+
+Produces a focused report plus a pairwise diagram — useful for pinpointing
+where the model is under-developed or where the biggest opportunities sit.
+
+### 5. Just a diagram
+
+Skip the analysis and render an EDGY-notation diagram straight from a
+description with `edgy-diagram`.
+
+> *"Draw an EDGY diagram of our customer-onboarding journey and export it to PNG."*
+
 ## Repository layout
 
 ```
