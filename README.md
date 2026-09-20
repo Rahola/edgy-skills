@@ -109,9 +109,16 @@ description with `edgy-diagram`.
 ```
 skills/            # the 4 EDGY skills (SKILL.md + assets/examples)
 tools/             # validator, registry updater, privacy scanner, git hooks
+docs/              # development plan / review notes
 registry.yaml      # machine-readable index of the skills
 .github/workflows/ # CI: validation + privacy guard
 ```
+
+## Development plan
+
+A review of diagrams and reports produced across earlier sessions, and the
+resulting prioritised roadmap (P0–P3), lives in
+[`docs/kehityssuunnitelma-2026-09.md`](docs/kehityssuunnitelma-2026-09.md) (Finnish).
 
 ## Contributing
 

@@ -20,6 +20,52 @@ perustelut.
 
 ---
 
+### 2026-09-20 — Claude Code
+
+**Toimeksianto:** Jälkikatselmus eri sessioissa tuotetuista EDGY-kaavioista ja
+-raporteista → kehityssuunnitelma edgy-skilleille.
+
+**Aineisto (yksityisestä upstream-reposta, ei porttattu tänne):** 6
+assessment-toimitusta (20 drawio + 24 txt + 6 analyysi-MD), 2 reframing-
+raporttia, 3 `generated/`-kokeilua + ongelmaloki, 9 draw.io-autosave-
+varmuuskopiota, 16 virallista EDGY 23 -karttaa. Lisäksi samat 24 syötettä
+uudelleengeneroitiin `edgy_generator.py` v1.7:llä vertailuksi.
+
+**Menetelmä:** ohjelmallinen skannaus (muoto/väri per perustyyppi, legenda,
+negatiiviset ja sivun ulkopuoliset koordinaatit, päällekkäisyys, tekstin
+mahtuvuus, ydinlinkkiverbi vs. sallittu pari, reunatyyli) + approksimoiva
+SVG-render ja visuaalinen vertailu virallisiin karttoihin.
+
+**Päälöydökset (aggregaatit, ei asiakastietoa):**
+- SKILL.md:n oletuspolku "kirjoita XML suoraan" tuottaa systemaattisesti
+  ohjeen omia CRITICAL-sääntöjä rikkovia kaavioita: legenda puuttui 16/20,
+  negatiivisia koordinaatteja 7/20, tekstiylivuotoa 15/20 (42 % elementeistä),
+  0 ankkuroitua reunaa. Parseri: 0/0/8 mutta 3 päällekkäisyyttä ja
+  intersection-elementit kauas faseteistaan. 7/20 kaaviota korjattu käsin
+  draw.io-desktopissa.
+- Linkkisemantiikka vuotaa: ydinlinkkiverbi väärällä parilla 4/20,
+  ei-ydinlinkki ydinlinkin tyylillä 8/20; ei influence-verbisanastoa;
+  `edgy_generator.py` ei tulosta parserin `warnings`-listaa (kirjoitusvirhe
+  `facet:`-arvossa putosi hiljaa identity-oletukseen).
+- Visuaalisesti kauas virallisista kartoista (kontit, nimi/kuvaus-erottelu,
+  intersection-sijoittelu). draw.io CLI ei ole ollut saatavilla yhdessäkään
+  sessiossa → PDF-putki vaatii ihmisen.
+- 0/6 toimituksessa `edgy-model.json` → `edgy-deep-dive` ei ajettavissa
+  vanhoille malleille.
+
+**Tuotos:** `docs/kehityssuunnitelma-2026-09.md` — P0–P3-toimenpiteet
+hyväksymiskriteereineen, sprinttijako, mittarit lähtötasoineen. Ydinsuositus:
+LLM → semanttinen malli → deterministinen layout → `edgy_lint.py`; suora XML
+vain fallbackina lintin kanssa.
+
+**Huomiot seuraaville agenteille:**
+- Sprint 1 (lint + varoitusten tulostus + parivalidointi + yksi ydinlinkki-
+  lähde) ennen layout-töitä: lint antaa lähtötason mittarit.
+- Kun lint on olemassa, aja se yksityisessä repossa vanhoihin toimituksiin ja
+  kirjaa tänne vain aggregaatit.
+
+---
+
 ### 2026-07-05 — Claude Code
 
 **Toimeksianto:** EDGY-skillien poiminta yksityisestä upstream-reposta
