@@ -118,7 +118,7 @@ registry.yaml      # machine-readable index of the skills
 
 A review of diagrams and reports produced across earlier sessions, and the
 resulting prioritised roadmap (P0–P3), lives in
-[`docs/kehityssuunnitelma-2026-09.md`](docs/kehityssuunnitelma-2026-09.md) (Finnish).
+[`docs/development-plan-2026-09.md`](docs/development-plan-2026-09.md).
 
 ## Contributing
 

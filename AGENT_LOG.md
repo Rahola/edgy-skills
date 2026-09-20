@@ -22,47 +22,47 @@ perustelut.
 
 ### 2026-09-20 — Claude Code
 
-**Toimeksianto:** Jälkikatselmus eri sessioissa tuotetuista EDGY-kaavioista ja
--raporteista → kehityssuunnitelma edgy-skilleille.
+**Assignment:** Retrospective review of EDGY diagrams and reports produced
+across earlier sessions → development plan for the EDGY skills.
 
-**Aineisto (yksityisestä upstream-reposta, ei porttattu tänne):** 6
-assessment-toimitusta (20 drawio + 24 txt + 6 analyysi-MD), 2 reframing-
-raporttia, 3 `generated/`-kokeilua + ongelmaloki, 9 draw.io-autosave-
-varmuuskopiota, 16 virallista EDGY 23 -karttaa. Lisäksi samat 24 syötettä
-uudelleengeneroitiin `edgy_generator.py` v1.7:llä vertailuksi.
+**Material (from the private upstream repo, not ported here):** 6 assessment
+deliveries (20 drawio + 24 txt + 6 analysis MD), 2 reframing reports, 3
+`generated/` experiments + issue log, 9 draw.io autosave backups, 16 official
+EDGY 23 maps. The same 24 inputs were also regenerated with
+`edgy_generator.py` v1.7 for comparison.
 
-**Menetelmä:** ohjelmallinen skannaus (muoto/väri per perustyyppi, legenda,
-negatiiviset ja sivun ulkopuoliset koordinaatit, päällekkäisyys, tekstin
-mahtuvuus, ydinlinkkiverbi vs. sallittu pari, reunatyyli) + approksimoiva
-SVG-render ja visuaalinen vertailu virallisiin karttoihin.
+**Method:** programmatic scan (shape/colour per base type, legend, negative
+and off-page coordinates, overlaps, text fit, core-link verb vs. allowed
+pair, edge style) + approximate SVG render and visual comparison against the
+official maps.
 
-**Päälöydökset (aggregaatit, ei asiakastietoa):**
-- SKILL.md:n oletuspolku "kirjoita XML suoraan" tuottaa systemaattisesti
-  ohjeen omia CRITICAL-sääntöjä rikkovia kaavioita: legenda puuttui 16/20,
-  negatiivisia koordinaatteja 7/20, tekstiylivuotoa 15/20 (42 % elementeistä),
-  0 ankkuroitua reunaa. Parseri: 0/0/8 mutta 3 päällekkäisyyttä ja
-  intersection-elementit kauas faseteistaan. 7/20 kaaviota korjattu käsin
-  draw.io-desktopissa.
-- Linkkisemantiikka vuotaa: ydinlinkkiverbi väärällä parilla 4/20,
-  ei-ydinlinkki ydinlinkin tyylillä 8/20; ei influence-verbisanastoa;
-  `edgy_generator.py` ei tulosta parserin `warnings`-listaa (kirjoitusvirhe
-  `facet:`-arvossa putosi hiljaa identity-oletukseen).
-- Visuaalisesti kauas virallisista kartoista (kontit, nimi/kuvaus-erottelu,
-  intersection-sijoittelu). draw.io CLI ei ole ollut saatavilla yhdessäkään
-  sessiossa → PDF-putki vaatii ihmisen.
-- 0/6 toimituksessa `edgy-model.json` → `edgy-deep-dive` ei ajettavissa
-  vanhoille malleille.
+**Key findings (aggregates only, no client data):**
+- The SKILL.md default "write the XML directly" systematically produces
+  diagrams that violate the instruction's own CRITICAL rules: legend missing
+  in 16/20, negative coordinates in 7/20, text overflow in 15/20 (42 % of
+  elements), 0 anchored edges. Parser output: 0/0/8, but 3 overlaps and
+  intersection elements placed far from their facets. 7/20 diagrams were
+  fixed by hand in draw.io desktop.
+- Link semantics leak: core-link verb on a wrong pair in 4/20, non-core
+  link in core-link style in 8/20; no influence-verb vocabulary;
+  `edgy_generator.py` never prints the parser's `warnings` list (a typo in
+  the `facet:` value silently fell back to the identity default).
+- Visually far from the official maps (containers, name/description
+  separation, intersection placement). The draw.io CLI was unavailable in
+  every session → the PDF pipeline needs a human.
+- 0/6 deliveries contain `edgy-model.json` → `edgy-deep-dive` cannot run on
+  existing models.
 
-**Tuotos:** `docs/kehityssuunnitelma-2026-09.md` — P0–P3-toimenpiteet
-hyväksymiskriteereineen, sprinttijako, mittarit lähtötasoineen. Ydinsuositus:
-LLM → semanttinen malli → deterministinen layout → `edgy_lint.py`; suora XML
-vain fallbackina lintin kanssa.
+**Output:** `docs/development-plan-2026-09.md` — P0–P3 actions with
+acceptance criteria, sprint split, metrics with baselines. Core
+recommendation: LLM → semantic model → deterministic layout →
+`edgy_lint.py`; direct XML only as a fallback, with lint.
 
-**Huomiot seuraaville agenteille:**
-- Sprint 1 (lint + varoitusten tulostus + parivalidointi + yksi ydinlinkki-
-  lähde) ennen layout-töitä: lint antaa lähtötason mittarit.
-- Kun lint on olemassa, aja se yksityisessä repossa vanhoihin toimituksiin ja
-  kirjaa tänne vain aggregaatit.
+**Notes for the next agents:**
+- Do Sprint 1 (lint + printed warnings + pair validation + single core-link
+  source) before layout work: the linter provides the baseline metrics.
+- Once the linter exists, run it against old deliveries in the private repo
+  and record only aggregates here.
 
 ---
 
