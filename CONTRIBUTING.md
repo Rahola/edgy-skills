@@ -61,8 +61,31 @@ field list and local validation steps.
 
 ```bash
 pip install pyyaml
-bash tools/check.sh            # validator + registry-sync + examples-refs + privacy-scan
+bash tools/check.sh            # validator + registry-sync + examples-refs + core-links-sync
+                               # + edgy-tests + edgy-lint-tests + edgy-lint + privacy-scan
 ```
+
+`check.sh` also runs the EDGY parser and linter tests and lints every
+`.drawio` example shipped with a skill (`examples/**`, official maps
+excluded). A shipped example must pass `edgy_lint.py` with 0 errors —
+regenerate it from its `.txt` input with `edgy_generator.py` rather than
+editing the XML by hand.
+
+## Relationship vocabulary — one source
+
+The 24 EDGY core links, their allowed (source → target) pairs and the
+influence-verb vocabulary live in **`skills/_shared/edgy-core-links.yaml`**.
+The tables in the four SKILL.md files (between `<!-- edgy-links:begin -->`
+and `<!-- edgy-links:end -->` markers) and the Python module
+`skills/documentation/edgy-diagram/scripts/edgy_core_links.py` are generated
+from it:
+
+```bash
+python3 tools/render-core-links.py          # regenerate all copies
+python3 tools/render-core-links.py --check  # what check.sh / CI runs
+```
+
+Never edit the generated tables or module directly — change the YAML.
 
 If you added or changed a skill, regenerate the registry and commit it:
 

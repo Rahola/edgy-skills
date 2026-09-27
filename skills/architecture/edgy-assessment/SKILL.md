@@ -1,6 +1,6 @@
 ---
 name: edgy-assessment
-version: "1.5.0"
+version: "1.5.1"
 description: >
   Comprehensive EDGY 23 Enterprise Design assessment: analysis, diagrams, and recommendations.
   Orchestrating skill that chains edgy-framework and edgy-diagram skills into a unified workflow.
@@ -183,8 +183,9 @@ Rules:
 
 **CRITICAL:** `core_links` MUST only contain pairs from this table. Every `verb_en` and `verb_fi` must match exactly. Do NOT invent pairs (e.g. `organisation → asset`, `asset → channel` are not core links). Do NOT use wrong verbs (e.g. `"utilises"` for `process → capability` — correct is `"realises"`). `"ilmentää"/"embodies"` belongs to `product → brand`, NOT `brand → content`.
 
+<!-- edgy-links:begin format=assessment -->
 | Source | Target | verb_en | verb_fi |
-|--------|--------|---------|---------|
+| -------- | -------- | --------- | --------- |
 | story | purpose | contextualises | kontekstualisoi |
 | content | purpose | expresses | ilmaisee |
 | content | story | conveys | välittää |
@@ -209,6 +210,7 @@ Rules:
 | organisation | brand | builds | rakentaa |
 | organisation | product | makes | valmistaa |
 | product | brand | embodies | ilmentää |
+<!-- edgy-links:end -->
 
 #### Mandatory sections (all 10 must be filled):
 
@@ -308,7 +310,19 @@ relationships:
 
 ### Phase 4: Drawio Diagrams (4 pcs)
 
-Generate a drawio diagram for each TXT file. **Generate drawio XML directly** — do not use Python scripts.
+Generate a drawio diagram for each TXT file **with the edgy-diagram generator** and lint the result:
+
+```bash
+G=skills/documentation/edgy-diagram/scripts
+python3 $G/edgy_generator.py <company>-identity.txt --output <company>-identity.drawio
+python3 $G/edgy_lint.py <company>-identity.drawio      # 0 errors required
+```
+
+Read every generator warning: a core-link verb on a wrong pair or a verb
+outside the vocabulary means the TXT file (and usually the analysis) is
+wrong — fix it there. Write drawio XML by hand only when Python cannot be
+executed, and lint the file as soon as it can. The XML specification below is
+the reference for that fallback and for reviewing generated output.
 
 **Outputs:**
 1. `<company>-identity.drawio`
@@ -402,7 +416,7 @@ All: `edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;`
 <mxCell id="1" parent="0"/>
 ```
 
-**Every drawio file MUST have:**
+**Every drawio file MUST pass `edgy_lint.py` with 0 errors.** In addition it MUST have:
 - More than 2 mxCell elements (id=0 and id=1 are structural)
 - Every EDGY element = own mxCell (`vertex="1"`, `value="..."`)
 - Every relationship = own mxCell (`edge="1"`, `source="..."`, `target="..."`)
@@ -510,6 +524,7 @@ Before completion, check ALL:
 - [ ] Output language matches `language` parameter
 
 #### Layout quality:
+- [ ] `edgy_lint.py` reports 0 errors for all four drawio files
 - [ ] No elements at negative coordinates in any drawio file
 - [ ] No overlapping elements in any drawio file (min 10px gap)
 - [ ] All element text fits within element boundaries

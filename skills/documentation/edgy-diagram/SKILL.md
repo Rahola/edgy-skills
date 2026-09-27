@@ -1,10 +1,12 @@
 ---
 name: edgy-diagram
-version: "1.7.0"
+version: "2.0.0"
 description: >
   Create EDGY-notation diagrams as draw.io XML or PlantUML source and export
-  them to PNG/SVG/PDF. Uses the EDGY facet model with draw.io CLI or the
-  plantuml-stdlib `<edgy/edgy>` library for rendering.
+  them to PNG/SVG/PDF. Generator-first workflow (edgy_generator.py) with
+  core-link pair validation, an influence-verb vocabulary and a drawio linter
+  (edgy_lint.py) that must pass before delivery. Uses the EDGY facet model
+  with draw.io CLI or the plantuml-stdlib `<edgy/edgy>` library for rendering.
 category: documentation
 tags: [diagram, drawio, visualization, documentation, edgy, enterprise-design, fi, en, fr, de]
 languages: [fi, en, fr, de]
@@ -107,16 +109,31 @@ Use this skill when:
 
 ## Agent Instructions
 
-### Primary Method: Direct XML Generation
+### Generation workflow: generator → lint → preview
 
-**Generate draw.io XML directly** — this is the primary and recommended method. DO NOT use Python scripts unless you are certain they can be executed.
+**Use the generator whenever Python 3 is available** (Claude Code, Cursor,
+Cowork, CI). Write the EDGY input in the TXT format below, run
+`scripts/edgy_generator.py`, then run `scripts/edgy_lint.py` on the result.
+Write draw.io XML by hand only when Python cannot be executed, and then only
+for diagrams under ~15 cells — and still lint the file as soon as you can.
 
 1. **Parse EDGY elements** from user input (natural language → element types)
-2. **Map elements to the facet model** and identify their relationships
-3. **Generate draw.io XML directly** in mxGraphModel format per the specification below
-4. **Write XML** to a `.drawio` file in the current working directory
-5. **Validate output** — verify the file contains elements (see validation section below)
-6. **If the user requests an export format** (png, svg, pdf), export using draw.io CLI
+2. **Map elements to the facet model** and choose relationships using the
+   verbs from the core-link and influence tables below — never invented ones.
+   When no core link fits a pair, use an influence verb (dashed line); do not
+   create a new solid Link.
+3. **Write the input file** `<name>.txt` (see Input Format)
+4. **Generate:** `python3 scripts/edgy_generator.py <name>.txt --format drawio --output <name>.drawio`
+   - Every parser warning (core-link verb on a wrong pair, verb outside the
+     vocabulary) is printed to stderr. Fix the input; do not ignore it.
+   - Input errors (unknown `facet` / `map_type`) stop the run with exit code 2.
+5. **Lint:** `python3 scripts/edgy_lint.py <name>.drawio` — **0 errors** required
+   before delivery (see Validation below)
+6. **Export** if the user requests png/svg/pdf (draw.io CLI or PlantUML engine)
+
+**Fallback — direct XML.** If Python is unavailable, write the XML per the
+specification below (the inline example is a correct file), keep the diagram
+small, and run the linter in the next environment that has Python.
 
 ### Complete Inline Example (Identity facet, 3 elements + 2 relationships)
 
@@ -222,9 +239,28 @@ Use this skill when:
 </mxCell>
 ```
 
-### CRITICAL VALIDATION — Always check before saving
+### Validation — run the linter before delivery
 
-**A valid drawio file contains:**
+```bash
+python3 scripts/edgy_lint.py <name>.drawio                       # 0 errors required
+python3 scripts/edgy_lint.py --warnings-as-errors <name>.drawio  # strict (examples shipped with the skill)
+python3 scripts/edgy_lint.py --json <name>.drawio                # machine-readable findings
+```
+
+`edgy_lint.py` reports `file:line: LEVEL RULE message` and exits 1 on errors.
+It checks:
+
+| Area | Rules |
+|------|-------|
+| Structure | XML parses; no `mxCell` nested inside another `mxCell`; every edge has `<mxGeometry relative="1" as="geometry"/>`; edge `source`/`target` exist and are vertices; unique ids |
+| Layout | no negative or off-page coordinates (parent chains resolved to absolute positions); no two elements overlapping > 30 %; text fits the element (estimate) |
+| Notation | EDGY 23 legend present; fill colours from the palette; Brand / Product / Organisation drawn as rectangles |
+| Semantics | core-link verb only on an allowed (source, target) pair; a non-core verb is never drawn with the solid core-link arrow; verbs come from the core / flow / tree / influence vocabulary |
+
+It accepts a bare `<mxGraphModel>` and multi-page `<mxfile>` files
+(plain or compressed). Warnings do not block delivery but should be read.
+
+**If the linter cannot be run, check by hand — a valid drawio file contains:**
 - More than 2 mxCell elements (id=0 and id=1 are structural, not content)
 - Every EDGY element = own mxCell (`vertex="1"`, `value="[element name]"`)
 - Every relationship = own mxCell (`edge="1"`, `source="[id]"`, `target="[id]"`)
@@ -242,13 +278,21 @@ Use this skill when:
 ```
 If your output contains ONLY these two mxCell elements, the diagram is empty and invalid. You MUST add mxCell elements for every EDGY element and relationship.
 
-### Alternative Method: Python Scripts
+### Generator reference
 
-If you have a reliable Python execution environment, you can use `scripts/edgy_generator.py`:
 ```bash
-python scripts/edgy_generator.py <input_file> --format drawio --output <output_file>
+python3 scripts/edgy_generator.py <input.txt> --format drawio --output <out.drawio>
+python3 scripts/edgy_generator.py <input.txt> --format png|svg|pdf [--engine drawio|plantuml] [--preset presentation|print|web]
+python3 scripts/edgy_generator.py <input.txt> --format plantuml --output <out.puml>
+python3 scripts/edgy_generator.py <input.txt> --lenient ...   # generate despite input errors (not for delivery)
 ```
-This is an alternative method — direct XML generation is preferred.
+
+The generator applies the layout strategy of the chosen `facet` / `map_type`,
+sizes elements to their text, distributes edge anchors, adds the legend and
+sizes the page to the content. The relationship vocabulary it validates
+against is generated from `skills/_shared/edgy-core-links.yaml` into
+`scripts/edgy_core_links.py`; do not edit either the module or the tables in
+this file by hand — change the YAML and run `python3 tools/render-core-links.py`.
 
 ## EDGY Facet Model
 
@@ -393,14 +437,44 @@ EDGY 23 defines four relationship types:
 | **Tree** | Solid line, no arrowhead | Hierarchy: decomposition, portfolios, organisational structures |
 | **Influence** | Dashed line, open arrowhead | Other influence/guidance (default) |
 
+### Influence verbs (for everything that is not a core link)
+
+Influence is the default relationship type: a dashed line with an open
+arrowhead. Use one of these verbs (matching the `language` parameter) whenever
+the pair is not one of the 24 core links — for example `capability → purpose`
+or `process → outcome`. **Do not invent a new solid Link relationship**, and
+do not reuse a core-link verb on a pair it does not belong to: the generator
+and the linter flag such edges and draw them as influence.
+
+<!-- edgy-links:begin format=influence -->
+| EN | FI | FR | DE | Typical use |
+| ---- | ---- | ---- | ---- | ------------- |
+| enables | mahdollistaa | permet | ermöglicht | A makes B possible |
+| guides | ohjaa | guide | steuert | A steers or constrains B |
+| influences | vaikuttaa | influence | beeinflusst | generic influence when nothing more specific fits |
+| offers | tarjoaa | offre | bietet | A makes B available (non-core product/channel pairs) |
+| manages | hallinnoi | gère | verwaltet | A administers B (organisation → asset |
+| reflects | heijastaa | reflète | spiegelt | B mirrors A (content → brand |
+| strengthens | vahvistaa | renforce | stärkt | A reinforces B |
+| defines | määrittelee | définit | definiert | A sets the scope or rules of B |
+| depends on | riippuu | dépend de | hängt ab von | A cannot exist without B (non-core pairs; core pairs use requires) |
+| produces | tuottaa | produit | bringt hervor | process → outcome: a process yields a measurable result |
+| measures | mittaa | mesure | misst | outcome → purpose: an outcome (KPI) measures a purpose |
+| contributes to | edistää | contribue à | trägt bei zu | capability → purpose or outcome: bridge when no core link exists |
+<!-- edgy-links:end -->
+
+`supports`/`tukee` is the core link brand → task; on any other pair it is
+reported as a wrong pair — use `enables` or `strengthens` instead.
+
 ### Official 24 EDGY Core Links
 
-These are the official named links from the EDGY 23 specification. Use the relationship verb matching the `language` parameter.
+These are the official named links from the EDGY 23 specification. Use the relationship verb matching the `language` parameter. Each verb is valid **only** for the (source → target) pairs listed here; `requires` / `vaatii` is valid for three pairs, everything else for one.
 
+<!-- edgy-links:begin format=grouped4 -->
 #### Identity Facet Links
 
 | Source → Target | EN | FI | FR | DE |
-|-----------------|----|----|----|----|
+| ----------------- | ---- | ---- | ---- | ---- |
 | story → purpose | contextualises | kontekstualisoi | contextualise | kontextualisiert |
 | content → purpose | expresses | ilmaisee | exprime | drückt aus |
 | content → story | conveys | välittää | transmet | vermittelt |
@@ -410,7 +484,7 @@ These are the official named links from the EDGY 23 specification. Use the relat
 #### Architecture Facet Links
 
 | Source → Target | EN | FI | FR | DE |
-|-----------------|----|----|----|----|
+| ----------------- | ---- | ---- | ---- | ---- |
 | capability → asset | requires | vaatii | nécessite | erfordert |
 | process → capability | realises | toteuttaa | réalise | realisiert |
 | process → asset | requires | vaatii | nécessite | erfordert |
@@ -420,7 +494,7 @@ These are the official named links from the EDGY 23 specification. Use the relat
 #### Experience Facet Links
 
 | Source → Target | EN | FI | FR | DE |
-|-----------------|----|----|----|----|
+| ----------------- | ---- | ---- | ---- | ---- |
 | task → journey | is part of | on osa | fait partie de | ist Teil von |
 | task → channel | uses | käyttää | utilise | nutzt |
 | journey → channel | traverses | kulkee | traverse | durchläuft |
@@ -430,7 +504,7 @@ These are the official named links from the EDGY 23 specification. Use the relat
 #### Organisation Intersection Links (Identity ↔ Architecture)
 
 | Source → Target | EN | FI | FR | DE |
-|-----------------|----|----|----|----|
+| ----------------- | ---- | ---- | ---- | ---- |
 | organisation → purpose | pursues | tavoittelee | poursuit | verfolgt |
 | organisation → story | authors | kirjoittaa | rédige | verfasst |
 | organisation → capability | has | omistaa | possède | besitzt |
@@ -439,17 +513,18 @@ These are the official named links from the EDGY 23 specification. Use the relat
 #### Product Intersection Links (Architecture ↔ Experience)
 
 | Source → Target | EN | FI | FR | DE |
-|-----------------|----|----|----|----|
+| ----------------- | ---- | ---- | ---- | ---- |
 | product → task | serves | palvelee | sert | bedient |
 | product → journey | features in | esiintyy | figure dans | erscheint in |
 
 #### Intersection Element Cross-Links
 
 | Source → Target | EN | FI | FR | DE |
-|-----------------|----|----|----|----|
+| ----------------- | ---- | ---- | ---- | ---- |
 | organisation → brand | builds | rakentaa | construit | baut auf |
 | organisation → product | makes | valmistaa | fabrique | stellt her |
 | product → brand | embodies | ilmentää | incarne | verkörpert |
+<!-- edgy-links:end -->
 
 ### Flow Relationship Keywords
 
@@ -567,12 +642,16 @@ EDGY 23 uses four visually distinct relationship types:
 
 ### Relationship Type Selection Algorithm
 
-The parser determines relationship style automatically by name:
+The parser classifies every relationship by verb **and** element pair:
 
-1. If name is in `EDGY_CORE_LINKS` dictionary → **Link** (`endArrow=classic;endFill=1;`)
-2. If name is in `FLOW_RELATIONSHIPS` set → **Flow** (`endArrow=open;endFill=0;`)
-3. If name is in `TREE_RELATIONSHIPS` set → **Tree** (`endArrow=none;`)
-4. Otherwise → **Influence** (`endArrow=open;endFill=0;dashed=1;`)
+1. Verb is a core-link verb **and** (source type, target type) is one of its allowed pairs → **Link** (`endArrow=classic;endFill=1;`)
+2. Verb is a core-link verb on any other pair → warning, drawn as **Influence** (the pair is not an official core link)
+3. Verb is in `FLOW_RELATIONSHIPS` → **Flow** (`endArrow=open;endFill=0;`)
+4. Verb is in `TREE_RELATIONSHIPS` → **Tree** (`endArrow=none;`)
+5. Verb is in the influence vocabulary → **Influence** (`endArrow=open;endFill=0;dashed=1;`)
+6. Any other verb → warning ("not in vocabulary"), drawn as **Influence**
+
+The linter applies the same rules to finished files (E010 / E011 / W104 / W105).
 
 All: `edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;` + arrow type
 
@@ -872,9 +951,12 @@ Rules:
 
 ## Error Handling
 
-- **Unknown element type** → Use white rectangle: `fillColor=#ffffff;strokeColor=#262626`
+- **Unknown element type** → Use white rectangle: `fillColor=#ffffff;strokeColor=#262626` (warning)
 - **Relationship source/target not found** → Skip relationship and warn user
 - **Missing facet value** → Default: `identity`
+- **Unknown `facet` or `map_type` value** (e.g. `all-facets`) → error, generator exits 2; fix the input (`--lenient` forces generation for debugging only)
+- **Core-link verb on a pair that is not a core link** → warning, drawn as influence; change the verb or the pair
+- **Verb outside the vocabulary** → warning, drawn as influence; pick a verb from the influence table
 
 ## Format Selection
 
@@ -971,7 +1053,7 @@ Export command: `drawio -x -f <format> -e -b 10 -o <output> <input.drawio>`
 
 ## Dependencies
 
-- Python 3.7+ and `xml.etree.ElementTree` (standard library)
+- Python 3.7+ and `xml.etree.ElementTree` (standard library) — for `edgy_generator.py`, `edgy_lint.py` and the generated `edgy_core_links.py`
 - draw.io CLI (for draw.io export to png/svg/pdf)
 - PlantUML (`plantuml.jar` + Java, or `plantuml` binary) — optional, only
   required when rendering PlantUML output to png/svg/pdf. `.puml` source

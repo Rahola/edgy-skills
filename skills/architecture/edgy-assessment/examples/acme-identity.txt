@@ -1,0 +1,23 @@
+# Acme Oy — Identity facet (input for edgy-diagram; fictional company)
+# Regenerate the diagram with:
+#   python3 skills/documentation/edgy-diagram/scripts/edgy_generator.py \
+#     skills/architecture/edgy-assessment/examples/acme-identity.txt \
+#     --output skills/architecture/edgy-assessment/examples/acme-identity.drawio
+facet: identity
+
+elements:
+  - purpose: "Kestävä teknologiakumppanuus - Rakennamme järjestelmiä joita joku oikeasti jaksaa ylläpitää"
+  - story: "Otaniemestä 200+ projektiin - Perustettu 2017, 30 ammattilaista, 141 vuoden yhteiskokemus"
+  - content: "Underpromise, overdeliver - Suora viestintä myös silloin kun on epämukavaa"
+  - brand: "Luotettava eurooppalainen ohjelmistotalo - Ei bullshit-pönötystä" [eurooppalainen, ei-hype]
+  - organisation: "Tiimipohjainen 30 hlö organisaatio - Embedded-tiimit asiakasprojekteissa" [tiimipohjainen]
+
+relationships:
+  - "story" -> "purpose": "kontekstualisoi"
+  - "content" -> "purpose": "ilmaisee"
+  - "content" -> "story": "välittää"
+  - "brand" -> "story": "herättää"
+  - "brand" -> "purpose": "edustaa"
+  - "organisation" -> "purpose": "tavoittelee"
+  - "organisation" -> "story": "kirjoittaa"
+  - "organisation" -> "brand": "rakentaa"

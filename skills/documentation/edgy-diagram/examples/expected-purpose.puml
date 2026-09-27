@@ -13,4 +13,20 @@ $link(story2, purpose1, "contextualises")
 $link(content3, purpose1, "expresses")
 $link(brand7, purpose1, "represents")
 
+legend right
+  **EDGY 23 — Elements**
+  <back:#80ffb7> Identity (Purpose, Story, Content) </back>
+  <back:#a6c0ff> Architecture (Capability, Asset, Process) </back>
+  <back:#ff99bd> Experience (Task, Channel, Journey) </back>
+  <back:#ffd580> Brand </back>
+  <back:#e599ff> Product </back>
+  <back:#80eaff> Organisation </back>
+  --
+  **Relationship types**
+  --> Link (core link, 24 official)
+  ->> Flow (data/value transfer)
+  --- Tree (hierarchy, no arrow)
+  -[dashed]-> Influence (guides/enables)
+endlegend
+
 @enduml

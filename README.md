@@ -44,9 +44,14 @@ installers and usage guides:
 The adapters point at `Rahola/edgy-skills` by default — change the repo in the
 scripts (or set the documented env var) if you use a fork.
 
-**Rendering diagrams** — `edgy-diagram` uses the [draw.io CLI](https://github.com/jgraph/drawio-desktop)
-or the plantuml-stdlib `<edgy/edgy>` library. These are external tools; the skill
-degrades gracefully to emitting source XML/PUML if they are not installed.
+**Generating and checking diagrams** — `edgy-diagram` ships a Python
+generator (`edgy_generator.py`, standard library only) that turns a short TXT
+model into draw.io XML, validates core-link pairs against the EDGY 23
+vocabulary, and a linter (`edgy_lint.py`) that must report 0 errors before a
+diagram is delivered. Rendering to PNG/SVG/PDF uses the
+[draw.io CLI](https://github.com/jgraph/drawio-desktop) or the plantuml-stdlib
+`<edgy/edgy>` library; these are external tools and the skill degrades
+gracefully to emitting source XML/PUML if they are not installed.
 
 ## Use-case examples
 
@@ -108,7 +113,8 @@ description with `edgy-diagram`.
 
 ```
 skills/            # the 4 EDGY skills (SKILL.md + assets/examples)
-tools/             # validator, registry updater, privacy scanner, git hooks
+skills/_shared/    # edgy-core-links.yaml — single source of the relationship vocabulary
+tools/             # validator, registry updater, core-links renderer, privacy scanner, git hooks
 docs/              # development plan / review notes
 registry.yaml      # machine-readable index of the skills
 .github/workflows/ # CI: validation + privacy guard

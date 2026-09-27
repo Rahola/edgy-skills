@@ -1,0 +1,189 @@
+#!/usr/bin/env python3
+"""Tests for edgy_lint.py — synthetic draw.io snippets, one rule per case."""
+
+import os
+import sys
+import tempfile
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import edgy_lint  # noqa: E402
+from edgy_parser import EDGYParser  # noqa: E402
+
+HEAD = ('<?xml version="1.0" encoding="utf-8"?>\n'
+        '<mxGraphModel pageWidth="800" pageHeight="600"><root>'
+        '<mxCell id="0"/><mxCell id="1" parent="0"/>')
+TAIL = '</root></mxGraphModel>'
+LEGEND = ('<mxCell id="leg0" value="EDGY 23 — Legend" style="text;html=1;" vertex="1" parent="1">'
+          '<mxGeometry x="600" y="500" width="150" height="20" as="geometry"/></mxCell>')
+PURPOSE = 'rounded=1;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#fff;strokeWidth=2;arcSize=30;fontSize=12;'
+STORY = 'shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#fff;strokeWidth=2;fontSize=12;'
+ORG = 'whiteSpace=wrap;html=1;fillColor=#80eaff;strokeColor=#fff;strokeWidth=2;fontSize=12;'
+ASSET = 'whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#fff;strokeWidth=2;fontSize=12;'
+CORE = 'edgeStyle=orthogonalEdgeStyle;endArrow=classic;endFill=1;'
+INFL = 'edgeStyle=orthogonalEdgeStyle;endArrow=open;endFill=0;dashed=1;'
+
+
+def vertex(i, value, style, x, y, w=120, h=60, parent='1'):
+    return (f'<mxCell id="{i}" value="{value}" style="{style}" vertex="1" parent="{parent}">'
+            f'<mxGeometry x="{x}" y="{y}" width="{w}" height="{h}" as="geometry"/></mxCell>')
+
+
+def edge(i, value, style, src, tgt, geometry=True):
+    g = '<mxGeometry relative="1" as="geometry"/>' if geometry else ''
+    return f'<mxCell id="{i}" value="{value}" style="{style}" edge="1" source="{src}" target="{tgt}" parent="1">{g}</mxCell>'
+
+
+def run(xml, *args):
+    with tempfile.NamedTemporaryFile('w', suffix='.drawio', delete=False, encoding='utf-8') as f:
+        f.write(xml)
+        path = f.name
+    try:
+        opts = edgy_lint.main.__globals__['argparse'].Namespace(no_legend='--no-legend' in args)
+        return [(x.rule, x.level) for x in edgy_lint.lint_file(path, opts)]
+    finally:
+        os.unlink(path)
+
+
+def rules(findings):
+    return {r for r, _ in findings}
+
+
+def test_clean_diagram():
+    xml = HEAD + vertex(2, 'Purpose', PURPOSE, 40, 40) + vertex(3, 'Story', STORY, 300, 40, 140) + \
+        edge(10, 'contextualises', CORE, 3, 2) + LEGEND + TAIL
+    f = run(xml)
+    assert f == [], f"clean diagram must have no findings, got {f}"
+
+
+def test_nested_cells_and_missing_geometry():
+    xml = HEAD + ('<mxCell id="2" value="Purpose" style="%s" vertex="1" parent="1">'
+                  '<mxGeometry x="40" y="40" width="120" height="60" as="geometry"/>'
+                  '<mxCell id="3" value="Story" style="%s" vertex="1" parent="2">'
+                  '<mxGeometry x="10" y="10" width="100" height="40" as="geometry"/></mxCell></mxCell>' % (PURPOSE, STORY)) + \
+        edge(10, 'contextualises', CORE, 3, 2, geometry=False) + LEGEND + TAIL
+    r = rules(run(xml))
+    assert 'E002' in r, r
+    assert 'E004' in r, r
+
+
+def test_dangling_edge_and_duplicate_id():
+    xml = HEAD + vertex(2, 'Purpose', PURPOSE, 40, 40) + vertex(2, 'Dup', PURPOSE, 300, 40) + \
+        edge(10, 'contextualises', CORE, 99, 2) + LEGEND + TAIL
+    r = rules(run(xml))
+    assert 'E003' in r and 'E005' in r, r
+
+
+def test_negative_offpage_overlap():
+    xml = HEAD + vertex(2, 'A', PURPOSE, -10, 40) + vertex(3, 'B', ASSET, 750, 40) + \
+        vertex(4, 'C', ORG, 300, 300) + vertex(5, 'D', ORG, 340, 320) + LEGEND + TAIL
+    r = rules(run(xml))
+    assert {'E006', 'E007', 'E008'} <= r, r
+
+
+def test_relative_geometry_resolves_through_parent():
+    # child at (700, 0) inside a container at (200, 100) → absolute x = 900 > page width 800
+    xml = HEAD + vertex(2, 'Area', 'container=1;fillColor=#c9d9ff;', 200, 100, 400, 200) + \
+        vertex(3, 'Cap', PURPOSE, 700, 0, parent='2') + LEGEND + TAIL
+    r = rules(run(xml))
+    assert 'E007' in r, r
+    assert 'W106' not in r, "container with a child must not be reported empty"
+
+
+def test_empty_container_warning():
+    xml = HEAD + vertex(2, 'Area', 'container=1;fillColor=#c9d9ff;', 200, 100, 400, 200) + \
+        vertex(3, 'Cap', PURPOSE, 40, 40) + LEGEND + TAIL
+    assert 'W106' in rules(run(xml))
+
+
+def test_legend_required_unless_disabled():
+    xml = HEAD + vertex(2, 'Purpose', PURPOSE, 40, 40) + TAIL
+    assert 'E009' in rules(run(xml))
+    assert 'E009' not in rules(run(xml, '--no-legend'))
+
+
+def test_core_verb_on_wrong_pair_and_noncore_with_core_style():
+    xml = HEAD + vertex(2, 'Org', ORG, 40, 40) + vertex(3, 'System', ASSET, 400, 40) + \
+        vertex(4, 'Purpose', PURPOSE, 40, 300) + \
+        edge(10, 'has', CORE, 2, 3) + edge(11, 'enables', CORE, 3, 4) + edge(12, 'pursues', INFL, 2, 4) + \
+        edge(13, 'zaps', INFL, 3, 4) + LEGEND + TAIL
+    f = run(xml)
+    r = rules(f)
+    assert 'E010' in r, f      # has: organisation → asset is not a core pair
+    assert 'E011' in r, f      # enables drawn solid
+    assert 'W104' in r, f      # pursues drawn dashed
+    assert 'W105' in r, f      # zaps unknown verb
+
+
+def test_text_fit_and_double_escape():
+    long = 'A very long element name that certainly does not fit into a small box at all ' * 2
+    xml = HEAD + vertex(2, long, PURPOSE, 40, 40) + vertex(3, 'her&amp;auml;tt&amp;auml;&amp;auml;', ORG, 400, 40) + LEGEND + TAIL
+    r = rules(run(xml))
+    assert 'W101' in r and 'W107' in r, r
+
+
+def test_intersection_shape_and_palette():
+    xml = HEAD + vertex(2, 'Brand', 'rounded=1;arcSize=30;fillColor=#ffd580;', 40, 40) + \
+        vertex(3, 'Odd', 'fillColor=#ff0000;', 400, 40) + LEGEND + TAIL
+    r = rules(run(xml))
+    assert 'W103' in r and 'W102' in r, r
+
+
+def test_mxfile_multipage_and_compressed():
+    import base64
+    import urllib.parse
+    import zlib
+    inner = HEAD.split('?>\n')[1] + vertex(2, 'Purpose', PURPOSE, 40, 40) + LEGEND + TAIL
+    comp = base64.b64encode(zlib.compress(urllib.parse.quote(inner, safe='').encode())[2:-4]).decode()
+    xml = ('<mxfile host="test"><diagram name="One" id="a">' + inner + '</diagram>'
+           '<diagram name="Two" id="b">' + comp + '</diagram></mxfile>')
+    f = run(xml)
+    assert f == [], f"multi-page mxfile should be clean, got {f}"
+
+
+def test_generator_output_is_lint_clean():
+    parser = EDGYParser()
+    parser.parse_input("""
+facet: all
+elements:
+  - purpose: "Sustainable mobility"
+  - story: "From bus depot to mobility platform"
+  - content: "Plain-language service promise"
+  - capability: "Ticketing"
+  - asset: "Fare engine"
+  - process: "Fare change"
+  - task: "Buy a ticket"
+  - channel: "Mobile app"
+  - journey: "Daily commute"
+  - organisation: "Acme Transit"
+  - product: "Acme app"
+  - brand: "Acme"
+relationships:
+  - "From bus depot to mobility platform" -> "Sustainable mobility": "contextualises"
+  - "Ticketing" -> "Fare engine": "requires"
+  - "Fare change" -> "Ticketing": "realises"
+  - "Buy a ticket" -> "Daily commute": "is part of"
+  - "Acme Transit" -> "Ticketing": "has"
+  - "Acme app" -> "Buy a ticket": "serves"
+  - "Acme" -> "Sustainable mobility": "represents"
+  - "Fare engine" -> "Sustainable mobility": "contributes to"
+""")
+    assert parser.warnings == [], parser.warnings
+    f = run(parser.generate_xml())
+    assert not [x for x in f if x[1] == 'ERROR'], f"generator output must be error-free, got {f}"
+
+
+def main():
+    tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
+    for t in tests:
+        print(f"Testing {t.__name__}...")
+        t()
+        print(f"{t.__name__} passed")
+    print(f"\nAll {len(tests)} lint tests passed")
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except AssertionError as e:
+        print(f"\nTest failed: {e}")
+        sys.exit(1)

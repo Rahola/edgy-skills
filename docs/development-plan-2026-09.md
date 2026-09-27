@@ -323,6 +323,9 @@ Review B task number (B#) where they trace to the field feedback.
 | Sprint 6 | P2.6–P2.8 (model extraction, schema, PlantUML) | 3–4 working days | edgy-assessment 1.6.0, edgy-deep-dive 1.1.0 |
 | Sprint 7 | P3.1–P3.6 | 3 working days | docs, CI, archimate positioning |
 
+**Status:** Sprint 1 (P0.1–P0.6) implemented — see `AGENT_LOG.md`
+2026-09-27. Remaining sprints are open.
+
 Sprints 1–2 unblock every agent environment and should ship first; the
 field team's own generator can be retired once Sprint 3 lands. Sprint 5 is
 the largest new surface and should be validated with the field team on the

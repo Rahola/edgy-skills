@@ -1,6 +1,6 @@
 ---
 name: edgy-framework
-version: "1.2.0"
+version: "1.2.1"
 description: >
   EDGY 23 enterprise design analysis: challenge reframing, facet intersection analysis,
   and element identification from natural language.
@@ -123,13 +123,14 @@ When the user provides a business description:
 
 1. **Read the description** and identify EDGY elements
 2. **Classify elements** by type (purpose, capability, task, etc.)
-3. **Propose core links** — which of the 24 official core links apply
+3. **Propose core links** — which of the 24 official core links apply. Each verb is valid only for its listed (source → target) pair. When no core link fits a pair, use an influence verb from the edgy-diagram skill's vocabulary (dashed line) — never invent a new Link
 4. **Provide edgy-diagram input** — ready input for diagram generation
 
 #### Official 24 EDGY Core Links
 
+<!-- edgy-links:begin format=flat4-fi -->
 | Source → Target | FI | EN | FR | DE |
-|-----------------|----|----|----|----|
+| ----------------- | ---- | ---- | ---- | ---- |
 | story → purpose | kontekstualisoi | contextualises | contextualise | kontextualisiert |
 | content → purpose | ilmaisee | expresses | exprime | drückt aus |
 | content → story | välittää | conveys | transmet | vermittelt |
@@ -154,6 +155,7 @@ When the user provides a business description:
 | organisation → brand | rakentaa | builds | construit | baut auf |
 | organisation → product | valmistaa | makes | fabrique | stellt her |
 | product → brand | ilmentää | embodies | incarne | verkörpert |
+<!-- edgy-links:end -->
 
 ## Output Templates
 

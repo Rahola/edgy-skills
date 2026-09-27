@@ -20,6 +20,63 @@ perustelut.
 
 ---
 
+### 2026-09-27 — Claude Code
+
+**Assignment:** Sprint 1 of `docs/development-plan-2026-09.md` (P0.1–P0.6):
+quality gate and a single generation path for the EDGY skills.
+
+**Implemented:**
+- **`edgy_lint.py`** (edgy-diagram/scripts): drawio linter for structure
+  (flat `mxCell` tree, edge geometry, dangling source/target, duplicate
+  ids), layout (negative / off-page coordinates with parent chains resolved,
+  overlaps > 30 %, text-fit estimate), notation (legend, palette,
+  intersection shapes) and semantics (core-link verb only on an allowed pair,
+  non-core verb never in core-link style, vocabulary). Handles bare
+  `mxGraphModel` and multi-page / compressed `mxfile`. 12 tests in
+  `test_lint.py`. Run on the 20 reviewed deliveries it reproduces the
+  review's findings (legend missing 16, negative coordinates, wrong pairs).
+- **Generator-first default** in edgy-diagram, edgy-assessment (Phase 4) and
+  edgy-deep-dive (lint step; pairwise stays hand-written until the generator
+  supports it). "DO NOT use Python scripts" removed everywhere.
+- **Parser warnings surfaced:** `edgy_generator.py` prints every warning to
+  stderr; unknown `facet` / `map_type` is an error (exit 2, `--lenient` to
+  override). Previously `facet: all-facets` silently became `identity`.
+- **Core-link pair validation:** each verb carries its allowed (source,
+  target) pairs — `requires`/`vaatii` for three pairs, `erscheint in` for
+  two. A core verb on a wrong pair warns and is drawn as influence. The old
+  `CORE_LINK_DIRECTIONS` mapped `requires` to one pair only, producing false
+  warnings for `process → asset` and `product → capability`.
+- **Influence vocabulary** (12 verbs × fi/en/fr/de, incl. `produces` for
+  process → outcome and `measures` for outcome → purpose) with the rule "no
+  core link fits → influence verb, never a new Link". Unknown verbs warn.
+- **Single source:** `skills/_shared/edgy-core-links.yaml` →
+  `tools/render-core-links.py` renders the SKILL.md tables (marker comments,
+  five formats) and the generated `edgy_core_links.py`. `check.sh` fails if
+  any copy is stale.
+- `check.sh` gained `core-links-sync`, `edgy-tests`, `edgy-lint-tests` and
+  `edgy-lint` (every shipped `.drawio` example, official maps excluded).
+
+**Fixed on the way:** the skill's own example inputs used core-link verbs on
+wrong pairs (`asset → capability: tukee`, `organisation → asset: omistaa`,
+`brand → content: represents`, `organisation → purpose: toteuttaa`, …) and
+two verbs outside any vocabulary. Corrected to proper core links or
+influence verbs; all 17 `expected-*.drawio` regenerated and lint-clean. The
+hand-written `acme-identity.drawio` (no legend, text overflow) is now
+generated from a new `acme-identity.txt`. A DE collision (`erzeugt` was both
+`creates` and `produces`) resolved with `bringt hervor`.
+
+**Versions:** edgy-diagram 1.7.0 → 2.0.0 (default path changes),
+edgy-assessment 1.5.1, edgy-deep-dive 1.0.1, edgy-framework 1.2.1.
+
+**Notes for the next agents:**
+- Sprint 2 (P0.7–P0.9): `mxfile` wrapper + `pages:`, pure-Python SVG
+  preview, mandatory preview loop. The linter already accepts `mxfile`.
+- E010 (core verb on a wrong pair) stays an error even though the parser
+  draws such edges as influence: the fix belongs in the input.
+- Adding a verb: edit the YAML, run the renderer, add a test.
+
+---
+
 ### 2026-09-20 — Claude Code
 
 **Assignment:** Retrospective review of EDGY diagrams and reports produced

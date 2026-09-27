@@ -26,72 +26,25 @@ from typing import Dict, List, Tuple
 #    Käyttö: dekompositio, portfoliot, organisaatiohierarkiat
 #    Tyyli: yhtenäinen viiva, ei nuolenpäätä, T-haarautuminen
 #
-# 4. VAIKUTUSVIIVA (influence) — oletus kaikille muille relaatioille
-#    Käyttö: A ohjaa, mahdollistaa, tukee, heijastaa tai edustaa B:tä
-#    Tyyli: yhtenäinen viiva, ei nuolenpäätä
+# 4. VAIKUTUSVIIVA (influence) — kaikki muut relaatiot
+#    Käyttö: A ohjaa, mahdollistaa, tuottaa tai mittaa B:tä; sanasto
+#    INFLUENCE_RELATIONSHIPS. Kun mikään 24 ydinlinkistä ei sovi parille,
+#    käytetään influence-verbiä — uutta Link-relaatiota ei keksitä.
+#    Tyyli: katkoviiva, avoin nuolenpää
 
 # ─── Viralliset EDGY 23 ydinlinkit (24 kpl) ──────────────────────────────
 # Lähde: EDGY 23 Language Foundations, s. 57
 # Kukin linkki on nimetty verbi joka ilmaisee suunnan: lähde → kohde
 # Kaksikielinen: englannin verbi → suomen verbi
 
-EDGY_CORE_LINKS = {
-    # Identity facet links (EN, FI, FR, DE)
-    'contextualises': 'link', 'kontekstualisoi': 'link',    # story → purpose
-    'contextualise': 'link', 'kontextualisiert': 'link',    # FR, DE
-    'expresses': 'link', 'ilmaisee': 'link',                # content → purpose
-    'exprime': 'link', 'drückt aus': 'link',                # FR, DE
-    'conveys': 'link', 'välittää': 'link',                  # content → story
-    'transmet': 'link', 'vermittelt': 'link',               # FR, DE
-    'evokes': 'link', 'herättää': 'link',                   # brand → story
-    'évoque': 'link', 'evoziert': 'link',                   # FR, DE
-    'represents': 'link', 'edustaa': 'link',                # brand → purpose
-    'représente': 'link', 'repräsentiert': 'link',          # FR, DE
-
-    # Architecture facet links (EN, FI, FR, DE)
-    'requires': 'link', 'vaatii': 'link',                   # capability → asset, process → asset, product → capability
-    'nécessite': 'link', 'erfordert': 'link',               # FR, DE
-    'realises': 'link', 'toteuttaa': 'link',                # process → capability
-    'réalise': 'link', 'realisiert': 'link',                # FR, DE
-    'creates': 'link', 'luo': 'link',                       # process → product
-    'crée': 'link', 'erzeugt': 'link',                      # FR, DE
-
-    # Experience facet links (EN, FI, FR, DE)
-    'is part of': 'link', 'on osa': 'link', 'osa': 'link',  # task → journey
-    'fait partie de': 'link', 'ist Teil von': 'link',        # FR, DE
-    'uses': 'link', 'käyttää': 'link',                      # task → channel
-    'utilise': 'link', 'nutzt': 'link',                      # FR, DE
-    'traverses': 'link', 'kulkee': 'link',                  # journey → channel
-    'traverse': 'link', 'durchläuft': 'link',               # FR, DE
-    'supports': 'link', 'tukee': 'link',                    # brand → task
-    'soutient': 'link', 'unterstützt': 'link',              # FR, DE
-    'appears in': 'link', 'näkyy': 'link',                  # brand → journey
-    'apparaît dans': 'link', 'erscheint in': 'link',        # FR, DE
-
-    # Organisation intersection links (EN, FI, FR, DE)
-    'pursues': 'link', 'tavoittelee': 'link',               # organisation → purpose
-    'poursuit': 'link', 'verfolgt': 'link',                  # FR, DE
-    'authors': 'link', 'kirjoittaa': 'link',                # organisation → story
-    'rédige': 'link', 'verfasst': 'link',                    # FR, DE
-    'has': 'link', 'omistaa': 'link',                       # organisation → capability
-    'possède': 'link', 'besitzt': 'link',                    # FR, DE
-    'performs': 'link', 'suorittaa': 'link',                # organisation → process
-    'exécute': 'link', 'führt aus': 'link',                  # FR, DE
-
-    # Product intersection links (EN, FI, FR, DE)
-    'serves': 'link', 'palvelee': 'link',                   # product → task
-    'sert': 'link', 'bedient': 'link',                       # FR, DE
-    'features in': 'link', 'esiintyy': 'link',              # product → journey
-    'figure dans': 'link', 'erscheint in': 'link',          # FR, DE (DE same as brand → journey)
-
-    # Intersection element cross-links (EN, FI, FR, DE)
-    'builds': 'link', 'rakentaa': 'link',                   # organisation → brand
-    'construit': 'link', 'baut auf': 'link',                 # FR, DE
-    'makes': 'link', 'valmistaa': 'link',                   # organisation → product
-    'fabrique': 'link', 'stellt her': 'link',                # FR, DE
-    'embodies': 'link', 'ilmentää': 'link',                 # product → brand
-    'incarne': 'link', 'verkörpert': 'link',                 # FR, DE
-}
+# Ydinlinkit, sallitut parit ja influence-sanasto tulevat generoidusta
+# moduulista edgy_core_links.py (lähde: skills/_shared/edgy-core-links.yaml).
+from edgy_core_links import (  # noqa: E402
+    EDGY_CORE_LINKS,
+    CORE_LINK_PAIRS,
+    INFLUENCE_RELATIONSHIPS,
+    core_link_pairs,
+)
 
 # Flow relationships → open arrowhead (data/value flows concretely)
 # Supported in FI, EN, FR, DE
@@ -201,38 +154,21 @@ MAP_TYPE_LAYOUT = {
 ALL_ELEMENT_TYPES = (IDENTITY_ELEMENTS | ARCHITECTURE_ELEMENTS |
                      EXPERIENCE_ELEMENTS | INTERSECTION_ELEMENTS | BASE_ELEMENTS)
 
-# Ydinlinkkien suuntavalidointi: verbi → (lähdetyyppi, kohdetyyppi)
-CORE_LINK_DIRECTIONS = {
-    'contextualises': ('story', 'purpose'), 'kontekstualisoi': ('story', 'purpose'),
-    'expresses': ('content', 'purpose'), 'ilmaisee': ('content', 'purpose'),
-    'conveys': ('content', 'story'), 'välittää': ('content', 'story'),
-    'evokes': ('brand', 'story'), 'herättää': ('brand', 'story'),
-    'represents': ('brand', 'purpose'), 'edustaa': ('brand', 'purpose'),
-    'requires': ('capability', 'asset'), 'vaatii': ('capability', 'asset'),
-    'realises': ('process', 'capability'), 'toteuttaa': ('process', 'capability'),
-    'creates': ('process', 'product'), 'luo': ('process', 'product'),
-    'is part of': ('task', 'journey'), 'on osa': ('task', 'journey'), 'osa': ('task', 'journey'),
-    'uses': ('task', 'channel'), 'käyttää': ('task', 'channel'),
-    'traverses': ('journey', 'channel'), 'kulkee': ('journey', 'channel'),
-    'supports': ('brand', 'task'), 'tukee': ('brand', 'task'),
-    'appears in': ('brand', 'journey'), 'näkyy': ('brand', 'journey'),
-    'pursues': ('organisation', 'purpose'), 'tavoittelee': ('organisation', 'purpose'),
-    'authors': ('organisation', 'story'), 'kirjoittaa': ('organisation', 'story'),
-    'has': ('organisation', 'capability'), 'omistaa': ('organisation', 'capability'),
-    'performs': ('organisation', 'process'), 'suorittaa': ('organisation', 'process'),
-    'serves': ('product', 'task'), 'palvelee': ('product', 'task'),
-    'features in': ('product', 'journey'), 'esiintyy': ('product', 'journey'),
-    'builds': ('organisation', 'brand'), 'rakentaa': ('organisation', 'brand'),
-    'makes': ('organisation', 'product'), 'valmistaa': ('organisation', 'product'),
-    'embodies': ('product', 'brand'), 'ilmentää': ('product', 'brand'),
-}
+# Ydinlinkkien parivalidointi: verbi → {(lähdetyyppi, kohdetyyppi), ...}
+# Sama verbi voi olla sallittu usealle parille (esim. requires/vaatii:
+# capability → asset, process → asset, product → capability).
+CORE_LINK_DIRECTIONS = CORE_LINK_PAIRS
+
+# Relaatiotyypit (kind) — määräävät reunan tyylin
+RELATIONSHIP_KINDS = ('link', 'flow', 'tree', 'influence')
 
 
 class EDGYParser:
     def __init__(self):
         self.elements = {}
         self.relationships = []
-        self.warnings = []
+        self.warnings = []   # ei-fataalit huomautukset (tulostetaan aina)
+        self.errors = []     # syötevirheet, joiden kanssa generointi ei ole luotettava
         self.facet = "identity"  # oletus
         self.map_type = None     # None = facet-pohjainen oletus
 
@@ -250,14 +186,20 @@ class EDGYParser:
             if line.startswith('facet:'):
                 facet_value = line.split(':')[1].strip().lower()
                 if facet_value not in VALID_FACETS:
-                    self.warnings.append(f"Tuntematon facet '{facet_value}', käytetään oletusta 'identity'")
+                    msg = (f"Tuntematon facet '{facet_value}' (sallitut: "
+                           f"{', '.join(sorted(VALID_FACETS))}), käytetään oletusta 'identity'")
+                    self.warnings.append(msg)
+                    self.errors.append(msg)
                     facet_value = 'identity'
                 self.facet = facet_value
                 continue
             elif line.startswith('map_type:'):
                 map_type_value = line.split(':')[1].strip().lower()
                 if map_type_value not in VALID_MAP_TYPES:
-                    self.warnings.append(f"Tuntematon map_type '{map_type_value}', ohitetaan")
+                    msg = (f"Tuntematon map_type '{map_type_value}' (sallitut: "
+                           f"{', '.join(sorted(VALID_MAP_TYPES))}), ohitetaan")
+                    self.warnings.append(msg)
+                    self.errors.append(msg)
                     map_type_value = None
                 self.map_type = map_type_value
                 continue
@@ -321,30 +263,59 @@ class EDGYParser:
                     target_id = self._find_element_id_by_value(target)
 
                     if source_id and target_id:
-                        self._validate_relationship_label(
+                        kind = self._classify_relationship(
                             label, source_id, target_id
                         )
                         self.relationships.append({
                             'source': source_id,
                             'target': target_id,
-                            'label': label
+                            'label': label,
+                            'kind': kind,
                         })
 
-    def _validate_relationship_label(self, label: str, source_id: str, target_id: str) -> None:
-        """Tarkista ydinlinkin suunnan oikeellisuus EDGY 23 -spesifikaation mukaan."""
+    def _classify_relationship(self, label: str, source_id: str, target_id: str) -> str:
+        """Luokittele relaatio tyyppiin link / flow / tree / influence ja
+        validoi ydinlinkin (lähdetyyppi, kohdetyyppi) -pari EDGY 23 -spesifikaation
+        mukaan.
+
+        - Ydinlinkin verbi sallitulla parilla → 'link'
+        - Ydinlinkin verbi väärällä parilla → varoitus, piirretään 'influence'
+          (katkoviiva), koska pari ei ole virallinen ydinlinkki
+        - Flow-/tree-sanaston verbi → 'flow' / 'tree'
+        - Influence-sanaston verbi → 'influence'
+        - Tuntematon verbi → varoitus, 'influence'
+        """
         label_lower = label.lower().strip()
-        if label_lower not in CORE_LINK_DIRECTIONS:
-            return  # Ei ydinlinkki, ei validoitavaa
+        source_type = self.elements.get(source_id, {}).get('type', '')
+        target_type = self.elements.get(target_id, {}).get('type', '')
 
-        expected_source_type, expected_target_type = CORE_LINK_DIRECTIONS[label_lower]
-        actual_source_type = self.elements.get(source_id, {}).get('type', '')
-        actual_target_type = self.elements.get(target_id, {}).get('type', '')
-
-        if actual_source_type != expected_source_type or actual_target_type != expected_target_type:
+        allowed = core_link_pairs(label_lower)
+        if allowed:
+            if (source_type, target_type) in allowed:
+                return 'link'
+            expected = ', '.join(f"{a} → {b}" for a, b in sorted(allowed))
             self.warnings.append(
-                f"Ydinlinkki '{label}': odotettu {expected_source_type} → {expected_target_type}, "
-                f"saatu {actual_source_type} → {actual_target_type}"
+                f"Ydinlinkki '{label}': sallittu {expected}; "
+                f"saatu {source_type} → {target_type} — ei virallinen ydinlinkki, "
+                f"piirretään influence-tyylillä (katkoviiva)"
             )
+            return 'influence'
+        if label_lower in FLOW_RELATIONSHIPS:
+            return 'flow'
+        if label_lower in TREE_RELATIONSHIPS:
+            return 'tree'
+        if label_lower in INFLUENCE_RELATIONSHIPS:
+            return 'influence'
+        self.warnings.append(
+            f"Relaatioverbi '{label}' ({source_type} → {target_type}) ei ole "
+            f"ydinlinkki-, flow-, tree- eikä influence-sanastossa — piirretään "
+            f"influence-tyylillä. Käytä sanaston verbiä (ks. SKILL.md, Influence verbs)."
+        )
+        return 'influence'
+
+    def _validate_relationship_label(self, label: str, source_id: str, target_id: str) -> None:
+        """Yhteensopivuus: validoi ydinlinkin pari (varoitus warnings-listaan)."""
+        self._classify_relationship(label, source_id, target_id)
 
     def _find_element_id_by_value(self, value: str) -> str:
         """Etsi elementin ID sen arvolla.
@@ -419,27 +390,39 @@ class EDGYParser:
         labels_html = ' | '.join(label_parts)
         return f'<b>{html.escape(name)}</b><br><font style="font-size:9px">{labels_html}</font>'
 
-    def _get_edge_style(self, label: str) -> str:
+    def _get_edge_style(self, label: str, kind: str = None) -> str:
         """Palauta relaation draw.io-tyyli relaatiotyypin mukaan.
 
         EDGY 23 relaatiotyypit:
         - Linkki (core link): nimetty yhteys → yhtenäinen viiva, suuntanuoli
         - Tietovirtanuoli (flow): data/arvo siirtyy → avoin nuolenpää
         - Puu (tree): hierarkia → yhtenäinen viiva, ei nuolenpäätä
-        - Vaikutusviiva (default): ohjaa/mahdollistaa → yhtenäinen viiva, ei nuolenpäätä
+        - Vaikutusviiva (influence): ohjaa/mahdollistaa → katkoviiva, avoin nuolenpää
+
+        `kind` tulee _classify_relationship():sta; jos sitä ei ole annettu,
+        luokitellaan pelkän verbin perusteella (ilman parivalidointia).
         """
-        label_lower = label.lower().strip()
+        if kind is None:
+            label_lower = label.lower().strip()
+            if label_lower in EDGY_CORE_LINKS:
+                kind = 'link'
+            elif label_lower in FLOW_RELATIONSHIPS:
+                kind = 'flow'
+            elif label_lower in TREE_RELATIONSHIPS:
+                kind = 'tree'
+            else:
+                kind = 'influence'
         base = (
             "edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;html=1;"
             "jumpStyle=arc;jumpSize=8;orthogonalLoop=1;"
             "labelBackgroundColor=#ffffff;labelBorderColor=none;"
         )
 
-        if label_lower in EDGY_CORE_LINKS:
+        if kind == 'link':
             return base + "endArrow=classic;endFill=1;"
-        elif label_lower in FLOW_RELATIONSHIPS:
+        elif kind == 'flow':
             return base + "endArrow=open;endFill=0;strokeWidth=2;"
-        elif label_lower in TREE_RELATIONSHIPS:
+        elif kind == 'tree':
             return base + "endArrow=none;"
         else:
             return base + "endArrow=open;endFill=0;dashed=1;"
@@ -788,7 +771,7 @@ class EDGYParser:
             cell_attrs = {
                 "id": str(element_id + vi),
                 "value": relationship['label'],
-                "style": self._get_edge_style(relationship['label']) + anchor_style,
+                "style": self._get_edge_style(relationship['label'], relationship.get('kind')) + anchor_style,
                 "edge": "1",
                 "source": element_mapping[relationship['source']],
                 "target": element_mapping[relationship['target']],

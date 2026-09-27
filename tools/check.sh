@@ -5,6 +5,9 @@
 # Claude Code -hookit (.claude/settings.json), git pre-commit (asennetaan
 # tools/install-git-hooks.sh:lla) ja manuaalinen kontribuoija.
 #
+# Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
+# edgy-tests, edgy-lint-tests, edgy-lint, privacy-scan.
+#
 # Käyttö:
 #   bash tools/check.sh                          # täysi tarkistus
 #   bash tools/check.sh --quick <polku>          # rajaa validator yhteen polkuun
@@ -186,6 +189,30 @@ else
     printf '%s\n' "$examples_out" >&2
     EXIT_CODE=1
 fi
+
+# --- Vaihe 3b: EDGY-sanaston synkronointi ----------------------------------
+# skills/_shared/edgy-core-links.yaml on ainoa lähde; SKILL.md-taulukot ja
+# edgy_core_links.py generoidaan siitä. Vanhentunut kopio = FAIL.
+run_step "core-links-sync" python3 tools/render-core-links.py --check
+
+# --- Vaihe 3c: EDGY-parserin ja -lintin testit -------------------------------
+EDGY_SCRIPTS="skills/documentation/edgy-diagram/scripts"
+run_step "edgy-tests" python3 "$EDGY_SCRIPTS/test_edgy.py"
+run_step "edgy-lint-tests" python3 "$EDGY_SCRIPTS/test_lint.py"
+
+# --- Vaihe 3d: EDGY-esimerkkikaavioiden lint --------------------------------
+# Jokaisen skillin mukana toimitettavan .drawio-esimerkin on oltava lint-puhdas
+# (0 virhettä; varoitukset sallitaan). Tämä on sama tarkistus, jonka agentti
+# ajaa omalle tuotokselleen ennen toimitusta.
+edgy_lint_examples() {
+    local files=()
+    while IFS= read -r f; do files+=("$f"); done < <(
+        find skills -path '*/examples/*' \( -name '*.drawio' -o -name '*.drawio.xml' \) \
+            -not -path '*/examples/official/*' | sort)
+    [ ${#files[@]} -gt 0 ] || return 0
+    python3 "$EDGY_SCRIPTS/edgy_lint.py" -q "${files[@]}"
+}
+run_step "edgy-lint" edgy_lint_examples
 
 # --- Vaihe 4: privacy-scan (asiakasreferenssien vuototarkistus) --------------
 # Estää yksityisten asiakas-/toimeksiantonimien päätymisen julkiseen repoon.

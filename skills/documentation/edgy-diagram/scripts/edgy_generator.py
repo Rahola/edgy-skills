@@ -39,6 +39,26 @@ def write_text_file(content: str, output_path: str) -> None:
         print(f"Error writing file: {e}")
         sys.exit(1)
 
+def report_parser_messages(edgy_parser, lenient: bool = False) -> None:
+    """Tulosta parserin varoitukset stderr:iin; pysäytä syötevirheisiin.
+
+    Varoitukset (esim. ydinlinkki väärällä parilla, tuntematon verbi) eivät
+    estä generointia mutta näytetään aina. Virheet (tuntematon facet tai
+    map_type) päättävät ajon exit-koodilla 2, ellei --lenient ole annettu.
+    """
+    for w in edgy_parser.warnings:
+        print(f"Warning: {w}", file=sys.stderr)
+    if edgy_parser.errors:
+        for e in edgy_parser.errors:
+            print(f"Error: {e}", file=sys.stderr)
+        if not lenient:
+            print("Input has errors — fix the input or pass --lenient to generate anyway.",
+                  file=sys.stderr)
+            sys.exit(2)
+    if edgy_parser.warnings:
+        print(f"{len(edgy_parser.warnings)} warning(s) — see above.", file=sys.stderr)
+
+
 # Export-presetit: (format, extra draw.io CLI args)
 # - presentation: 1920x1080 PNG, 150 DPI
 # - print: A3 PDF, 300 DPI, valkoinen tausta
@@ -176,6 +196,9 @@ def main():
     parser.add_argument('--preset', choices=list(EXPORT_PRESETS.keys()),
                        help='Export preset (presentation/print/web) — ohittaa --format')
     parser.add_argument('--output', help='Output file path')
+    parser.add_argument('--lenient', action='store_true',
+                       help='Generate even when the input has errors (unknown facet/map_type); '
+                            'by default such input exits with code 2')
 
     args = parser.parse_args()
 
@@ -192,6 +215,7 @@ def main():
     # Jäsennä EDGY
     edgy_parser = EDGYParser()
     edgy_parser.parse_input(input_content)
+    report_parser_messages(edgy_parser, args.lenient)
 
     # Normalisoi formaatti
     fmt = 'puml' if args.format == 'plantuml' else args.format
