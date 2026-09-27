@@ -64,6 +64,21 @@ recommendation: LLM → semantic model → deterministic layout →
 - Once the linter exists, run it against old deliveries in the private repo
   and record only aggregates here.
 
+**Revision 2 (2026-09-27):** merged written field feedback from a team that
+used the skills for internal target-state architecture work (about 15
+multi-page diagrams; feedback written against edgy-diagram 1.3 /
+edgy-assessment 1.1). Added to the plan: mxfile wrapper + `pages:`, groups /
+lanes / nesting with relative geometry, title + subtext + `id:` labels,
+routing rules by diagram size, a clearly labelled transition overlay
+(current → target, stroke only), per-map-type layout rules, strategy → EDGY
+mapping and capability-formulation guidance in `edgy-framework`, and a
+scoped `edgy-target-state` workflow. Explicitly scoped **out**: wiki/Confluence
+delivery mechanics, transcript processing, Playwright as a dependency, a
+second ADR skill; the parser's dashed Influence style already resolves one
+feedback item. Section 3 of the plan records every in/out decision with its
+rationale; Appendix A traces all 17 feedback items. The feedback document
+itself is private and is not committed.
+
 ---
 
 ### 2026-07-05 — Claude Code
