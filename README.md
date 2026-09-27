@@ -47,8 +47,11 @@ scripts (or set the documented env var) if you use a fork.
 **Generating and checking diagrams** — `edgy-diagram` ships a Python
 generator (`edgy_generator.py`, standard library only) that turns a short TXT
 model into draw.io XML, validates core-link pairs against the EDGY 23
-vocabulary, and a linter (`edgy_lint.py`) that must report 0 errors before a
-diagram is delivered. Rendering to PNG/SVG/PDF uses the
+vocabulary, a linter (`edgy_lint.py`) that must report 0 errors before a diagram is
+delivered, and a CLI-free preview (`edgy_render.py`: SVG always, PNG when a
+headless Chromium is found) that the agent looks at before delivering.
+Multi-page inputs produce one draw.io file with several pages. Final
+rendering to PNG/SVG/PDF uses the
 [draw.io CLI](https://github.com/jgraph/drawio-desktop) or the plantuml-stdlib
 `<edgy/edgy>` library; these are external tools and the skill degrades
 gracefully to emitting source XML/PUML if they are not installed.

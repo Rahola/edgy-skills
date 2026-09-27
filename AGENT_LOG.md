@@ -68,9 +68,39 @@ generated from a new `acme-identity.txt`. A DE collision (`erzeugt` was both
 **Versions:** edgy-diagram 1.7.0 → 2.0.0 (default path changes),
 edgy-assessment 1.5.1, edgy-deep-dive 1.0.1, edgy-framework 1.2.1.
 
+**Sprint 2 (P0.7–P0.9), same day:**
+- **`pages:` input + `mxfile` wrapper** (`edgy_document.py`): everything
+  before `pages:` is a document-level default; each `- name:` page is parsed
+  by its own parser (own layout and legend) and becomes one uncompressed
+  `<diagram name="…">`. Single-page input also gets the wrapper by default
+  (`--bare` restores the bare `mxGraphModel`). Output carries no timestamps
+  or random ids, so regenerated files diff cleanly. Warnings are prefixed
+  with the page name. Example: `examples/multipage-map.txt`.
+- **CLI-free preview** (`edgy_render.py`): pure-Python SVG per page
+  (containers via parent chains, pentagons, person, rounded corners from
+  `arcSize`, html labels with word-wrap, exit/entry anchors, waypoints,
+  orthogonal bends, per-colour arrow markers, dashed influence, legend
+  chips); PNG through a headless Chromium/Chrome when one is found
+  (`$EDGY_CHROMIUM`, PATH, Playwright browser dir, common install paths).
+  Wired into the generator as `--preview` and `--engine native`
+  (svg/png). Documented as approximate — the draw.io CLI stays the
+  publication export.
+- **Mandatory preview loop** in edgy-diagram (new section with a
+  six-point checklist), edgy-assessment Phase 4 + quality gate, and
+  edgy-deep-dive Phase 4. Rule: fix the input, never the XML.
+- 11 new tests in `test_render.py`; `check.sh` step `edgy-render-tests`.
+  All 18 shipped examples regenerated in `mxfile` form and lint-clean.
+- Versions: edgy-diagram 2.1.0, edgy-assessment 1.5.2, edgy-deep-dive 1.0.2.
+
 **Notes for the next agents:**
-- Sprint 2 (P0.7–P0.9): `mxfile` wrapper + `pages:`, pure-Python SVG
-  preview, mandatory preview loop. The linter already accepts `mxfile`.
+- Sprint 3 (P1.1–P1.7): groups/lanes/nesting in the input format, facet
+  containers, intersection placement, label standard, routing by size,
+  transition overlay, per-map-type layout rules. The renderer and linter
+  already resolve parent chains, so containers can land without touching
+  them.
+- Headless Chromium `--screenshot` sizes the PNG from the SVG's width/height;
+  very tall diagrams (> 4000 px) may need `--scale 1`.
+- The linter already accepts `mxfile`.
 - E010 (core verb on a wrong pair) stays an error even though the parser
   draws such edges as influence: the fix belongs in the input.
 - Adding a verb: edit the YAML, run the renderer, add a test.

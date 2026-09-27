@@ -1,6 +1,6 @@
 ---
 name: edgy-deep-dive
-version: "1.0.1"
+version: "1.0.2"
 description: >
   Targeted EDGY 23 deep-dive analysis of a specific element pair or facet combination.
   Requires an existing edgy-model.json produced by the edgy-assessment skill.
@@ -302,7 +302,9 @@ relationships:
 Then author `<company>-deep-dive-<elements>.drawio` directly as XML following the pairwise layout rules (the generator does not yet support the pairwise layout), include the legend block from the edgy-diagram skill, and lint the file before delivery:
 
 ```bash
-python3 skills/documentation/edgy-diagram/scripts/edgy_lint.py <company>-deep-dive-<elements>.drawio   # 0 errors required
+G=skills/documentation/edgy-diagram/scripts
+python3 $G/edgy_lint.py <company>-deep-dive-<elements>.drawio     # 0 errors required
+python3 $G/edgy_render.py <company>-deep-dive-<elements>.drawio   # SVG (+PNG) preview — look at it before delivery
 ```
 
 - Focus elements: `strokeWidth=4` (bold border), same colour as their element type
@@ -412,6 +414,7 @@ Before delivering, verify:
 - [ ] No generic statements ("the organisation should improve its capabilities") without specific grounding
 - [ ] Pairwise diagram TXT contains `[focus]` tags on focus elements
 - [ ] `edgy_lint.py` reports 0 errors for the pairwise drawio file
+- [ ] The pairwise diagram was previewed with `edgy_render.py` and the focus/neighbour layout reads correctly
 - [ ] Next deep-dive suggestion is grounded in a finding from this analysis
 
 ## Anti-patterns

@@ -1,11 +1,12 @@
 ---
 name: edgy-diagram
-version: "2.0.0"
+version: "2.1.0"
 description: >
-  Create EDGY-notation diagrams as draw.io XML or PlantUML source and export
-  them to PNG/SVG/PDF. Generator-first workflow (edgy_generator.py) with
-  core-link pair validation, an influence-verb vocabulary and a drawio linter
-  (edgy_lint.py) that must pass before delivery. Uses the EDGY facet model
+  Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML
+  source and export them to PNG/SVG/PDF. Generator-first workflow
+  (edgy_generator.py) with core-link pair validation, an influence-verb
+  vocabulary, a drawio linter (edgy_lint.py) and a CLI-free SVG/PNG preview
+  (edgy_render.py) that the agent must look at before delivery. Uses the EDGY facet model
   with draw.io CLI or the plantuml-stdlib `<edgy/edgy>` library for rendering.
 category: documentation
 tags: [diagram, drawio, visualization, documentation, edgy, enterprise-design, fi, en, fr, de]
@@ -92,6 +93,8 @@ examples:
     output: examples/expected-purpose.drawio
   - input: examples/purpose-map.txt
     output: examples/expected-purpose.puml
+  - input: examples/multipage-map.txt
+    output: examples/expected-multipage.drawio
 ---
 
 # EDGY Diagram Skill
@@ -129,7 +132,13 @@ for diagrams under ~15 cells — and still lint the file as soon as you can.
    - Input errors (unknown `facet` / `map_type`) stop the run with exit code 2.
 5. **Lint:** `python3 scripts/edgy_lint.py <name>.drawio` — **0 errors** required
    before delivery (see Validation below)
-6. **Export** if the user requests png/svg/pdf (draw.io CLI or PlantUML engine)
+6. **Preview and look at it:** `python3 scripts/edgy_render.py <name>.drawio`
+   (or `--preview` on the generator) writes an SVG — and a PNG when a
+   headless Chromium/Chrome is found — without the draw.io CLI. Open the
+   image, walk through the checklist in *Preview loop* below, fix the
+   **input** and regenerate. Never deliver a diagram you have not looked at.
+7. **Export** if the user requests png/svg/pdf (draw.io CLI, PlantUML engine,
+   or `--engine native` for an approximate SVG/PNG)
 
 **Fallback — direct XML.** If Python is unavailable, write the XML per the
 specification below (the inline example is a correct file), keep the diagram
@@ -281,15 +290,30 @@ If your output contains ONLY these two mxCell elements, the diagram is empty and
 ### Generator reference
 
 ```bash
-python3 scripts/edgy_generator.py <input.txt> --format drawio --output <out.drawio>
+python3 scripts/edgy_generator.py <input.txt> --format drawio --output <out.drawio>            # mxfile, all pages
+python3 scripts/edgy_generator.py <input.txt> --output <out.drawio> --preview                  # + SVG/PNG preview next to it
+python3 scripts/edgy_generator.py <input.txt> --format svg|png --engine native --output <out>  # CLI-free approximate render
 python3 scripts/edgy_generator.py <input.txt> --format png|svg|pdf [--engine drawio|plantuml] [--preset presentation|print|web]
 python3 scripts/edgy_generator.py <input.txt> --format plantuml --output <out.puml>
+python3 scripts/edgy_generator.py <input.txt> --bare ...      # bare <mxGraphModel> instead of <mxfile> (single page only)
 python3 scripts/edgy_generator.py <input.txt> --lenient ...   # generate despite input errors (not for delivery)
+python3 scripts/edgy_render.py <file.drawio> [--out DIR] [--no-png]   # preview an existing file, every page
 ```
 
 The generator applies the layout strategy of the chosen `facet` / `map_type`,
 sizes elements to their text, distributes edge anchors, adds the legend and
-sizes the page to the content. The relationship vocabulary it validates
+sizes the page to the content. Output is an **uncompressed `<mxfile>`** with
+one `<diagram name="…">` per page (see Multi-page input), which draw.io
+desktop, draw.io online and wiki plugins open directly; the file stays
+diffable. Multi-page input with the PlantUML format emits one `@startuml`
+block per page.
+
+**Engines for png/svg:** `drawio` (draw.io CLI, publication quality),
+`plantuml` (Java), `native` (pure Python SVG; PNG through a headless
+Chromium/Chrome found on `PATH`, in `$EDGY_CHROMIUM`, in Playwright's browser
+directory or the usual install locations — otherwise SVG only). The native
+render is approximate (fonts, wrapping, edge routing) and is meant for the
+preview loop, not for the final publication when the draw.io CLI is available. The relationship vocabulary it validates
 against is generated from `skills/_shared/edgy-core-links.yaml` into
 `scripts/edgy_core_links.py`; do not edit either the module or the tables in
 this file by hand — change the YAML and run `python3 tools/render-core-links.py`.
@@ -356,6 +380,31 @@ relationships:
   # OR by type (only works if there is exactly one element of that type):
   - <source_type> -> <target_type>: "<relationship name>"
 ```
+
+### Multi-page input (`pages:`)
+
+One `.drawio` file can hold several pages (for example a metamodel, an
+example and a translation table, or a roles page and a responsibility
+matrix). Everything before `pages:` applies to every page; each page has its
+own `facet` / `map_type`, elements, relationships, layout and legend:
+
+```
+facet: architecture              # document-level default
+pages:
+  - name: "Roles and actors"
+    elements:
+      - organisation: "Board"
+      - process: "Steer"
+    relationships:
+      - "Board" -> "Steer": "performs"
+  - name: "Systems"
+    map_type: asset
+    elements:
+      - asset: "Fare engine"
+```
+
+Page names become `<diagram name="…">` tabs in draw.io; previews are written
+as `<base>-<page>.svg`. See `examples/multipage-map.txt`.
 
 ### Allowed Element Types
 
@@ -572,6 +621,24 @@ When the user provides a description in natural language, identify elements as f
 
 IMPORTANT: All `mxCell` elements are direct children of `<root>`.
 Logical parent-child relationships are expressed via the `parent` attribute, NOT via XML nesting.
+
+**File wrapper.** The generator writes an uncompressed `<mxfile>`; a bare
+`<mxGraphModel>` (below) is also valid and is what the inline examples show.
+Use the wrapper whenever there is more than one page, and never compress
+(`compressed="false"`, no base64/deflate) so that the file stays reviewable
+and diffable:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<mxfile host="edgy-skills" compressed="false">
+  <diagram id="roles" name="Roles and actors">
+    <mxGraphModel ...>...</mxGraphModel>
+  </diagram>
+  <diagram id="systems" name="Systems">
+    <mxGraphModel ...>...</mxGraphModel>
+  </diagram>
+</mxfile>
+```
 
 ```xml
 <mxGraphModel dx="1440" dy="876" grid="1" gridSize="10" guides="1" tooltips="1"
@@ -949,6 +1016,34 @@ Rules:
 </mxCell>
 ```
 
+## Preview loop (mandatory before delivery)
+
+Lint catches structural and semantic errors; only a picture shows overlaps,
+cut text, spaghetti routing and labels sitting on top of boxes. Every
+delivered diagram must have been **looked at** by the agent:
+
+```bash
+python3 scripts/edgy_generator.py <name>.txt --output <name>.drawio --preview   # writes <name>.svg (+ .png)
+# or for an existing file:
+python3 scripts/edgy_render.py <name>.drawio
+```
+
+Open the PNG (or SVG) and check:
+
+- [ ] Edge labels do not sit on top of element labels; every edge visibly starts and ends at an element
+- [ ] No element is cut off or overlaps another; text fits inside its element
+- [ ] The legend does not overlap content
+- [ ] The page is not much taller than it is wide (height ≤ 1.5 × width) — otherwise split into pages or a different map type
+- [ ] The same element does not appear twice; intersection elements sit between the facets they bridge
+- [ ] A stakeholder could explain the picture in a minute — if not, reduce elements or split pages
+
+Fix the **input** (element order, shorter names, a different `map_type`,
+fewer relationships, pages) and regenerate. Do not patch the XML by hand;
+hand edits are lost on the next generation. If no Chromium is available the
+SVG can be opened in any browser or IDE preview; the render is approximate
+but sufficient for this checklist. Record in the delivery which preview was
+used.
+
 ## Error Handling
 
 - **Unknown element type** → Use white rectangle: `fillColor=#ffffff;strokeColor=#262626` (warning)
@@ -1053,7 +1148,8 @@ Export command: `drawio -x -f <format> -e -b 10 -o <output> <input.drawio>`
 
 ## Dependencies
 
-- Python 3.7+ and `xml.etree.ElementTree` (standard library) — for `edgy_generator.py`, `edgy_lint.py` and the generated `edgy_core_links.py`
+- Python 3.7+ and `xml.etree.ElementTree` (standard library) — for `edgy_generator.py`, `edgy_lint.py`, `edgy_render.py` (SVG) and the generated `edgy_core_links.py`
+- Headless Chromium / Chrome — optional, for PNG previews from `edgy_render.py` (`EDGY_CHROMIUM=<binary>` overrides detection)
 - draw.io CLI (for draw.io export to png/svg/pdf)
 - PlantUML (`plantuml.jar` + Java, or `plantuml` binary) — optional, only
   required when rendering PlantUML output to png/svg/pdf. `.puml` source

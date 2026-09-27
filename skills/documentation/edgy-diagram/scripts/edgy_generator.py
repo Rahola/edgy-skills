@@ -8,6 +8,8 @@ import sys
 import argparse
 from edgy_parser import EDGYParser
 from edgy_to_plantuml import generate_plantuml
+from edgy_document import parse_document, build_mxfile
+import edgy_render
 
 def read_input_file(file_path: str) -> str:
     """Lue syötetiedosto"""
@@ -39,24 +41,50 @@ def write_text_file(content: str, output_path: str) -> None:
         print(f"Error writing file: {e}")
         sys.exit(1)
 
-def report_parser_messages(edgy_parser, lenient: bool = False) -> None:
-    """Tulosta parserin varoitukset stderr:iin; pysäytä syötevirheisiin.
+def report_parser_messages(pages, lenient: bool = False) -> None:
+    """Tulosta parserien varoitukset stderr:iin; pysäytä syötevirheisiin.
 
-    Varoitukset (esim. ydinlinkki väärällä parilla, tuntematon verbi) eivät
-    estä generointia mutta näytetään aina. Virheet (tuntematon facet tai
-    map_type) päättävät ajon exit-koodilla 2, ellei --lenient ole annettu.
+    `pages` on lista (sivun nimi, EDGYParser). Varoitukset (esim. ydinlinkki
+    väärällä parilla, tuntematon verbi) eivät estä generointia mutta
+    näytetään aina. Virheet (tuntematon facet tai map_type) päättävät ajon
+    exit-koodilla 2, ellei --lenient ole annettu.
     """
-    for w in edgy_parser.warnings:
-        print(f"Warning: {w}", file=sys.stderr)
-    if edgy_parser.errors:
+    if isinstance(pages, EDGYParser):
+        pages = [(None, pages)]
+    multi = len(pages) > 1
+    n_warn = 0
+    has_errors = False
+    for name, edgy_parser in pages:
+        prefix = f"[{name}] " if multi else ""
+        for w in edgy_parser.warnings:
+            print(f"Warning: {prefix}{w}", file=sys.stderr)
+            n_warn += 1
         for e in edgy_parser.errors:
-            print(f"Error: {e}", file=sys.stderr)
-        if not lenient:
-            print("Input has errors — fix the input or pass --lenient to generate anyway.",
-                  file=sys.stderr)
-            sys.exit(2)
-    if edgy_parser.warnings:
-        print(f"{len(edgy_parser.warnings)} warning(s) — see above.", file=sys.stderr)
+            print(f"Error: {prefix}{e}", file=sys.stderr)
+            has_errors = True
+    if has_errors and not lenient:
+        print("Input has errors — fix the input or pass --lenient to generate anyway.",
+              file=sys.stderr)
+        sys.exit(2)
+    if n_warn:
+        print(f"{n_warn} warning(s) — see above.", file=sys.stderr)
+
+
+def render_preview(drawio_path: str, png: bool = True) -> None:
+    """CLI-vapaa esikatselu: SVG aina, PNG jos Chromium löytyy."""
+    try:
+        results = edgy_render.render_file(drawio_path, png=png)
+    except Exception as e:  # noqa: BLE001
+        print(f"Preview failed: {e}", file=sys.stderr)
+        return
+    for r in results:
+        label = f" [page {r['page']}]" if r['page'] else ""
+        print(f"Preview SVG: {r['svg']}{label}")
+        if r['png']:
+            print(f"Preview PNG: {r['png']}")
+    if png and not any(r['png'] for r in results):
+        print("Preview: no Chromium/Chrome found — SVG only. Open the SVG in a browser, "
+              "or set EDGY_CHROMIUM=<binary> for PNG.")
 
 
 # Export-presetit: (format, extra draw.io CLI args)
@@ -191,11 +219,19 @@ def main():
     parser.add_argument('input', help='Input file path or direct input')
     parser.add_argument('--format', choices=['drawio', 'png', 'svg', 'pdf', 'plantuml', 'puml'], default='drawio',
                        help='Output format (drawio is default, plantuml/puml = PlantUML source)')
-    parser.add_argument('--engine', choices=['drawio', 'plantuml'], default='drawio',
-                       help='Render engine for png/svg/pdf (default drawio). Ignored for drawio/plantuml/puml formats.')
+    parser.add_argument('--engine', choices=['drawio', 'plantuml', 'native'], default='drawio',
+                       help='Render engine for png/svg/pdf (default drawio). native = pure-Python SVG '
+                            '(+PNG via headless Chromium when available), no draw.io/Java needed; '
+                            'approximate rendering, no pdf. Ignored for drawio/plantuml/puml formats.')
     parser.add_argument('--preset', choices=list(EXPORT_PRESETS.keys()),
                        help='Export preset (presentation/print/web) — ohittaa --format')
     parser.add_argument('--output', help='Output file path')
+    parser.add_argument('--preview', action='store_true',
+                       help='After writing the .drawio, also write an SVG (and PNG when Chromium is '
+                            'available) next to it for the mandatory look-before-delivery step')
+    parser.add_argument('--bare', action='store_true',
+                       help='Write a bare <mxGraphModel> instead of the default <mxfile> wrapper '
+                            '(single-page input only)')
     parser.add_argument('--lenient', action='store_true',
                        help='Generate even when the input has errors (unknown facet/map_type); '
                             'by default such input exits with code 2')
@@ -212,17 +248,24 @@ def main():
     else:
         input_content = args.input
 
-    # Jäsennä EDGY
-    edgy_parser = EDGYParser()
-    edgy_parser.parse_input(input_content)
-    report_parser_messages(edgy_parser, args.lenient)
+    # Jäsennä EDGY (yksi tai useampi sivu)
+    try:
+        pages = parse_document(input_content)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(2)
+    report_parser_messages(pages, args.lenient)
+    edgy_parser = pages[0][1]   # ensimmäinen sivu: oletusnimet ja PlantUML-engine
+    if args.bare and len(pages) > 1:
+        print("Error: --bare supports single-page input only", file=sys.stderr)
+        sys.exit(2)
 
     # Normalisoi formaatti
     fmt = 'puml' if args.format == 'plantuml' else args.format
 
-    # PlantUML-source haara
+    # PlantUML-source haara (monisivuinen syöte → useita @startuml-lohkoja)
     if fmt == 'puml':
-        puml_content = generate_plantuml(edgy_parser)
+        puml_content = ''.join(generate_plantuml(p) + ('\n' if i else '') for i, (_, p) in enumerate(pages))
         if args.output:
             output_path = args.output if args.output.endswith('.puml') else args.output + '.puml'
         else:
@@ -249,8 +292,11 @@ def main():
         export_with_plantuml_cli(puml_path, output_path, fmt)
         return
 
-    # Draw.io pipeline
-    xml_content = edgy_parser.generate_xml()
+    # Draw.io pipeline: oletuksena mxfile-kääre (pakkaamaton), jokainen sivu omana <diagram>-elementtinä
+    if args.bare:
+        xml_content = edgy_parser.generate_xml()
+    else:
+        xml_content = build_mxfile([(name, p.generate_xml()) for name, p in pages])
     if args.output:
         if fmt != 'drawio':
             output_path = args.output
@@ -267,10 +313,24 @@ def main():
     temp_drawio_path = output_path if fmt == 'drawio' else output_path.replace(f'.{fmt}', '.drawio')
     write_drawio_file(xml_content, temp_drawio_path)
 
-    if fmt != 'drawio':
+    if fmt != 'drawio' and args.engine == 'native':
+        if fmt == 'pdf':
+            print("Error: the native engine renders svg/png only; use --engine drawio for pdf", file=sys.stderr)
+            sys.exit(2)
+        results = edgy_render.render_file(temp_drawio_path, png=(fmt == 'png'),
+                                          base=os.path.splitext(os.path.basename(output_path))[0],
+                                          out_dir=os.path.dirname(os.path.abspath(output_path)))
+        for r in results:
+            label = f" [page {r['page']}]" if r['page'] else ""
+            print(f"Successfully rendered: {r['png'] or r['svg']}{label}")
+        if fmt == 'png' and not any(r['png'] for r in results):
+            print("Warning: no Chromium/Chrome found — wrote SVG only (set EDGY_CHROMIUM=<binary>).", file=sys.stderr)
+    elif fmt != 'drawio':
         export_with_drawio_cli(temp_drawio_path, output_path, fmt, extra_export_args)
     else:
         print(f"EDGY diagram created: {output_path}")
+        if args.preview:
+            render_preview(output_path)
 
 if __name__ == "__main__":
     main()
