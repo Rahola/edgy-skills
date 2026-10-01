@@ -1,6 +1,6 @@
 ---
 name: edgy-diagram
-version: "2.1.0"
+version: "2.2.0"
 description: >
   Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML
   source and export them to PNG/SVG/PDF. Generator-first workflow
@@ -95,6 +95,16 @@ examples:
     output: examples/expected-purpose.puml
   - input: examples/multipage-map.txt
     output: examples/expected-multipage.drawio
+  - input: examples/capability-areas-map.txt
+    output: examples/expected-capability-areas.drawio
+  - input: examples/purpose-hierarchy-map.txt
+    output: examples/expected-purpose-hierarchy.drawio
+  - input: examples/organisation-roles-map.txt
+    output: examples/expected-organisation-roles.drawio
+  - input: examples/transition-overlay.txt
+    output: examples/expected-transition-overlay.drawio
+  - input: examples/lanes-map.txt
+    output: examples/expected-lanes.drawio
 ---
 
 # EDGY Diagram Skill
@@ -373,13 +383,22 @@ map_type: capability | organisation | journey | purpose   # optional, overrides 
 
 elements:
   - <element_type>: "<name>"
-  - <element_type>: "<name> - <description>"
+  - <element_type>: "<name> - <description>" [tags] {id: X, change: new, size: M, metric: value}
+  - <element_type>: "<name> | <subtext>"
+  - group: "<area name>"              # container; the indented elements below are its children
+    - <element_type>: "<name>"
+  - lane: "<layer name>"              # borderless band; the indented elements sit on it
+    - <element_type>: "<name>"
 
 relationships:
-  - "<source name>" -> "<target name>": "<relationship name>"
+  - "<source name>" -> "<target name>": "<verb>"
+  - "<source name>" -> "<target name>": "<verb>" {from: right, to: left, via: [(x,y)], change: replace, label: source}
   # OR by type (only works if there is exactly one element of that type):
-  - <source_type> -> <target_type>: "<relationship name>"
+  - <source_type> -> <target_type>: "<verb>"
 ```
+
+Names are matched on the part before ` - ` / ` | ` (the *name*), so a
+relationship can say `"Ticketing"` for `"Ticketing - sell and validate fares"`.
 
 ### Multi-page input (`pages:`)
 
@@ -405,6 +424,35 @@ pages:
 
 Page names become `<diagram name="…">` tabs in draw.io; previews are written
 as `<base>-<page>.svg`. See `examples/multipage-map.txt`.
+
+### Grouping, Lanes and Nesting
+
+draw.io keeps every `mxCell` as a direct child of `<root>`; containment is
+expressed with the `parent` attribute and the child's geometry is **relative**
+to its parent. The generator does this for you:
+
+- **`group:`** → a container (`container=1`). Use it for capability areas,
+  building blocks that contain capabilities, and for any Tree relationship
+  with more than three children — a container is clearer than lines. Members
+  are laid out in a 2–4-column grid inside; Tree relationships *between
+  members* are laid out as a tidy tree inside the container. Several groups
+  are placed in rows (2 per row up to 4 groups, then 3).
+- **`lane:`** → a borderless background band with a title in the top-left
+  corner. Members sit **on** the lane at root level (`parent="1"`), so edges
+  may cross lane borders. Lanes stack top-down and share one width; members
+  flow in rows inside the band. Edges between non-adjacent members of the same
+  row are routed over the top automatically.
+- **Facet containers** are created automatically: `facet: all` gives three
+  containers (Identity / Architecture / Experience) with Organisation between
+  the first two, Product between the last two and Brand below as the
+  Identity ↔ Experience bridge; a single facet gives one container plus the
+  intersection elements below it, three per row. Define your own `group:`s to
+  take over.
+
+Groups and lanes are structure, not EDGY elements: they take no relationships
+and carry no facet colour (containers use a light tint, lanes light grey).
+See `examples/capability-areas-map.txt`, `examples/lanes-map.txt` and
+`references/routing.md` for the XML patterns.
 
 ### Allowed Element Types
 
@@ -437,16 +485,33 @@ In relationships, source and target are matched to elements in the following ord
 
 **IMPORTANT:** Use the element's exact name in quotes for relationships. This prevents incorrect matches when two elements have similar names (e.g. "Test" and "Test System").
 
-### Labels (Tags and Metrics)
+### Labels: name, subtext, id, tags and metrics
 
-Elements can have tags in square brackets and metrics in curly braces:
+**Label standard.** The element shows its **name** in bold on the first line.
+Everything else is small subtext: `[ID]` and the description on the second
+line, tags and metrics on a third. The element's **width follows the name**,
+its height grows with the subtext lines — so long descriptions no longer
+overflow. Do **not** repeat the element type in the name (`"Capability
+Ticketing"`): the type is shown by shape and colour, and the linter warns
+(W109).
 
 ```
 elements:
-  - capability: "Customer service" [in-house, differentiating]
-  - asset: "CRM system" [application, owned] {cost: high, performance: good}
+  - capability: "Ticketing - sell and validate fares in every channel" {id: CAP-05}
+  - asset: "Fare engine | runs on-prem until 2027" [application, owned] {cost: high, size: M}
   - task: "Registration" [functional] {satisfaction: ok}
 ```
+
+Reserved keys inside `{…}` (not rendered as metrics):
+
+| Key | Values | Effect |
+|-----|--------|--------|
+| `id` | any short code (`PUR-01`, `CAP-05`, `ADR-004`) | rendered as `[ID]` in the subtext; use it for cross-references in documents |
+| `change` | `keep`, `new`, `change`, `replace`, `remove`, `decide` (fi/fr/de synonyms accepted) | transition overlay — see below |
+| `size` | `S` 120×60 (map), `M` 200×90 (card), `L` 270×120 (block) | minimum size class |
+| `highlight` | `yes` | dark 4 px border, e.g. first-round decision units (same as the `[focus]` tag) |
+
+Everything else in `{…}` is a metric and is colour-coded as before:
 
 #### Recommended Tags by Element Type (EDGY 23)
 
@@ -595,6 +660,18 @@ Example syntax: `"System A" -> "System B": "flows [customer data]"`
 | comprises | koostuu | comprend | umfasst | Whole comprises parts |
 | decomposes | jakaantuu | se décompose | zerlegt sich | Whole decomposes into parts |
 
+### Relationship options
+
+```
+- "Platform" -> "Legacy engine": "depends on" {from: top, to: bottom, via: [(760, 300)], change: replace, label: source}
+```
+
+`from` / `to` override the automatic exit and entry side; `via` adds explicit
+waypoints (page coordinates — use after a first preview); `change` colours the
+edge with the transition overlay; `label` moves the verb towards the source or
+target. Two relationships between the same pair are merged into one edge
+labelled `verb1 / verb2`. Full rules by diagram size: `references/routing.md`.
+
 ## EDGY Element Identification from Natural Language
 
 When the user provides a description in natural language, identify elements as follows:
@@ -731,36 +808,37 @@ All: `edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;` + arro
 - **No `--` in XML comments** — Double hyphen `--` is forbidden inside `<!-- -->` comments per XML specification.
 - **UTF-8 encoding** — Always write files with UTF-8 encoding (`<?xml version="1.0" encoding="utf-8"?>`).
 
-## CRITICAL: Routing and Space Usage
+## Routing and space usage by diagram size
 
-- **Sufficient space between elements** — At least 80px horizontal and 60px vertical distance between elements
-- **Align to grid** — All element x/y coordinates must be multiples of 10
-- **Orthogonal routing** — Use `edgeStyle=orthogonalEdgeStyle;rounded=1` for all edges
-- **Multiple edges to same element** — When multiple edges connect to the same element, use different connection points with `entryX`/`entryY` and `exitX`/`exitY` attributes (values 0–1) to avoid overlaps
-- **Element width** — Width is dynamically calculated based on text length: min 120 (rectangles), min 140 (pentagons), min 60 (person), max 280. Formula: `max(min_width, min(len(text) * 8 + 20, 280))` rounded up to nearest 10
+| Size | Cells | Rules |
+|------|-------|-------|
+| Small | < 10 | automatic: `edgeStyle=orthogonalEdgeStyle;rounded=1`, distributed anchors, ≥ 80 px horizontal and ≥ 60 px vertical spacing, coordinates on the 10 px grid |
+| Medium | 10–25 | set `{from:, to:}` where the automatic side is wrong; share a channel with `via:`; `{label: source}` for short verbs |
+| Large | > 25 | `lane:` bands, one integration bus (`{size: L}` Asset) instead of n×m edges, vertical channels, feedback loops with explicit waypoints; move influence edges to a second page |
+
+Details and XML patterns (waypoints, lanes, invisible anchors, bus,
+containers): `references/routing.md`. Whatever the size: preview, look, fix
+the input.
 
 ## EDGY Facet Model Layout (facet: all)
 
-When the diagram contains all three facets (`facet: all`), elements are placed in three vertical columns with **adaptive column widths**. Column positions are dynamically calculated based on the widest element or subtree in each column, ensuring tree hierarchies don't overflow into adjacent columns.
+Three facet containers side by side; the intersection elements sit **between
+the facets they bridge**, so core links stay short:
 
 ```
-Identity col     Organisation     Architecture col    Product      Experience col
-┌──────────┐    ┌──────────┐     ┌──────────┐       ┌──────────┐ ┌──────────┐
-│ Purpose  │    │          │     │Capability│       │          │ │  Task    │
-│ Content  │    │          │     │  Asset   │       │          │ │  Channel │
-│  Story   │    │          │     │  Process │       │          │ │  Journey │
-└──────────┘    └──────────┘     └──────────┘       └──────────┘ └──────────┘
-                ┌──────────┐                        ┌──────────┐
-                │ Org (ID  │                        │ Product  │
-                │ ↔ Arch)  │                        │(Arch↔Exp)│
-                └──────────┘                        └──────────┘
-                                 ┌──────────┐
-                                 │  Brand   │
-                                 │ (ID↔Exp) │
-                                 └──────────┘
+┌ Identity ──┐         ┌ Architecture ─┐          ┌ Experience ┐
+│ Purpose    │ [Org]   │ Capability    │ [Product]│ Task       │
+│ Content    │         │ Asset         │          │ Channel    │
+│ Story      │         │ Process       │          │ Journey    │
+└────────────┘         └───────────────┘          └────────────┘
+                 [ Brand — Identity ↔ Experience bridge ]
+                 [ base elements: people, activity, outcome, object ]
 ```
 
-**Column sizing:** Each column's width = `max(240, widest_element, widest_subtree)`. Columns are separated by a 60px gap. Intersection elements are positioned adaptively between the columns they bridge.
+Container width follows the widest member; Tree relationships inside a facet
+are laid out as a tree inside the container. A single facet (`identity`,
+`architecture`, `experience`) gives one container with a 2–4-column grid and
+the intersection elements below it, three per row.
 
 ## Map Types
 
@@ -768,13 +846,13 @@ When `map_type` is set, it overrides the `facet` layout and uses the map type's 
 
 | Map Type | Layout strategy | Min elements | Recommended | Primary element type |
 |----------|-----------------|-------------:|------------:|----------------------|
-| `capability` | grid + tree | 8 | 15–30 | capability |
-| `organisation` | tree (top-down) | 8 | 15–30 | organisation |
+| `capability` | **area containers** (`group:`) in rows; grid + tree without groups | 8 | 15–30 | capability |
+| `organisation` | **role model** when Process elements exist (roles as columns, actors under the role they `perform`); tree (top-down) otherwise | 8 | 15–30 | organisation |
 | `outcome` | grid + tree | 5 | 7–10 | outcome |
 | `journey` | sequence (left → right) | 4 | 6–8 | journey |
 | `activity` | sequence | 4 | 6–8 | activity |
 | `process` | sequence | 4 | 6–8 | process |
-| `purpose` | hub-and-spoke | 6 | 10–15 | purpose |
+| `purpose` | **hierarchy**: top purposes (mission, vision) → sub-purposes (`contains`) → Outcomes (`measures`); Organisation and Brand in the top row, Content left, Story right | 6 | 10–15 | purpose |
 | `brand` | hub-and-spoke | 5 | 7–10 | brand |
 | `product` | hub-and-spoke | 6 | 10–15 | product |
 | `object` | hub-and-spoke | 5 | 7–10 | object |
@@ -790,7 +868,10 @@ When `map_type` is set, it overrides the `facet` layout and uses the map type's 
 - **grid** — adaptive rows × columns, `cols ≈ sqrt(N)`, 130×60 leaves with 20px gap. Suits taxonomies, persona panels, content catalogues.
 - **tree** — first element becomes the root at the top centre; tree-relationship edges (`contains`, `comprises`, `decomposes`) drive the descent. Suits org charts, capability decomposition, outcome chains.
 - **sequence** — single horizontal row of pentagon arrows, 140×80 each. Suits journey stages, activity flows, process steps.
-- **hub-and-spoke** — first element at the centre, others on a circle whose radius scales with N. Suits a single anchor element (purpose, brand, product, object) surrounded by its supporting elements.
+- **hub-and-spoke** — first element at the centre, others on a circle whose radius scales with N. Suits a single anchor element (brand, product, object) surrounded by its supporting elements.
+- **hierarchy** (`purpose`) — mission/vision on top, focus areas as sub-purposes below, KPIs as Outcome base elements under each; never model focus areas as Story. Example: `examples/purpose-hierarchy-map.txt`.
+- **role model** (`organisation` with processes) — roles are Process arrows in the top row, actors sit under the role they perform; actors without a role go right. Example: `examples/organisation-roles-map.txt`.
+- **area containers** (`capability` with `group:`) — numbered areas as containers in rows, 2–4 capabilities per row inside, `{id: CAP-01}` in the subtext, `{highlight: yes}` for first-round decision units. The container *is* the tree — no tree lines. Example: `examples/capability-areas-map.txt`.
 
 The `edgy-deep-dive` skill generates **pairwise diagrams via direct XML
 authoring** (not through `edgy_parser.py`). Layout rules and the XML pattern
@@ -1015,6 +1096,27 @@ Rules:
   <mxGeometry relative="1" as="geometry"/>
 </mxCell>
 ```
+
+## Transition Overlay (EDGY extension — current → target state)
+
+EDGY 23 has no notion of change. For target-state work the skill adds an
+overlay on the **stroke only**; the fill always stays the EDGY facet colour, so
+the diagram remains a valid EDGY map. This is an **extension, not EDGY
+notation** — say so in the delivery.
+
+| `change` | fi | stroke | dashed |
+|----------|----|--------|--------|
+| `keep` | säilyy | `#6b778c` grey | no |
+| `new` (strengthen) | uusi / vahvistuu | `#006644` green | no |
+| `change` (merge, extend) | muuttuu / yhdistyy / laajenee | `#b26b00` amber | no |
+| `replace` | korvautuu | `#c25100` orange | no |
+| `remove` | poistuu | `#bf2600` red | no |
+| `decide` (open, see ADR) | päätettävä | `#bf2600` red | yes |
+
+Stroke width 4 on elements, 1.5 on edges; an edge takes the colour of the
+change it carries (`{change: …}` on the relationship). When any element or
+edge uses the overlay the legend gains a "Transition (extension)" block
+automatically. Example: `examples/transition-overlay.txt`.
 
 ## Preview loop (mandatory before delivery)
 

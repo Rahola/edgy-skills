@@ -24,7 +24,7 @@
           <mxGeometry x="220" y="560" width="160" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="8" value="Reliable European mobility for all" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="220" y="240" width="280" height="60" as="geometry"/>
+          <mxGeometry x="220" y="240" width="280" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="9" value="evokes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=classic;endFill=1;exitX=0.5;exitY=0.0;exitDx=0;exitDy=0;entryX=0.5;entryY=1.0;entryDx=0;entryDy=0;" edge="1" source="2" target="3" parent="1">
           <mxGeometry relative="1" as="geometry"/>

@@ -1,0 +1,33 @@
+# Purpose map as a hierarchy: mission and vision on top, strategic focus areas
+# as sub-purposes (tree relationship), KPIs as Outcome base elements that
+# `measure` a sub-purpose. Organisation and Brand sit in the top row, Content
+# left, Story right. Focus areas are NEVER modelled as Story.
+map_type: purpose
+
+elements:
+  - purpose: "Sustainable everyday mobility | mission" {id: PUR-01}
+  - purpose: "Most trusted way to move in the region by 2030 | vision" {id: PUR-02}
+  - purpose: "Seamless travel chains" {id: PUR-11}
+  - purpose: "Affordable and fair fares" {id: PUR-12}
+  - purpose: "Zero-emission fleet" {id: PUR-13}
+  - outcome: "Door-to-door time −15 % | 2027 target" {id: OUT-01}
+  - outcome: "Single ticket covers 95 % of trips" {id: OUT-02}
+  - outcome: "Fare satisfaction ≥ 4.0 / 5" {id: OUT-03}
+  - outcome: "CO2 per passenger-km −40 %" {id: OUT-04}
+  - content: "We keep the city moving - plain-language promise"
+  - story: "From a single bus line to a regional mobility platform"
+  - organisation: "Transit authority board"
+  - brand: "Acme Transit"
+
+relationships:
+  - "Sustainable everyday mobility" -> "Seamless travel chains": "contains"
+  - "Sustainable everyday mobility" -> "Affordable and fair fares": "contains"
+  - "Most trusted way to move in the region by 2030" -> "Zero-emission fleet": "contains"
+  - "Door-to-door time −15 %" -> "Seamless travel chains": "measures"
+  - "Single ticket covers 95 % of trips" -> "Seamless travel chains": "measures"
+  - "Fare satisfaction ≥ 4.0 / 5" -> "Affordable and fair fares": "measures"
+  - "CO2 per passenger-km −40 %" -> "Zero-emission fleet": "measures"
+  - "We keep the city moving" -> "Sustainable everyday mobility": "expresses"
+  - "From a single bus line to a regional mobility platform" -> "Sustainable everyday mobility": "contextualises"
+  - "Transit authority board" -> "Sustainable everyday mobility": "pursues"
+  - "Acme Transit" -> "Sustainable everyday mobility": "represents"

@@ -33,7 +33,8 @@ Rules
   W104 core-link verb drawn without core-link style
   W105 relationship verb not in any vocabulary (core / flow / tree / influence)
   W106 empty container                       W107 double-escaped HTML entity in a label
-  W108 unlabelled edge between two elements
+  W108 unlabelled edge between two elements  W109 label repeats the element type ("Capability X")
+  W110 stroke colour outside EDGY white / base-element dark / transition overlay palette
 """
 
 import argparse
@@ -62,7 +63,14 @@ PALETTE = {
     '#80ffb7': 'identity', '#a6c0ff': 'architecture', '#ff99bd': 'experience',
     '#ffd580': 'brand', '#e599ff': 'product', '#80eaff': 'organisation',
 }
-NEUTRAL_FILLS = {'#ffffff', '#fff', 'none', '#f5f5f5', '#f4f4f4', ''}
+NEUTRAL_FILLS = {'#ffffff', '#fff', 'none', '#f5f5f5', '#f4f4f4', '',
+                 '#e3ffee', '#e6edff', '#ffe6ef', '#eef2f7', '#c9d9ff', '#dce6ff'}  # container / lane tints
+OVERLAY_STROKES = {'#6b778c', '#006644', '#b26b00', '#c25100', '#bf2600'}
+ALLOWED_STROKES = {'#fff', '#ffffff', '#262626', '#555555', '#333333', 'none', ''} | OVERLAY_STROKES
+TYPE_WORDS = {'purpose', 'content', 'story', 'capability', 'asset', 'process', 'task', 'channel', 'journey',
+              'brand', 'product', 'organisation', 'organization', 'people', 'activity', 'outcome', 'object',
+              'tarkoitus', 'sisältö', 'tarina', 'kyvykkyys', 'resurssi', 'prosessi', 'tehtävä', 'kanava', 'matka',
+              'brändi', 'tuote', 'organisaatio'}
 LEGEND_WORDS = ('legend', 'selite', 'legende', 'légende')
 # A named entity surviving XML decoding (e.g. &auml; from &amp;auml; in the file)
 # means the label was escaped twice. draw.io's own html labels legitimately
@@ -226,6 +234,7 @@ def lint_model(path, page, model, lines, opts):
             legend_seen = True
         if st.get('container') == '1' or st.get('swimlane') is True or 'swimlane' in (c.get('style') or ''):
             containers.add(i)
+        is_lane = st.get('strokeColor') == 'none' and st.get('verticalAlign') == 'top' and 'text' not in st
         if ENTITY_RE.search(val):
             add('WARNING', 'W107', f'double-escaped HTML entity in label ({ENTITY_RE.search(val).group(0)}) — write UTF-8 text and escape only & < > " once', i)
         fill = st.get('fillColor', '').lower()
@@ -234,7 +243,7 @@ def lint_model(path, page, model, lines, opts):
             continue
         if fill in PALETTE and i not in containers:
             elements[i] = (c, st, abs_box(c))
-        elif fill not in NEUTRAL_FILLS and fill not in PALETTE and not i.startswith('leg'):
+        elif fill not in NEUTRAL_FILLS and fill not in PALETTE and i not in containers and not is_lane:
             add('WARNING', 'W102', f'fill colour {fill} is not an EDGY 23 palette colour', i)
 
     # E004/E005/W108 edges
@@ -265,25 +274,37 @@ def lint_model(path, page, model, lines, opts):
         et = element_type(st)
         if et in ('brand', 'product', 'organisation') and shape_of(st) != 'rect':
             add('WARNING', 'W103', f'{et} must use the plain rectangle (Object) shape', i)
-        # W101 text fit
-        text = strip_html(c.get('value') or '')
-        fs = float(st.get('fontSize', 12) or 12)
-        if text.strip() and w > 0 and h > 0:
-            chars_per_line = max(int((w - 12) / (fs * CHAR_W)), 1)
+        stroke = st.get('strokeColor', '').lower()
+        if stroke and stroke not in ALLOWED_STROKES:
+            add('WARNING', 'W110', f'stroke colour {stroke} is neither EDGY white nor a transition-overlay colour', i)
+        first_line = strip_html(c.get('value') or '').strip().split('\n')[0]
+        words = first_line.split()
+        if len(words) >= 2 and words[0].lower().strip(':') in TYPE_WORDS:
+            add('WARNING', 'W109', f'label starts with the element type ("{words[0]}") — the type is shown by shape and colour; use the name only', i)
+        # W101 text fit — per line, honouring <font style="font-size:Npx"> overrides
+        raw = c.get('value') or ''
+        fs_default = float(st.get('fontSize', 12) or 12)
+        if raw.strip() and w > 0 and h > 0:
+            needed_h = 0.0
             needed_lines = 0
-            for para in text.split('\n'):
-                words = para.split() or ['']
-                cur = 0
-                needed_lines += 1
-                for word in words:
+            for seg in re.split(r'<br\s*/?>', raw, flags=re.I):
+                m = re.search(r'font-size:\s*(\d+(?:\.\d+)?)px', seg, re.I)
+                fs = float(m.group(1)) if m else fs_default
+                para = html.unescape(re.sub(r'<[^>]+>', '', seg)).strip()
+                if not para:
+                    continue
+                chars_per_line = max(int((w - 12) / (fs * CHAR_W)), 1)
+                n_lines, cur = 1, 0
+                for word in para.split():
                     if cur and cur + 1 + len(word) > chars_per_line:
-                        needed_lines += 1
+                        n_lines += 1
                         cur = len(word)
                     else:
                         cur += (1 if cur else 0) + len(word)
-            available = int((h - 6) / (fs * LINE_H))
-            if needed_lines > max(available, 1):
-                add('WARNING', 'W101', f'text needs ~{needed_lines} lines but the element fits ~{max(available,1)} ({w:.0f}x{h:.0f}, font {fs:.0f}) — widen the element or shorten the label', i)
+                needed_lines += n_lines
+                needed_h += n_lines * fs * LINE_H
+            if needed_h > h - 4:
+                add('WARNING', 'W101', f'text needs ~{needed_lines} lines (~{needed_h:.0f}px) but the element is {w:.0f}x{h:.0f} — widen the element or shorten the label', i)
 
     for i in containers:
         if not any(c.get('parent') == i for c in cells.values()):
@@ -319,7 +340,8 @@ def lint_model(path, page, model, lines, opts):
         if not verb:
             continue
         st = style_dict(e.get('style'))
-        core_style = st.get('endArrow') == 'classic' and st.get('endFill') == '1' and st.get('dashed') != '1'
+        overlay_dash = st.get('dashed') == '1' and st.get('strokeColor', '').lower() in OVERLAY_STROKES
+        core_style = st.get('endArrow') == 'classic' and st.get('endFill') == '1' and (st.get('dashed') != '1' or overlay_dash)
         s_type = element_type(elements[src][1])
         t_type = element_type(elements[tgt][1])
         allowed = core_link_pairs(verb)

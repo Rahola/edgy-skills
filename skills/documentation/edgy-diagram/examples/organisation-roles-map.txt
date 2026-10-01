@@ -1,0 +1,26 @@
+# Organisation map as a role model: roles are Process arrows in the top row,
+# actors (Organisation) sit under the role they perform. Actors without a role
+# go to the right. Use it to see who steers, procures, defines, produces,
+# operates and approves — and where one small team carries several roles.
+map_type: organisation
+
+elements:
+  - process: "Steer | portfolio and funding decisions"
+  - process: "Procure | tendering and contracts"
+  - process: "Define | requirements and acceptance"
+  - process: "Produce | build and integrate"
+  - process: "Operate | run, support, monitor"
+  - organisation: "Board" {id: ORG-01}
+  - organisation: "Procurement office" {id: ORG-02}
+  - organisation: "Platform team | 8 people" {id: ORG-03, highlight: yes}
+  - organisation: "Ticketing supplier" {id: ORG-04}
+  - organisation: "Service desk" {id: ORG-05}
+  - organisation: "City partners | 19 municipalities" {id: ORG-06}
+
+relationships:
+  - "Board" -> "Steer": "performs"
+  - "Procurement office" -> "Procure": "performs"
+  - "Platform team" -> "Define": "performs"
+  - "Platform team" -> "Produce": "performs"
+  - "Ticketing supplier" -> "Produce": "performs"
+  - "Service desk" -> "Operate": "performs"

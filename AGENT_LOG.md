@@ -92,8 +92,43 @@ edgy-assessment 1.5.1, edgy-deep-dive 1.0.1, edgy-framework 1.2.1.
   All 18 shipped examples regenerated in `mxfile` form and lint-clean.
 - Versions: edgy-diagram 2.1.0, edgy-assessment 1.5.2, edgy-deep-dive 1.0.2.
 
+**Sprint 3 (P1.1–P1.7), 2026-10-01 — edgy-diagram 2.2.0:**
+- **Groups, lanes, nesting:** `group:` → `container=1` with children as
+  `parent`-referenced cells in relative coordinates (grid 2–4 columns, or a
+  tidy tree when the members have tree relationships); `lane:` → borderless
+  band, members at root level, edges between non-adjacent members of a row
+  routed over the top. Groups are placed in rows; lanes stack.
+- **Facet containers:** `facet: all` now draws Identity / Architecture /
+  Experience containers with Organisation between the first two, Product
+  between the last two and Brand below as the Identity ↔ Experience bridge
+  (review A finding 2.3: intersection elements used to sit at the bottom
+  and pull 20 edges across the canvas). Single facet: one container + the
+  intersection elements below, wrapped three per row (fixes the parser's
+  overlaps with 4–6 products).
+- **Label standard:** `<b>Name</b>` + small subtext (`[ID]` + description)
+  + tags/metrics line; width follows the *name*, height the subtext.
+  `"Name - Description"` and `"Name | subtext"` both work; reserved metric
+  keys `id`, `change`, `size` (S/M/L), `highlight`. Name matching uses the
+  part before the separator.
+- **Relationship options** `{from, to, via, change, label}`; duplicate
+  edges between a pair merge into `verb1 / verb2`.
+- **Transition overlay** (documented as an EDGY extension): `{change: keep|
+  new|change|replace|remove|decide}` colours the stroke only (width 4,
+  `decide` dashed); edges carry the colour of their change; legend gains a
+  "Transition (extension)" block automatically.
+- **Map-type layouts:** purpose = hierarchy (top purposes → sub-purposes →
+  Outcomes, Organisation/Brand top row, Content left, Story right);
+  organisation = role model when Process elements exist; capability =
+  area containers with `group:`.
+- Lint: per-line text-fit (honours 9 px subtext), W109 (type word in the
+  label), W110 (stroke outside white / base / overlay palette), overlay
+  dashes allowed on core links. 12 new tests in `test_structure.py`;
+  `references/routing.md` holds the routing rules and XML patterns. Five
+  new examples; all 23 shipped examples lint-clean.
+
 **Notes for the next agents:**
-- Sprint 3 (P1.1–P1.7): groups/lanes/nesting in the input format, facet
+- Sprint 4–7 follow in the same PR; see the plan status line.
+- Sprint 3 note: groups/lanes/nesting in the input format, facet
   containers, intersection placement, label standard, routing by size,
   transition overlay, per-map-type layout rules. The renderer and linter
   already resolve parent chains, so containers can land without touching

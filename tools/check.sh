@@ -6,7 +6,8 @@
 # tools/install-git-hooks.sh:lla) ja manuaalinen kontribuoija.
 #
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
-# edgy-tests, edgy-lint-tests, edgy-render-tests, edgy-lint, privacy-scan.
+# edgy-tests, edgy-lint-tests, edgy-render-tests, edgy-structure-tests, edgy-lint,
+# privacy-scan.
 #
 # Käyttö:
 #   bash tools/check.sh                          # täysi tarkistus
@@ -200,6 +201,7 @@ EDGY_SCRIPTS="skills/documentation/edgy-diagram/scripts"
 run_step "edgy-tests" python3 "$EDGY_SCRIPTS/test_edgy.py"
 run_step "edgy-lint-tests" python3 "$EDGY_SCRIPTS/test_lint.py"
 run_step "edgy-render-tests" python3 "$EDGY_SCRIPTS/test_render.py"
+run_step "edgy-structure-tests" python3 "$EDGY_SCRIPTS/test_structure.py"
 
 # --- Vaihe 3d: EDGY-esimerkkikaavioiden lint --------------------------------
 # Jokaisen skillin mukana toimitettavan .drawio-esimerkin on oltava lint-puhdas

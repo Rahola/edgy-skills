@@ -1,0 +1,332 @@
+#!/usr/bin/env python3
+"""Sprint 3 tests: groups/lanes/nesting, label standard, relationship options,
+transition overlay, facet containers, purpose hierarchy, organisation role model."""
+
+import os
+import sys
+import xml.etree.ElementTree as ET
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from edgy_parser import EDGYParser, CHANGE_PALETTE  # noqa: E402
+
+
+def cells_by_label(root):
+    out = {}
+    for c in root.iter('mxCell'):
+        if c.get('vertex') == '1' and c.get('value'):
+            import re, html
+            key = html.unescape(re.sub(r'<[^>]+>', '\n', c.get('value'))).strip().split('\n')[0].strip()
+            out.setdefault(key, c)
+    return out
+
+
+def abs_pos(root, cell):
+    by_id = {c.get('id'): c for c in root.iter('mxCell')}
+    g = cell.find('mxGeometry')
+    x, y = float(g.get('x', 0)), float(g.get('y', 0))
+    p = by_id.get(cell.get('parent'))
+    while p is not None and p.get('vertex') == '1':
+        pg = p.find('mxGeometry')
+        x += float(pg.get('x', 0)); y += float(pg.get('y', 0))
+        p = by_id.get(p.get('parent'))
+    return x, y
+
+
+def gen(text):
+    p = EDGYParser()
+    p.parse_input(text)
+    xml = p.generate_xml()
+    return p, ET.fromstring(xml), xml
+
+
+def test_group_becomes_container_with_relative_children():
+    p, root, xml = gen("""
+map_type: capability
+elements:
+  - group: "1 Customer"
+    - capability: "1.1 Customer data" {id: CAP-01}
+    - capability: "1.2 Identity"
+  - group: "2 Fares"
+    - capability: "2.1 Fare products"
+  - capability: "Loose capability"
+""")
+    assert p.warnings == [], p.warnings
+    assert len(p.groups) == 2 and p.groups['group1']['members'] == ['capability1', 'capability2']
+    assert p.elements['capability4']['group'] is None
+    cells = cells_by_label(root)
+    g1 = cells['1 Customer']
+    assert 'container=1' in g1.get('style') and g1.get('parent') == '1'
+    child = cells['1.1 Customer data']
+    assert child.get('parent') == g1.get('id'), "child must reference the container via parent"
+    cg, gg = child.find('mxGeometry'), g1.find('mxGeometry')
+    # relative geometry stays inside the container
+    assert 0 <= float(cg.get('x')) and float(cg.get('x')) + float(cg.get('width')) <= float(gg.get('width'))
+    assert 0 <= float(cg.get('y')) and float(cg.get('y')) + float(cg.get('height')) <= float(gg.get('height'))
+    assert cells['Loose capability'].get('parent') == '1'
+    assert '[CAP-01]' in child.get('value'), "id renders in the subtext"
+    # containers are emitted before their children (draw-order)
+    ids = [c.get('id') for c in root.iter('mxCell')]
+    assert ids.index(g1.get('id')) < ids.index(child.get('id'))
+
+
+def test_tree_inside_group_is_laid_out_as_tree():
+    p, root, _ = gen("""
+map_type: capability
+elements:
+  - group: "Area"
+    - capability: "Root"
+    - capability: "Left"
+    - capability: "Right"
+relationships:
+  - "Root" -> "Left": "contains"
+  - "Root" -> "Right": "contains"
+""")
+    cells = cells_by_label(root)
+    rx, ry = abs_pos(root, cells['Root'])
+    lx, ly = abs_pos(root, cells['Left'])
+    qx, qy = abs_pos(root, cells['Right'])
+    assert ly > ry and qy > ry, "children below the root"
+    assert lx < qx, "siblings side by side"
+    assert cells['Left'].get('parent') == cells['Area'].get('id')
+
+
+def test_lane_members_stay_at_root_on_the_band():
+    p, root, _ = gen("""
+facet: architecture
+elements:
+  - lane: "L1 Channels"
+    - channel: "App"
+    - channel: "Web"
+  - lane: "L2 Core"
+    - capability: "Ticketing"
+""")
+    cells = cells_by_label(root)
+    lane = cells['L1 Channels']
+    assert 'strokeColor=none' in lane.get('style') and 'container=1' not in lane.get('style')
+    app = cells['App']
+    assert app.get('parent') == '1', "lane members sit at root level"
+    lx, ly = abs_pos(root, lane)
+    lg = lane.find('mxGeometry')
+    ax, ay = abs_pos(root, app)
+    assert lx <= ax <= lx + float(lg.get('width')) and ly <= ay <= ly + float(lg.get('height'))
+    l1y = abs_pos(root, lane)[1]
+    l2y = abs_pos(root, cells['L2 Core'])[1]
+    assert l2y > l1y, "lanes stack top-down"
+
+
+def test_label_standard_name_subtext_id_size():
+    p, root, _ = gen("""
+facet: architecture
+elements:
+  - capability: "Ticketing - sell and validate fares" {id: CAP-05}
+  - asset: "Fare engine | runs on-prem" {size: M}
+  - process: "Fare change" [internal] {cost: high}
+""")
+    e1 = p.elements['capability1']
+    assert e1['name'] == 'Ticketing' and e1['subtext'] == 'sell and validate fares' and e1['ref'] == 'CAP-05'
+    assert 'id' not in e1['metrics'], "reserved keys are not rendered as metrics"
+    cells = cells_by_label(root)
+    v = cells['Ticketing'].get('value')
+    assert v.startswith('<b>Ticketing</b><br>') and '[CAP-05]' in v and 'sell and validate fares' in v
+    w = float(cells['Ticketing'].find('mxGeometry').get('width'))
+    assert w == 120, f"width follows the NAME length, not the description: {w}"
+    g = cells['Fare engine'].find('mxGeometry')
+    assert float(g.get('width')) >= 200 and float(g.get('height')) >= 90, "size class M"
+    assert 'cost: high' in cells['Fare change'].get('value')
+
+
+def test_transition_overlay_strokes_and_legend():
+    p, root, xml = gen("""
+facet: architecture
+elements:
+  - asset: "Legacy" {change: replace}
+  - asset: "New platform" {change: uusi}
+  - asset: "Gateway" {change: decide}
+  - asset: "Plain"
+relationships:
+  - "New platform" -> "Legacy": "depends on" {change: replace}
+""")
+    assert p.uses_change_overlay and p.warnings == [], p.warnings
+    cells = cells_by_label(root)
+    assert f"strokeColor={CHANGE_PALETTE['replace'][0]}" in cells['Legacy'].get('style')
+    assert 'strokeWidth=4' in cells['Legacy'].get('style')
+    assert 'fillColor=#a6c0ff' in cells['Legacy'].get('style'), "fill stays the facet colour"
+    assert f"strokeColor={CHANGE_PALETTE['new'][0]}" in cells['New platform'].get('style'), "fi synonym accepted"
+    assert 'dashed=1' in cells['Gateway'].get('style'), "decide is dashed"
+    assert 'strokeColor=#FFFFFF' in cells['Plain'].get('style')
+    edge = next(c for c in root.iter('mxCell') if c.get('edge') == '1' and c.get('value') == 'depends on')
+    assert f"strokeColor={CHANGE_PALETTE['replace'][0]}" in edge.get('style')
+    assert 'Transition (extension' in xml and 'keep / säilyy' in xml, "overlay legend rows present"
+    # no overlay → no overlay legend
+    _, _, xml2 = gen("facet: architecture\nelements:\n  - asset: \"A\"\n")
+    assert 'Transition (extension' not in xml2
+
+
+def test_unknown_change_value_warns_and_is_ignored():
+    p, root, _ = gen("""
+facet: architecture
+elements:
+  - asset: "A" {change: maybe}
+""")
+    assert any('change' in w for w in p.warnings), p.warnings
+    assert not p.uses_change_overlay
+
+
+def test_relationship_options_sides_via_label_and_merge():
+    p, root, _ = gen("""
+facet: architecture
+elements:
+  - capability: "Cap"
+  - asset: "Sys"
+relationships:
+  - "Cap" -> "Sys": "requires" {from: top, to: bottom, via: [(300, 40), (500, 40)], label: source}
+  - "Cap" -> "Sys": "depends on"
+  - "Sys" -> "Cap": "enables" {label: elsewhere}
+""")
+    assert any("label-arvo" in w for w in p.warnings), p.warnings
+    edges = [c for c in root.iter('mxCell') if c.get('edge') == '1' and c.get('source') and not c.get('id', '').startswith('leg')]
+    merged = next(c for c in edges if ' / ' in (c.get('value') or ''))
+    assert merged.get('value') == 'requires / depends on', merged.get('value')
+    st = merged.get('style')
+    assert 'exitY=0.0' in st and 'entryY=1.0' in st, f"from top / to bottom override anchors: {st}"
+    assert 'endArrow=classic' in st, "merged edge keeps core-link style when one verb is a core link"
+    geo = merged.find('mxGeometry')
+    assert geo.get('x') == '-0.5', "label near the source"
+    pts = geo.find("Array[@as='points']")
+    assert pts is not None and len(pts.findall('mxPoint')) == 2
+    assert sum(1 for c in edges if (c.get('value') or '').startswith('requires')) == 1, "duplicates merged into one edge"
+
+
+def test_facet_all_containers_and_intersection_between_columns():
+    p, root, _ = gen("""
+facet: all
+elements:
+  - purpose: "Purpose"
+  - content: "Content"
+  - story: "Story"
+  - capability: "Capability"
+  - asset: "Asset"
+  - process: "Process"
+  - task: "Task"
+  - channel: "Channel"
+  - journey: "Journey"
+  - organisation: "Org"
+  - product: "Prod"
+  - brand: "Brand"
+""")
+    cells = cells_by_label(root)
+    for title in ('Identity', 'Architecture', 'Experience'):
+        assert title in cells and 'container=1' in cells[title].get('style'), f"facet container {title}"
+    assert cells['Purpose'].get('parent') == cells['Identity'].get('id')
+    assert cells['Asset'].get('parent') == cells['Architecture'].get('id')
+    ix = abs_pos(root, cells['Identity'])[0]; iw = float(cells['Identity'].find('mxGeometry').get('width'))
+    ax = abs_pos(root, cells['Architecture'])[0]; aw = float(cells['Architecture'].find('mxGeometry').get('width'))
+    ex = abs_pos(root, cells['Experience'])[0]
+    ox = abs_pos(root, cells['Org'])[0]; px = abs_pos(root, cells['Prod'])[0]
+    assert ix + iw <= ox < ax, "Organisation between Identity and Architecture"
+    assert ax + aw <= px < ex, "Product between Architecture and Experience"
+    by = abs_pos(root, cells['Brand'])[1]
+    ih = float(cells['Identity'].find('mxGeometry').get('height'))
+    assert by >= abs_pos(root, cells['Identity'])[1] + ih, "Brand below the facets as the Identity↔Experience bridge"
+
+
+def test_single_facet_intersection_row_wraps():
+    p, root, _ = gen("""
+facet: architecture
+elements:
+  - capability: "Cap"
+  - product: "P1"
+  - product: "P2"
+  - product: "P3"
+  - product: "P4"
+  - product: "P5"
+  - product: "P6"
+""")
+    cells = cells_by_label(root)
+    ys = {abs_pos(root, cells[f'P{i}'])[1] for i in range(1, 7)}
+    assert len(ys) == 2, f"six products wrap into two rows, got rows at {sorted(ys)}"
+    positions = p._calculate_layout()
+    sizes = {e: p._get_element_size(p.elements[e]) for e in positions}
+    ids = list(positions)
+    for i in range(len(ids)):
+        for j in range(i + 1, len(ids)):
+            (ax, ay), (bx, by) = positions[ids[i]], positions[ids[j]]
+            (aw, ah), (bw, bh) = sizes[ids[i]], sizes[ids[j]]
+            assert ax + aw <= bx or bx + bw <= ax or ay + ah <= by or by + bh <= ay, f"overlap {ids[i]} / {ids[j]}"
+
+
+def test_purpose_hierarchy_layout():
+    p, root, _ = gen("""
+map_type: purpose
+elements:
+  - purpose: "Mission"
+  - purpose: "Focus A"
+  - purpose: "Focus B"
+  - outcome: "KPI A1"
+  - content: "Promise"
+  - story: "Origin"
+  - organisation: "Board"
+  - brand: "Acme"
+relationships:
+  - "Mission" -> "Focus A": "contains"
+  - "Mission" -> "Focus B": "contains"
+  - "KPI A1" -> "Focus A": "measures"
+""")
+    assert p.warnings == [], p.warnings
+    cells = cells_by_label(root)
+    pos = {k: abs_pos(root, cells[k]) for k in ('Mission', 'Focus A', 'Focus B', 'KPI A1', 'Promise', 'Origin', 'Board', 'Acme')}
+    assert pos['Focus A'][1] > pos['Mission'][1] and pos['Focus B'][1] > pos['Mission'][1], "sub-purposes below the top purpose"
+    assert pos['KPI A1'][1] > pos['Focus A'][1] and abs(pos['KPI A1'][0] - pos['Focus A'][0]) < 60, "KPI under its focus area"
+    assert pos['Board'][1] == pos['Mission'][1] and pos['Acme'][1] == pos['Mission'][1], "Organisation and Brand in the top row"
+    assert pos['Promise'][0] < pos['Mission'][0] < pos['Origin'][0], "Content left, Story right"
+
+
+def test_organisation_role_model_layout():
+    p, root, _ = gen("""
+map_type: organisation
+elements:
+  - process: "Steer"
+  - process: "Produce"
+  - organisation: "Board"
+  - organisation: "Team"
+  - organisation: "Partner"
+relationships:
+  - "Board" -> "Steer": "performs"
+  - "Team" -> "Produce": "performs"
+""")
+    cells = cells_by_label(root)
+    pos = {k: abs_pos(root, cells[k]) for k in ('Steer', 'Produce', 'Board', 'Team', 'Partner')}
+    assert pos['Steer'][1] == pos['Produce'][1], "roles in one top row"
+    assert pos['Board'][1] > pos['Steer'][1] and abs(pos['Board'][0] - pos['Steer'][0]) < 10, "actor under its role"
+    assert abs(pos['Team'][0] - pos['Produce'][0]) < 10
+    assert pos['Partner'][0] > pos['Produce'][0], "actor without a role goes to the right"
+
+
+def test_name_matching_uses_name_before_separator():
+    p, root, _ = gen("""
+map_type: organisation
+elements:
+  - process: "Procure | tendering"
+  - organisation: "Procurement office"
+relationships:
+  - "Procurement office" -> "Procure": "performs"
+""")
+    rel = p.relationships[0]
+    assert p.elements[rel['target']]['type'] == 'process', "'Procure' must match the process, not the organisation by substring"
+
+
+def main():
+    tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
+    for t in tests:
+        print(f"Testing {t.__name__}...")
+        t()
+        print(f"{t.__name__} passed")
+    print(f"\nAll {len(tests)} structure tests passed")
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except AssertionError as e:
+        print(f"\nTest failed: {e}")
+        sys.exit(1)

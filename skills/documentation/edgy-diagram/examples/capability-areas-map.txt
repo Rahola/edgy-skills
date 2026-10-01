@@ -1,0 +1,21 @@
+# Capability map with areas: each `group:` becomes a container (draw.io container=1),
+# the indented capabilities are its children. Ids go into {id: …} and render in the subtext.
+map_type: capability
+
+elements:
+  - group: "1 Customer and identity"
+    - capability: "1.1 Customer data management" {id: CAP-01}
+    - capability: "1.2 Authentication and consent" {id: CAP-02}
+    - capability: "1.3 Travel account" {id: CAP-03, highlight: yes}
+  - group: "2 Fares and ticketing"
+    - capability: "2.1 Fare product definition" {id: CAP-04}
+    - capability: "2.2 Sales in every channel" {id: CAP-05}
+    - capability: "2.3 Validation and inspection" {id: CAP-06, highlight: yes}
+    - capability: "2.4 Revenue allocation" {id: CAP-07}
+  - group: "3 Planning and operations"
+    - capability: "3.1 Timetable planning" {id: CAP-08}
+    - capability: "3.2 Real-time passenger information" {id: CAP-09}
+    - capability: "3.3 Fleet and crew dispatch" {id: CAP-10}
+  - group: "4 Data and analytics"
+    - capability: "4.1 Ridership analytics" {id: CAP-11}
+    - capability: "4.2 Open data publishing" {id: CAP-12}

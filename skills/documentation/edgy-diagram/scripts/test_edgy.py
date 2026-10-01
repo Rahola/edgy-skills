@@ -8,6 +8,34 @@ import sys
 from edgy_parser import EDGYParser
 from edgy_generator import main as generator_main
 
+
+def _abs_cells(root):
+    """Apufunktio: {label: (abs_x, abs_y)} kaikille vertex-soluille, parent-ketju ratkaistuna."""
+    cells_by_id = {c.get('id'): c for c in root.iter('mxCell')}
+
+    def absolute(cell):
+        g = cell.find('mxGeometry')
+        x, y = int(float(g.get('x', '0'))), int(float(g.get('y', '0')))
+        parent = cells_by_id.get(cell.get('parent'))
+        while parent is not None and parent.get('vertex') == '1':
+            pg = parent.find('mxGeometry')
+            x += int(float(pg.get('x', '0')))
+            y += int(float(pg.get('y', '0')))
+            parent = cells_by_id.get(parent.get('parent'))
+        return x, y
+
+    out = {}
+    for cell in root.iter('mxCell'):
+        value = cell.get('value', '')
+        if value and cell.get('vertex') == '1' and cell.find('mxGeometry') is not None:
+            import re as _re, html as _html
+            key = _html.unescape(_re.sub(r'<[^>]+>', ' ', value)).split('  ')[0].strip()
+            # ensimmäinen rivi (nimi) riittää avaimeksi
+            key = key.split('\n')[0].strip()
+            out.setdefault(key, absolute(cell))
+            out.setdefault(value, absolute(cell))
+    return out
+
 def test_identity_facet():
     """Testaa Identity-facetin jäsennys"""
     print("Testing Identity Facet...")
@@ -213,12 +241,7 @@ relationships:
     import xml.etree.ElementTree as ET
     root = ET.fromstring(xml_output)
 
-    cells = {}
-    for cell in root.iter('mxCell'):
-        value = cell.get('value', '')
-        geom = cell.find('mxGeometry')
-        if value and geom is not None:
-            cells[value] = (int(geom.get('x', '0')), int(geom.get('y', '0')))
+    cells = _abs_cells(root)
 
     # Suhteellinen sarakevalidointi: Identity < Architecture < Experience
     id_x = cells['Tarkoitus'][0]
@@ -227,10 +250,12 @@ relationships:
     assert id_x < arch_x, f"Identity x ({id_x}) should be < Architecture x ({arch_x})"
     assert arch_x < exp_x, f"Architecture x ({arch_x}) should be < Experience x ({exp_x})"
 
-    # Intersection-elementtien y-koordinaatin pitää olla suurempi kuin facet-elementtien
+    # Intersection-elementit fasettien VÄLISSÄ: Organisation Identity- ja Architecture-sarakkeiden
+    # välissä, Brand (Identity ↔ Experience -silta) fasettien alapuolella
     facet_max_y = max(cells['Tarkoitus'][1], cells['Kehitysosaaminen'][1], cells['Tehtävä'][1])
     assert cells['Brändi'][1] > facet_max_y, "Brand should be below facet elements"
-    assert cells['Organisaatio'][1] > facet_max_y, "Organisation should be below facet elements"
+    assert id_x < cells['Organisaatio'][0] < arch_x, \
+        f"Organisation x ({cells['Organisaatio'][0]}) should sit between Identity ({id_x}) and Architecture ({arch_x})"
 
     # Organisation tulee olla Identity- ja Architecture-sarakkeiden välissä
     org_x = cells['Organisaatio'][0]
@@ -318,12 +343,7 @@ relationships:
     import xml.etree.ElementTree as ET
     root = ET.fromstring(xml_output)
 
-    cells = {}
-    for cell in root.iter('mxCell'):
-        value = cell.get('value', '')
-        geom = cell.find('mxGeometry')
-        if value and geom is not None:
-            cells[value] = (int(geom.get('x', '0')), int(geom.get('y', '0')))
+    cells = _abs_cells(root)
 
     # Suhteellinen sarakevalidointi: Identity < Architecture < Experience
     id_x = cells['Tarkoitus'][0]
@@ -392,12 +412,7 @@ relationships:
         f"Tree 'sisältää' should have no arrowhead, got: {edge_styles['sisältää']}"
 
     # Tarkista layout: lapset ovat vanhemman alapuolella
-    cells = {}
-    for cell in root.iter('mxCell'):
-        value = cell.get('value', '')
-        geom = cell.find('mxGeometry')
-        if value and geom is not None and cell.get('vertex') == '1':
-            cells[value] = (int(geom.get('x', '0')), int(geom.get('y', '0')))
+    cells = _abs_cells(root)
 
     assert cells['Sovelluskehitys'][1] > cells['IT-palvelut'][1], \
         "Child 'Sovelluskehitys' should be below parent 'IT-palvelut'"
@@ -461,12 +476,7 @@ elements:
     import xml.etree.ElementTree as ET
     root = ET.fromstring(xml_output)
 
-    cells = {}
-    for cell in root.iter('mxCell'):
-        value = cell.get('value', '')
-        geom = cell.find('mxGeometry')
-        if value and geom is not None and cell.get('vertex') == '1':
-            cells[value] = (int(geom.get('x', '0')), int(geom.get('y', '0')))
+    cells = _abs_cells(root)
 
     # Kaikki samalla y-tasolla (sekventiaalinen)
     y_values = [cells[v][1] for v in ['Harkitse', 'Tutki', 'Varaa', 'Matkusta']]
@@ -507,12 +517,7 @@ relationships:
     import xml.etree.ElementTree as ET
     root = ET.fromstring(xml_output)
 
-    cells = {}
-    for cell in root.iter('mxCell'):
-        value = cell.get('value', '')
-        geom = cell.find('mxGeometry')
-        if value and geom is not None and cell.get('vertex') == '1':
-            cells[value] = (int(geom.get('x', '0')), int(geom.get('y', '0')))
+    cells = _abs_cells(root)
 
     assert cells['Sovelluskehitys'][1] > cells['IT-palvelut'][1], \
         "Child should be below parent in capability map"
@@ -890,12 +895,7 @@ elements:
     import xml.etree.ElementTree as ET
     root = ET.fromstring(xml_output)
 
-    cells = {}
-    for cell in root.iter('mxCell'):
-        value = cell.get('value', '')
-        geom = cell.find('mxGeometry')
-        if value and geom is not None and cell.get('vertex') == '1':
-            cells[value] = (int(geom.get('x', '0')), int(geom.get('y', '0')))
+    cells = _abs_cells(root)
 
     # Identity-sarakkeen y-välistys ≥ 60px
     identity_ys = sorted([cells[n][1] for n in ['Tarkoitus', 'Sisältö', 'Tarina']])
@@ -926,12 +926,7 @@ elements:
     import xml.etree.ElementTree as ET
     root = ET.fromstring(xml_output)
 
-    cells = {}
-    for cell in root.iter('mxCell'):
-        value = cell.get('value', '')
-        geom = cell.find('mxGeometry')
-        if value and geom is not None and cell.get('vertex') == '1':
-            cells[value] = (int(geom.get('x', '0')), int(geom.get('y', '0')))
+    cells = _abs_cells(root)
 
     x_values = sorted([cells[f'Vaihe {i}'][0] for i in range(1, 4)])
     for i in range(len(x_values) - 1):
@@ -1605,11 +1600,17 @@ elements:
 
     # Tarkista kaikkien elementtien max-koordinaatit
     max_x, max_y = 0, 0
+    _by_id = {c.get('id'): c for c in root.iter('mxCell')}
     for cell in root.iter('mxCell'):
         geom = cell.find('mxGeometry')
         if geom is not None and cell.get('vertex') == '1':
             x = int(geom.get('x', '0'))
             y = int(geom.get('y', '0'))
+            _p = _by_id.get(cell.get('parent'))
+            while _p is not None and _p.get('vertex') == '1':
+                _pg = _p.find('mxGeometry')
+                x += int(_pg.get('x', '0')); y += int(_pg.get('y', '0'))
+                _p = _by_id.get(_p.get('parent'))
             w = int(geom.get('width', '0'))
             h = int(geom.get('height', '0'))
             max_x = max(max_x, x + w)
