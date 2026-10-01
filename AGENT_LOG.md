@@ -126,6 +126,24 @@ edgy-assessment 1.5.1, edgy-deep-dive 1.0.1, edgy-framework 1.2.1.
   `references/routing.md` holds the routing rules and XML patterns. Five
   new examples; all 23 shipped examples lint-clean.
 
+**Sprint 4 (P1.8–P1.10, P2.4, P2.5) — edgy-framework 1.3.0:**
+- "Mapping strategy documents to EDGY" table (mission/vision → top Purpose,
+  focus areas → sub-Purpose, KPIs → Outcome, initiatives → Activity with one
+  Outcome, values → Content, narrative → Story) + anti-pattern "focus areas
+  are never Story" (review B 3.1).
+- "Formulating capabilities": the three uses, "not the unit of work", one
+  system on many capabilities is normal, eight helper questions,
+  granularity 6–12 / 40–80, anti-patterns (review B 3.2). Condensed line
+  in edgy-diagram's capability-map pattern.
+- Outcome row in the reframing matrix; base-element vocabulary fi/fr/de in
+  both skills.
+- Organisation intersection: role-model check (steers / procures / defines /
+  produces / operates / approves) with an optional load view, no threshold.
+- Output length by mode (assessment 150 lines; reframing 40–80; summary
+  ≤ 200 words + 1 picture; card ≤ 1 page; decision ≤ 40 lines) and the
+  anti-pattern "do not pad". edgy-assessment 1.5.3 scopes its 150-line rule
+  to the full assessment.
+
 **Notes for the next agents:**
 - Sprint 4–7 follow in the same PR; see the plan status line.
 - Sprint 3 note: groups/lanes/nesting in the input format, facet

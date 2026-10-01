@@ -336,12 +336,12 @@ EDGY consists of three main facets and three intersection elements.
 
 All facet elements are specialisations of these four base elements. Base elements are applicable to all facets.
 
-| Type | Description | Shape | Example |
-|------|-------------|-------|---------|
-| `people` | Individuals who together create the enterprise or use products | Person shape | `- people: "Customers"` |
-| `activity` | What is done or happens in the enterprise or ecosystem | Pentagon/arrow | `- activity: "Product development"` |
-| `outcome` | Result or change in the enterprise or ecosystem | Rounded rectangle | `- outcome: "Customer satisfaction"` |
-| `object` | Tangible or intangible structure | Rectangle | `- object: "Database"` |
+| Type | FI / FR / DE | Description | Shape | Example |
+|------|--------------|-------------|-------|---------|
+| `people` | ihmiset / personnes / Menschen | Individuals who together create the enterprise or use products | Person shape | `- people: "Customers"` |
+| `activity` | toiminta / activité / Aktivität | What is done or happens in the enterprise or ecosystem | Pentagon/arrow | `- activity: "Product development"` |
+| `outcome` | tulos / résultat / Ergebnis | Result or change — KPIs and target levels live here (`outcome measures purpose`) | Rounded rectangle | `- outcome: "Customer satisfaction"` |
+| `object` | kohde / objet / Objekt | Tangible or intangible structure | Rectangle | `- object: "Database"` |
 
 ### Identity (Why does the enterprise exist?)
 - **Purpose** — The enterprise's fundamental reason for being
@@ -871,7 +871,7 @@ When `map_type` is set, it overrides the `facet` layout and uses the map type's 
 - **hub-and-spoke** — first element at the centre, others on a circle whose radius scales with N. Suits a single anchor element (brand, product, object) surrounded by its supporting elements.
 - **hierarchy** (`purpose`) — mission/vision on top, focus areas as sub-purposes below, KPIs as Outcome base elements under each; never model focus areas as Story. Example: `examples/purpose-hierarchy-map.txt`.
 - **role model** (`organisation` with processes) — roles are Process arrows in the top row, actors sit under the role they perform; actors without a role go right. Example: `examples/organisation-roles-map.txt`.
-- **area containers** (`capability` with `group:`) — numbered areas as containers in rows, 2–4 capabilities per row inside, `{id: CAP-01}` in the subtext, `{highlight: yes}` for first-round decision units. The container *is* the tree — no tree lines. Example: `examples/capability-areas-map.txt`.
+- **area containers** (`capability` with `group:`) — numbered areas as containers in rows, 2–4 capabilities per row inside, `{id: CAP-01}` in the subtext, `{highlight: yes}` for first-round decision units. The container *is* the tree — no tree lines. Example: `examples/capability-areas-map.txt`. Formulate capabilities as nouns stating a result, system-independent, 6–12 areas and 40–80 leaves; never name them after products (full guidance: edgy-framework, *Formulating capabilities*).
 
 The `edgy-deep-dive` skill generates **pairwise diagrams via direct XML
 authoring** (not through `edgy_parser.py`). Layout rules and the XML pattern

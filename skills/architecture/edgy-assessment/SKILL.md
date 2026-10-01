@@ -1,6 +1,6 @@
 ---
 name: edgy-assessment
-version: "1.5.2"
+version: "1.5.3"
 description: >
   Comprehensive EDGY 23 Enterprise Design assessment: analysis, diagrams, and recommendations.
   Orchestrating skill that chains edgy-framework and edgy-diagram skills into a unified workflow.
@@ -262,7 +262,7 @@ Rules:
 - DO NOT skip coherence checks on intersection elements
 - DO NOT give generic recommendations that fit any company
 - DO NOT leave tables empty or single-row
-- DO NOT write under 150 lines — that means the analysis is too shallow
+- DO NOT write under 150 lines — that means the analysis is too shallow (this rule is for the full assessment only; reframings, summaries and target-state artefacts follow the length table in edgy-framework, and are never padded to a line count)
 
 ---
 
