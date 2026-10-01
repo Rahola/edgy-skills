@@ -1,6 +1,6 @@
 ---
 name: edgy-assessment
-version: "1.5.3"
+version: "1.6.0"
 description: >
   Comprehensive EDGY 23 Enterprise Design assessment: analysis, diagrams, and recommendations.
   Orchestrating skill that chains edgy-framework and edgy-diagram skills into a unified workflow.
@@ -15,6 +15,14 @@ agents:
   - vibe
   - generic
 inputs:
+  - name: mode
+    type: enum
+    values: [assess, extract-model]
+    default: assess
+    description: >
+      assess = full outside-in assessment (Phases 1–5). extract-model = build
+      edgy-model.json from an EXISTING analysis markdown and facet TXT files
+      (older deliveries without a model), so that edgy-deep-dive can run on them.
   - name: target
     type: text
     description: Company or organisation to assess (name and brief description)
@@ -57,6 +65,26 @@ Use this skill when:
 This assessment produces **9 files**. Every phase is mandatory. DO NOT proceed to the next phase before the previous one is complete and meets quality requirements.
 
 ---
+
+### Mode `extract-model` — a model for an existing delivery
+
+Older deliveries have an analysis markdown and four TXT files but no
+`edgy-model.json`, so `edgy-deep-dive` cannot run on them. In this mode skip
+Phases 1 and 3–5 and:
+
+1. Read `<company>-edgy-analysis.md` and the four `<company>-*.txt` files.
+2. Fill `edgy-model.json` from them: every element from the TXT files
+   (name = part before ` - `, description = the rest, tags from `[…]`),
+   `nature`/`level` for capabilities from the analysis table, active
+   `core_links` from the TXT relationships (only pairs in the 24-link table),
+   `coherence` from section 5 (Strong/Good/Weak + contradictions + gaps),
+   `suggested_deep_dives` from section 10 if present — otherwise derive at
+   least three from sections 5 and 7 and mark `"source_section"` accordingly.
+3. Validate: `python3 tools/validate-edgy-model.py <company>-edgy-model.json`.
+4. Regenerate the TXT files from the model (`edgy_model_to_txt.py`) and diff
+   them against the originals; differences are findings about the old
+   delivery, not errors to hide.
+5. Deliver the model plus a short note listing what had to be inferred.
 
 ### Phase 1: Data Collection
 
@@ -120,6 +148,7 @@ grep -q "\.edgy-badge"       "$F"
 grep -q 'class="legend"'     "$F"
 grep -q 'class="meta-table"' "$F"
 ! grep -q "{{"               "$F"   # no leftover placeholders
+grep -Eq "^## (10\. )?(Ehdotetut jatkoanalyysit|Suggested deep-dive|Analyses approfondies|Vorgeschlagene Vertiefungs)" "$F"   # section 10 present
 ```
 
 The `head -1` check is critical: gray-matter (the parser md-to-pdf uses)
@@ -171,6 +200,13 @@ This file is the context object for `edgy-deep-dive` follow-up analyses.
     }
   ]
 }
+```
+
+**Validate the model** before continuing — the schema lives in
+`assets/edgy-model.schema.json`, the validator needs only the standard library:
+
+```bash
+python3 tools/validate-edgy-model.py <company>-edgy-model.json     # must print "valid"
 ```
 
 Rules:
@@ -267,6 +303,19 @@ Rules:
 ---
 
 ### Phase 3: Facet TXT Files
+
+**Generate the four TXT files from the model — do not write them by hand:**
+
+```bash
+python3 skills/architecture/edgy-assessment/scripts/edgy_model_to_txt.py <company>-edgy-model.json --prefix <company>
+```
+
+This derives elements (`"Name - Description" [tags] {id: …}`) and the active
+core links from `edgy-model.json`, so the diagrams can never disagree with
+the analysis (an earlier review found reports with five capabilities and
+diagrams with four). Edit the model, regenerate; never patch a TXT. The
+format below documents what the script produces, and is the fallback when
+Python is unavailable.
 
 Produce 4 text files in edgy-diagram skill input format:
 
@@ -568,8 +617,12 @@ analysis content changes per customer.
    to Phase 2a — do not proceed.
 
 2. **Generate the four facet diagrams** with the `edgy-diagram` skill
-   (`identity`, `architecture`, `experience`, `all`) in PNG format
-   (`--preset presentation`) so they can be embedded into the PDF.
+   (`identity`, `architecture`, `experience`, `all`) as PNG so they can be
+   embedded into the PDF. Engine order: draw.io CLI (`--preset presentation`,
+   publication quality) when installed → `--engine plantuml` when Java and
+   PlantUML are available → `--engine native` (pure Python SVG + headless
+   Chromium PNG; approximate but always available). Never stop the pipeline
+   because the draw.io CLI is missing.
 
 3. **Canonical PDF conversion (only supported route):**
    ```bash

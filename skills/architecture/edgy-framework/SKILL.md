@@ -1,6 +1,6 @@
 ---
 name: edgy-framework
-version: "1.4.0"
+version: "1.4.1"
 description: >
   EDGY 23 enterprise design analysis: challenge reframing, facet intersection analysis,
   element identification from natural language, and modelling guidance for strategy
@@ -361,6 +361,9 @@ Use the output template matching the selected `language` parameter.
 - **Product**: [Tuotevaikutukset]
 - **Brand**: [Brändivaikutukset]
 
+## Strategiset valinnat ja vaihtoehdot   <!-- valinnainen: kun haaste edellyttää valintaa -->
+| Vaihtoehto | Mitä muuttuu (EDGY-elementit) | Hyödyt | Riskit |
+
 ## Johtopäätös
 [Haasteen todellinen laajuus ja suositellut toimenpiteet]
 ```
@@ -394,6 +397,9 @@ Use the output template matching the selected `language` parameter.
 - **Organisation**: [Organisational impacts]
 - **Product**: [Product impacts]
 - **Brand**: [Brand impacts]
+
+## Strategic choices and alternatives   <!-- optional: when the challenge calls for a decision -->
+| Option | What changes (EDGY elements) | Benefits | Risks |
 
 ## Conclusion
 [True scope of the challenge and recommended actions]
@@ -429,6 +435,9 @@ Use the output template matching the selected `language` parameter.
 - **Product** : [Impacts produit]
 - **Brand** : [Impacts marque]
 
+## Choix stratégiques et alternatives   <!-- optionnel : lorsque le défi appelle une décision -->
+| Option | Ce qui change (éléments EDGY) | Bénéfices | Risques |
+
 ## Conclusion
 [Portée réelle du défi et actions recommandées]
 ```
@@ -462,6 +471,9 @@ Use the output template matching the selected `language` parameter.
 - **Organisation**: [Organisatorische Auswirkungen]
 - **Product**: [Produktauswirkungen]
 - **Brand**: [Markenauswirkungen]
+
+## Strategische Optionen und Alternativen   <!-- optional: wenn die Herausforderung eine Entscheidung verlangt -->
+| Option | Was sich ändert (EDGY-Elemente) | Nutzen | Risiken |
 
 ## Fazit
 [Tatsächlicher Umfang der Herausforderung und empfohlene Maßnahmen]

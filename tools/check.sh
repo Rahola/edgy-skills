@@ -6,8 +6,8 @@
 # tools/install-git-hooks.sh:lla) ja manuaalinen kontribuoija.
 #
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
-# edgy-tests, edgy-lint-tests, edgy-render-tests, edgy-structure-tests, edgy-lint,
-# privacy-scan.
+# edgy-tests, edgy-lint-tests, edgy-render-tests, edgy-structure-tests, edgy-model,
+# edgy-lint, privacy-scan.
 #
 # Käyttö:
 #   bash tools/check.sh                          # täysi tarkistus
@@ -202,6 +202,28 @@ run_step "edgy-tests" python3 "$EDGY_SCRIPTS/test_edgy.py"
 run_step "edgy-lint-tests" python3 "$EDGY_SCRIPTS/test_lint.py"
 run_step "edgy-render-tests" python3 "$EDGY_SCRIPTS/test_render.py"
 run_step "edgy-structure-tests" python3 "$EDGY_SCRIPTS/test_structure.py"
+
+# --- Vaihe 3c2: edgy-model.json-skeema + malli → TXT ------------------------
+# Jokaisen repoon kuuluvan *model*.json-esimerkin on vastattava skeemaa, ja
+# edgy_model_to_txt.py:n on tuotettava siitä parserille kelpaavat syötteet.
+edgy_model_checks() {
+    local models=()
+    while IFS= read -r f; do models+=("$f"); done < <(
+        find skills -path '*/examples/*' -name '*model*.json' | sort)
+    [ ${#models[@]} -gt 0 ] || return 0
+    python3 tools/validate-edgy-model.py "${models[@]}" || return 1
+    local tmp
+    tmp=$(mktemp -d)
+    for m in "${models[@]}"; do
+        python3 skills/architecture/edgy-assessment/scripts/edgy_model_to_txt.py "$m" --out "$tmp" --prefix model >/dev/null || { rm -rf "$tmp"; return 1; }
+        for t in "$tmp"/model-*.txt; do
+            python3 "$EDGY_SCRIPTS/edgy_generator.py" "$t" --output "$tmp/$(basename "$t" .txt).drawio" >/dev/null 2>"$tmp/warn.log" || { cat "$tmp/warn.log"; rm -rf "$tmp"; return 1; }
+        done
+        python3 "$EDGY_SCRIPTS/edgy_lint.py" -q "$tmp"/model-*.drawio || { rm -rf "$tmp"; return 1; }
+    done
+    rm -rf "$tmp"
+}
+run_step "edgy-model" edgy_model_checks
 
 # --- Vaihe 3d: EDGY-esimerkkikaavioiden lint --------------------------------
 # Jokaisen skillin mukana toimitettavan .drawio-esimerkin on oltava lint-puhdas

@@ -160,6 +160,25 @@ edgy-assessment 1.5.1, edgy-deep-dive 1.0.1, edgy-framework 1.2.1.
   results, warns above 4 boxes per row) — both labelled EDGY extensions;
   Delivery section; two examples; two tests.
 
+**Sprint 6 (P2.6–P2.8) — edgy-assessment 1.6.0, edgy-deep-dive 1.1.0, edgy-framework 1.4.1:**
+- `assets/edgy-model.schema.json` (JSON Schema 2020-12) + `tools/validate-edgy-model.py`
+  (standard-library subset validator: type, required, properties, items,
+  enum, min/max, pattern, local $ref, plus semantic checks). Deep-dive
+  Phase 1 validates before reading; assessment validates after writing.
+- `scripts/edgy_model_to_txt.py`: the four facet TXT inputs are derived
+  from the model (elements with ids, active core links between primary
+  elements) — Phase 3 is a script run, diagrams cannot disagree with the
+  analysis any more. check.sh step `edgy-model` validates every shipped
+  *model*.json, derives TXTs, generates and lints them.
+- `mode: extract-model` in edgy-assessment: build a model from an existing
+  analysis + TXT files (older deliveries), validate, regenerate TXTs and
+  report the differences as findings.
+- Section 10 (suggested deep-dives) added to the markdown quality gate as a
+  grep; PNG engine order in the PDF phase: draw.io CLI → PlantUML → native,
+  never stop because the CLI is missing.
+- Reframing template: optional "Strategic choices and alternatives" section
+  in fi/en/fr/de.
+
 **Notes for the next agents:**
 - Sprint 4–7 follow in the same PR; see the plan status line.
 - Sprint 3 note: groups/lanes/nesting in the input format, facet

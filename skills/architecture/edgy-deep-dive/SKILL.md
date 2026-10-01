@@ -1,6 +1,6 @@
 ---
 name: edgy-deep-dive
-version: "1.0.2"
+version: "1.1.0"
 description: >
   Targeted EDGY 23 deep-dive analysis of a specific element pair or facet combination.
   Requires an existing edgy-model.json produced by the edgy-assessment skill.
@@ -124,6 +124,12 @@ Do not skip phases. Every phase is required to produce a complete, grounded anal
 
 ### Phase 1: Load Context
 
+0. **Validate the model** against the shared schema before reading it:
+   `python3 tools/validate-edgy-model.py <company>-edgy-model.json` (schema:
+   `skills/architecture/edgy-assessment/assets/edgy-model.schema.json`). A
+   model that fails validation is not analysed — ask the user to fix it or to
+   run `edgy-assessment` in `extract-model` mode. Never invent elements that
+   the model does not contain.
 1. Read the `model` file (edgy-model.json).
 2. Extract the entries for all `focus_elements` from `elements`.
 3. Note the coherence scores from `coherence` for any intersection elements in the focus.
