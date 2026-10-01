@@ -28,6 +28,7 @@ SOURCE = REPO / "skills" / "_shared" / "edgy-core-links.yaml"
 MODULE = REPO / "skills" / "documentation" / "edgy-diagram" / "scripts" / "edgy_core_links.py"
 SKILL_FILES = [
     REPO / "skills" / "documentation" / "edgy-diagram" / "SKILL.md",
+    REPO / "skills" / "documentation" / "edgy-diagram" / "references" / "vocabulary.md",
     REPO / "skills" / "architecture" / "edgy-framework" / "SKILL.md",
     REPO / "skills" / "architecture" / "edgy-assessment" / "SKILL.md",
     REPO / "skills" / "architecture" / "edgy-deep-dive" / "SKILL.md",

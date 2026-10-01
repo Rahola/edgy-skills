@@ -70,6 +70,19 @@ def report_parser_messages(pages, lenient: bool = False) -> None:
         print(f"{n_warn} warning(s) — see above.", file=sys.stderr)
 
 
+def report_layout_warnings(pages, before_counts) -> None:
+    """Tulosta layout-vaiheessa syntyneet varoitukset (summary-rivimäärä, layout_from …)."""
+    multi = len(pages) > 1
+    n = 0
+    for (name, edgy_parser), before in zip(pages, before_counts):
+        prefix = f"[{name}] " if multi else ""
+        for w in edgy_parser.warnings[before:]:
+            print(f"Warning: {prefix}{w}", file=sys.stderr)
+            n += 1
+    if n:
+        print(f"{n} layout warning(s) — see above.", file=sys.stderr)
+
+
 def render_preview(drawio_path: str, png: bool = True) -> None:
     """CLI-vapaa esikatselu: SVG aina, PNG jos Chromium löytyy."""
     try:
@@ -293,10 +306,12 @@ def main():
         return
 
     # Draw.io pipeline: oletuksena mxfile-kääre (pakkaamaton), jokainen sivu omana <diagram>-elementtinä
+    before = [len(p.warnings) for _, p in pages]
     if args.bare:
         xml_content = edgy_parser.generate_xml()
     else:
         xml_content = build_mxfile([(name, p.generate_xml()) for name, p in pages])
+    report_layout_warnings(pages, before)
     if args.output:
         if fmt != 'drawio':
             output_path = args.output

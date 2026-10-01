@@ -179,6 +179,39 @@ edgy-assessment 1.5.1, edgy-deep-dive 1.0.1, edgy-framework 1.2.1.
 - Reframing template: optional "Strategic choices and alternatives" section
   in fi/en/fr/de.
 
+**Sprint 7 (P3.1–P3.6) — edgy-diagram 2.4.0, edgy-assessment 1.6.1:**
+- `edgy-diagram/SKILL.md` 1 279 → 479 lines. Reference material moved to
+  `references/`: `xml-reference.md` (structure, shapes, palette, edge
+  styles, inline example with legend), `vocabulary.md` (element types, the
+  generated core-link tables, flow/tree keywords, tags and metrics,
+  natural-language table, facet model), `map-types.md` (layout sketches,
+  pairwise spec), `export.md` (presets, PlantUML, official resources, draw.io
+  CLI), `routing.md` (Sprint 3). `tools/render-core-links.py` now renders
+  into `references/vocabulary.md`; the frontmatter lists a representative
+  example subset, `examples/README.md` the full mapping.
+- edgy-assessment: the duplicated XML / palette / legend blocks (170 lines)
+  replaced by a diagram quality gate that points to edgy-diagram.
+- **Eval set** `examples/eval/` (60-leaf capability map, 19-block / 30-edge
+  reference architecture) + `tools/edgy-eval.py` metrics table; check.sh
+  step `edgy-eval` fails on lint errors. CONTRIBUTING: record lint before /
+  after manual fixes in this log (aggregates only).
+- **`layout_from: file.archimate#View [scale dx dy]`**: elements matched by
+  name keep the ArchiMate view's (scaled) position, unmatched ones go below,
+  view elements missing from the input are reported. Standard-library XML
+  parsing only; fictional `examples/current-state.archimate`.
+- Layout-time warnings (summary row count, layout_from) are now printed by
+  the generator too (they were only collected before).
+- **Note for the upstream (private) repo:** its `generated/` folder still
+  holds an issue log whose "final" XML nests `mxCell` elements — the exact
+  structure the skill forbids. Delete or correct it there; this repo never
+  had a copy.
+
+**Review A → plan → implementation, closing note.** All seven sprints of
+`docs/development-plan-2026-09.md` are implemented in PR #2. Baseline
+metrics for the review's deliveries can now be reproduced with
+`edgy_lint.py` (private repo) and the eval set shows 0 errors on the sizes
+the field team needed (60-leaf capability map, 19-block reference view).
+
 **Notes for the next agents:**
 - Sprint 4–7 follow in the same PR; see the plan status line.
 - Sprint 3 note: groups/lanes/nesting in the input format, facet

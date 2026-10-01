@@ -228,6 +228,7 @@ class EDGYParser:
         self._group_positions = {}  # ryhmien absoluuttiset sijainnit (viimeisin layout)
         self._layout_handles_tree = False
         self.uses_change_overlay = False
+        self.layout_from = None    # (archimate file, view name, scale, dx, dy) tai None
 
     def parse_input(self, input_text: str) -> None:
         """Jäsennä käyttäjän syöte EDGY-elementeiksi"""
@@ -255,6 +256,11 @@ class EDGYParser:
                     self.errors.append(msg)
                     facet_value = 'identity'
                 self.facet = facet_value
+                continue
+            elif line.startswith('layout_from:'):
+                # layout_from: path/to/model.archimate#View name [scale=1.0 dx=0 dy=0]
+                spec = line.split(':', 1)[1].strip()
+                self.layout_from = self._parse_layout_from(spec)
                 continue
             elif line.startswith('map_type:'):
                 map_type_value = line.split(':')[1].strip().lower()
@@ -380,6 +386,99 @@ class EDGYParser:
                         })
                         if options.get('change'):
                             self.uses_change_overlay = True
+
+    def _parse_layout_from(self, spec: str):
+        """Jäsennä `layout_from: file.archimate#View [scale=S dx=X dy=Y]`."""
+        parts = spec.split()
+        opts = []
+        while parts and '=' in parts[-1] and '#' not in parts[-1]:
+            opts.insert(0, parts.pop())
+        target = ' '.join(parts)          # tiedosto#Näkymän nimi (välilyönnit sallittu)
+        if '#' not in target:
+            self.warnings.append("layout_from: anna muodossa tiedosto.archimate#Näkymän nimi — ohitetaan")
+            return None
+        path, view = target.split('#', 1)
+        scale, dx, dy = 1.0, 0.0, 0.0
+        for o in opts:
+            if '=' in o:
+                k, v = o.split('=', 1)
+                try:
+                    if k == 'scale':
+                        scale = float(v)
+                    elif k == 'dx':
+                        dx = float(v)
+                    elif k == 'dy':
+                        dy = float(v)
+                except ValueError:
+                    self.warnings.append(f"layout_from: virheellinen arvo {o}, ohitetaan")
+        return (path.strip(), view.strip(), scale, dx, dy)
+
+    def _positions_from_archimate(self) -> Dict[str, Tuple[float, float]]:
+        """Lue ArchiMate-näkymän (Archi .archimate) elementtien sijainnit ja
+        kohdista ne EDGY-elementteihin nimen perusteella (case-insensitive;
+        myös nimi ennen ' - ' / ' | ' -erotinta).
+
+        T(x, y) = ((x + dx) · S, (y + dy) · S). Palauttaa {elem_id: (x, y)} vain
+        niille elementeille, joille löytyi vastine. Elementit, joita näkymässä
+        on mutta syötteessä ei, listataan varoitukseen ("puuttuu
+        tavoitetilasta"), jotta nykytilan aukot näkyvät.
+        """
+        if not self.layout_from:
+            return {}
+        path, view_name, scale, dx, dy = self.layout_from
+        try:
+            tree = ET.parse(path)
+        except (OSError, ET.ParseError) as e:
+            self.warnings.append(f"layout_from: {path} ei luettavissa ({e}) — käytetään omaa asettelua")
+            return {}
+        root = tree.getroot()
+        XSI = '{http://www.w3.org/2001/XMLSchema-instance}type'
+        names_by_id = {}
+        for el in root.iter():
+            if el.get('id') and el.get('name') and not (el.get(XSI) or '').endswith('DiagramModel'):
+                names_by_id[el.get('id')] = el.get('name')
+        view = None
+        for el in root.iter():
+            if (el.get(XSI) or '').endswith('ArchimateDiagramModel') and el.get('name', '').lower() == view_name.lower():
+                view = el
+                break
+        if view is None:
+            self.warnings.append(f"layout_from: näkymää '{view_name}' ei löydy tiedostosta {path}")
+            return {}
+        view_boxes: Dict[str, Tuple[float, float]] = {}
+
+        def walk(node, ox, oy):
+            for child in node.findall('child'):
+                b = child.find('bounds')
+                if b is None:
+                    continue
+                x = ox + float(b.get('x', 0)); y = oy + float(b.get('y', 0))
+                ref = child.get('archimateElement')
+                name = names_by_id.get(ref) or child.get('name')
+                if name:
+                    view_boxes[name.lower()] = (x, y)
+                walk(child, x, y)
+        walk(view, 0.0, 0.0)
+
+        positions: Dict[str, Tuple[float, float]] = {}
+        matched = set()
+        for eid, e in self.elements.items():
+            cands = {e['value'].lower(), (e.get('name') or '').lower()}
+            for c in cands:
+                if c in view_boxes:
+                    vx, vy = view_boxes[c]
+                    positions[eid] = ((vx + dx) * scale, (vy + dy) * scale)
+                    matched.add(c)
+                    break
+        missing = sorted(n for n in view_boxes if n not in matched)
+        if missing:
+            self.warnings.append(
+                f"layout_from: näkymässä '{view_name}' on {len(missing)} elementtiä, joita ei ole tavoitetilassa: "
+                + ", ".join(missing[:8]) + (" …" if len(missing) > 8 else "")
+                + " — merkitse ne poistuviksi tai lisää ne syötteeseen")
+        if not positions:
+            self.warnings.append(f"layout_from: yhtään elementtiä ei kohdistunut näkymään '{view_name}' — käytetään omaa asettelua")
+        return positions
 
     @staticmethod
     def _split_name(value: str) -> Tuple[str, str]:
@@ -1171,6 +1270,19 @@ class EDGYParser:
 
         if not self._layout_handles_tree:
             self._apply_tree_layout(positions)
+        # Asemointi olemassa olevan ArchiMate-näkymän mukaan ("sama paikka = sama vastuualue")
+        anchored = self._positions_from_archimate() if self.layout_from else {}
+        for eid, pos in anchored.items():
+            if eid in positions:
+                positions[eid] = pos
+        if anchored:
+            # kohdistamattomat top-level-elementit siirretään kohdistettujen alle, riviin
+            max_y = max(positions[e][1] + self._size_of(e)[1] for e in anchored if e in positions)
+            x = 60
+            for eid in list(positions):
+                if eid not in anchored and eid in self.elements and self.elements[eid].get('group') is None:
+                    positions[eid] = (x, max_y + 60)
+                    x += self._size_of(eid)[0] + 40
         self._resolve_collisions(positions)
         self._normalize_to_canvas(positions)
         self._snap_to_grid(positions)
@@ -1193,8 +1305,8 @@ class EDGYParser:
         """Luo synteettiset facet-kontit kun käyttäjä ei ole määritellyt ryhmiä
         eikä karttatyyppiä: facet: all → Identity/Architecture/Experience,
         yksittäinen facet → yksi kontti fasetin omille elementeille."""
-        if self.map_type or any(not g.get('synthetic') for g in self.groups.values()):
-            return
+        if self.map_type or self.layout_from or any(not g.get('synthetic') for g in self.groups.values()):
+            return  # layout_from: elementit pysyvät top-levelillä, jotta näkymän koordinaatit pätevät
         # idempotentti: poista aiemmat synteettiset
         for gid in [g for g, grp in self.groups.items() if grp.get('synthetic')]:
             for m in self.groups[gid]['members']:

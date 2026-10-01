@@ -7,7 +7,7 @@
 #
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
 # edgy-tests, edgy-lint-tests, edgy-render-tests, edgy-structure-tests, edgy-model,
-# edgy-lint, privacy-scan.
+# edgy-eval, edgy-lint, privacy-scan.
 #
 # Käyttö:
 #   bash tools/check.sh                          # täysi tarkistus
@@ -224,6 +224,9 @@ edgy_model_checks() {
     rm -rf "$tmp"
 }
 run_step "edgy-model" edgy_model_checks
+
+# --- Vaihe 3c3: eval-setti (isot fiktiiviset syötteet) -----------------------
+run_step "edgy-eval" python3 tools/edgy-eval.py
 
 # --- Vaihe 3d: EDGY-esimerkkikaavioiden lint --------------------------------
 # Jokaisen skillin mukana toimitettavan .drawio-esimerkin on oltava lint-puhdas

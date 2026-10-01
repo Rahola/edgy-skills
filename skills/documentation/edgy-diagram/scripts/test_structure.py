@@ -357,6 +357,30 @@ elements:
     assert any('Summary' in w for w in many.warnings), many.warnings
 
 
+def test_layout_from_archimate_positions_matched_elements():
+    here = os.path.dirname(os.path.abspath(__file__))
+    model = os.path.join(here, '..', 'examples', 'current-state.archimate')
+    p, root, _ = gen(f"""
+facet: architecture
+layout_from: {model}#Application landscape scale=2 dx=10 dy=0
+elements:
+  - asset: "Mobile app"
+  - asset: "Legacy fare engine"
+  - asset: "Brand new platform"
+""")
+    cells = cells_by_label(root)
+    # Mobile app at view (60,60) → ((60+10)*2, 60*2) = (140, 120); container offset applies, so compare relative order/scale
+    ma = abs_pos(root, cells['Mobile app']); lf = abs_pos(root, cells['Legacy fare engine'])
+    assert abs((lf[1] - ma[1]) - (220 - 60) * 2) < 1, f"vertical distance scaled by 2: {ma} {lf}"
+    assert abs(lf[0] - ma[0]) < 1, "same column kept"
+    bn = abs_pos(root, cells['Brand new platform'])
+    assert bn[1] > lf[1], "unmatched element placed below the anchored ones"
+    assert any('ei ole tavoitetilassa' in w and 'web shop' in w for w in p.warnings), p.warnings
+    missing = EDGYParser(); missing.parse_input("facet: architecture\nlayout_from: /no/such.archimate#X\nelements:\n  - asset: \"A\"\n")
+    missing.generate_xml()
+    assert any('ei luettavissa' in w for w in missing.warnings), missing.warnings
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

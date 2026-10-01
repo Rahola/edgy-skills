@@ -52,8 +52,12 @@ model into draw.io XML, validates core-link pairs against the EDGY 23
 vocabulary, a linter (`edgy_lint.py`) that must report 0 errors before a diagram is
 delivered, and a CLI-free preview (`edgy_render.py`: SVG always, PNG when a
 headless Chromium is found) that the agent looks at before delivering.
-Multi-page inputs produce one draw.io file with several pages. Final
-rendering to PNG/SVG/PDF uses the
+Multi-page inputs produce one draw.io file with several pages; `group:` and
+`lane:` give containers and layered views, `{change: …}` adds a current →
+target overlay, and `layout_from:` positions elements where they sit in an
+existing ArchiMate view. `tools/edgy-eval.py` runs a fictional eval set
+(60-leaf capability map, 19-block reference architecture) through generator
+and linter. Final rendering to PNG/SVG/PDF uses the
 [draw.io CLI](https://github.com/jgraph/drawio-desktop) or the plantuml-stdlib
 `<edgy/edgy>` library; these are external tools and the skill degrades
 gracefully to emitting source XML/PUML if they are not installed.
