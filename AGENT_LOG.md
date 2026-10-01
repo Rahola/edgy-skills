@@ -20,6 +20,50 @@ perustelut.
 
 ---
 
+### 2026-10-02 — Claude Code
+
+**Assignment:** Address the Copilot review on PR #2 (12 threads + one
+summary-only finding). Every finding was reproduced before fixing; each fix
+has a regression test.
+
+**Fixed:**
+- `edgy_lint.py`: legend detection is structural (legend title text cell +
+  ≥ 3 palette chips + ≥ 1 free-standing line sample); an element *named*
+  "Legend" or a cell id starting with `leg` no longer satisfies E009 nor
+  hides an element from linting. Base elements (people / activity /
+  outcome / object, white fill + dark or overlay stroke, or the person
+  shape) are now linted like facet elements. Cell classification lives in
+  `classify_cells()` and is shared with `tools/edgy-eval.py`. `--json`
+  writes only JSON to stdout (summary to stderr). E005 logic simplified.
+- `edgy_document.unique_slugs()`: collision-free page ids (`foo-3, foo,
+  foo` → `foo-3, foo, foo-2`) used for `diagram/@id`, per-page preview
+  files and per-page PlantUML outputs.
+- `edgy_generator.py`: `--engine plantuml` renders every page
+  (`<stem>-<page>.<ext>`) instead of the first only; `--preview` failure
+  exits 3 instead of 0. Skill metadata lists `native` as an engine.
+- `tools/edgy-eval.py`: parses the whole JSON report (it parsed one line,
+  so lint errors were never counted) and counts elements with the linter's
+  classification (the legend background was counted). Unreadable lint
+  output now fails the eval.
+- `tools/validate-edgy-model.py`: semantic checks are type-guarded, invalid
+  items produce findings instead of a traceback.
+- `edgy_model_to_txt.py`: exits with an explanation when the vocabulary
+  module is missing or empty instead of silently writing TXTs without core
+  links.
+- `tools/render-core-links.py`: unpaired begin/end markers and listed files
+  without markers are errors (they used to be skipped silently).
+- `edgy-target-state`: phase selection covers phases 1–9.
+
+**Not changed:** the AGENT_LOG nits (version numbers and example counts in
+older entries) — log entries record the state at the time they were written.
+
+**Validation:** 16 lint tests, 15 render tests, 8 new tool tests
+(`tools/test_edgy_tools.py`, check.sh step `edgy-tool-tests`); all shipped
+examples regenerate byte-identical and lint-clean; eval set 0 errors with
+correct element counts. edgy-diagram 2.4.1, edgy-target-state 1.0.1.
+
+---
+
 ### 2026-09-27 — Claude Code
 
 **Assignment:** Sprint 1 of `docs/development-plan-2026-09.md` (P0.1–P0.6):

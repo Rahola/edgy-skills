@@ -38,6 +38,27 @@ def slugify(name: str) -> str:
     return s or 'page'
 
 
+def unique_slugs(names: List[str]) -> List[str]:
+    """Deterministic, collision-free slugs for page names.
+
+    Each name is slugified; if the slug is already taken (by an earlier page
+    *or* by an earlier generated suffix such as `foo-2`), the lowest free
+    `-N` suffix is used. Used for draw.io page ids and for per-page output
+    file names, so neither can collide.
+    """
+    used = set()
+    out = []
+    for name in names:
+        base = slugify(name)
+        candidate, n = base, 2
+        while candidate in used:
+            candidate = f'{base}-{n}'
+            n += 1
+        used.add(candidate)
+        out.append(candidate)
+    return out
+
+
 def split_pages(text: str) -> List[Tuple[str, str]]:
     """Return [(page_name, page_text)] — one entry for a single-page input."""
     lines = text.split('\n')
@@ -93,11 +114,8 @@ def build_mxfile(pages: List[Tuple[str, str]], host: str = 'edgy-skills') -> str
     example files diff cleanly.
     """
     parts = [f'<?xml version="1.0" encoding="utf-8"?>\n<mxfile host="{host}" agent="edgy_generator.py" compressed="false">']
-    seen = set()
-    for i, (name, model_xml) in enumerate(pages, 1):
-        slug = slugify(name)
-        page_id = f'{slug}-{i}' if slug in seen else slug
-        seen.add(slug)
+    page_ids = unique_slugs([name for name, _ in pages])
+    for (name, model_xml), page_id in zip(pages, page_ids):
         body = _strip_declaration(model_xml).strip()
         safe_name = name.replace('&', '&amp;').replace('"', '&quot;').replace('<', '&lt;')
         parts.append(f'  <diagram id="{page_id}" name="{safe_name}">')

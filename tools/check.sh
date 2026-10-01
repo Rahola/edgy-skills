@@ -6,8 +6,8 @@
 # tools/install-git-hooks.sh:lla) ja manuaalinen kontribuoija.
 #
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
-# edgy-tests, edgy-lint-tests, edgy-render-tests, edgy-structure-tests, edgy-model,
-# edgy-eval, edgy-lint, privacy-scan.
+# edgy-tests, edgy-lint-tests, edgy-render-tests, edgy-structure-tests, edgy-tool-tests,
+# edgy-model, edgy-eval, edgy-lint, privacy-scan.
 #
 # Käyttö:
 #   bash tools/check.sh                          # täysi tarkistus
@@ -202,6 +202,7 @@ run_step "edgy-tests" python3 "$EDGY_SCRIPTS/test_edgy.py"
 run_step "edgy-lint-tests" python3 "$EDGY_SCRIPTS/test_lint.py"
 run_step "edgy-render-tests" python3 "$EDGY_SCRIPTS/test_render.py"
 run_step "edgy-structure-tests" python3 "$EDGY_SCRIPTS/test_structure.py"
+run_step "edgy-tool-tests" python3 tools/test_edgy_tools.py
 
 # --- Vaihe 3c2: edgy-model.json-skeema + malli → TXT ------------------------
 # Jokaisen repoon kuuluvan *model*.json-esimerkin on vastattava skeemaa, ja

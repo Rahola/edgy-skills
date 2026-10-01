@@ -1,6 +1,6 @@
 ---
 name: edgy-target-state
-version: "1.0.0"
+version: "1.0.1"
 description: >
   Internal target-state architecture workflow on EDGY 23: strategy → purpose map,
   capability map and cards, guardrails, building-block hypothesis with transition
@@ -29,7 +29,7 @@ inputs:
     type: text
     required: false
     description: >
-      Subset of phases 1–8 to run; default is all phases
+      Subset of phases 1–9 to run (9 = report and delivery); default is all phases
   - name: language
     type: enum
     values: [fi, en]
@@ -182,7 +182,7 @@ in 60 seconds, reduce it.
 
 ### Phase 9 — Report and delivery
 
-1. Assemble `templates/target-state-report.md` (sections 1–8, each with its
+1. Assemble `templates/target-state-report.md` (report sections 1–8, one per phase 1–8, each with its
    diagram reference and its short text).
 2. Lint every `.drawio`; look at every preview; run the checklist from the
    edgy-diagram *Preview loop*.

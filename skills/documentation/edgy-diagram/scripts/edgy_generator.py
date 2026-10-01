@@ -8,7 +8,7 @@ import sys
 import argparse
 from edgy_parser import EDGYParser
 from edgy_to_plantuml import generate_plantuml
-from edgy_document import parse_document, build_mxfile
+from edgy_document import parse_document, build_mxfile, unique_slugs
 import edgy_render
 
 def read_input_file(file_path: str) -> str:
@@ -83,13 +83,21 @@ def report_layout_warnings(pages, before_counts) -> None:
         print(f"{n} layout warning(s) — see above.", file=sys.stderr)
 
 
-def render_preview(drawio_path: str, png: bool = True) -> None:
-    """CLI-vapaa esikatselu: SVG aina, PNG jos Chromium löytyy."""
+def render_preview(drawio_path: str, png: bool = True) -> bool:
+    """CLI-vapaa esikatselu: SVG aina, PNG jos Chromium löytyy.
+
+    Palauttaa False jos SVG:tä ei saatu kirjoitettua — esikatselu on
+    pakollinen vaihe, joten kutsuja päättää ajon virheeseen. Puuttuva PNG
+    (ei Chromiumia) ei ole virhe: SVG riittää katselmointiin.
+    """
     try:
         results = edgy_render.render_file(drawio_path, png=png)
-    except Exception as e:  # noqa: BLE001
-        print(f"Preview failed: {e}", file=sys.stderr)
-        return
+    except Exception as e:  # noqa: BLE001 — raportoidaan ja palautetaan virhe
+        print(f"Error: preview failed: {e}", file=sys.stderr)
+        return False
+    if not results:
+        print("Error: preview produced no pages", file=sys.stderr)
+        return False
     for r in results:
         label = f" [page {r['page']}]" if r['page'] else ""
         print(f"Preview SVG: {r['svg']}{label}")
@@ -98,6 +106,7 @@ def render_preview(drawio_path: str, png: bool = True) -> None:
     if png and not any(r['png'] for r in results):
         print("Preview: no Chromium/Chrome found — SVG only. Open the SVG in a browser, "
               "or set EDGY_CHROMIUM=<binary> for PNG.")
+    return True
 
 
 # Export-presetit: (format, extra draw.io CLI args)
@@ -291,18 +300,24 @@ def main():
 
     # PlantUML-engine PNG/SVG/PDF -renderille
     if args.engine == 'plantuml' and fmt in ('png', 'svg', 'pdf'):
-        puml_content = generate_plantuml(edgy_parser)
         base = edgy_parser.map_type or edgy_parser.facet or 'edgy'
         if base == 'all':
             base = 'edgy'
         if args.output:
-            output_path = args.output
-            puml_path = os.path.splitext(args.output)[0] + '.puml'
+            stem, ext = os.path.splitext(args.output)
+            ext = ext or f'.{fmt}'
         else:
-            output_path = f"{base}-map.{fmt}"
-            puml_path = f"{base}-map.puml"
-        write_text_file(puml_content, puml_path)
-        export_with_plantuml_cli(puml_path, output_path, fmt)
+            stem, ext = f"{base}-map", f".{fmt}"
+        # Monisivuinen syöte: yksi kuva per sivu, deterministiset nimet <stem>-<sivu>.<ext>
+        if len(pages) == 1:
+            targets = [(stem, pages[0][1])]
+        else:
+            slugs = unique_slugs([name for name, _ in pages])
+            targets = [(f"{stem}-{slug}", p) for slug, (_, p) in zip(slugs, pages)]
+        for page_stem, page_parser in targets:
+            puml_path = page_stem + '.puml'
+            write_text_file(generate_plantuml(page_parser), puml_path)
+            export_with_plantuml_cli(puml_path, page_stem + ext, fmt)
         return
 
     # Draw.io pipeline: oletuksena mxfile-kääre (pakkaamaton), jokainen sivu omana <diagram>-elementtinä
@@ -344,8 +359,10 @@ def main():
         export_with_drawio_cli(temp_drawio_path, output_path, fmt, extra_export_args)
     else:
         print(f"EDGY diagram created: {output_path}")
-        if args.preview:
-            render_preview(output_path)
+        if args.preview and not render_preview(output_path):
+            print("The .drawio file was written but the mandatory preview was not — "
+                  "fix the error above before delivery.", file=sys.stderr)
+            sys.exit(3)
 
 if __name__ == "__main__":
     main()

@@ -25,7 +25,8 @@ Rules
   E005 edge source/target missing or not a vertex
   E006 vertex has negative absolute coordinates
   E007 vertex outside the page               E008 two elements overlap > 30 %
-  E009 EDGY 23 legend missing                E010 core-link verb on a non-core pair
+  E009 EDGY 23 legend missing (title + ≥ 3 colour chips + ≥ 1 line sample)
+  E010 core-link verb on a non-core pair
   E011 non-core verb drawn with core-link style
   W101 text does not fit the element (estimate)
   W102 fill colour is not an EDGY 23 palette colour
@@ -143,6 +144,82 @@ def element_type(st):
     return table[fam].get(sh)
 
 
+BASE_FILLS = {'#ffffff', '#fff'}
+BASE_STROKES = {'#262626', '#000000', '#333333', '#555555'} | {'#6b778c', '#006644', '#b26b00', '#c25100', '#bf2600'}
+BASE_TYPES = {'rounded': 'outcome', 'pentagon': 'activity', 'rect': 'object', 'person': 'people'}
+
+
+def base_element_type(st):
+    """EDGY base element (people / activity / outcome / object): white fill,
+    dark (or transition-overlay) stroke, or the person shape. None otherwise."""
+    fill = st.get('fillColor', '').lower()
+    stroke = st.get('strokeColor', '').lower()
+    sh = shape_of(st)
+    if fill not in BASE_FILLS or sh == 'decoration':
+        return None
+    if sh == 'person' or stroke in BASE_STROKES:
+        return BASE_TYPES.get(sh)
+    return None
+
+
+def is_legend_chip(c, st):
+    """A small, unlabelled palette swatch, or a palette-filled text cell (hand-written legends)."""
+    fill = st.get('fillColor', '').lower()
+    if fill not in PALETTE:
+        return False
+    g = c.find('mxGeometry')
+    w = float(g.get('width', 0) or 0) if g is not None else 0
+    h = float(g.get('height', 0) or 0) if g is not None else 0
+    small_unlabelled = w <= 40 and h <= 20 and not strip_html(c.get('value') or '').strip()
+    return small_unlabelled or ('text' in st)
+
+
+def classify_cells(cells):
+    """Split a page's cells into EDGY elements, containers, legend parts.
+
+    Returns dict with:
+      elements   {id: (cell, style, kind)}  kind = facet/intersection type or base type
+      containers set of container ids
+      legend     {'title': bool, 'chips': set(colours), 'samples': int}
+    Legend detection is structural: a text cell whose label names a legend,
+    at least three palette chips, and at least one free-standing line sample
+    (an edge without source/target). An element merely *named* "Legend" does
+    not count, and cell ids carry no meaning.
+    """
+    elements, containers = {}, set()
+    legend = {'title': False, 'chips': set(), 'samples': 0}
+    for i, c in cells.items():
+        st = style_dict(c.get('style'))
+        if c.get('edge') == '1':
+            if not c.get('source') and not c.get('target'):
+                legend['samples'] += 1
+            continue
+        if c.get('vertex') != '1':
+            continue
+        label = strip_html(c.get('value') or '').strip().lower()
+        if st.get('container') == '1' or 'swimlane' in (c.get('style') or ''):
+            containers.add(i)
+            continue
+        if 'text' in st and any(w in label for w in LEGEND_WORDS):
+            legend['title'] = True
+        if is_legend_chip(c, st):
+            legend['chips'].add(st.get('fillColor', '').lower())
+            continue
+        if shape_of(st) == 'decoration':
+            continue
+        if st.get('fillColor', '').lower() in PALETTE:
+            elements[i] = (c, st, element_type(st))
+            continue
+        base = base_element_type(st)
+        if base:
+            elements[i] = (c, st, base)
+    return {'elements': elements, 'containers': containers, 'legend': legend}
+
+
+def legend_complete(legend):
+    return legend['title'] and len(legend['chips']) >= 3 and legend['samples'] >= 1
+
+
 def load_models(path):
     """Yield (page_name, mxGraphModel element) for every diagram in the file."""
     raw = open(path, 'rb').read()
@@ -223,27 +300,22 @@ def lint_model(path, page, model, lines, opts):
             guard += 1
         return x, y, w, h
 
-    # classify vertices
-    elements = {}      # EDGY elements (palette fill, real shape)
-    containers = set()
-    legend_seen = False
+    # classify vertices (EDGY elements incl. base elements, containers, legend parts)
+    cls = classify_cells(cells)
+    containers = cls['containers']
+    legend_seen = legend_complete(cls['legend'])
+    elements = {i: (c, st, abs_box(c)) for i, (c, st, _kind) in cls['elements'].items()}
+    kinds = {i: kind for i, (_c, _st, kind) in cls['elements'].items()}
     for i, c in verts.items():
         st = style_dict(c.get('style'))
         val = c.get('value') or ''
-        if i.startswith('leg') or any(w in strip_html(val).lower() for w in LEGEND_WORDS):
-            legend_seen = True
-        if st.get('container') == '1' or st.get('swimlane') is True or 'swimlane' in (c.get('style') or ''):
-            containers.add(i)
-        is_lane = st.get('strokeColor') == 'none' and st.get('verticalAlign') == 'top' and 'text' not in st
         if ENTITY_RE.search(val):
             add('WARNING', 'W107', f'double-escaped HTML entity in label ({ENTITY_RE.search(val).group(0)}) — write UTF-8 text and escape only & < > " once', i)
-        fill = st.get('fillColor', '').lower()
-        sh = shape_of(c and st)
-        if sh == 'decoration' or i.startswith('leg'):
+        if i in elements or i in containers or 'text' in st or shape_of(st) == 'decoration':
             continue
-        if fill in PALETTE and i not in containers:
-            elements[i] = (c, st, abs_box(c))
-        elif fill not in NEUTRAL_FILLS and fill not in PALETTE and i not in containers and not is_lane:
+        fill = st.get('fillColor', '').lower()
+        is_lane = st.get('strokeColor') == 'none' and st.get('verticalAlign') == 'top'
+        if fill and fill not in NEUTRAL_FILLS and fill not in PALETTE and not is_lane:
             add('WARNING', 'W102', f'fill colour {fill} is not an EDGY 23 palette colour', i)
 
     # E004/E005/W108 edges
@@ -251,12 +323,12 @@ def lint_model(path, page, model, lines, opts):
         if e.find('mxGeometry') is None:
             add('ERROR', 'E004', 'edge has no <mxGeometry relative="1" as="geometry"/> child', i)
         src, tgt = e.get('source'), e.get('target')
-        if i.startswith('leg'):
-            continue
+        g = e.find('mxGeometry')
         for k, v in (('source', src), ('target', tgt)):
             if v is None:
-                if not e.find('mxGeometry') is not None or e.find('mxGeometry') is None or e.find('mxGeometry').find('mxPoint') is None:
-                    add('ERROR', 'E005', f'edge has no {k}', i)
+                point = g.find(f"mxPoint[@as='{k}Point']") if g is not None else None
+                if point is None:
+                    add('ERROR', 'E005', f'edge has neither {k} nor {k}Point', i)
             elif v not in verts:
                 add('ERROR', 'E005', f'edge {k}="{v}" is not an existing vertex', i)
         if src in elements and tgt in elements and not strip_html(e.get('value') or '').strip():
@@ -271,7 +343,7 @@ def lint_model(path, page, model, lines, opts):
             add('ERROR', 'E006', f'element at negative coordinates ({x:.0f},{y:.0f})', i)
         elif page_w and page_h and (x + w > page_w or y + h > page_h):
             add('ERROR', 'E007', f'element extends outside the page ({x:.0f},{y:.0f},{w:.0f}x{h:.0f} vs page {page_w:.0f}x{page_h:.0f})', i)
-        et = element_type(st)
+        et = kinds.get(i)
         if et in ('brand', 'product', 'organisation') and shape_of(st) != 'rect':
             add('WARNING', 'W103', f'{et} must use the plain rectangle (Object) shape', i)
         stroke = st.get('strokeColor', '').lower()
@@ -331,8 +403,6 @@ def lint_model(path, page, model, lines, opts):
 
     # E010/E011/W104/W105 semantics
     for i, e in edges.items():
-        if i.startswith('leg'):
-            continue
         src, tgt = e.get('source'), e.get('target')
         if src not in elements or tgt not in elements:
             continue
@@ -342,8 +412,8 @@ def lint_model(path, page, model, lines, opts):
         st = style_dict(e.get('style'))
         overlay_dash = st.get('dashed') == '1' and st.get('strokeColor', '').lower() in OVERLAY_STROKES
         core_style = st.get('endArrow') == 'classic' and st.get('endFill') == '1' and (st.get('dashed') != '1' or overlay_dash)
-        s_type = element_type(elements[src][1])
-        t_type = element_type(elements[tgt][1])
+        s_type = kinds.get(src)
+        t_type = kinds.get(tgt)
         allowed = core_link_pairs(verb)
         if allowed:
             if s_type and t_type and (s_type, t_type) not in allowed:
@@ -399,7 +469,8 @@ def main(argv=None):
     elif not opts.quiet:
         for x in all_findings:
             print(x)
-    print(f"edgy-lint: {len(opts.files)} file(s), {len(errors)} error(s), {len(warnings)} warning(s)")
+    summary = f"edgy-lint: {len(opts.files)} file(s), {len(errors)} error(s), {len(warnings)} warning(s)"
+    print(summary, file=sys.stderr if opts.json else sys.stdout)   # --json: stdout is pure JSON
     if errors or (opts.warnings_as_errors and warnings):
         return 1
     return 0

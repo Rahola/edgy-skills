@@ -194,6 +194,73 @@ def test_find_chromium_respects_env(monkey=None):
             os.environ['EDGY_CHROMIUM'] = old
 
 
+def test_page_ids_unique_even_with_suffix_collisions():
+    # review: "foo-3", "foo", "foo" used to give foo-3, foo, foo-3
+    xml = edgy_document.build_mxfile([(n, '<mxGraphModel><root><mxCell id="0"/></root></mxGraphModel>')
+                                      for n in ('foo-3', 'foo', 'foo', 'foo-2')])
+    ids = [d.get('id') for d in ET.fromstring(xml).findall('diagram')]
+    assert len(ids) == len(set(ids)), ids
+    assert ids == ['foo-3', 'foo', 'foo-2', 'foo-2-2'], ids
+
+
+def test_preview_stems_unique_for_duplicate_page_names():
+    # review: two pages called "A" wrote to the same SVG
+    pages = edgy_document.parse_document("""
+pages:
+  - name: "A"
+    elements:
+      - purpose: "One"
+  - name: "A"
+    elements:
+      - purpose: "Two"
+""")
+    path = _write(edgy_document.build_mxfile([(n, p.generate_xml()) for n, p in pages]))
+    out = tempfile.mkdtemp()
+    try:
+        results = edgy_render.render_file(path, out_dir=out, png=False)
+        svgs = [r['svg'] for r in results]
+        assert len(set(svgs)) == 2, svgs
+        assert 'One' in open(svgs[0], encoding='utf-8').read() and 'Two' in open(svgs[1], encoding='utf-8').read()
+    finally:
+        os.unlink(path)
+
+
+def _run_generator(*args, cwd=None):
+    import subprocess
+    gen = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'edgy_generator.py')
+    return subprocess.run([sys.executable, gen, *args], capture_output=True, text=True, cwd=cwd)
+
+
+def test_preview_failure_exits_non_zero():
+    # review: a failing mandatory preview used to exit 0
+    import edgy_generator
+    original = edgy_render.render_file
+    edgy_render.render_file = lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom"))
+    try:
+        assert edgy_generator.render_preview('whatever.drawio') is False
+    finally:
+        edgy_render.render_file = original
+    d = tempfile.mkdtemp()
+    src = _write(SINGLE, suffix='.txt')
+    r = _run_generator(src, '--output', os.path.join(d, 'ok.drawio'), '--preview')
+    assert r.returncode == 0 and os.path.exists(os.path.join(d, 'ok.svg')), r.stderr
+
+
+def test_plantuml_engine_writes_one_source_per_page():
+    # review: --engine plantuml used to drop every page after the first
+    d = tempfile.mkdtemp()
+    src = _write(MULTI, suffix='.txt')
+    env_jar = os.environ.pop('PLANTUML_JAR', None)
+    try:
+        r = _run_generator(src, '--format', 'png', '--engine', 'plantuml', '--output', os.path.join(d, 'map.png'))
+    finally:
+        if env_jar is not None:
+            os.environ['PLANTUML_JAR'] = env_jar
+    pumls = sorted(f for f in os.listdir(d) if f.endswith('.puml'))
+    assert pumls == ['map-roles-actors.puml', 'map-systems.puml'], (pumls, r.stdout, r.stderr)
+    assert 'Fare engine' in open(os.path.join(d, 'map-systems.puml'), encoding='utf-8').read()
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

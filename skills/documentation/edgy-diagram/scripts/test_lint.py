@@ -13,8 +13,14 @@ HEAD = ('<?xml version="1.0" encoding="utf-8"?>\n'
         '<mxGraphModel pageWidth="800" pageHeight="600"><root>'
         '<mxCell id="0"/><mxCell id="1" parent="0"/>')
 TAIL = '</root></mxGraphModel>'
-LEGEND = ('<mxCell id="leg0" value="EDGY 23 — Legend" style="text;html=1;" vertex="1" parent="1">'
-          '<mxGeometry x="600" y="500" width="150" height="20" as="geometry"/></mxCell>')
+LEGEND = ('<mxCell id="91" value="EDGY 23 — Legend" style="text;html=1;" vertex="1" parent="1">'
+          '<mxGeometry x="600" y="480" width="150" height="20" as="geometry"/></mxCell>'
+          + ''.join(f'<mxCell id="9{n}" value="" style="rounded=1;fillColor={col};strokeColor=#ffffff;" vertex="1" parent="1">'
+                    f'<mxGeometry x="600" y="{500 + n * 16}" width="14" height="12" as="geometry"/></mxCell>'
+                    for n, col in enumerate(('#80ffb7', '#a6c0ff', '#ff99bd'), 2))
+          + '<mxCell id="99" value="" style="edgeStyle=none;endArrow=classic;endFill=1;" edge="1" parent="1">'
+            '<mxGeometry relative="1" as="geometry"><mxPoint x="600" y="560" as="sourcePoint"/>'
+            '<mxPoint x="630" y="560" as="targetPoint"/></mxGeometry></mxCell>')
 PURPOSE = 'rounded=1;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#fff;strokeWidth=2;arcSize=30;fontSize=12;'
 STORY = 'shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#fff;strokeWidth=2;fontSize=12;'
 ORG = 'whiteSpace=wrap;html=1;fillColor=#80eaff;strokeColor=#fff;strokeWidth=2;fontSize=12;'
@@ -170,6 +176,49 @@ relationships:
     assert parser.warnings == [], parser.warnings
     f = run(parser.generate_xml())
     assert not [x for x in f if x[1] == 'ERROR'], f"generator output must be error-free, got {f}"
+
+
+def test_element_named_legend_does_not_satisfy_legend_rule():
+    # review: an element labelled "Legend" (or a cell id starting with "leg") must not bypass E009
+    xml = HEAD + vertex('leg5', 'Legend', PURPOSE, 40, 40) + \
+        '<mxCell id="3" value="Legend" style="text;html=1;" vertex="1" parent="1"><mxGeometry x="300" y="40" width="80" height="20" as="geometry"/></mxCell>' + TAIL
+    r = rules(run(xml))
+    assert 'E009' in r, f"a legend title without colour chips and line samples is not a legend: {r}"
+
+
+def test_legend_element_ids_are_not_skipped():
+    # a real element whose id starts with "leg" is still linted (here: off-page)
+    xml = HEAD + vertex('legacy', 'Legacy engine', ASSET, 750, 40) + LEGEND + TAIL
+    assert 'E007' in rules(run(xml))
+
+
+def test_base_elements_are_linted():
+    # review: people / activity / outcome / object use neutral fills and were invisible to the linter
+    person = 'shape=mxgraph.basic.person;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;'
+    outcome = 'rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;'
+    xml_no_legend = HEAD + vertex(2, 'Customer', person, 40, 40, 60, 80) + TAIL
+    assert 'E009' in rules(run(xml_no_legend)), "base-only diagram without a legend must fail E009"
+    xml = HEAD + vertex(2, 'Customer', person, -20, 40, 60, 80) + vertex(3, 'KPI', outcome, 300, 40) + \
+        vertex(4, 'Purpose', PURPOSE, 300, 300) + edge(10, 'pursues', CORE, 2, 4) + edge(11, 'zaps', INFL, 3, 4) + LEGEND + TAIL
+    r = rules(run(xml))
+    assert 'E006' in r, f"negative coordinates of a base element are reported: {r}"
+    assert 'E010' in r, f"core-link verb from a base element is a wrong pair: {r}"
+    assert 'W105' in r, f"unknown verb from a base element is reported: {r}"
+
+
+def test_json_output_is_pure_json():
+    import json, subprocess
+    xml = HEAD + vertex(2, 'A', PURPOSE, -10, 40) + TAIL
+    with tempfile.NamedTemporaryFile('w', suffix='.drawio', delete=False, encoding='utf-8') as f:
+        f.write(xml)
+    try:
+        out = subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'edgy_lint.py'), '--json', f.name],
+                             capture_output=True, text=True)
+        findings = json.loads(out.stdout)
+        assert {x['rule'] for x in findings} >= {'E006', 'E009'}, findings
+        assert 'edgy-lint:' in out.stderr and out.returncode == 1
+    finally:
+        os.unlink(f.name)
 
 
 def main():

@@ -174,6 +174,30 @@ def render_module(data):
     return "\n".join(lines)
 
 
+BEGIN_RE = re.compile(r"<!-- edgy-links:begin format=[a-z0-9-]+ -->")
+END_RE = re.compile(r"<!-- edgy-links:end -->")
+
+
+def check_markers(path, text):
+    """Every begin marker needs exactly one matching end marker, in order.
+
+    An unpaired marker would make MARKER_RE skip the block silently, so the
+    table would never be rendered or checked."""
+    begins = [m.start() for m in BEGIN_RE.finditer(text)]
+    ends = [m.start() for m in END_RE.finditer(text)]
+    paired = len(MARKER_RE.findall(text))
+    problems = []
+    if len(begins) != len(ends):
+        problems.append(f"{len(begins)} begin marker(s) but {len(ends)} end marker(s)")
+    if paired != len(begins):
+        problems.append(f"only {paired} of {len(begins)} begin marker(s) form a complete block")
+    for b, e in zip(begins, ends):
+        if e < b:
+            problems.append("an end marker precedes its begin marker")
+            break
+    return [f"{path}: {p}" for p in problems]
+
+
 def render_skill(text, data):
     def repl(m):
         fmt = m.group("fmt")
@@ -190,12 +214,21 @@ def main():
     data = load()
     stale = []
     targets = [(MODULE, render_module(data))]
+    marker_errors = []
     for path in SKILL_FILES:
         text = path.read_text(encoding="utf-8")
-        if "edgy-links:begin" not in text:
-            print(f"warning: no edgy-links markers in {path.relative_to(REPO)}", file=sys.stderr)
+        if "edgy-links:begin" not in text and "edgy-links:end" not in text:
+            marker_errors.append(f"{path.relative_to(REPO)}: no edgy-links markers (every listed file must carry its generated table)")
+            continue
+        errs = check_markers(path.relative_to(REPO), text)
+        if errs:
+            marker_errors.extend(errs)
             continue
         targets.append((path, render_skill(text, data)))
+    if marker_errors:
+        for e in marker_errors:
+            print(f"error: {e}", file=sys.stderr)
+        return 1
     for path, new in targets:
         old = path.read_text(encoding="utf-8") if path.exists() else None
         if old != new:

@@ -75,14 +75,25 @@ def validate(instance, schema, root, path, out):
 def validate_model(model, schema):
     out = []
     validate(model, schema, schema, "", out)
-    # semantic checks beyond the schema
-    elems = model.get("elements", {}) if isinstance(model, dict) else {}
-    for i, link in enumerate(model.get("core_links", []) if isinstance(model, dict) else []):
+    # semantic checks beyond the schema — every access is type-guarded, because
+    # the schema pass above only *records* type errors; it does not stop here
+    if not isinstance(model, dict):
+        return out
+    elems = model.get("elements")
+    elems = elems if isinstance(elems, dict) else {}
+    links = model.get("core_links")
+    for i, link in enumerate(links if isinstance(links, list) else []):
+        if not isinstance(link, dict):
+            continue  # already reported as a type error
         if not any(k in link for k in ("verb_en", "verb_fi", "verb_fr", "verb_de")):
             out.append(f"/core_links/{i}: at least one verb_<lang> is required")
-    for i, dd in enumerate(model.get("suggested_deep_dives", []) if isinstance(model, dict) else []):
-        for p in dd.get("pair", []):
-            if p in elems and not elems[p]:
+    dives = model.get("suggested_deep_dives")
+    for i, dd in enumerate(dives if isinstance(dives, list) else []):
+        if not isinstance(dd, dict):
+            continue
+        pair = dd.get("pair")
+        for p in pair if isinstance(pair, list) else []:
+            if isinstance(p, str) and p in elems and not elems[p]:
                 out.append(f"/suggested_deep_dives/{i}: pair element '{p}' is empty in the model")
     return out
 

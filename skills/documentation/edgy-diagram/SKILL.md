@@ -1,6 +1,6 @@
 ---
 name: edgy-diagram
-version: "2.4.0"
+version: "2.4.1"
 description: >
   Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML
   source and export them to PNG/SVG/PDF. Generator-first workflow
@@ -45,12 +45,14 @@ inputs:
       (engine selected via --engine).
   - name: engine
     type: enum
-    values: [drawio, plantuml]
+    values: [drawio, plantuml, native]
     default: drawio
     description: >
       Render engine for png/svg/pdf. `drawio` uses draw.io CLI; `plantuml`
-      uses plantuml.jar or `plantuml` binary. Ignored when format is
-      drawio/plantuml/puml.
+      uses plantuml.jar or `plantuml` binary (one image per page for
+      multi-page input); `native` is the pure-Python SVG renderer with PNG
+      through headless Chromium when available (approximate, no pdf).
+      Ignored when format is drawio/plantuml/puml.
   - name: language
     type: enum
     values: [fi, en, fr, de]
@@ -139,7 +141,7 @@ relationship, and is larger than 1000 bytes.
 ```bash
 edgy_generator.py in.txt --output out.drawio [--preview] [--bare] [--lenient]
 edgy_generator.py in.txt --format svg|png --engine native --output out      # CLI-free render
-edgy_generator.py in.txt --format png|svg|pdf [--engine drawio|plantuml] [--preset presentation|print|web]
+edgy_generator.py in.txt --format png|svg|pdf [--engine drawio|plantuml|native] [--preset presentation|print|web]
 edgy_generator.py in.txt --format plantuml --output out.puml
 edgy_render.py out.drawio [--out DIR] [--no-png]                            # preview an existing file
 ```
@@ -444,6 +446,7 @@ Record in the delivery which preview was used.
 - **Unknown `facet` or `map_type` value** (e.g. `all-facets`) → error, generator exits 2; fix the input (`--lenient` forces generation for debugging only)
 - **Core-link verb on a pair that is not a core link** → warning, drawn as influence; change the verb or the pair
 - **Verb outside the vocabulary** → warning, drawn as influence; pick a verb from the influence table
+- **Preview cannot be written** (`--preview`) → error, generator exits 3 after writing the `.drawio`; a missing PNG (no Chromium) is not an error — the SVG is enough for the preview loop
 
 ## Export
 

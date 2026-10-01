@@ -32,7 +32,7 @@ import sys
 from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from edgy_document import load_pages_from_file, slugify  # noqa: E402
+from edgy_document import load_pages_from_file, unique_slugs  # noqa: E402
 
 CHAR_W = 0.55
 LINE_H = 1.2
@@ -417,10 +417,11 @@ def render_file(path: str, out_dir: Optional[str] = None, png: bool = True, scal
     base = base or re.sub(r'\.drawio(\.xml)?$', '', os.path.basename(path))
     chromium = find_chromium() if png else None
     results = []
-    for i, (name, model) in enumerate(pages, 1):
+    slugs = unique_slugs([name or str(i) for i, (name, _) in enumerate(pages, 1)])
+    for (name, model), slug in zip(pages, slugs):
         page = Page(model)
         svg = page_to_svg(page, name)
-        stem = base if len(pages) == 1 else f'{base}-{slugify(name or str(i))}'
+        stem = base if len(pages) == 1 else f'{base}-{slug}'
         svg_path = os.path.join(out_dir, stem + '.svg')
         with open(svg_path, 'w', encoding='utf-8') as f:
             f.write(svg)

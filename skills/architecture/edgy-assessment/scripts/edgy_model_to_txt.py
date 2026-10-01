@@ -25,8 +25,13 @@ DIAGRAM_SCRIPTS = HERE.parent.parent.parent / "documentation" / "edgy-diagram" /
 sys.path.insert(0, str(DIAGRAM_SCRIPTS))
 try:
     from edgy_core_links import CORE_LINKS  # noqa: E402
-except Exception:  # pragma: no cover
-    CORE_LINKS = []
+except ImportError as exc:  # the vocabulary is required to derive core links — never continue without it
+    sys.exit(f"edgy_model_to_txt: cannot import the EDGY vocabulary module edgy_core_links from "
+             f"{DIAGRAM_SCRIPTS} ({exc}). Run `python3 tools/render-core-links.py` or check the "
+             f"edgy-diagram skill installation; refusing to write TXT files without core links.")
+if not CORE_LINKS:
+    sys.exit("edgy_model_to_txt: the EDGY vocabulary module is empty — regenerate it with "
+             "`python3 tools/render-core-links.py`.")
 
 IDENTITY = ["purpose", "story", "content"]
 ARCHITECTURE = ["capability", "asset", "process"]
