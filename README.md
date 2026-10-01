@@ -43,8 +43,23 @@ installers and usage guides:
 | Mistral Vibe CLI | [`adapters/mistral-vibe/`](adapters/mistral-vibe/) — copy-paste + `install.sh` |
 | Any / generic | [`adapters/generic/`](adapters/generic/) — download a skill to any directory |
 
-The adapters point at `Rahola/edgy-skills` by default — change the repo in the
-scripts (or set the documented env var) if you use a fork.
+The adapters point at `Rahola/edgy-skills` by default; set `EDGY_SKILLS_REPO`
+to use a fork.
+
+### Versions
+
+Releases are git tags (`v1.0.0`, `v2.0.0`, …); see [CHANGELOG.md](CHANGELOG.md).
+`main` is the latest version. To install a specific release, set
+`EDGY_SKILLS_REF` for any adapter:
+
+```bash
+EDGY_SKILLS_REF=v1.0.0 bash adapters/claude-code/install.sh --all   # previous generation
+EDGY_SKILLS_REF=v2.0.0 bash adapters/claude-code/install.sh --all   # pinned current release
+```
+
+When an adapter runs from a local clone it installs that checkout, so use
+`git checkout v1.0.0` first. Pasting a SKILL.md directly? Open it from the tag
+(`https://github.com/Rahola/edgy-skills/tree/v1.0.0/skills`).
 
 **Generating and checking diagrams** — `edgy-diagram` ships a Python
 generator (`edgy_generator.py`, standard library only) that turns a short TXT

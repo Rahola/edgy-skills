@@ -16,9 +16,15 @@
 #   3) curl  — fallback (vain public)
 #
 # Pakota: aseta SOURCE_MODE=local|gh|curl ennen funktiokutsuja.
+#
+# Versio: EDGY_SKILLS_REF=<tagi|haara|commit> (oletus main), esim.
+#   EDGY_SKILLS_REF=v1.0.0 bash install.sh edgy-diagram
+# Koskee gh- ja curl-lähdettä. local-lähde käyttää repon nykyistä checkoutia
+# (git checkout v1.0.0 ensin). Vanha nimi REGISTRY_BRANCH toimii yhä.
+# Repo: EDGY_SKILLS_REPO=<owner/repo> (oletus Rahola/edgy-skills), vanha nimi REGISTRY_REPO.
 
-REGISTRY_REPO="${REGISTRY_REPO:-Rahola/edgy-skills}"
-REGISTRY_BRANCH="${REGISTRY_BRANCH:-main}"
+REGISTRY_REPO="${EDGY_SKILLS_REPO:-${REGISTRY_REPO:-Rahola/edgy-skills}}"
+REGISTRY_BRANCH="${EDGY_SKILLS_REF:-${REGISTRY_BRANCH:-main}}"
 REGISTRY_BASE_URL="${REGISTRY_BASE_URL:-https://raw.githubusercontent.com/${REGISTRY_REPO}/${REGISTRY_BRANCH}}"
 
 # Kutsuva skripti asettaa ADAPTER_SCRIPT_DIR ennen sourcea

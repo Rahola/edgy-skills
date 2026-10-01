@@ -14,11 +14,16 @@
 #
 # Pakota lähde:
 #   --source=local | --source=gh | --source=curl
+#
+# Versio (gh/curl-lähde): EDGY_SKILLS_REF=<tagi|haara|commit>, oletus main
+#   EDGY_SKILLS_REF=v1.0.0 bash install.sh --all
+# local-lähde asentaa repon nykyisestä checkoutista (git checkout <tagi> ensin).
+# Fork: EDGY_SKILLS_REPO=<owner/repo>
 
 set -euo pipefail
 
-REGISTRY_REPO="Rahola/edgy-skills"
-REGISTRY_BRANCH="main"
+REGISTRY_REPO="${EDGY_SKILLS_REPO:-Rahola/edgy-skills}"
+REGISTRY_BRANCH="${EDGY_SKILLS_REF:-main}"
 REGISTRY_BASE_URL="https://raw.githubusercontent.com/${REGISTRY_REPO}/${REGISTRY_BRANCH}"
 SKILLS_DIR="${HOME}/.claude/skills"
 CLAUDE_MD="${HOME}/.claude/CLAUDE.md"
