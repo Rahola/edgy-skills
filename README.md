@@ -22,11 +22,13 @@ language.
 | [`edgy-diagram`](skills/documentation/edgy-diagram/) | documentation | Render EDGY diagrams as draw.io XML or PlantUML and export to PNG/SVG/PDF. |
 | [`edgy-assessment`](skills/architecture/edgy-assessment/) | architecture | Orchestrator — chains `edgy-framework` + `edgy-diagram` into a full assessment with a locked PDF report layout. |
 | [`edgy-deep-dive`](skills/architecture/edgy-deep-dive/) | architecture | Targeted analysis of a specific element pair / facet combination from an existing assessment model. |
+| [`edgy-target-state`](skills/architecture/edgy-target-state/) | architecture | Internal target-state architecture work: purpose map, capability map and cards, guardrails, building-block hypothesis with a current → target overlay, work packages, role model, stakeholder summary. |
 
-**How they fit together:** run `edgy-assessment` for a full pass (it calls
-`edgy-framework` and `edgy-diagram` internally), then `edgy-deep-dive` to explore
-a specific intersection. `edgy-framework` and `edgy-diagram` also work
-standalone.
+**How they fit together:** run `edgy-assessment` for an outside-in pass on a
+company (it calls `edgy-framework` and `edgy-diagram` internally), then
+`edgy-deep-dive` to explore a specific intersection. For your own
+organisation's target architecture run `edgy-target-state` instead.
+`edgy-framework` and `edgy-diagram` also work standalone.
 
 ## Using the skills
 
@@ -115,7 +117,7 @@ description with `edgy-diagram`.
 ## Repository layout
 
 ```
-skills/            # the 4 EDGY skills (SKILL.md + assets/examples)
+skills/            # the 5 EDGY skills (SKILL.md + assets/examples)
 skills/_shared/    # edgy-core-links.yaml — single source of the relationship vocabulary
 tools/             # validator, registry updater, core-links renderer, privacy scanner, git hooks
 docs/              # development plan / review notes

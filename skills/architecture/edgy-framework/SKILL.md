@@ -1,6 +1,6 @@
 ---
 name: edgy-framework
-version: "1.3.0"
+version: "1.4.0"
 description: >
   EDGY 23 enterprise design analysis: challenge reframing, facet intersection analysis,
   element identification from natural language, and modelling guidance for strategy
@@ -16,10 +16,11 @@ agents:
 inputs:
   - name: mode
     type: enum
-    values: [reframing, intersection, identify]
+    values: [reframing, intersection, identify, target-state]
     description: >
       Analysis mode: reframing (challenge reframing), intersection (coherence check),
-      identify (element identification)
+      identify (element identification), target-state (internal target-architecture
+      artefacts: purpose map, capability cards, building-block hypothesis, role model)
   - name: challenge
     type: text
     description: Challenge, business description, or analysis subject in natural language
@@ -195,6 +196,62 @@ When the user provides a business description:
 | organisation → product | valmistaa | makes | fabrique | stellt her |
 | product → brand | ilmentää | embodies | incarne | verkörpert |
 <!-- edgy-links:end -->
+
+### Mode 4: Target-state (internal target-architecture work)
+
+Use this mode when the subject is your own (or your client's) organisation
+and the goal is a **target architecture and the path to it**, not an
+outside-in assessment. Inputs are internal: strategy documents, meeting
+notes, an existing current-state model, interviews. The Experience facet is
+optional at this stage. The orchestrating skill `edgy-target-state` runs the
+phases end to end; this mode defines the artefacts.
+
+Every artefact cites EDGY element ids (`PUR-`, `OUT-`, `CAP-`, `BB-`, `WP-`),
+so documents and diagrams cross-reference. Keep artefacts short (see Output
+length by mode).
+
+| # | Artefact | EDGY anchor | Diagram (edgy-diagram) |
+|---|----------|-------------|------------------------|
+| 1 | **Purpose map** — mission, vision, focus areas (sub-Purposes), KPIs (Outcomes) | Purpose, Outcome, Content, Story, Organisation, Brand | `map_type: purpose` |
+| 2 | **Capability map + cards** — stable home of requirements; cards at area / building-block level | Capability (`group:` per area), Process, Asset | `map_type: capability` with `group:` |
+| 3 | **Guardrails** — principles that constrain decisions, each justified by a Purpose or Outcome id | Purpose, Outcome | — |
+| 4 | **Building-block hypothesis** — about ten blocks, no product names, each mirrored against capabilities, guardrails and Outcomes | Asset / Capability, transition overlay | `map_type: reference` (lanes, `{change: …}`) |
+| 5 | **Work packages** — one block from current to target, exactly one Outcome each, options compared (incumbent continues / re-tender / new supplier / shared service) | Activity → Outcome | optional `map_type: summary` |
+| 6 | **Decision records** — via an external ADR skill if available; otherwise the 40-line template below | referenced by id | — |
+| 7 | **Role model** — who steers, procures, defines, produces, operates, approves each block; optional load view | Organisation → Process `performs` | `map_type: organisation` |
+| 8 | **Stakeholder summary** — who / does what / what results, 3–4 boxes, one paragraph | Organisation, Process, Outcome | `map_type: summary` |
+
+**Capability card** (≤ 1 page):
+
+```markdown
+## CAP-05 Ticketing
+**Area:** 2 Fares and ticketing · **Level:** 2 · **Nature:** differentiating · **Sourcing:** in-house
+**What must be possible:** sell and validate fares in every channel, independent of supplier.
+**Requirements:** R-1 … (functional) · Q-1 … (quality: availability, latency, accessibility)
+**Data owned / master:** fare products (master: this capability); customer identity (master: CAP-01)
+**Current implementer(s):** AST-01 Legacy fare engine (since 2014)
+**Change pressure:** contract ends 2027; open-loop payments; account-based travel
+**Measured by:** OUT-02 single ticket covers 95 % of trips
+**Guardrails:** G-3 one master per data set · G-5 open interfaces
+```
+
+**Building-block mirror table** (one row per block):
+
+| Block | Covers capabilities | Guardrails tested | Outcomes served | Change | Open decision |
+|-------|---------------------|-------------------|-----------------|--------|---------------|
+| BB-02 Account-based ticketing platform | CAP-03, CAP-05, CAP-06 | G-3 ✓ G-5 ✓ G-7 ? | OUT-02, OUT-03 | new | ADR-004 open-loop gateway |
+
+**Work package card** (≤ 20 lines): scope (one block), Outcome (one id),
+options A–D with the incumbent always as one option, dependencies, deadline,
+decision needed by.
+
+**Decision record** (≤ 40 lines, when no ADR skill is available): context,
+options considered (including rejected ones and why), decision, consequences,
+EDGY ids affected.
+
+**Anti-patterns:** product names in building blocks; a work package with two
+Outcomes or none; cards per level-2 leaf; a guardrail without a Purpose or
+Outcome justification; padding any artefact to a length.
 
 ### Mapping strategy documents to EDGY
 
@@ -547,6 +604,42 @@ relationships:
   - "[source]" -> "[target]": "[link]"
 \```
 ```
+
+### Target-state Output
+
+#### English (en)
+
+```markdown
+# Target state: [Programme]
+**Scope:** [organisation / unit] · **Horizon:** [year] · **Status:** hypothesis H1
+
+## 1 Purpose map (PUR-xx, OUT-xx)
+## 2 Capability map and cards (CAP-xx)
+## 3 Guardrails (G-x)
+## 4 Building-block hypothesis (BB-xx)
+## 5 Work packages (WP-xx)
+## 6 Decisions (ADR-xxx)
+## 7 Role model
+## 8 Summary for stakeholders
+```
+
+#### Finnish (fi)
+
+```markdown
+# Tavoitetila: [Ohjelma]
+**Rajaus:** [organisaatio / yksikkö] · **Aikajänne:** [vuosi] · **Tila:** hypoteesi H1
+
+## 1 Purpose map (PUR-xx, OUT-xx)
+## 2 Kyvykkyyskartta ja kortit (CAP-xx)
+## 3 Reunaehdot (G-x)
+## 4 Rakennuspalikkahypoteesi (BB-xx)
+## 5 Työpaketit (WP-xx)
+## 6 Päätökset (ADR-xxx)
+## 7 Roolimalli
+## 8 Yhteenveto sidosryhmille
+```
+
+A complete fictional example: `examples/target-state-example.md`.
 
 ## Quality Requirements
 

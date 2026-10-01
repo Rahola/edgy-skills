@@ -144,6 +144,22 @@ edgy-assessment 1.5.1, edgy-deep-dive 1.0.1, edgy-framework 1.2.1.
   anti-pattern "do not pad". edgy-assessment 1.5.3 scopes its 150-line rule
   to the full assessment.
 
+**Sprint 5 (P2.1–P2.3, P2.9) — edgy-framework 1.4.0, edgy-diagram 2.3.0, new edgy-target-state 1.0.0:**
+- edgy-framework `mode: target-state`: eight artefacts anchored in EDGY ids
+  (purpose map, capability map + cards, guardrails, building-block
+  hypothesis with mirror table, work packages with one Outcome each,
+  decision records via an external ADR skill or a 40-line template, role
+  model, stakeholder summary); card / mirror / work-package templates;
+  output template fi/en; fictional worked example (Acme Transit).
+- New orchestrating skill `edgy-target-state` (phases 1–9, quality gate,
+  anti-patterns, generic delivery note; writes files only, never to
+  external systems unasked). Scope follows plan §3: ADRs delegated, wiki
+  mechanics out, Experience facet optional.
+- edgy-diagram: `reference` layout (lanes top-down, actors left, `[external]`
+  right, overlay strokes) and `summary` layout (who / does what / what
+  results, warns above 4 boxes per row) — both labelled EDGY extensions;
+  Delivery section; two examples; two tests.
+
 **Notes for the next agents:**
 - Sprint 4–7 follow in the same PR; see the plan status line.
 - Sprint 3 note: groups/lanes/nesting in the input format, facet

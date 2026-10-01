@@ -130,6 +130,8 @@ VALID_MAP_TYPES = {
     'purpose', 'brand', 'product', 'object',
     # Layout: grid (rows + columns)
     'asset', 'channel', 'content', 'people', 'story', 'task',
+    # EDGY extensions (not EDGY 23 map types): layered reference architecture, stakeholder summary
+    'reference', 'summary',
 }
 
 # Karttatyyppi → layout-strategia
@@ -150,7 +152,11 @@ MAP_TYPE_LAYOUT = {
     'people': 'grid',
     'story': 'grid',
     'task': 'grid',
+    'reference': 'reference',
+    'summary': 'summary',
 }
+# Stakeholder summary: max boxes per row before the parser warns
+SUMMARY_MAX_PER_ROW = 4
 ALL_ELEMENT_TYPES = (IDENTITY_ELEMENTS | ARCHITECTURE_ELEMENTS |
                      EXPERIENCE_ELEMENTS | INTERSECTION_ELEMENTS | BASE_ELEMENTS)
 
@@ -1154,7 +1160,9 @@ class EDGYParser:
         lanes = [gid for gid, g in self.groups.items() if g['kind'] == 'lane']
         containers = [gid for gid, g in self.groups.items() if g['kind'] == 'group']
 
-        if lanes:
+        if lanes and self.map_type == 'reference':
+            positions = self._layout_reference(lanes, containers + top_items)
+        elif lanes:
             positions = self._layout_lanes(lanes, containers + top_items)
         elif self.map_type:
             positions = self._calculate_map_type_layout(top_items, containers)
@@ -1312,6 +1320,85 @@ class EDGYParser:
             x += w + 40
         return positions
 
+    def _layout_reference(self, lanes: List[str], others: List[str]) -> Dict[str, Tuple[int, int]]:
+        """Layered reference architecture (EDGY extension):
+
+            [actors]  ┌ L1 channels ─────────┐  [externals]
+            people /  ├ L2 core ─────────────┤  assets tagged
+            organis.  ├ L3 shared services ──┤  [external]
+                      └──────────────────────┘
+
+        Lanes stack top-down in the middle; Organisation / People outside any
+        lane form a left column, elements tagged `external` a right column;
+        anything else goes below the lanes.
+        """
+        positions: Dict[str, Tuple[int, int]] = {}
+        actors = [i for i in others if i in self.elements and self.elements[i]['type'] in ('organisation', 'people')]
+        externals = [i for i in others if i in self.elements and i not in actors
+                     and 'external' in [t.lower() for t in self.elements[i].get('tags', [])]]
+        rest = [i for i in others if i not in actors and i not in externals]
+        left_w = max([self._size_of(a)[0] for a in actors], default=0)
+        x_lanes = 60 + (left_w + 60 if actors else 0)
+        y = 60
+        width = max(self._computed_sizes[l][0] for l in lanes)
+        lane_tops = []
+        for l in lanes:
+            self._computed_sizes[l] = (width, self._computed_sizes[l][1])
+            positions[l] = (x_lanes, y)
+            lane_tops.append(y)
+            y += self._computed_sizes[l][1] + 30
+        total_h = y - 30 - 60
+        # actors spread vertically along the lanes
+        ay = 60
+        step = max(total_h / max(len(actors), 1), 0)
+        for i, a in enumerate(actors):
+            positions[a] = (60, ay + i * step)
+        ex = x_lanes + width + 60
+        for i, e in enumerate(externals):
+            positions[e] = (ex, ay + i * step)
+        x = x_lanes
+        for item in rest:
+            w, h = self._size_of(item)
+            positions[item] = (x, y + 20)
+            x += w + 40
+        return positions
+
+    def _layout_summary(self, items: List[str]) -> Dict[str, Tuple[int, int]]:
+        """Stakeholder summary (EDGY extension): three rows, max 4 boxes each.
+
+            who          → Organisation / People
+            does what    → Process / Activity
+            what results → Outcome / Product / Object
+            (anything else: a fourth row — e.g. "used for" items)
+        """
+        rows = [
+            [i for i in items if self.elements[i]['type'] in ('organisation', 'people')],
+            [i for i in items if self.elements[i]['type'] in ('process', 'activity')],
+            [i for i in items if self.elements[i]['type'] in ('outcome', 'product', 'object')],
+        ]
+        placed = {i for r in rows for i in r}
+        rows.append([i for i in items if i not in placed])
+        for r in rows:
+            if len(r) > SUMMARY_MAX_PER_ROW:
+                self.warnings.append(
+                    f"Summary: rivillä on {len(r)} laatikkoa (max {SUMMARY_MAX_PER_ROW}) — "
+                    f"sidosryhmäkuva toimii 3–4 laatikolla per rivi; yhdistä tai pudota elementtejä")
+        positions: Dict[str, Tuple[int, int]] = {}
+        y = 60
+        for r in rows:
+            if not r:
+                continue
+            widths = [self._size_of(i)[0] for i in r]
+            total = sum(widths) + 60 * (len(r) - 1)
+            x = max(60, 600 - total / 2)
+            row_h = 0
+            for i in r:
+                positions[i] = (x, y)
+                x += self._size_of(i)[0] + 60
+                row_h = max(row_h, self._size_of(i)[1])
+            y += row_h + 90
+        return positions
+
     def _layout_flow_grid(self, items: List[str], cols: int, x0: int = 60, y0: int = 60,
                           gap_x: int = 40, gap_y: int = 40) -> Dict[str, Tuple[int, int]]:
         """Ruudukko vaihtelevan kokoisille kohteille (ryhmät + elementit)."""
@@ -1335,6 +1422,8 @@ class EDGYParser:
             return self._layout_flow_grid(containers + items, cols)
         if self.map_type == 'purpose':
             return self._layout_purpose(items)
+        if self.map_type == 'summary':
+            return self._layout_summary(items)
         if self.map_type == 'organisation' and any(self.elements[i]['type'] == 'process' for i in items):
             return self._layout_organisation_roles(items)
         strategy = MAP_TYPE_LAYOUT.get(self.map_type, 'grid')

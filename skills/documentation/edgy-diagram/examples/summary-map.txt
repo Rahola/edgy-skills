@@ -1,0 +1,23 @@
+# Stakeholder summary (EDGY EXTENSION layout): who / does what / what results.
+# 3–4 boxes per row at most — the parser warns above four.
+map_type: summary
+
+elements:
+  - organisation: "Transit authority | steers and funds"
+  - organisation: "Platform team | defines and produces"
+  - organisation: "Suppliers | build and operate"
+  - process: "Map capabilities | what we must be able to do"
+  - process: "Decide building blocks | about ten, no product names"
+  - process: "Run work packages | one Outcome each"
+  - outcome: "Target architecture H1 | tested against the capability map"
+  - outcome: "Decision log | why, and what we rejected"
+  - content: "Used for: tenders, roadmap, onboarding new teams"
+
+relationships:
+  - "Transit authority" -> "Map capabilities": "performs"
+  - "Platform team" -> "Decide building blocks": "performs"
+  - "Suppliers" -> "Run work packages": "performs"
+  - "Map capabilities" -> "Target architecture H1": "produces"
+  - "Decide building blocks" -> "Target architecture H1": "produces"
+  - "Run work packages" -> "Decision log": "produces"
+  - "Target architecture H1" -> "Map capabilities": "influences" {from: left, to: left, label: source}

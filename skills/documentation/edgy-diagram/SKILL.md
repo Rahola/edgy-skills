@@ -1,6 +1,6 @@
 ---
 name: edgy-diagram
-version: "2.2.0"
+version: "2.3.0"
 description: >
   Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML
   source and export them to PNG/SVG/PDF. Generator-first workflow
@@ -22,11 +22,13 @@ inputs:
     description: EDGY facet (Identity, Architecture, Experience or All)
   - name: map_type
     type: enum
-    values: [capability, organisation, outcome, journey, activity, process, purpose, brand, product, object, asset, channel, content, people, story, task]
+    values: [capability, organisation, outcome, journey, activity, process, purpose, brand, product, object, asset, channel, content, people, story, task, reference, summary]
     required: false
     description: >
-      Map type (overrides facet layout). 16 types backed by 4 layout strategies
-      (grid / tree / sequence / hub-and-spoke). See Map Types section.
+      Map type (overrides facet layout). 16 EDGY map types backed by layout
+      strategies (grid / tree / sequence / hub-and-spoke / hierarchy / role model /
+      area containers) plus two EDGY-extension layouts: `reference` (layered
+      reference architecture with lanes) and `summary` (stakeholder picture).
       Note: pairwise deep-dive diagrams are documented separately and generated
       via direct XML by the edgy-deep-dive skill — they are not handled by
       edgy_parser.py.
@@ -105,6 +107,10 @@ examples:
     output: examples/expected-transition-overlay.drawio
   - input: examples/lanes-map.txt
     output: examples/expected-lanes.drawio
+  - input: examples/reference-architecture-map.txt
+    output: examples/expected-reference-architecture.drawio
+  - input: examples/summary-map.txt
+    output: examples/expected-summary.drawio
 ---
 
 # EDGY Diagram Skill
@@ -862,6 +868,8 @@ When `map_type` is set, it overrides the `facet` layout and uses the map type's 
 | `people` | grid | 8 | 15–30 | people |
 | `story` | grid | 6 | 10–15 | story |
 | `task` | grid | 8 | 15–30 | task |
+| `reference` *(extension)* | layered reference architecture: `lane:` per layer top-down, Organisation/People outside lanes left, `[external]` elements right, transition overlay on strokes, one integration bus | 8 | 10–25 | asset / capability |
+| `summary` *(extension)* | stakeholder picture: rows *who* (Organisation) / *does what* (Process) / *what results* (Outcome, Product, Object); warns above 4 boxes per row | 3 | 6–10 | organisation / process / outcome |
 
 **Layout strategies:**
 
@@ -871,6 +879,8 @@ When `map_type` is set, it overrides the `facet` layout and uses the map type's 
 - **hub-and-spoke** — first element at the centre, others on a circle whose radius scales with N. Suits a single anchor element (brand, product, object) surrounded by its supporting elements.
 - **hierarchy** (`purpose`) — mission/vision on top, focus areas as sub-purposes below, KPIs as Outcome base elements under each; never model focus areas as Story. Example: `examples/purpose-hierarchy-map.txt`.
 - **role model** (`organisation` with processes) — roles are Process arrows in the top row, actors sit under the role they perform; actors without a role go right. Example: `examples/organisation-roles-map.txt`.
+- **reference** *(EDGY extension)* — layered target-state view: lanes for channels → channel backend → core → shared services/integration, actors left, externals right, `{change: …}` strokes and a legend that says how to read and test it. Example: `examples/reference-architecture-map.txt`.
+- **summary** *(EDGY extension)* — the picture a project manager explains in a minute: 3–4 boxes per row, who / does what / what results, one loop at most, a "used for" line. Example: `examples/summary-map.txt`.
 - **area containers** (`capability` with `group:`) — numbered areas as containers in rows, 2–4 capabilities per row inside, `{id: CAP-01}` in the subtext, `{highlight: yes}` for first-round decision units. The container *is* the tree — no tree lines. Example: `examples/capability-areas-map.txt`. Formulate capabilities as nouns stating a result, system-independent, 6–12 areas and 40–80 leaves; never name them after products (full guidance: edgy-framework, *Formulating capabilities*).
 
 The `edgy-deep-dive` skill generates **pairwise diagrams via direct XML
@@ -1247,6 +1257,17 @@ Export command: `drawio -x -f <format> -e -b 10 -o <output> <input.drawio>`
 | macOS | `/Applications/draw.io.app/Contents/MacOS/draw.io` |
 | Linux | `drawio` (in PATH) |
 | Windows | `"C:\Program Files\draw.io\draw.io.exe"` |
+
+## Delivery
+
+One diagram = one `.drawio` (all pages inside) plus one preview image per
+page, named `<subject>_<diagram>_v<N>.<ext>`. Remove superseded versions when
+a new one is accepted so readers never find two truths. Readers without a
+draw.io plug-in see the image, so always ship the PNG (draw.io CLI export or
+the native preview) next to the `.drawio`. Write into wikis, trackers or other
+external systems only when the user asks, and then place each diagram next
+to the section it belongs to. Say in the delivery which layouts are EDGY
+extensions (transition overlay, `reference`, `summary`).
 
 ## Dependencies
 

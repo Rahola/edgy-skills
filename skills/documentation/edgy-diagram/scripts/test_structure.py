@@ -315,6 +315,48 @@ relationships:
     assert p.elements[rel['target']]['type'] == 'process', "'Procure' must match the process, not the organisation by substring"
 
 
+def test_reference_layout_actors_left_externals_right():
+    p, root, _ = gen("""
+map_type: reference
+elements:
+  - organisation: "Passengers"
+  - lane: "L1 Channels"
+    - channel: "App"
+  - lane: "L2 Core"
+    - capability: "Ticketing"
+  - asset: "Registry" [external]
+relationships:
+  - "Ticketing" -> "Registry": "depends on"
+""")
+    assert p.warnings == [], p.warnings
+    cells = cells_by_label(root)
+    lane_x = abs_pos(root, cells['L1 Channels'])[0]
+    lane_w = float(cells['L1 Channels'].find('mxGeometry').get('width'))
+    assert abs_pos(root, cells['Passengers'])[0] < lane_x, "actor left of the lanes"
+    assert abs_pos(root, cells['Registry'])[0] >= lane_x + lane_w, "external right of the lanes"
+    assert abs_pos(root, cells['L2 Core'])[1] > abs_pos(root, cells['L1 Channels'])[1]
+
+
+def test_summary_layout_rows_and_warning():
+    p, root, _ = gen("""
+map_type: summary
+elements:
+  - organisation: "Who A"
+  - organisation: "Who B"
+  - process: "Does"
+  - outcome: "Result"
+  - content: "Used for"
+""")
+    assert p.warnings == [], p.warnings
+    cells = cells_by_label(root)
+    ya, yb = abs_pos(root, cells['Who A'])[1], abs_pos(root, cells['Who B'])[1]
+    assert ya == yb < abs_pos(root, cells['Does'])[1] < abs_pos(root, cells['Result'])[1] < abs_pos(root, cells['Used for'])[1]
+    many = EDGYParser()
+    many.parse_input("map_type: summary\nelements:\n" + "".join(f'  - organisation: "O{i}"\n' for i in range(5)))
+    many.generate_xml()
+    assert any('Summary' in w for w in many.warnings), many.warnings
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

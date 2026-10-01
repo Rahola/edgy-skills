@@ -22,16 +22,25 @@ skills:
 
   - id: edgy-framework
     path: skills/architecture/edgy-framework
-    version: 1.3.0
+    version: 1.4.0
     category: architecture
     tags: [edgy, enterprise-design, architecture, analysis, reframing, fi, en, fr, de]
     agents: [claude-code, cursor, generic]
     description: >
       EDGY 23 enterprise design analysis: challenge reframing, facet intersection analysis, element identification from natural language, and modelling guidance for strategy documents (strategy → Purpose/Outcome mapping), capability formulation and the organisation role model.
 
+  - id: edgy-target-state
+    path: skills/architecture/edgy-target-state
+    version: 1.0.0
+    category: architecture
+    tags: [edgy, enterprise-design, architecture, target-state, capability-map, roadmap, fi, en]
+    agents: [claude-code, cursor, generic]
+    description: >
+      Internal target-state architecture workflow on EDGY 23: strategy → purpose map, capability map and cards, guardrails, building-block hypothesis with transition overlay, work packages, decision records (via an external ADR skill), role model and a stakeholder summary. Orchestrates edgy-framework (target-state mode) and edgy-diagram (generator, lint, preview). Complements edgy-assessment, which is the outside-in assessment of a company from public sources.
+
   - id: edgy-diagram
     path: skills/documentation/edgy-diagram
-    version: 2.2.0
+    version: 2.3.0
     category: documentation
     tags: [diagram, drawio, visualization, documentation, edgy, enterprise-design, fi, en, fr, de]
     agents: [claude-code, cursor, generic]
