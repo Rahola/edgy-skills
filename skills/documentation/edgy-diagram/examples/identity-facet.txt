@@ -6,8 +6,8 @@ elements:
   - brand: "Brändi - Luotettava ja moderni"
   - organisation: "Organisaatio - Tiimipohjainen rakenne"
 relationships:
-  - purpose -> content: "ohjaa"
-  - purpose -> story: "muodostaa"
+  - content -> purpose: "ilmaisee"
+  - story -> purpose: "kontekstualisoi"
   - content -> brand: "vahvistaa"
-  - story -> brand: "kertoo"
-  - organisation -> purpose: "toteuttaa"
+  - brand -> story: "herättää"
+  - organisation -> purpose: "tavoittelee"

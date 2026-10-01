@@ -1,0 +1,71 @@
+# Single source of truth for the EDGY 23 relationship vocabulary.
+#
+# Rendered into the SKILL.md tables of edgy-diagram, edgy-framework,
+# edgy-assessment and edgy-deep-dive, and into the generated Python module
+# skills/documentation/edgy-diagram/scripts/edgy_core_links.py, by
+#   python3 tools/render-core-links.py
+# tools/check.sh verifies that every rendered copy is in sync (--check).
+#
+# Source: EDGY 23 Language Foundations (Intersection Group, CC BY-SA 4.0).
+
+groups:
+  - id: identity
+    title: Identity Facet Links
+  - id: architecture
+    title: Architecture Facet Links
+  - id: experience
+    title: Experience Facet Links
+  - id: organisation
+    title: Organisation Intersection Links (Identity ↔ Architecture)
+  - id: product
+    title: Product Intersection Links (Architecture ↔ Experience)
+  - id: cross
+    title: Intersection Element Cross-Links
+
+# The 24 official core links. Each verb is directional: source → target.
+# `aliases` lists accepted alternative spellings per language (kept for
+# backwards compatibility with existing inputs).
+core_links:
+  - {group: identity,     source: story,        target: purpose,    en: contextualises, fi: kontekstualisoi, fr: contextualise,   de: kontextualisiert}
+  - {group: identity,     source: content,      target: purpose,    en: expresses,      fi: ilmaisee,        fr: exprime,         de: drückt aus}
+  - {group: identity,     source: content,      target: story,      en: conveys,        fi: välittää,        fr: transmet,        de: vermittelt}
+  - {group: identity,     source: brand,        target: story,      en: evokes,         fi: herättää,        fr: évoque,          de: evoziert}
+  - {group: identity,     source: brand,        target: purpose,    en: represents,     fi: edustaa,         fr: représente,      de: repräsentiert}
+  - {group: architecture, source: capability,   target: asset,      en: requires,       fi: vaatii,          fr: nécessite,       de: erfordert}
+  - {group: architecture, source: process,      target: capability, en: realises,       fi: toteuttaa,       fr: réalise,         de: realisiert}
+  - {group: architecture, source: process,      target: asset,      en: requires,       fi: vaatii,          fr: nécessite,       de: erfordert}
+  - {group: architecture, source: product,      target: capability, en: requires,       fi: vaatii,          fr: nécessite,       de: erfordert}
+  - {group: architecture, source: process,      target: product,    en: creates,        fi: luo,             fr: crée,            de: erzeugt}
+  - {group: experience,   source: task,         target: journey,    en: is part of,     fi: on osa,          fr: fait partie de,  de: ist Teil von, aliases: {fi: [osa]}}
+  - {group: experience,   source: task,         target: channel,    en: uses,           fi: käyttää,         fr: utilise,         de: nutzt}
+  - {group: experience,   source: journey,      target: channel,    en: traverses,      fi: kulkee,          fr: traverse,        de: durchläuft}
+  - {group: experience,   source: brand,        target: task,       en: supports,       fi: tukee,           fr: soutient,        de: unterstützt}
+  - {group: experience,   source: brand,        target: journey,    en: appears in,     fi: näkyy,           fr: apparaît dans,   de: erscheint in}
+  - {group: organisation, source: organisation, target: purpose,    en: pursues,        fi: tavoittelee,     fr: poursuit,        de: verfolgt}
+  - {group: organisation, source: organisation, target: story,      en: authors,        fi: kirjoittaa,      fr: rédige,          de: verfasst}
+  - {group: organisation, source: organisation, target: capability, en: has,            fi: omistaa,         fr: possède,         de: besitzt}
+  - {group: organisation, source: organisation, target: process,    en: performs,       fi: suorittaa,       fr: exécute,         de: führt aus}
+  - {group: product,      source: product,      target: task,       en: serves,         fi: palvelee,        fr: sert,            de: bedient}
+  - {group: product,      source: product,      target: journey,    en: features in,    fi: esiintyy,        fr: figure dans,     de: erscheint in}
+  - {group: cross,        source: organisation, target: brand,      en: builds,         fi: rakentaa,        fr: construit,       de: baut auf}
+  - {group: cross,        source: organisation, target: product,    en: makes,          fi: valmistaa,       fr: fabrique,        de: stellt her}
+  - {group: cross,        source: product,      target: brand,      en: embodies,       fi: ilmentää,        fr: incarne,         de: verkörpert}
+
+# Influence verbs: the accepted vocabulary for relationships that are NOT one
+# of the 24 core links. They render as a dashed line with an open arrowhead.
+# Rule: when no core link fits a pair (for example capability → purpose), use
+# an influence verb — never invent a new solid Link.
+# `note` documents collisions with core-link verbs.
+influence_verbs:
+  - {en: enables,      fi: mahdollistaa, fr: permet,      de: ermöglicht,   usage: A makes B possible}
+  - {en: guides,       fi: ohjaa,        fr: guide,       de: steuert,      usage: A steers or constrains B}
+  - {en: influences,   fi: vaikuttaa,    fr: influence,   de: beeinflusst,  usage: generic influence when nothing more specific fits}
+  - {en: offers,       fi: tarjoaa,      fr: offre,       de: bietet,       usage: A makes B available (non-core product/channel pairs)}
+  - {en: manages,      fi: hallinnoi,    fr: gère,        de: verwaltet,    usage: A administers B (organisation → asset, organisation → product portfolio)}
+  - {en: reflects,     fi: heijastaa,    fr: reflète,     de: spiegelt,     usage: B mirrors A (content → brand, task → purpose)}
+  - {en: strengthens,  fi: vahvistaa,    fr: renforce,    de: stärkt,       usage: A reinforces B}
+  - {en: defines,      fi: määrittelee,  fr: définit,     de: definiert,    usage: A sets the scope or rules of B}
+  - {en: depends on,   fi: riippuu,      fr: dépend de,   de: hängt ab von, usage: A cannot exist without B (non-core pairs; core pairs use requires)}
+  - {en: produces,     fi: tuottaa,      fr: produit,     de: bringt hervor, usage: "process → outcome: a process yields a measurable result"}
+  - {en: measures,     fi: mittaa,       fr: mesure,      de: misst,        usage: "outcome → purpose: an outcome (KPI) measures a purpose"}
+  - {en: contributes to, fi: edistää,    fr: contribue à, de: trägt bei zu, usage: "capability → purpose or outcome: bridge when no core link exists"}

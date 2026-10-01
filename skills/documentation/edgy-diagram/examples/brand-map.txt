@@ -9,6 +9,6 @@ elements:
   - purpose: "Reliable European mobility for all"
 relationships:
   - "Nordic Trains" -> "Connecting Europe by rail": "evokes"
-  - "Nordic Trains" -> "Reliable, sustainable, accessible": "represents"
+  - "Nordic Trains" -> "Reliable, sustainable, accessible": "strengthens"
   - "Nordic Trains" -> "Buy ticket": "supports"
   - "Nordic Trains" -> "First-time traveller": "appears in"

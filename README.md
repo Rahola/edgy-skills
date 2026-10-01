@@ -22,11 +22,13 @@ language.
 | [`edgy-diagram`](skills/documentation/edgy-diagram/) | documentation | Render EDGY diagrams as draw.io XML or PlantUML and export to PNG/SVG/PDF. |
 | [`edgy-assessment`](skills/architecture/edgy-assessment/) | architecture | Orchestrator — chains `edgy-framework` + `edgy-diagram` into a full assessment with a locked PDF report layout. |
 | [`edgy-deep-dive`](skills/architecture/edgy-deep-dive/) | architecture | Targeted analysis of a specific element pair / facet combination from an existing assessment model. |
+| [`edgy-target-state`](skills/architecture/edgy-target-state/) | architecture | Internal target-state architecture work: purpose map, capability map and cards, guardrails, building-block hypothesis with a current → target overlay, work packages, role model, stakeholder summary. |
 
-**How they fit together:** run `edgy-assessment` for a full pass (it calls
-`edgy-framework` and `edgy-diagram` internally), then `edgy-deep-dive` to explore
-a specific intersection. `edgy-framework` and `edgy-diagram` also work
-standalone.
+**How they fit together:** run `edgy-assessment` for an outside-in pass on a
+company (it calls `edgy-framework` and `edgy-diagram` internally), then
+`edgy-deep-dive` to explore a specific intersection. For your own
+organisation's target architecture run `edgy-target-state` instead.
+`edgy-framework` and `edgy-diagram` also work standalone.
 
 ## Using the skills
 
@@ -41,12 +43,39 @@ installers and usage guides:
 | Mistral Vibe CLI | [`adapters/mistral-vibe/`](adapters/mistral-vibe/) — copy-paste + `install.sh` |
 | Any / generic | [`adapters/generic/`](adapters/generic/) — download a skill to any directory |
 
-The adapters point at `Rahola/edgy-skills` by default — change the repo in the
-scripts (or set the documented env var) if you use a fork.
+The adapters point at `Rahola/edgy-skills` by default; set `EDGY_SKILLS_REPO`
+to use a fork.
 
-**Rendering diagrams** — `edgy-diagram` uses the [draw.io CLI](https://github.com/jgraph/drawio-desktop)
-or the plantuml-stdlib `<edgy/edgy>` library. These are external tools; the skill
-degrades gracefully to emitting source XML/PUML if they are not installed.
+### Versions
+
+Releases are git tags (`v1.0.0`, `v2.0.0`, …); see [CHANGELOG.md](CHANGELOG.md).
+`main` is the latest version. To install a specific release, set
+`EDGY_SKILLS_REF` for any adapter:
+
+```bash
+EDGY_SKILLS_REF=v1.0.0 bash adapters/claude-code/install.sh --all   # previous generation
+EDGY_SKILLS_REF=v2.0.0 bash adapters/claude-code/install.sh --all   # pinned current release
+```
+
+When an adapter runs from a local clone it installs that checkout, so use
+`git checkout v1.0.0` first. Pasting a SKILL.md directly? Open it from the tag
+(`https://github.com/Rahola/edgy-skills/tree/v1.0.0/skills`).
+
+**Generating and checking diagrams** — `edgy-diagram` ships a Python
+generator (`edgy_generator.py`, standard library only) that turns a short TXT
+model into draw.io XML, validates core-link pairs against the EDGY 23
+vocabulary, a linter (`edgy_lint.py`) that must report 0 errors before a diagram is
+delivered, and a CLI-free preview (`edgy_render.py`: SVG always, PNG when a
+headless Chromium is found) that the agent looks at before delivering.
+Multi-page inputs produce one draw.io file with several pages; `group:` and
+`lane:` give containers and layered views, `{change: …}` adds a current →
+target overlay, and `layout_from:` positions elements where they sit in an
+existing ArchiMate view. `tools/edgy-eval.py` runs a fictional eval set
+(60-leaf capability map, 19-block reference architecture) through generator
+and linter. Final rendering to PNG/SVG/PDF uses the
+[draw.io CLI](https://github.com/jgraph/drawio-desktop) or the plantuml-stdlib
+`<edgy/edgy>` library; these are external tools and the skill degrades
+gracefully to emitting source XML/PUML if they are not installed.
 
 ## Use-case examples
 
@@ -107,11 +136,19 @@ description with `edgy-diagram`.
 ## Repository layout
 
 ```
-skills/            # the 4 EDGY skills (SKILL.md + assets/examples)
-tools/             # validator, registry updater, privacy scanner, git hooks
+skills/            # the 5 EDGY skills (SKILL.md + assets/examples)
+skills/_shared/    # edgy-core-links.yaml — single source of the relationship vocabulary
+tools/             # validator, registry updater, core-links renderer, privacy scanner, git hooks
+docs/              # development plan / review notes
 registry.yaml      # machine-readable index of the skills
 .github/workflows/ # CI: validation + privacy guard
 ```
+
+## Development plan
+
+A review of diagrams and reports produced across earlier sessions, and the
+resulting prioritised roadmap (P0–P3), lives in
+[`docs/development-plan-2026-09.md`](docs/development-plan-2026-09.md).
 
 ## Contributing
 

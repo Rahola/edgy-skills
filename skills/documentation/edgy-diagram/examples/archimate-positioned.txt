@@ -1,0 +1,19 @@
+# Target-state blocks positioned where the SAME systems sit in an existing
+# ArchiMate current-state view ("same place = same responsibility").
+# Elements matched by name keep the view's coordinates (scaled); unmatched
+# ones go below; view elements missing from the target are reported.
+facet: architecture
+layout_from: examples/current-state.archimate#Application landscape scale=1.5 dx=40 dy=20
+
+elements:
+  - asset: "Mobile app" {id: AST-20, change: change}
+  - asset: "Web shop" {id: AST-21, change: keep}
+  - asset: "Legacy fare engine" {id: AST-01, change: replace}
+  - asset: "Identity provider" {id: AST-11, change: keep}
+  - asset: "Account-based ticketing platform" {id: AST-02, change: new}
+  - capability: "Ticketing" {id: CAP-05}
+
+relationships:
+  - "Ticketing" -> "Legacy fare engine": "requires" {change: replace}
+  - "Ticketing" -> "Account-based ticketing platform": "requires" {change: new}
+  - "Mobile app" -> "Account-based ticketing platform": "depends on" {change: change}

@@ -1,0 +1,32 @@
+# Multi-page input: one .drawio file, two draw.io pages (tabs).
+# Everything before `pages:` applies to every page.
+facet: architecture
+
+pages:
+  - name: "Roles and actors"
+    elements:
+      - organisation: "Board - Steering group of the transit authority"
+      - organisation: "Platform team - Product and operations, 8 people"
+      - process: "Steer - Portfolio decisions and funding"
+      - process: "Operate - Run and support the ticketing service"
+      - capability: "Ticketing - Sell and validate fares in every channel"
+    relationships:
+      - "Board" -> "Steer": "performs"
+      - "Platform team" -> "Operate": "performs"
+      - "Operate" -> "Ticketing": "realises"
+      - "Board" -> "Platform team": "guides"
+
+  - name: "Systems"
+    map_type: asset
+    elements:
+      - asset: "Fare engine" [application, owned]
+      - asset: "Mobile app backend" [application, owned]
+      - asset: "Validator fleet" [machine, external]
+      - asset: "Customer data" [data, owned]
+      - asset: "Identity provider" [application, external]
+      - capability: "Ticketing"
+    relationships:
+      - "Ticketing" -> "Fare engine": "requires"
+      - "Ticketing" -> "Mobile app backend": "requires"
+      - "Ticketing" -> "Validator fleet": "requires"
+      - "Fare engine" -> "Customer data": "depends on"

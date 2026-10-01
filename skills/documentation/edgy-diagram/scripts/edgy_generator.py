@@ -8,6 +8,8 @@ import sys
 import argparse
 from edgy_parser import EDGYParser
 from edgy_to_plantuml import generate_plantuml
+from edgy_document import parse_document, build_mxfile, unique_slugs
+import edgy_render
 
 def read_input_file(file_path: str) -> str:
     """Lue syötetiedosto"""
@@ -38,6 +40,74 @@ def write_text_file(content: str, output_path: str) -> None:
     except IOError as e:
         print(f"Error writing file: {e}")
         sys.exit(1)
+
+def report_parser_messages(pages, lenient: bool = False) -> None:
+    """Tulosta parserien varoitukset stderr:iin; pysäytä syötevirheisiin.
+
+    `pages` on lista (sivun nimi, EDGYParser). Varoitukset (esim. ydinlinkki
+    väärällä parilla, tuntematon verbi) eivät estä generointia mutta
+    näytetään aina. Virheet (tuntematon facet tai map_type) päättävät ajon
+    exit-koodilla 2, ellei --lenient ole annettu.
+    """
+    if isinstance(pages, EDGYParser):
+        pages = [(None, pages)]
+    multi = len(pages) > 1
+    n_warn = 0
+    has_errors = False
+    for name, edgy_parser in pages:
+        prefix = f"[{name}] " if multi else ""
+        for w in edgy_parser.warnings:
+            print(f"Warning: {prefix}{w}", file=sys.stderr)
+            n_warn += 1
+        for e in edgy_parser.errors:
+            print(f"Error: {prefix}{e}", file=sys.stderr)
+            has_errors = True
+    if has_errors and not lenient:
+        print("Input has errors — fix the input or pass --lenient to generate anyway.",
+              file=sys.stderr)
+        sys.exit(2)
+    if n_warn:
+        print(f"{n_warn} warning(s) — see above.", file=sys.stderr)
+
+
+def report_layout_warnings(pages, before_counts) -> None:
+    """Tulosta layout-vaiheessa syntyneet varoitukset (summary-rivimäärä, layout_from …)."""
+    multi = len(pages) > 1
+    n = 0
+    for (name, edgy_parser), before in zip(pages, before_counts):
+        prefix = f"[{name}] " if multi else ""
+        for w in edgy_parser.warnings[before:]:
+            print(f"Warning: {prefix}{w}", file=sys.stderr)
+            n += 1
+    if n:
+        print(f"{n} layout warning(s) — see above.", file=sys.stderr)
+
+
+def render_preview(drawio_path: str, png: bool = True) -> bool:
+    """CLI-vapaa esikatselu: SVG aina, PNG jos Chromium löytyy.
+
+    Palauttaa False jos SVG:tä ei saatu kirjoitettua — esikatselu on
+    pakollinen vaihe, joten kutsuja päättää ajon virheeseen. Puuttuva PNG
+    (ei Chromiumia) ei ole virhe: SVG riittää katselmointiin.
+    """
+    try:
+        results = edgy_render.render_file(drawio_path, png=png)
+    except Exception as e:  # noqa: BLE001 — raportoidaan ja palautetaan virhe
+        print(f"Error: preview failed: {e}", file=sys.stderr)
+        return False
+    if not results:
+        print("Error: preview produced no pages", file=sys.stderr)
+        return False
+    for r in results:
+        label = f" [page {r['page']}]" if r['page'] else ""
+        print(f"Preview SVG: {r['svg']}{label}")
+        if r['png']:
+            print(f"Preview PNG: {r['png']}")
+    if png and not any(r['png'] for r in results):
+        print("Preview: no Chromium/Chrome found — SVG only. Open the SVG in a browser, "
+              "or set EDGY_CHROMIUM=<binary> for PNG.")
+    return True
+
 
 # Export-presetit: (format, extra draw.io CLI args)
 # - presentation: 1920x1080 PNG, 150 DPI
@@ -171,11 +241,22 @@ def main():
     parser.add_argument('input', help='Input file path or direct input')
     parser.add_argument('--format', choices=['drawio', 'png', 'svg', 'pdf', 'plantuml', 'puml'], default='drawio',
                        help='Output format (drawio is default, plantuml/puml = PlantUML source)')
-    parser.add_argument('--engine', choices=['drawio', 'plantuml'], default='drawio',
-                       help='Render engine for png/svg/pdf (default drawio). Ignored for drawio/plantuml/puml formats.')
+    parser.add_argument('--engine', choices=['drawio', 'plantuml', 'native'], default='drawio',
+                       help='Render engine for png/svg/pdf (default drawio). native = pure-Python SVG '
+                            '(+PNG via headless Chromium when available), no draw.io/Java needed; '
+                            'approximate rendering, no pdf. Ignored for drawio/plantuml/puml formats.')
     parser.add_argument('--preset', choices=list(EXPORT_PRESETS.keys()),
                        help='Export preset (presentation/print/web) — ohittaa --format')
     parser.add_argument('--output', help='Output file path')
+    parser.add_argument('--preview', action='store_true',
+                       help='After writing the .drawio, also write an SVG (and PNG when Chromium is '
+                            'available) next to it for the mandatory look-before-delivery step')
+    parser.add_argument('--bare', action='store_true',
+                       help='Write a bare <mxGraphModel> instead of the default <mxfile> wrapper '
+                            '(single-page input only)')
+    parser.add_argument('--lenient', action='store_true',
+                       help='Generate even when the input has errors (unknown facet/map_type); '
+                            'by default such input exits with code 2')
 
     args = parser.parse_args()
 
@@ -189,16 +270,24 @@ def main():
     else:
         input_content = args.input
 
-    # Jäsennä EDGY
-    edgy_parser = EDGYParser()
-    edgy_parser.parse_input(input_content)
+    # Jäsennä EDGY (yksi tai useampi sivu)
+    try:
+        pages = parse_document(input_content)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(2)
+    report_parser_messages(pages, args.lenient)
+    edgy_parser = pages[0][1]   # ensimmäinen sivu: oletusnimet ja PlantUML-engine
+    if args.bare and len(pages) > 1:
+        print("Error: --bare supports single-page input only", file=sys.stderr)
+        sys.exit(2)
 
     # Normalisoi formaatti
     fmt = 'puml' if args.format == 'plantuml' else args.format
 
-    # PlantUML-source haara
+    # PlantUML-source haara (monisivuinen syöte → useita @startuml-lohkoja)
     if fmt == 'puml':
-        puml_content = generate_plantuml(edgy_parser)
+        puml_content = ''.join(generate_plantuml(p) + ('\n' if i else '') for i, (_, p) in enumerate(pages))
         if args.output:
             output_path = args.output if args.output.endswith('.puml') else args.output + '.puml'
         else:
@@ -211,22 +300,33 @@ def main():
 
     # PlantUML-engine PNG/SVG/PDF -renderille
     if args.engine == 'plantuml' and fmt in ('png', 'svg', 'pdf'):
-        puml_content = generate_plantuml(edgy_parser)
         base = edgy_parser.map_type or edgy_parser.facet or 'edgy'
         if base == 'all':
             base = 'edgy'
         if args.output:
-            output_path = args.output
-            puml_path = os.path.splitext(args.output)[0] + '.puml'
+            stem, ext = os.path.splitext(args.output)
+            ext = ext or f'.{fmt}'
         else:
-            output_path = f"{base}-map.{fmt}"
-            puml_path = f"{base}-map.puml"
-        write_text_file(puml_content, puml_path)
-        export_with_plantuml_cli(puml_path, output_path, fmt)
+            stem, ext = f"{base}-map", f".{fmt}"
+        # Monisivuinen syöte: yksi kuva per sivu, deterministiset nimet <stem>-<sivu>.<ext>
+        if len(pages) == 1:
+            targets = [(stem, pages[0][1])]
+        else:
+            slugs = unique_slugs([name for name, _ in pages])
+            targets = [(f"{stem}-{slug}", p) for slug, (_, p) in zip(slugs, pages)]
+        for page_stem, page_parser in targets:
+            puml_path = page_stem + '.puml'
+            write_text_file(generate_plantuml(page_parser), puml_path)
+            export_with_plantuml_cli(puml_path, page_stem + ext, fmt)
         return
 
-    # Draw.io pipeline
-    xml_content = edgy_parser.generate_xml()
+    # Draw.io pipeline: oletuksena mxfile-kääre (pakkaamaton), jokainen sivu omana <diagram>-elementtinä
+    before = [len(p.warnings) for _, p in pages]
+    if args.bare:
+        xml_content = edgy_parser.generate_xml()
+    else:
+        xml_content = build_mxfile([(name, p.generate_xml()) for name, p in pages])
+    report_layout_warnings(pages, before)
     if args.output:
         if fmt != 'drawio':
             output_path = args.output
@@ -243,10 +343,26 @@ def main():
     temp_drawio_path = output_path if fmt == 'drawio' else output_path.replace(f'.{fmt}', '.drawio')
     write_drawio_file(xml_content, temp_drawio_path)
 
-    if fmt != 'drawio':
+    if fmt != 'drawio' and args.engine == 'native':
+        if fmt == 'pdf':
+            print("Error: the native engine renders svg/png only; use --engine drawio for pdf", file=sys.stderr)
+            sys.exit(2)
+        results = edgy_render.render_file(temp_drawio_path, png=(fmt == 'png'),
+                                          base=os.path.splitext(os.path.basename(output_path))[0],
+                                          out_dir=os.path.dirname(os.path.abspath(output_path)))
+        for r in results:
+            label = f" [page {r['page']}]" if r['page'] else ""
+            print(f"Successfully rendered: {r['png'] or r['svg']}{label}")
+        if fmt == 'png' and not any(r['png'] for r in results):
+            print("Warning: no Chromium/Chrome found — wrote SVG only (set EDGY_CHROMIUM=<binary>).", file=sys.stderr)
+    elif fmt != 'drawio':
         export_with_drawio_cli(temp_drawio_path, output_path, fmt, extra_export_args)
     else:
         print(f"EDGY diagram created: {output_path}")
+        if args.preview and not render_preview(output_path):
+            print("The .drawio file was written but the mandatory preview was not — "
+                  "fix the error above before delivery.", file=sys.stderr)
+            sys.exit(3)
 
 if __name__ == "__main__":
     main()

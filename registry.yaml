@@ -1,10 +1,10 @@
-version: "2026-7"
-updated: "2026-07-05"
+version: "2026-10"
+updated: "2026-10-01"
 
 skills:
   - id: edgy-assessment
     path: skills/architecture/edgy-assessment
-    version: 1.5.0
+    version: 1.6.1
     category: architecture
     tags: [edgy, enterprise-design, architecture, analysis, assessment, diagram, fi, en, fr, de]
     agents: [claude-code, cursor, vibe, generic]
@@ -13,7 +13,7 @@ skills:
 
   - id: edgy-deep-dive
     path: skills/architecture/edgy-deep-dive
-    version: 1.0.0
+    version: 1.1.0
     category: architecture
     tags: [edgy, enterprise-design, architecture, analysis, deep-dive, intersection, fi, en]
     agents: [claude-code, cursor, generic]
@@ -22,19 +22,28 @@ skills:
 
   - id: edgy-framework
     path: skills/architecture/edgy-framework
-    version: 1.2.0
+    version: 1.4.1
     category: architecture
     tags: [edgy, enterprise-design, architecture, analysis, reframing, fi, en, fr, de]
     agents: [claude-code, cursor, generic]
     description: >
-      EDGY 23 enterprise design analysis: challenge reframing, facet intersection analysis, and element identification from natural language.
+      EDGY 23 enterprise design analysis: challenge reframing, facet intersection analysis, element identification from natural language, and modelling guidance for strategy documents (strategy → Purpose/Outcome mapping), capability formulation and the organisation role model.
+
+  - id: edgy-target-state
+    path: skills/architecture/edgy-target-state
+    version: 1.0.1
+    category: architecture
+    tags: [edgy, enterprise-design, architecture, target-state, capability-map, roadmap, fi, en]
+    agents: [claude-code, cursor, generic]
+    description: >
+      Internal target-state architecture workflow on EDGY 23: strategy → purpose map, capability map and cards, guardrails, building-block hypothesis with transition overlay, work packages, decision records (via an external ADR skill), role model and a stakeholder summary. Orchestrates edgy-framework (target-state mode) and edgy-diagram (generator, lint, preview). Complements edgy-assessment, which is the outside-in assessment of a company from public sources.
 
   - id: edgy-diagram
     path: skills/documentation/edgy-diagram
-    version: 1.7.0
+    version: 2.4.1
     category: documentation
     tags: [diagram, drawio, visualization, documentation, edgy, enterprise-design, fi, en, fr, de]
     agents: [claude-code, cursor, generic]
     description: >
-      Create EDGY-notation diagrams as draw.io XML or PlantUML source and export them to PNG/SVG/PDF. Uses the EDGY facet model with draw.io CLI or the plantuml-stdlib `<edgy/edgy>` library for rendering.
+      Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML source and export them to PNG/SVG/PDF. Generator-first workflow (edgy_generator.py) with core-link pair validation, an influence-verb vocabulary, a drawio linter (edgy_lint.py) and a CLI-free SVG/PNG preview (edgy_render.py) that the agent must look at before delivery. Uses the EDGY facet model with draw.io CLI or the plantuml-stdlib `<edgy/edgy>` library for rendering.
 

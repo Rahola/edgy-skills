@@ -6,8 +6,8 @@ elements:
   - brand: "Brändi - Käyttäjäystävällinen"
   - product: "Tuote - SaaS-sovellus"
 relationships:
-  - task -> journey: "osa"
-  - channel -> task: "mahdollistaa"
-  - journey -> brand: "heijastaa"
-  - product -> task: "tukee"
-  - brand -> product: "edustaa"
+  - task -> journey: "on osa"
+  - task -> channel: "käyttää"
+  - brand -> journey: "näkyy"
+  - product -> task: "palvelee"
+  - brand -> task: "tukee"

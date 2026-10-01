@@ -20,27 +20,27 @@ elements:
 
 relationships:
   # Identity relationships
-  - purpose -> content: "ohjaa"
-  - purpose -> story: "muodostaa"
+  - content -> purpose: "ilmaisee"
+  - story -> purpose: "kontekstualisoi"
   - content -> brand: "vahvistaa"
-  - story -> brand: "kertoo"
-  - organisation -> purpose: "toteuttaa"
+  - brand -> story: "herättää"
+  - organisation -> purpose: "tavoittelee"
   
   # Architecture relationships
-  - capability -> process: "mahdollistaa"
-  - asset -> capability: "tukee"
+  - process -> capability: "toteuttaa"
+  - capability -> asset: "vaatii"
   - process -> product: "luo"
-  - organisation -> capability: "hallinnoi"
-  - organisation -> asset: "omistaa"
+  - organisation -> capability: "omistaa"
+  - organisation -> asset: "hallinnoi"
   
   # Experience relationships
-  - task -> journey: "osa"
-  - channel -> task: "mahdollistaa"
-  - journey -> brand: "heijastaa"
-  - product -> task: "tukee"
-  - brand -> product: "edustaa"
+  - task -> journey: "on osa"
+  - task -> channel: "käyttää"
+  - brand -> journey: "näkyy"
+  - product -> task: "palvelee"
+  - brand -> task: "tukee"
   
   # Cross-facet relationships
   - purpose -> capability: "ohjaa"
-  - product -> brand: "edustaa"
+  - product -> brand: "ilmentää"
   - organisation -> task: "määrittelee"

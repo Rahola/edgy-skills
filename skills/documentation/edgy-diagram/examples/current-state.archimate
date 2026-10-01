@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:archimate="http://www.archimatetool.com/archimate" name="Acme Transit current state (fictional)" id="m1" version="5.0.0">
+  <folder name="Application" type="application">
+    <element xsi:type="archimate:ApplicationComponent" name="Legacy fare engine" id="a1"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Mobile app" id="a2"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Web shop" id="a3"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Card personalisation service" id="a4"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Identity provider" id="a5"/>
+  </folder>
+  <folder name="Views" type="diagrams">
+    <element xsi:type="archimate:ArchimateDiagramModel" name="Application landscape" id="v1">
+      <child xsi:type="archimate:DiagramObject" id="d2" archimateElement="a2"><bounds x="60" y="60" width="160" height="60"/></child>
+      <child xsi:type="archimate:DiagramObject" id="d3" archimateElement="a3"><bounds x="300" y="60" width="160" height="60"/></child>
+      <child xsi:type="archimate:DiagramObject" id="d1" archimateElement="a1"><bounds x="60" y="220" width="160" height="60"/></child>
+      <child xsi:type="archimate:DiagramObject" id="d4" archimateElement="a4"><bounds x="300" y="220" width="200" height="60"/></child>
+      <child xsi:type="archimate:DiagramObject" id="d5" archimateElement="a5"><bounds x="60" y="380" width="160" height="60"/></child>
+    </element>
+  </folder>
+</archimate:model>

@@ -5,6 +5,10 @@
 # Claude Code -hookit (.claude/settings.json), git pre-commit (asennetaan
 # tools/install-git-hooks.sh:lla) ja manuaalinen kontribuoija.
 #
+# Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
+# edgy-tests, edgy-lint-tests, edgy-render-tests, edgy-structure-tests, edgy-tool-tests,
+# edgy-model, edgy-eval, edgy-lint, privacy-scan.
+#
 # Käyttö:
 #   bash tools/check.sh                          # täysi tarkistus
 #   bash tools/check.sh --quick <polku>          # rajaa validator yhteen polkuun
@@ -186,6 +190,58 @@ else
     printf '%s\n' "$examples_out" >&2
     EXIT_CODE=1
 fi
+
+# --- Vaihe 3b: EDGY-sanaston synkronointi ----------------------------------
+# skills/_shared/edgy-core-links.yaml on ainoa lähde; SKILL.md-taulukot ja
+# edgy_core_links.py generoidaan siitä. Vanhentunut kopio = FAIL.
+run_step "core-links-sync" python3 tools/render-core-links.py --check
+
+# --- Vaihe 3c: EDGY-parserin ja -lintin testit -------------------------------
+EDGY_SCRIPTS="skills/documentation/edgy-diagram/scripts"
+run_step "edgy-tests" python3 "$EDGY_SCRIPTS/test_edgy.py"
+run_step "edgy-lint-tests" python3 "$EDGY_SCRIPTS/test_lint.py"
+run_step "edgy-render-tests" python3 "$EDGY_SCRIPTS/test_render.py"
+run_step "edgy-structure-tests" python3 "$EDGY_SCRIPTS/test_structure.py"
+run_step "edgy-tool-tests" python3 tools/test_edgy_tools.py
+
+# --- Vaihe 3c2: edgy-model.json-skeema + malli → TXT ------------------------
+# Jokaisen repoon kuuluvan *model*.json-esimerkin on vastattava skeemaa, ja
+# edgy_model_to_txt.py:n on tuotettava siitä parserille kelpaavat syötteet.
+edgy_model_checks() {
+    local models=()
+    while IFS= read -r f; do models+=("$f"); done < <(
+        find skills -path '*/examples/*' -name '*model*.json' | sort)
+    [ ${#models[@]} -gt 0 ] || return 0
+    python3 tools/validate-edgy-model.py "${models[@]}" || return 1
+    local tmp
+    tmp=$(mktemp -d)
+    for m in "${models[@]}"; do
+        python3 skills/architecture/edgy-assessment/scripts/edgy_model_to_txt.py "$m" --out "$tmp" --prefix model >/dev/null || { rm -rf "$tmp"; return 1; }
+        for t in "$tmp"/model-*.txt; do
+            python3 "$EDGY_SCRIPTS/edgy_generator.py" "$t" --output "$tmp/$(basename "$t" .txt).drawio" >/dev/null 2>"$tmp/warn.log" || { cat "$tmp/warn.log"; rm -rf "$tmp"; return 1; }
+        done
+        python3 "$EDGY_SCRIPTS/edgy_lint.py" -q "$tmp"/model-*.drawio || { rm -rf "$tmp"; return 1; }
+    done
+    rm -rf "$tmp"
+}
+run_step "edgy-model" edgy_model_checks
+
+# --- Vaihe 3c3: eval-setti (isot fiktiiviset syötteet) -----------------------
+run_step "edgy-eval" python3 tools/edgy-eval.py
+
+# --- Vaihe 3d: EDGY-esimerkkikaavioiden lint --------------------------------
+# Jokaisen skillin mukana toimitettavan .drawio-esimerkin on oltava lint-puhdas
+# (0 virhettä; varoitukset sallitaan). Tämä on sama tarkistus, jonka agentti
+# ajaa omalle tuotokselleen ennen toimitusta.
+edgy_lint_examples() {
+    local files=()
+    while IFS= read -r f; do files+=("$f"); done < <(
+        find skills -path '*/examples/*' \( -name '*.drawio' -o -name '*.drawio.xml' \) \
+            -not -path '*/examples/official/*' | sort)
+    [ ${#files[@]} -gt 0 ] || return 0
+    python3 "$EDGY_SCRIPTS/edgy_lint.py" -q "${files[@]}"
+}
+run_step "edgy-lint" edgy_lint_examples
 
 # --- Vaihe 4: privacy-scan (asiakasreferenssien vuototarkistus) --------------
 # Estää yksityisten asiakas-/toimeksiantonimien päätymisen julkiseen repoon.

@@ -1,9 +1,11 @@
 ---
 name: edgy-framework
-version: "1.2.0"
+version: "1.4.1"
 description: >
   EDGY 23 enterprise design analysis: challenge reframing, facet intersection analysis,
-  and element identification from natural language.
+  element identification from natural language, and modelling guidance for strategy
+  documents (strategy → Purpose/Outcome mapping), capability formulation and the
+  organisation role model.
 category: architecture
 tags: [edgy, enterprise-design, architecture, analysis, reframing, fi, en, fr, de]
 languages: [fi, en, fr, de]
@@ -14,10 +16,11 @@ agents:
 inputs:
   - name: mode
     type: enum
-    values: [reframing, intersection, identify]
+    values: [reframing, intersection, identify, target-state]
     description: >
       Analysis mode: reframing (challenge reframing), intersection (coherence check),
-      identify (element identification)
+      identify (element identification), target-state (internal target-architecture
+      artefacts: purpose map, capability cards, building-block hypothesis, role model)
   - name: challenge
     type: text
     description: Challenge, business description, or analysis subject in natural language
@@ -74,6 +77,23 @@ For each challenge, use the question from the selected language column:
 | Intersection | Organisation | Miten organisaatio on järjestäytynyt tämän suhteen? | How is the organisation structured regarding this? | Comment l'organisation est-elle structurée à cet égard ? | Wie ist die Organisation diesbezüglich aufgestellt? |
 | Intersection | Product | Mitkä tuotteet/palvelut liittyvät? | Which products/services are related? | Quels produits/services sont concernés ? | Welche Produkte/Dienstleistungen sind betroffen? |
 | Intersection | Brand | Miten tämä vaikuttaa brändiimme ja maineeseen? | How does this affect our brand and reputation? | Comment cela affecte-t-il notre marque et notre réputation ? | Wie wirkt sich das auf unsere Marke und unseren Ruf aus? |
+| Base | Outcome | Mikä mitattava tulos muuttuu? Millä mittarilla tiedämme sen? | Which measurable result changes? Which metric tells us? | Quel résultat mesurable change ? Quel indicateur nous le dit ? | Welches messbare Ergebnis ändert sich? Welche Kennzahl zeigt es? |
+
+Outcome is a **base element**, not one of the 12 facet elements — which is
+why KPIs are easily forgotten. Always answer the Outcome row; it anchors the
+challenge to something measurable.
+
+#### Base element vocabulary
+
+| Base element | FI | FR | DE | Used for |
+|--------------|----|----|----|----------|
+| People | ihmiset | personnes | Menschen | actors who create or use the enterprise |
+| Activity | toiminta | activité | Aktivität | initiatives, work packages, anything that is done |
+| Outcome | tulos | résultat | Ergebnis | KPIs, target levels, measurable results |
+| Object | kohde | objet | Objekt | tangible or intangible structures |
+
+Use these names in legends and diagrams in the chosen language so that base
+elements read consistently next to the facet elements.
 
 ### Mode 2: Intersection (Intersection Analysis)
 
@@ -87,6 +107,26 @@ Analyse coherence at three intersection points:
 
 Check: Does the organisational structure support capabilities? Does the organisation pursue its purpose?
 Official links: organisation pursues purpose, organisation authors story, organisation has capability, organisation performs process
+
+**Role-model check** (the generic question above is often too broad in
+architecture work). For every block, procurement or definition ask *who
+steers, procures, defines, produces, operates and approves it*:
+
+| Role (Process) | FI | Question |
+|----------------|----|----------|
+| steers | ohjaa | who decides funding and portfolio priority? |
+| procures | hankkii | who runs the tender and owns the contract? |
+| defines | määrittelee | who writes requirements and accepts delivery? |
+| produces | tuottaa | who builds and integrates? |
+| operates | operoi | who runs, supports and monitors? |
+| approves | hyväksyy | who signs off go-live and changes? |
+
+Record roles × blocks as `organisation → process: performs` links and render
+them with `map_type: organisation` (role model layout). An optional
+*load view* (team × phase, number of simultaneous responsibilities) shows
+where one small team carries several blocks at once; the skill gives no
+threshold — state the load and let the organisation judge. A role with no
+actor, or an actor with no role, is a finding.
 
 #### Product = Architecture ∩ Experience
 
@@ -123,13 +163,14 @@ When the user provides a business description:
 
 1. **Read the description** and identify EDGY elements
 2. **Classify elements** by type (purpose, capability, task, etc.)
-3. **Propose core links** — which of the 24 official core links apply
+3. **Propose core links** — which of the 24 official core links apply. Each verb is valid only for its listed (source → target) pair. When no core link fits a pair, use an influence verb from the edgy-diagram skill's vocabulary (dashed line) — never invent a new Link
 4. **Provide edgy-diagram input** — ready input for diagram generation
 
 #### Official 24 EDGY Core Links
 
+<!-- edgy-links:begin format=flat4-fi -->
 | Source → Target | FI | EN | FR | DE |
-|-----------------|----|----|----|----|
+| ----------------- | ---- | ---- | ---- | ---- |
 | story → purpose | kontekstualisoi | contextualises | contextualise | kontextualisiert |
 | content → purpose | ilmaisee | expresses | exprime | drückt aus |
 | content → story | välittää | conveys | transmet | vermittelt |
@@ -154,6 +195,135 @@ When the user provides a business description:
 | organisation → brand | rakentaa | builds | construit | baut auf |
 | organisation → product | valmistaa | makes | fabrique | stellt her |
 | product → brand | ilmentää | embodies | incarne | verkörpert |
+<!-- edgy-links:end -->
+
+### Mode 4: Target-state (internal target-architecture work)
+
+Use this mode when the subject is your own (or your client's) organisation
+and the goal is a **target architecture and the path to it**, not an
+outside-in assessment. Inputs are internal: strategy documents, meeting
+notes, an existing current-state model, interviews. The Experience facet is
+optional at this stage. The orchestrating skill `edgy-target-state` runs the
+phases end to end; this mode defines the artefacts.
+
+Every artefact cites EDGY element ids (`PUR-`, `OUT-`, `CAP-`, `BB-`, `WP-`),
+so documents and diagrams cross-reference. Keep artefacts short (see Output
+length by mode).
+
+| # | Artefact | EDGY anchor | Diagram (edgy-diagram) |
+|---|----------|-------------|------------------------|
+| 1 | **Purpose map** — mission, vision, focus areas (sub-Purposes), KPIs (Outcomes) | Purpose, Outcome, Content, Story, Organisation, Brand | `map_type: purpose` |
+| 2 | **Capability map + cards** — stable home of requirements; cards at area / building-block level | Capability (`group:` per area), Process, Asset | `map_type: capability` with `group:` |
+| 3 | **Guardrails** — principles that constrain decisions, each justified by a Purpose or Outcome id | Purpose, Outcome | — |
+| 4 | **Building-block hypothesis** — about ten blocks, no product names, each mirrored against capabilities, guardrails and Outcomes | Asset / Capability, transition overlay | `map_type: reference` (lanes, `{change: …}`) |
+| 5 | **Work packages** — one block from current to target, exactly one Outcome each, options compared (incumbent continues / re-tender / new supplier / shared service) | Activity → Outcome | optional `map_type: summary` |
+| 6 | **Decision records** — via an external ADR skill if available; otherwise the 40-line template below | referenced by id | — |
+| 7 | **Role model** — who steers, procures, defines, produces, operates, approves each block; optional load view | Organisation → Process `performs` | `map_type: organisation` |
+| 8 | **Stakeholder summary** — who / does what / what results, 3–4 boxes, one paragraph | Organisation, Process, Outcome | `map_type: summary` |
+
+**Capability card** (≤ 1 page):
+
+```markdown
+## CAP-05 Ticketing
+**Area:** 2 Fares and ticketing · **Level:** 2 · **Nature:** differentiating · **Sourcing:** in-house
+**What must be possible:** sell and validate fares in every channel, independent of supplier.
+**Requirements:** R-1 … (functional) · Q-1 … (quality: availability, latency, accessibility)
+**Data owned / master:** fare products (master: this capability); customer identity (master: CAP-01)
+**Current implementer(s):** AST-01 Legacy fare engine (since 2014)
+**Change pressure:** contract ends 2027; open-loop payments; account-based travel
+**Measured by:** OUT-02 single ticket covers 95 % of trips
+**Guardrails:** G-3 one master per data set · G-5 open interfaces
+```
+
+**Building-block mirror table** (one row per block):
+
+| Block | Covers capabilities | Guardrails tested | Outcomes served | Change | Open decision |
+|-------|---------------------|-------------------|-----------------|--------|---------------|
+| BB-02 Account-based ticketing platform | CAP-03, CAP-05, CAP-06 | G-3 ✓ G-5 ✓ G-7 ? | OUT-02, OUT-03 | new | ADR-004 open-loop gateway |
+
+**Work package card** (≤ 20 lines): scope (one block), Outcome (one id),
+options A–D with the incumbent always as one option, dependencies, deadline,
+decision needed by.
+
+**Decision record** (≤ 40 lines, when no ADR skill is available): context,
+options considered (including rejected ones and why), decision, consequences,
+EDGY ids affected.
+
+**Anti-patterns:** product names in building blocks; a work package with two
+Outcomes or none; cards per level-2 leaf; a guardrail without a Purpose or
+Outcome justification; padding any artefact to a length.
+
+### Mapping strategy documents to EDGY
+
+Strategy material (mission, vision, focus areas, KPIs, initiatives) maps to
+EDGY as follows. The most common mistake is modelling strategic focus areas
+as Story — they are **sub-Purposes**.
+
+| Document part | EDGY element | Note |
+|---------------|--------------|------|
+| Mission, reason for being | Purpose (top level) | one |
+| Vision | Purpose (top level) | separate, same level as the mission |
+| Strategic focus areas / themes | Purpose (sub level) | purpose-map hierarchy: `mission contains focus area` — **never Story** |
+| KPIs, target levels | Outcome (base) | under the focus area they measure: `KPI measures focus area`; target value in the subtext |
+| Initiatives, actions, programmes | Activity (base) → work package | exactly one Outcome each |
+| Values, promises, principles | Content | `content expresses purpose` |
+| History, narrative, brochure text | Story | `story contextualises purpose` |
+| Board, units, teams | Organisation | `organisation pursues purpose`, `authors story`, `performs process` |
+| Service name, brand | Brand | `brand represents purpose` |
+
+Render with `edgy-diagram` `map_type: purpose` (hierarchy layout; see the
+input file *purpose-hierarchy-map.txt* among that skill's example inputs). Use `{id: PUR-01}` /
+`{id: OUT-01}` so documents can cross-reference the elements.
+
+**Anti-patterns:** focus areas as Story; KPIs left out because Outcome is a
+base element; initiatives without an Outcome; a purpose map that is a
+hub-and-spoke of slogans instead of a hierarchy.
+
+### Formulating capabilities
+
+A capability map is the **stable** side of target-state work: what the
+enterprise must be able to do, and how well, independent of any system or
+supplier. It changes only when the environment adds or removes a capability.
+
+It has three uses:
+
+1. **Home of requirements** — a requirement is written against a capability,
+   never against a system.
+2. **Coverage test** — when a solution is proposed, walk the map: every
+   capability has an implementer, every piece of data has exactly one master.
+3. **Situational picture** — current systems, change pressure and cost, one
+   area at a time.
+
+It is **not the unit of work**. Decisions and procurements are made on
+building blocks (about ten); cards are written at that level; the map's leaves
+are the cards' table of contents and checklist — not sixty documents. One
+system spanning several capabilities is normal and often desirable; two
+systems on one capability without a master decision is the problem.
+
+Inside EDGY the card content is the architecture triad: capability = *what*,
+`process realises capability` = *how it is done*, `capability requires asset`
+= *with what*. A future capability (e.g. agent-based self-service) is modelled
+the same way: asset = the service exposed to agents, process = how tools are
+distributed.
+
+**Helper questions when formulating a capability**
+
+1. What must still be possible if the supplier changes tomorrow? (system independence)
+2. Who suffers if it is missing — customer, driver, planner, finance? (business grounding)
+3. State the result, not the doing: a noun ("travel account management"), not a verb ("we manage travel accounts").
+4. Could it be procured separately? If yes, it is probably at the right level.
+5. Which data does it own, and who is the master?
+6. Which metric tells us it is good enough? (links to an Outcome)
+7. Differentiating or commodity? In-house or outsourced? (the `[tags]` in edgy-diagram)
+8. Which guardrail or principle constrains it? (links to the decision log)
+
+**Granularity:** level 1 = 6–12 areas; level 2 = 40–80 capabilities; cards
+and decisions at level 1 or building-block level. Render with `edgy-diagram`
+`map_type: capability` and `group:` per area (see *capability-areas-map.txt* among that skill's example inputs).
+
+**Anti-patterns:** naming capabilities after products or systems; one card
+per level-2 leaf; a map that changes every time a system changes; mixing
+processes ("we do X") into the capability list.
 
 ## Output Templates
 
@@ -191,6 +361,9 @@ Use the output template matching the selected `language` parameter.
 - **Product**: [Tuotevaikutukset]
 - **Brand**: [Brändivaikutukset]
 
+## Strategiset valinnat ja vaihtoehdot   <!-- valinnainen: kun haaste edellyttää valintaa -->
+| Vaihtoehto | Mitä muuttuu (EDGY-elementit) | Hyödyt | Riskit |
+
 ## Johtopäätös
 [Haasteen todellinen laajuus ja suositellut toimenpiteet]
 ```
@@ -224,6 +397,9 @@ Use the output template matching the selected `language` parameter.
 - **Organisation**: [Organisational impacts]
 - **Product**: [Product impacts]
 - **Brand**: [Brand impacts]
+
+## Strategic choices and alternatives   <!-- optional: when the challenge calls for a decision -->
+| Option | What changes (EDGY elements) | Benefits | Risks |
 
 ## Conclusion
 [True scope of the challenge and recommended actions]
@@ -259,6 +435,9 @@ Use the output template matching the selected `language` parameter.
 - **Product** : [Impacts produit]
 - **Brand** : [Impacts marque]
 
+## Choix stratégiques et alternatives   <!-- optionnel : lorsque le défi appelle une décision -->
+| Option | Ce qui change (éléments EDGY) | Bénéfices | Risques |
+
 ## Conclusion
 [Portée réelle du défi et actions recommandées]
 ```
@@ -292,6 +471,9 @@ Use the output template matching the selected `language` parameter.
 - **Organisation**: [Organisatorische Auswirkungen]
 - **Product**: [Produktauswirkungen]
 - **Brand**: [Markenauswirkungen]
+
+## Strategische Optionen und Alternativen   <!-- optional: wenn die Herausforderung eine Entscheidung verlangt -->
+| Option | Was sich ändert (EDGY-Elemente) | Nutzen | Risiken |
 
 ## Fazit
 [Tatsächlicher Umfang der Herausforderung und empfohlene Maßnahmen]
@@ -435,6 +617,42 @@ relationships:
 \```
 ```
 
+### Target-state Output
+
+#### English (en)
+
+```markdown
+# Target state: [Programme]
+**Scope:** [organisation / unit] · **Horizon:** [year] · **Status:** hypothesis H1
+
+## 1 Purpose map (PUR-xx, OUT-xx)
+## 2 Capability map and cards (CAP-xx)
+## 3 Guardrails (G-x)
+## 4 Building-block hypothesis (BB-xx)
+## 5 Work packages (WP-xx)
+## 6 Decisions (ADR-xxx)
+## 7 Role model
+## 8 Summary for stakeholders
+```
+
+#### Finnish (fi)
+
+```markdown
+# Tavoitetila: [Ohjelma]
+**Rajaus:** [organisaatio / yksikkö] · **Aikajänne:** [vuosi] · **Tila:** hypoteesi H1
+
+## 1 Purpose map (PUR-xx, OUT-xx)
+## 2 Kyvykkyyskartta ja kortit (CAP-xx)
+## 3 Reunaehdot (G-x)
+## 4 Rakennuspalikkahypoteesi (BB-xx)
+## 5 Työpaketit (WP-xx)
+## 6 Päätökset (ADR-xxx)
+## 7 Roolimalli
+## 8 Yhteenveto sidosryhmille
+```
+
+A complete fictional example: `examples/target-state-example.md`.
+
 ## Quality Requirements
 
 ### Minimum Element Counts (identify mode)
@@ -468,9 +686,23 @@ When producing an EDGY analysis in `identify` mode, the following minimum requir
 - [ ] Section 8: Recommendations table (#, Recommendation, EDGY element, Priority)
 - [ ] Section 9: Diagrams (file listing)
 
-### Minimum Output Length
+### Output length by mode
 
-Full assessment (identify mode, all facets): **at least 150 lines / 5,000 characters**.
+Length is a signal of depth only for a full assessment. For architecture
+work a long text is usually the wrong answer.
+
+| Mode / artefact | Length |
+|-----------------|--------|
+| identify — full assessment (all facets) | at least 150 lines / 5,000 characters |
+| reframing | 40–80 lines |
+| intersection | 30–60 lines per intersection |
+| target-state artefacts (see `edgy-target-state`): stakeholder summary | ≤ 200 words + 1 picture |
+| target-state: capability card | ≤ 1 page |
+| target-state: decision record | ≤ 40 lines |
+| one paragraph next to a diagram | 3–6 sentences |
+
+**DO NOT pad an artefact to reach a line count.** Stop when the reader has
+what they need.
 
 ### Anti-patterns — DO NOT do this
 
@@ -478,7 +710,8 @@ Full assessment (identify mode, all facets): **at least 150 lines / 5,000 charac
 - **DO NOT skip coherence checks** — Every intersection element (Organisation, Product, Brand) MUST include a coherence assessment (Strong/Good/Weak + justification).
 - **DO NOT give generic recommendations** — "Improve digital services" fits any company. Recommendations MUST reference specific EDGY elements and be organisation-specific.
 - **DO NOT leave tables empty** — Capability table MUST have nature/level classification. Recommendations table MUST have priority levels.
-- **DO NOT write under 150 lines** — This means the analysis is too shallow.
+- **DO NOT write under 150 lines in a full assessment** — that analysis is too shallow. For every other mode, follow the length table above.
+- **DO NOT model strategic focus areas as Story** — they are sub-Purposes (see Mapping strategy documents to EDGY).
 
 ## Examples
 

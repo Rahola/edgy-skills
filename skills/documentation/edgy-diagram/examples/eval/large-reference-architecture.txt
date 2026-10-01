@@ -1,0 +1,63 @@
+# Eval: layered reference architecture — 19 blocks, ~30 edges (fictional)
+map_type: reference
+
+elements:
+  - organisation: "Passengers"
+  - organisation: "Drivers and inspectors"
+  - organisation: "Platform team"
+  - lane: "L1 Customer channels"
+    - channel: "Mobile app" {id: CH-01, change: change}
+    - channel: "Web shop" {id: CH-02, change: keep}
+    - channel: "Ticket machines" {id: CH-03, change: remove}
+    - channel: "Validators" {id: CH-04, change: replace}
+    - channel: "Customer service desk" {id: CH-05, change: keep}
+  - lane: "L2 Channel backend"
+    - asset: "Account-based ticketing platform" {id: AST-02, change: new, size: M}
+    - asset: "Legacy fare engine" {id: AST-01, change: remove}
+    - asset: "Open-loop payment gateway" {id: AST-04, change: decide}
+    - asset: "Notification service" {id: AST-05, change: keep}
+  - lane: "L3 Core capabilities"
+    - capability: "Ticketing" {id: CAP-05, change: keep}
+    - capability: "Account-based travel" {id: CAP-03, change: new}
+    - capability: "Real-time passenger information" {id: CAP-09, change: keep}
+    - capability: "Inspection and fraud control" {id: CAP-06, change: change}
+  - lane: "L4 Shared services and integration"
+    - asset: "Integration bus" {id: AST-10, size: L, change: new}
+    - asset: "Identity provider" {id: AST-11, change: keep}
+    - asset: "Data lake" {id: AST-12, change: change}
+    - asset: "Master data (stops, fares)" {id: AST-13, change: keep}
+  - asset: "National timetable registry" [external] {id: EXT-01}
+  - asset: "Payment service provider" [external] {id: EXT-02}
+  - asset: "Operator back-office systems" [external] {id: EXT-03}
+
+relationships:
+  - "Ticketing" -> "Account-based ticketing platform": "requires" {change: new}
+  - "Ticketing" -> "Legacy fare engine": "requires" {change: remove}
+  - "Account-based travel" -> "Account-based ticketing platform": "requires" {change: new}
+  - "Account-based travel" -> "Open-loop payment gateway": "requires" {change: decide}
+  - "Inspection and fraud control" -> "Account-based ticketing platform": "requires"
+  - "Real-time passenger information" -> "Notification service": "requires"
+  - "Account-based ticketing platform" -> "Integration bus": "depends on"
+  - "Legacy fare engine" -> "Integration bus": "depends on" {change: remove}
+  - "Notification service" -> "Integration bus": "depends on"
+  - "Identity provider" -> "Integration bus": "depends on"
+  - "Data lake" -> "Integration bus": "depends on"
+  - "Master data (stops, fares)" -> "Integration bus": "depends on"
+  - "Integration bus" -> "National timetable registry": "depends on"
+  - "Integration bus" -> "Operator back-office systems": "depends on"
+  - "Open-loop payment gateway" -> "Payment service provider": "depends on" {change: decide}
+  - "Mobile app" -> "Account-based ticketing platform": "depends on" {change: change}
+  - "Web shop" -> "Account-based ticketing platform": "depends on"
+  - "Validators" -> "Account-based ticketing platform": "depends on" {change: replace}
+  - "Ticket machines" -> "Legacy fare engine": "depends on" {change: remove}
+  - "Customer service desk" -> "Notification service": "depends on"
+  - "Account-based ticketing platform" -> "Identity provider": "depends on"
+  - "Account-based ticketing platform" -> "Data lake": "depends on"
+  - "Platform team" -> "Account-based travel": "has"
+  - "Platform team" -> "Ticketing": "has"
+  - "Passengers" -> "Mobile app": "influences"
+  - "Drivers and inspectors" -> "Validators": "influences"
+  - "Real-time passenger information" -> "Master data (stops, fares)": "requires"
+  - "Inspection and fraud control" -> "Data lake": "requires"
+  - "Ticketing" -> "Master data (stops, fares)": "requires"
+  - "Account-based travel" -> "Identity provider": "requires" {change: new}

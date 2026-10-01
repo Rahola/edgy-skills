@@ -1,6 +1,6 @@
 ---
 name: edgy-deep-dive
-version: "1.0.0"
+version: "1.1.0"
 description: >
   Targeted EDGY 23 deep-dive analysis of a specific element pair or facet combination.
   Requires an existing edgy-model.json produced by the edgy-assessment skill.
@@ -83,8 +83,9 @@ Use this skill when:
 
 ## Official 24 EDGY Core Links (reference for path tracing)
 
+<!-- edgy-links:begin format=flat-fi-en -->
 | Source → Target | FI | EN |
-|-----------------|----|----|
+| ----------------- | ---- | ---- |
 | story → purpose | kontekstualisoi | contextualises |
 | content → purpose | ilmaisee | expresses |
 | content → story | välittää | conveys |
@@ -109,6 +110,7 @@ Use this skill when:
 | organisation → brand | rakentaa | builds |
 | organisation → product | valmistaa | makes |
 | product → brand | ilmentää | embodies |
+<!-- edgy-links:end -->
 
 ---
 
@@ -122,6 +124,12 @@ Do not skip phases. Every phase is required to produce a complete, grounded anal
 
 ### Phase 1: Load Context
 
+0. **Validate the model** against the shared schema before reading it:
+   `python3 tools/validate-edgy-model.py <company>-edgy-model.json` (schema:
+   `skills/architecture/edgy-assessment/assets/edgy-model.schema.json`). A
+   model that fails validation is not analysed — ask the user to fix it or to
+   run `edgy-assessment` in `extract-model` mode. Never invent elements that
+   the model does not contain.
 1. Read the `model` file (edgy-model.json).
 2. Extract the entries for all `focus_elements` from `elements`.
 3. Note the coherence scores from `coherence` for any intersection elements in the focus.
@@ -297,7 +305,14 @@ relationships:
   - "process" -> "capability": "toteuttaa"
 ```
 
-Then author `<company>-deep-dive-<elements>.drawio` directly as XML following the pairwise layout rules:
+Then author `<company>-deep-dive-<elements>.drawio` directly as XML following the pairwise layout rules (the generator does not yet support the pairwise layout), include the legend block from the edgy-diagram skill, and lint the file before delivery:
+
+```bash
+G=skills/documentation/edgy-diagram/scripts
+python3 $G/edgy_lint.py <company>-deep-dive-<elements>.drawio     # 0 errors required
+python3 $G/edgy_render.py <company>-deep-dive-<elements>.drawio   # SVG (+PNG) preview — look at it before delivery
+```
+
 - Focus elements: `strokeWidth=4` (bold border), same colour as their element type
 - Neighbour elements: normal `strokeWidth=2`
 - Direct core links: solid arrow + verb label
@@ -404,6 +419,8 @@ Before delivering, verify:
 - [ ] Every finding references a specific element name from the model
 - [ ] No generic statements ("the organisation should improve its capabilities") without specific grounding
 - [ ] Pairwise diagram TXT contains `[focus]` tags on focus elements
+- [ ] `edgy_lint.py` reports 0 errors for the pairwise drawio file
+- [ ] The pairwise diagram was previewed with `edgy_render.py` and the focus/neighbour layout reads correctly
 - [ ] Next deep-dive suggestion is grounded in a finding from this analysis
 
 ## Anti-patterns

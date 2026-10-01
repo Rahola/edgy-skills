@@ -8,11 +8,14 @@
 #   bash install.sh edgy-assessment edgy-diagram
 #
 # Set EDGY_SKILLS_REPO to override the source repo (default: Rahola/edgy-skills).
+# Set EDGY_SKILLS_REF to install a released version (tag, branch or commit;
+# default: main), e.g. EDGY_SKILLS_REF=v1.0.0 bash install.sh edgy-diagram
 
 set -euo pipefail
 
 REPO="${EDGY_SKILLS_REPO:-Rahola/edgy-skills}"
-REGISTRY_BASE_URL="https://raw.githubusercontent.com/${REPO}/main"
+REF="${EDGY_SKILLS_REF:-main}"
+REGISTRY_BASE_URL="https://raw.githubusercontent.com/${REPO}/${REF}"
 REGISTRY_URL="${REGISTRY_BASE_URL}/registry.yaml"
 SKILLS_DIR="${HOME}/.mistral-vibe/skills"
 

@@ -67,7 +67,7 @@ def generate_plantuml(parser) -> str:
         lines.append('')
 
     for rel in parser.relationships:
-        kind = _classify(rel['label'])
+        kind = rel.get('kind') or _classify(rel['label'])
         label = _escape(rel['label'])
         if kind == 'influence':
             lines.append(f'{rel["source"]} -[dashed]-> {rel["target"]} : {label}')

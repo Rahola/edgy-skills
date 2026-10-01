@@ -6,8 +6,8 @@ elements:
   - organisation: "Organisaatio - Teknologiaosasto"
   - product: "Tuote - SaaS-alusta"
 relationships:
-  - capability -> process: "mahdollistaa"
-  - asset -> capability: "tukee"
+  - process -> capability: "toteuttaa"
+  - capability -> asset: "vaatii"
   - process -> product: "luo"
-  - organisation -> capability: "hallinnoi"
-  - organisation -> asset: "omistaa"
+  - organisation -> capability: "omistaa"
+  - organisation -> asset: "hallinnoi"

@@ -1,0 +1,24 @@
+# Lanes: borderless background bands with a title; elements sit ON the lane at
+# root level, so edges may cross lane borders. Good for layered views.
+facet: architecture
+
+elements:
+  - lane: "L1 Customer channels"
+    - channel: "Mobile app" {id: CH-01}
+    - channel: "Web shop" {id: CH-02}
+    - channel: "Validators on board" {id: CH-03}
+  - lane: "L2 Core services"
+    - capability: "Ticketing" {id: CAP-05}
+    - capability: "Account-based travel" {id: CAP-03}
+    - asset: "Account-based ticketing platform" {id: AST-02}
+  - lane: "L3 Shared services and integration"
+    - asset: "Integration bus" {id: AST-10, size: L}
+    - asset: "Identity provider" {id: AST-11}
+    - asset: "Data lake" {id: AST-12}
+
+relationships:
+  - "Ticketing" -> "Account-based ticketing platform": "requires"
+  - "Account-based travel" -> "Account-based ticketing platform": "requires"
+  - "Account-based ticketing platform" -> "Integration bus": "depends on"
+  - "Identity provider" -> "Integration bus": "depends on"
+  - "Data lake" -> "Integration bus": "depends on"

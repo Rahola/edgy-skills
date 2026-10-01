@@ -1,0 +1,41 @@
+# Layered target-state reference architecture (EDGY EXTENSION layout):
+# lanes top-down, actors (Organisation / People) left, external systems
+# ([external] tag) right, transition overlay on the strokes, one integration
+# bus instead of a mesh of edges.
+map_type: reference
+
+elements:
+  - organisation: "Passengers | 1.2 M trips / month"
+  - organisation: "Platform team | 8 people"
+  - lane: "L1 Customer channels"
+    - channel: "Mobile app" {id: CH-01, change: change}
+    - channel: "Web shop" {id: CH-02, change: keep}
+    - channel: "Validators on board" {id: CH-03, change: replace}
+    - channel: "Agent-based self-service" {id: CH-04, change: new}
+  - lane: "L2 Channel backend"
+    - asset: "Account-based ticketing platform" {id: AST-02, change: new, size: M}
+    - asset: "Legacy fare engine" {id: AST-01, change: remove}
+    - asset: "Open-loop payment gateway" {id: AST-04, change: decide}
+  - lane: "L3 Core capabilities"
+    - capability: "Ticketing" {id: CAP-05, change: keep}
+    - capability: "Account-based travel" {id: CAP-03, change: new}
+    - capability: "Real-time passenger information" {id: CAP-09, change: keep}
+  - lane: "L4 Shared services and integration"
+    - asset: "Integration bus" {id: AST-10, size: L, change: new}
+    - asset: "Identity provider" {id: AST-11, change: keep}
+    - asset: "Data lake" {id: AST-12, change: change}
+  - asset: "National timetable registry" [external] {id: EXT-01}
+  - asset: "Payment service provider" [external] {id: EXT-02}
+
+relationships:
+  - "Ticketing" -> "Account-based ticketing platform": "requires" {change: new}
+  - "Ticketing" -> "Legacy fare engine": "requires" {change: remove}
+  - "Account-based travel" -> "Account-based ticketing platform": "requires" {change: new}
+  - "Account-based travel" -> "Open-loop payment gateway": "requires" {change: decide}
+  - "Account-based ticketing platform" -> "Integration bus": "depends on"
+  - "Identity provider" -> "Integration bus": "depends on"
+  - "Data lake" -> "Integration bus": "depends on"
+  - "Real-time passenger information" -> "Integration bus": "depends on"
+  - "Integration bus" -> "National timetable registry": "depends on"
+  - "Open-loop payment gateway" -> "Payment service provider": "depends on" {change: decide}
+  - "Platform team" -> "Account-based travel": "has"

@@ -1,0 +1,27 @@
+# Transition overlay (EDGY EXTENSION, not part of EDGY 23): {change: …} colours
+# the STROKE only — fill stays the facet colour. Relationship options show
+# explicit sides, waypoints and label placement.
+facet: architecture
+
+elements:
+  - capability: "Ticketing - sell and validate fares" {id: CAP-05, change: keep}
+  - capability: "Account-based travel - pay-as-you-go with a travel account" {id: CAP-03, change: new}
+  - asset: "Legacy fare engine" {id: AST-01, change: replace}
+  - asset: "Account-based ticketing platform" {id: AST-02, change: new}
+  - asset: "Card personalisation service" {id: AST-03, change: remove}
+  - asset: "Open-loop payment gateway" {id: AST-04, change: decide}
+  - process: "Fare change - define, test, publish" {id: PRO-01, change: change}
+  - organisation: "Platform team" {change: keep}
+  - product: "Acme app" {change: change}
+
+relationships:
+  - "Ticketing" -> "Legacy fare engine": "requires" {change: replace}
+  - "Account-based travel" -> "Account-based ticketing platform": "requires" {change: new}
+  - "Account-based travel" -> "Open-loop payment gateway": "requires" {change: decide, label: source}
+  - "Fare change" -> "Ticketing": "realises"
+  - "Fare change" -> "Account-based travel": "realises" {change: change}
+  - "Platform team" -> "Ticketing": "has"
+  - "Platform team" -> "Account-based travel": "has"
+  - "Platform team" -> "Fare change": "performs"
+  - "Acme app" -> "Account-based travel": "requires" {from: top, to: bottom, change: new}
+  - "Account-based ticketing platform" -> "Legacy fare engine": "depends on" {from: top, to: bottom, change: replace}
