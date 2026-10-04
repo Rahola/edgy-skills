@@ -236,6 +236,7 @@ class EDGYParser:
         self.layout_from = None    # (archimate file, view name, scale, dx, dy) tai None
         self.legend = 'box'        # 'box' = laatikko oikeassa alakulmassa, 'strip' = kapea nauha alareunassa
         self._legend_explicit = False
+        self.language = 'en'       # generoitujen otsikoiden kieli (triadin "Further <type>" -paneelit): fi | en | fr | de
         self._size_override = {}   # elem_id → (w, h): layoutin pakottama koko (triad: kehän laatikot, paneelien sirut)
         self._triad_detours = {}   # (src, tgt) → (exit_side, entry_side, [(x, y), …]) kehää kiertävät linkit
         self._triad_hidden = set() # paneeleihin jäävät (ei-ensisijaiset) elementit: niiden linkkejä ei piirretä
@@ -271,6 +272,14 @@ class EDGYParser:
                 # layout_from: path/to/model.archimate#View name [scale=1.0 dx=0 dy=0]
                 spec = line.split(':', 1)[1].strip()
                 self.layout_from = self._parse_layout_from(spec)
+                continue
+            elif line.startswith('language:'):
+                # language: fi | en | fr | de — generoitujen otsikoiden kieli (verbit tulevat syötteestä sellaisinaan)
+                lang_value = line.split(':', 1)[1].strip().lower()
+                if lang_value in ('fi', 'en', 'fr', 'de'):
+                    self.language = lang_value
+                else:
+                    self.warnings.append(f"Tuntematon language-arvo '{lang_value}' (sallitut: fi, en, fr, de), käytetään 'en'")
                 continue
             elif line.startswith('legend:'):
                 # legend: box (oletus) | strip — nauha alareunassa säästää kanvasta
@@ -1750,10 +1759,25 @@ class EDGYParser:
         ('brand', 'purpose'): ((0, 0), (0.7, 1)),
     }
     _TRIAD_FURTHER_TITLE = {'en': 'Further', 'fi': 'Muut', 'fr': 'Autres', 'de': 'Weitere'}
-    _TYPE_PLURAL = {'purpose': 'purposes', 'story': 'stories', 'content': 'content', 'capability': 'capabilities',
-                    'asset': 'assets', 'process': 'processes', 'task': 'tasks', 'channel': 'channels',
-                    'journey': 'journeys', 'organisation': 'organisations', 'product': 'products', 'brand': 'brands',
-                    'people': 'people', 'activity': 'activities', 'outcome': 'outcomes', 'object': 'objects'}
+    # Paneelin otsikon tyyppinimi monikossa, `language:`-avaimen mukaan (sama sanasto kuin edgy-framework)
+    _TYPE_PLURAL = {
+        'en': {'purpose': 'purposes', 'story': 'stories', 'content': 'content', 'capability': 'capabilities',
+               'asset': 'assets', 'process': 'processes', 'task': 'tasks', 'channel': 'channels',
+               'journey': 'journeys', 'organisation': 'organisations', 'product': 'products', 'brand': 'brands',
+               'people': 'people', 'activity': 'activities', 'outcome': 'outcomes', 'object': 'objects'},
+        'fi': {'purpose': 'tarkoitukset', 'story': 'tarinat', 'content': 'sisällöt', 'capability': 'kyvykkyydet',
+               'asset': 'resurssit', 'process': 'prosessit', 'task': 'tehtävät', 'channel': 'kanavat',
+               'journey': 'matkat', 'organisation': 'organisaatiot', 'product': 'tuotteet', 'brand': 'brändit',
+               'people': 'ihmiset', 'activity': 'toiminnot', 'outcome': 'tulokset', 'object': 'objektit'},
+        'fr': {'purpose': "raisons d'être", 'story': 'récits', 'content': 'contenus', 'capability': 'capacités',
+               'asset': 'actifs', 'process': 'processus', 'task': 'tâches', 'channel': 'canaux',
+               'journey': 'parcours', 'organisation': 'organisations', 'product': 'produits', 'brand': 'marques',
+               'people': 'personnes', 'activity': 'activités', 'outcome': 'résultats', 'object': 'objets'},
+        'de': {'purpose': 'Zwecke', 'story': 'Geschichten', 'content': 'Inhalte', 'capability': 'Fähigkeiten',
+               'asset': 'Ressourcen', 'process': 'Prozesse', 'task': 'Aufgaben', 'channel': 'Kanäle',
+               'journey': 'Reisen', 'organisation': 'Organisationen', 'product': 'Produkte', 'brand': 'Marken',
+               'people': 'Personen', 'activity': 'Aktivitäten', 'outcome': 'Ergebnisse', 'object': 'Objekte'},
+    }
 
     def _effective_legend(self) -> str:
         """Triad käyttää nauhalegendaa, ellei käyttäjä ole valinnut toisin."""
@@ -1892,7 +1916,8 @@ class EDGYParser:
         panels.sort(key=lambda p: -p[3])
         y = ring_bottom + 40
         x, row_h = margin, 0
-        lang_key = 'en'
+        lang_key = self.language if self.language in self._TRIAD_FURTHER_TITLE else 'en'
+        plural = self._TYPE_PLURAL[lang_key]
         for t, rest, cols, pw in panels:
             pad, top, cgap = 12, 30, 10
             cw = int((pw - 2 * pad - (cols - 1) * cgap) / cols)
@@ -1902,7 +1927,7 @@ class EDGYParser:
             if x > margin and x + pw > page_w - margin:
                 x, y, row_h = margin, y + row_h + gap, 0
             gid = f"further_{t}"
-            title = f"{self._TRIAD_FURTHER_TITLE[lang_key]} {self._TYPE_PLURAL.get(t, t + 's')}"
+            title = f"{self._TRIAD_FURTHER_TITLE[lang_key]} {plural.get(t, t)}"
             self.groups[gid] = {'id': gid, 'kind': 'group', 'name': title, 'members': list(rest), 'tags': [],
                                 'metrics': {}, 'synthetic': True, 'facet': 'further', 'layout': 'triad'}
             self._computed_sizes[gid] = (pw, ph)

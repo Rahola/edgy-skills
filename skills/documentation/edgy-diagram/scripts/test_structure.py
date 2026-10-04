@@ -269,6 +269,18 @@ relationships:
     assert abs(x + float(g.get('width')) / 2 - 230) <= 2 and abs(y + float(g.get('height')) / 2 - 225) <= 2
 
 
+def test_triad_panel_titles_follow_language():
+    base = "facet: architecture\nmap_type: triad\n{lang}elements:\n  - capability: \"A\"\n  - capability: \"B\"\n  - product: \"P\"\n"
+    for lang, title in (('', 'Further capabilities'), ('language: fi\n', 'Muut kyvykkyydet'),
+                        ('language: fr\n', 'Autres capacités'), ('language: de\n', 'Weitere Fähigkeiten')):
+        p, root, xml = gen(base.format(lang=lang))
+        titles = [c.get('value') for c in root.iter('mxCell') if (c.get('value') or '').split(' ')[0] in ('Further', 'Muut', 'Autres', 'Weitere')]
+        assert titles == [title], (lang, titles)
+    q = EDGYParser()
+    q.parse_input("language: sv\nelements:\n  - asset: \"A\"\n")
+    assert q.language == 'en' and any('language' in w for w in q.warnings)
+
+
 def test_purpose_tree_parent_centred_and_no_branch_through_children():
     import tempfile
     import edgy_lint

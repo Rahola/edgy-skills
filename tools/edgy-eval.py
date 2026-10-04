@@ -81,8 +81,8 @@ def run_one(txt: Path, out_dir: Path) -> dict:
     row["rules"] = dict(rules)
     row["lint_errors"] = sum(1 for f in findings if f["level"] == "ERROR")
     row["lint_warnings"] = sum(1 for f in findings if f["level"] == "WARNING")
-    # visual rules (edge through a box, label on a box / label, outside the page)
-    row["visual"] = sum(v for k, v in rules.items() if k in ("W111", "W112", "W113", "W114", "W115"))
+    # visual rules (edge through a box, label on a box / label, outside the page) — the same set as --visual
+    row["visual"] = sum(v for k, v in rules.items() if k in edgy_lint.VISUAL_RULES)
     return row
 
 

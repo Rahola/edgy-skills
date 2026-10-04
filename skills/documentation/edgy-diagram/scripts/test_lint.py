@@ -356,21 +356,21 @@ def test_fixtures_reproduce_visual_findings():
     gen = os.path.join(here, 'edgy_generator.py')
     eval_dir = os.path.join(here, '..', 'examples', 'eval')
     d = tempfile.mkdtemp()
-    expectations = {'large-architecture-facet': 'W111', 'fixture-f1-ports-waypoints': 'W113'}
-    for name, rule in expectations.items():
+    ns = edgy_lint.main.__globals__['argparse'].Namespace
+    # the 19-element single facet in the default layout still reproduces the field defect
+    out = os.path.join(d, 'large.drawio')
+    r = subprocess.run([sys.executable, gen, os.path.join(eval_dir, 'large-architecture-facet.txt'), '--output', out], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    f = edgy_lint.lint_file(out, ns(no_legend=False))
+    assert not [x for x in f if x.level == 'ERROR'], [str(x) for x in f]
+    assert any(x.rule == 'W111' for x in f), sorted({x.rule for x in f})
+    # F1 (routing) and F5 (purpose tree) are fixed: clean under --warnings-as-errors, visual rules included
+    for name in ('fixture-f1-ports-waypoints', 'fixture-f5-purpose-tree'):
         out = os.path.join(d, name + '.drawio')
         r = subprocess.run([sys.executable, gen, os.path.join(eval_dir, name + '.txt'), '--output', out], capture_output=True, text=True)
         assert r.returncode == 0, r.stderr
-        opts = edgy_lint.main.__globals__['argparse'].Namespace(no_legend=False)
-        f = edgy_lint.lint_file(out, opts)
-        assert not [x for x in f if x.level == 'ERROR'], [str(x) for x in f]
-        assert any(x.rule == rule for x in f), (name, rule, sorted({x.rule for x in f}))
-    # F5 is fixed by the purpose-tree layout: no branch through a child box any more
-    out = os.path.join(d, 'f5.drawio')
-    r = subprocess.run([sys.executable, gen, os.path.join(eval_dir, 'fixture-f5-purpose-tree.txt'), '--output', out], capture_output=True, text=True)
-    assert r.returncode == 0, r.stderr
-    f = edgy_lint.lint_file(out, edgy_lint.main.__globals__['argparse'].Namespace(no_legend=False))
-    assert not any(x.rule in ('W111', 'W112', 'W113') for x in f), [str(x) for x in f if x.rule in edgy_lint.VISUAL_RULES]
+        f = edgy_lint.lint_file(out, ns(no_legend=False))
+        assert not f, (name, [str(x) for x in f])
 
 
 def main():

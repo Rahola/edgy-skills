@@ -35,8 +35,9 @@ def test_primary_flag_moves_links_and_is_written():
     caps = model['elements']['capability']
     assert len(caps) >= 2, 'sample model needs two capabilities for this test'
     caps[1]['primary'] = True
-    txt = m2t.build(model, 'architecture', 'en', layout='triad')
-    assert txt.splitlines()[3] == 'map_type: triad', txt.splitlines()[:5]
+    txt = m2t.build(model, 'architecture', 'fi', layout='triad')
+    head = txt.splitlines()[:6]
+    assert 'map_type: triad' in head and 'language: fi' in head, head   # panel headings follow the report language
     chosen = m2t._clean(caps[1]['name'])
     first = m2t._clean(caps[0]['name'])
     elements, rels = txt.split('relationships:')

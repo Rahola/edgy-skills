@@ -16,7 +16,7 @@ Fictional inputs that exercise the generator at the sizes real work needs.
 
 The table printed by `edgy-eval.py` has two columns for these fixtures:
 **H/W** (page height / width of the worst page) and **Visual** (count of the
-visual rules W111–W115, once the linter has them).
+visual rules W111–W114 — the same set `edgy_lint.py --visual` prints).
 | `../multipage-map.txt` | two pages in one mxfile |
 | `../full-edgy-map.txt` | all 12 elements with facet containers |
 | `../purpose-hierarchy-map.txt` | purpose hierarchy with Outcomes |

@@ -196,6 +196,7 @@ and Product, `all` all three. Full tables: `references/vocabulary.md`.
 facet: identity | architecture | experience | all
 map_type: capability | organisation | journey | purpose   # optional, overrides facet layout
 legend: box | strip                                       # optional; strip = one band along the bottom, page as tall as the content
+language: fi | en | fr | de                               # optional; language of generated headings (triad "Further <type>" panels)
 
 elements:
   - <element_type>: "<name>"

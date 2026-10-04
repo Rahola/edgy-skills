@@ -246,6 +246,24 @@ edgy_lint_examples() {
 }
 run_step "edgy-lint" edgy_lint_examples
 
+# --- Vaihe 3e: strict-portti visuaalisesti puhtaille asetteluille ------------
+# Triad- ja purpose-esimerkit sekä fixtuurit F1 ja F5 on luvattu puhtaiksi myös
+# visuaalisista säännöistä (W111–W114): --warnings-as-errors on tässä se portti.
+edgy_lint_strict() {
+    local ex="skills/documentation/edgy-diagram/examples"
+    local tmp
+    tmp=$(mktemp -d)
+    for f in fixture-f1-ports-waypoints fixture-f5-purpose-tree; do
+        python3 "$EDGY_SCRIPTS/edgy_generator.py" "$ex/eval/$f.txt" --output "$tmp/$f.drawio" >/dev/null 2>&1 || { rm -rf "$tmp"; return 1; }
+    done
+    python3 "$EDGY_SCRIPTS/edgy_lint.py" -q --warnings-as-errors \
+        "$ex"/expected-triad-*.drawio "$ex"/expected-purpose.drawio "$ex"/expected-purpose-hierarchy.drawio "$tmp"/*.drawio
+    local rc=$?
+    rm -rf "$tmp"
+    return $rc
+}
+run_step "edgy-lint-strict" edgy_lint_strict
+
 # --- Vaihe 4: privacy-scan (asiakasreferenssien vuototarkistus) --------------
 # Estää yksityisten asiakas-/toimeksiantonimien päätymisen julkiseen repoon.
 # Paikallinen suoja: termilista gitignored .blocklist-tiedostosta (ei repossa).

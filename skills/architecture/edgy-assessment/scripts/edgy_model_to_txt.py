@@ -127,7 +127,8 @@ def build(model, facet, lang, layout="default"):
         main_types, inter = FACETS[facet]
     header = [f"# Generated from edgy-model.json by edgy_model_to_txt.py — do not edit by hand; edit the model.",
               f"# company: {_clean(model.get('company'))} · assessed_at: {_clean(model.get('assessed_at'))}",
-              f"facet: {facet}"]
+              f"facet: {facet}",
+              f"language: {lang if lang in VERB_KEY else 'en'}"]   # generated headings (e.g. triad panels) in the report language
     if layout == "triad":
         header.append("map_type: triad")
     header += ["", "elements:"]

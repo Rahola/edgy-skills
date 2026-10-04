@@ -28,7 +28,7 @@ elements:
 relationships:
   # three edges leave Hub's RIGHT side (ports at y = 212 / 240 / 268)
   - "Hub" -> "East store": "depends on"
-  - "Hub" -> "North depot": "depends on" {via: [(410, 240), (410, 120)]}
+  - "Hub" -> "North depot": "depends on" {via: [(410, 240), (410, 120)], label: source}
   - "Hub" -> "South depot": "depends on" {via: [(410, 240), (410, 360)]}
   # three edges enter Hub's LEFT side
   - "West store" -> "Hub": "depends on"

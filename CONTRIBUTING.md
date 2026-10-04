@@ -172,11 +172,20 @@ to describe.
    git push origin vX.Y.Z
    ```
 
-4. Verify before publishing the release: `git ls-remote --tags origin` must
-   show every tag on a **different** commit. Two tags on one commit means a
-   release was created against the wrong target — fix the tag
-   (`git tag -fa … && git push --force origin refs/tags/vX.Y.Z`) before
-   anyone installs it.
+4. Verify before publishing the release: every tag must resolve to a
+   **different** commit. Annotated tags point at a tag object, so compare the
+   *peeled* commits, not the raw refs:
+
+   ```bash
+   git fetch origin --tags
+   git for-each-ref --format='%(if)%(*objectname)%(then)%(*objectname)%(else)%(objectname)%(end) %(refname:short)' refs/tags
+   # or remotely: the `refs/tags/vX.Y.Z^{}` lines of `git ls-remote --tags origin`
+   # (lightweight tags have no ^{} line; their plain ref is the commit)
+   ```
+
+   Two tags on one commit means a release was created against the wrong
+   target — fix the tag (`git tag -fa … && git push --force origin
+   refs/tags/vX.Y.Z`) before anyone installs it.
 5. Create the GitHub Release from the tag with the CHANGELOG entry as its
    notes. Mark the newest bundle as *latest*.
 

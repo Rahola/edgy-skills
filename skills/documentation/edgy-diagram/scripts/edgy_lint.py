@@ -73,7 +73,7 @@ except Exception:  # pragma: no cover — lint must still run standalone
     FLOW_RELATIONSHIPS = set()
     TREE_RELATIONSHIPS = set()
 
-VISUAL_RULES = ('W111', 'W112', 'W113', 'W114', 'W115')
+VISUAL_RULES = ('W111', 'W112', 'W113', 'W114')   # geometry findings with coordinates; W115 (--scale) is a size check
 W111_MIN_INSIDE = 8.0      # px of an edge inside a foreign element before it counts
 W112_MIN_OVERLAP = 0.20    # share of the label box over an element
 W113_MIN_OVERLAP = 0.20    # share of the smaller label box over another label
@@ -571,7 +571,7 @@ def main(argv=None):
     ap.add_argument('--no-legend', action='store_true', help='do not require a legend')
     ap.add_argument('--json', action='store_true', help='print findings as JSON')
     ap.add_argument('--visual', action='store_true',
-                    help='print only the visual findings (W111–W115) as JSON with coordinates')
+                    help='print only the visual findings (W111–W114) as JSON with coordinates')
     ap.add_argument('--scale', type=float, default=None,
                     help='report scale (rendered px per diagram px, e.g. 0.4 when a 1600 px page is printed '
                          '640 px wide); W115 when a title, description or relation label falls below 6 pt')

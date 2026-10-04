@@ -20,6 +20,26 @@ perustelut.
 
 ---
 
+### 2026-10-04 — Claude Code (PR #4 review fixes)
+
+Copilot review on PR #4: four findings, all reproduced and fixed.
+- Triad panel titles were English regardless of the report language: new
+  `language: fi|en|fr|de` input key (parser), per-language type plurals
+  for the "Further <type>" panels, `edgy_model_to_txt.py` writes the
+  model's language into every TXT. Test per language.
+- `--visual` claimed "with coordinates" but its filter included W115,
+  which has none: `VISUAL_RULES` is W111–W114 (docs already said so);
+  `edgy-eval.py` counts the same set.
+- "`--warnings-as-errors` enforced for F1/F5" was only true by test
+  assertion and F1 still carried a W113 (two labels meeting at a corner):
+  `label: source` on that edge, F1 and F5 asserted fully clean, and a new
+  `check.sh` step `edgy-lint-strict` lints triad + purpose examples and
+  the generated F1/F5 with `--warnings-as-errors`.
+- Releasing guide: compare *peeled* tag refs (`^{}` / `%(*objectname)`),
+  since annotated tags point at a tag object, not the commit.
+
+---
+
 ### 2026-10-04 — Claude Code (Sprint 12: assessment workflow, release v2.1.0)
 
 **Assignment:** development-plan-2026-10 P4.1–P4.3 — bring the triad and
