@@ -153,12 +153,22 @@ relationship, and is larger than 1000 bytes.
 ### Generator reference
 
 ```bash
-edgy_generator.py in.txt --output out.drawio [--preview] [--bare] [--lenient]
+edgy_generator.py in.txt --output out.drawio [--preview] [--bare] [--lenient] [--publication]
 edgy_generator.py in.txt --format svg|png --engine native --output out      # CLI-free render
 edgy_generator.py in.txt --format png|svg|pdf [--engine drawio|plantuml|native] [--preset presentation|print|web]
 edgy_generator.py in.txt --format plantuml --output out.puml
-edgy_render.py out.drawio [--out DIR] [--no-png]                            # preview an existing file
+edgy_render.py out.drawio [--out DIR] [--no-png] [--publication]            # preview an existing file
+edgy_lint.py out.drawio [--warnings-as-errors] [--visual] [--scale 0.4]     # lint; W115 below 6 pt at that scale
 ```
+
+`--publication` crops the native SVG/PNG to the content (shapes, routes,
+arrowheads, labels, legend) instead of the editor page and prints an
+orientation hint (`landscape` / `portrait` / `square`) per page — use it for
+the image that goes into a report, the plain preview for editing. Text is
+measured with glyph tables (`scripts/edgy_text.py`, Helvetica/Arial metrics)
+in the generator, the preview and the linter alike, so box widths, wrapping
+and W101 agree; a long name widens the box up to 280 px and then wraps —
+text is never shrunk silently.
 
 Output is an uncompressed `<mxfile>` with one `<diagram>` per page (`--bare`
 gives a bare `mxGraphModel`, single page only). The vocabulary the generator
@@ -185,6 +195,7 @@ and Product, `all` all three. Full tables: `references/vocabulary.md`.
 ```
 facet: identity | architecture | experience | all
 map_type: capability | organisation | journey | purpose   # optional, overrides facet layout
+legend: box | strip                                       # optional; strip = one band along the bottom, page as tall as the content
 
 elements:
   - <element_type>: "<name>"
@@ -472,6 +483,7 @@ Record in the delivery which preview was used.
 | publication PNG/SVG/PDF | `--format png|svg|pdf` with the draw.io CLI; presets `--preset presentation|print|web` |
 | PlantUML source / render | `--format plantuml`, or `--format png --engine plantuml` (uses `<edgy/edgy>` stdlib) |
 | approximate PNG/SVG without CLI or Java | `--format png|svg --engine native` |
+| report image cropped to content, orientation hint | `--publication` with `--preview`, `--engine native` or `edgy_render.py`; `legend: strip` in the input keeps the page tight |
 
 Details, output naming, PlantUML macro mapping, the official EDGY 23 stencils
 and draw.io CLI locations: `references/export.md`.
@@ -489,7 +501,7 @@ extensions (transition overlay, `reference`, `summary`).
 
 ## Dependencies
 
-- Python 3.7+ and `xml.etree.ElementTree` (standard library) — for `edgy_generator.py`, `edgy_lint.py`, `edgy_render.py` (SVG) and the generated `edgy_core_links.py`
+- Python 3.7+ and `xml.etree.ElementTree` (standard library) — for `edgy_generator.py`, `edgy_lint.py`, `edgy_render.py` (SVG), the shared `edgy_geometry.py` / `edgy_text.py` and the generated `edgy_core_links.py`; Pillow is used for text measurement only when it happens to be installed together with a Liberation/Arimo/Arial font, never required
 - Headless Chromium / Chrome — optional, for PNG previews from `edgy_render.py` (`EDGY_CHROMIUM=<binary>` overrides detection)
 - draw.io CLI (for draw.io export to png/svg/pdf)
 - PlantUML (`plantuml.jar` + Java, or `plantuml` binary) — optional, only

@@ -83,15 +83,16 @@ def report_layout_warnings(pages, before_counts) -> None:
         print(f"{n} layout warning(s) — see above.", file=sys.stderr)
 
 
-def render_preview(drawio_path: str, png: bool = True) -> bool:
+def render_preview(drawio_path: str, png: bool = True, publication: bool = False) -> bool:
     """CLI-vapaa esikatselu: SVG aina, PNG jos Chromium löytyy.
 
     Palauttaa False jos SVG:tä ei saatu kirjoitettua — esikatselu on
     pakollinen vaihe, joten kutsuja päättää ajon virheeseen. Puuttuva PNG
     (ei Chromiumia) ei ole virhe: SVG riittää katselmointiin.
+    `publication` rajaa kuvan sisältöön (ei editorisivuun).
     """
     try:
-        results = edgy_render.render_file(drawio_path, png=png)
+        results = edgy_render.render_file(drawio_path, png=png, publication=publication)
     except Exception as e:  # noqa: BLE001 — raportoidaan ja palautetaan virhe
         print(f"Error: preview failed: {e}", file=sys.stderr)
         return False
@@ -103,6 +104,8 @@ def render_preview(drawio_path: str, png: bool = True) -> bool:
         print(f"Preview SVG: {r['svg']}{label}")
         if r['png']:
             print(f"Preview PNG: {r['png']}")
+        if publication:
+            print(f"Orientation: {r.get('orientation', 'square')}{label}")
     if png and not any(r['png'] for r in results):
         print("Preview: no Chromium/Chrome found — SVG only. Open the SVG in a browser, "
               "or set EDGY_CHROMIUM=<binary> for PNG.")
@@ -257,6 +260,9 @@ def main():
     parser.add_argument('--lenient', action='store_true',
                        help='Generate even when the input has errors (unknown facet/map_type); '
                             'by default such input exits with code 2')
+    parser.add_argument('--publication', action='store_true',
+                       help='Native SVG/PNG (--engine native, --preview) cropped to the content bounds '
+                            'instead of the editor page; prints an orientation hint per page')
 
     args = parser.parse_args()
 
@@ -349,7 +355,8 @@ def main():
             sys.exit(2)
         results = edgy_render.render_file(temp_drawio_path, png=(fmt == 'png'),
                                           base=os.path.splitext(os.path.basename(output_path))[0],
-                                          out_dir=os.path.dirname(os.path.abspath(output_path)))
+                                          out_dir=os.path.dirname(os.path.abspath(output_path)),
+                                          publication=args.publication)
         for r in results:
             label = f" [page {r['page']}]" if r['page'] else ""
             print(f"Successfully rendered: {r['png'] or r['svg']}{label}")
@@ -359,7 +366,7 @@ def main():
         export_with_drawio_cli(temp_drawio_path, output_path, fmt, extra_export_args)
     else:
         print(f"EDGY diagram created: {output_path}")
-        if args.preview and not render_preview(output_path):
+        if args.preview and not render_preview(output_path, publication=args.publication):
             print("The .drawio file was written but the mandatory preview was not — "
                   "fix the error above before delivery.", file=sys.stderr)
             sys.exit(3)

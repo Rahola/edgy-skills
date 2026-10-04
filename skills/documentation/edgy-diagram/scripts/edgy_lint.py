@@ -61,6 +61,7 @@ import zlib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import edgy_geometry as geo  # noqa: E402 — the renderer's geometry, so lint checks what is drawn
+import edgy_text  # noqa: E402 — glyph-table text measurement, the same the renderer wraps with
 
 try:  # vocabulary from the generated module next to this file
     from edgy_core_links import core_link_pairs, INFLUENCE_RELATIONSHIPS  # noqa: E402
@@ -371,26 +372,28 @@ def lint_model(path, page, model, lines, opts):
         words = first_line.split()
         if len(words) >= 2 and words[0].lower().strip(':') in TYPE_WORDS:
             add('WARNING', 'W109', f'label starts with the element type ("{words[0]}") — the type is shown by shape and colour; use the name only', i)
-        # W101 text fit — per line, honouring <font style="font-size:Npx"> overrides
+        # W101 text fit — per line, honouring <font style="font-size:Npx"> and
+        # font-weight overrides; measured with the glyph tables the renderer wraps with
         raw = c.get('value') or ''
         fs_default = float(st.get('fontSize', 12) or 12)
+        bold_default = st.get('fontStyle') in ('1', '3', '5', '7')
         if raw.strip() and w > 0 and h > 0:
             needed_h = 0.0
             needed_lines = 0
+            usable_w = w - 12 - (20 if shape_of(st) == 'pentagon' else 0)   # the arrow tip is not text area
             for seg in re.split(r'<br\s*/?>', raw, flags=re.I):
                 m = re.search(r'font-size:\s*(\d+(?:\.\d+)?)px', seg, re.I)
                 fs = float(m.group(1)) if m else fs_default
+                if re.search(r'<b>|<strong>|font-weight:\s*bold', seg, re.I):
+                    bold = True
+                elif re.search(r'font-weight:\s*normal', seg, re.I):
+                    bold = False
+                else:
+                    bold = bold_default
                 para = html.unescape(re.sub(r'<[^>]+>', '', seg)).strip()
                 if not para:
                     continue
-                chars_per_line = max(int((w - 12) / (fs * CHAR_W)), 1)
-                n_lines, cur = 1, 0
-                for word in para.split():
-                    if cur and cur + 1 + len(word) > chars_per_line:
-                        n_lines += 1
-                        cur = len(word)
-                    else:
-                        cur += (1 if cur else 0) + len(word)
+                n_lines = edgy_text.lines_needed(para, max(usable_w, 20), fs, bold)
                 needed_lines += n_lines
                 needed_h += n_lines * fs * LINE_H
             if needed_h > h - 4:
@@ -448,6 +451,26 @@ def lint_model(path, page, model, lines, opts):
 
     # W111–W114 visual rules — on the renderer's geometry (edgy_geometry)
     F.extend(visual_findings(path, page, lines, cells, elements, containers, page_w, page_h))
+
+    # W115 minimum rendered text size at the report scale (--scale), px → pt × 0.75
+    scale = getattr(opts, 'scale', None)
+    if scale:
+        for i, c in cells.items():
+            if i not in elements and not (c.get('edge') == '1' and c.get('source') and c.get('target')):
+                continue
+            raw = c.get('value') or ''
+            if not strip_html(raw).strip():
+                continue
+            st = style_dict(c.get('style'))
+            fs_default = float(st.get('fontSize', 11 if c.get('edge') == '1' else 12) or 12)
+            sizes = [float(m) for m in re.findall(r'font-size:\s*(\d+(?:\.\d+)?)px', raw, re.I)] or []
+            if not re.search(r'font-size:', raw.split('<br')[0], re.I):
+                sizes.append(fs_default)          # the first (title) line uses the cell font size
+            smallest = min(sizes) if sizes else fs_default
+            pt = smallest * scale * 0.75
+            if pt < 6.0:
+                what = 'relation label' if c.get('edge') == '1' else ('description' if smallest < fs_default else 'title')
+                add('WARNING', 'W115', f'{what} renders at {pt:.1f} pt at scale {scale:g} (minimum 6 pt) — enlarge the box text, split the view or print it larger', i)
     return F
 
 
@@ -549,6 +572,9 @@ def main(argv=None):
     ap.add_argument('--json', action='store_true', help='print findings as JSON')
     ap.add_argument('--visual', action='store_true',
                     help='print only the visual findings (W111–W115) as JSON with coordinates')
+    ap.add_argument('--scale', type=float, default=None,
+                    help='report scale (rendered px per diagram px, e.g. 0.4 when a 1600 px page is printed '
+                         '640 px wide); W115 when a title, description or relation label falls below 6 pt')
     ap.add_argument('-q', '--quiet', action='store_true', help='print only the summary line')
     opts = ap.parse_args(argv)
 

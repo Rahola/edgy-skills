@@ -330,6 +330,49 @@ def test_render_label_offset_point_moves_label():
     assert len(ys) == 1 and ys[0] > 70 + 20, ys            # 30 px below the path (y = 70), not raised above it
 
 
+def test_render_description_rows_are_not_bold():
+    # F4: the cell is bold (fontStyle=1) but the generator's description row says font-weight:normal
+    page, svg = _svg_of_fixture('fixture-f4-long-bold-title')
+    texts = re.findall(r'<text [^>]*font-size="9(?:\.0)?"[^>]*>([^<]*)</text>', svg)
+    assert texts, 'no description rows rendered'
+    bold_desc = re.findall(r'<text [^>]*font-size="9(?:\.0)?"[^>]*font-weight="bold"', svg)
+    assert not bold_desc, bold_desc[:3]
+    titles = re.findall(r'<text [^>]*font-size="14(?:\.0)?"[^>]*font-weight="bold"', svg)
+    assert titles, 'titles must stay bold'
+
+
+def test_publication_bounds_are_tight():
+    sparse = """
+map_type: journey
+legend: strip
+elements:
+  - journey: "Plan"
+  - journey: "Buy ticket"
+  - journey: "Travel"
+  - journey: "Arrive"
+relationships:
+  - "Plan" -> "Buy ticket": "flows"
+  - "Buy ticket" -> "Travel": "flows"
+  - "Travel" -> "Arrive": "flows"
+"""
+    d = tempfile.mkdtemp()
+    src = _write(sparse, suffix='.txt')
+    out = os.path.join(d, 'sparse.drawio')
+    r = _run_generator(src, '--output', out)
+    assert r.returncode == 0, r.stderr
+    page = edgy_render.Page(edgy_document.load_pages_from_file(out)[0][1])
+    full = edgy_render.page_to_svg(page)
+    pub = edgy_render.page_to_svg(page, publication=True)
+    vb = [float(v) for v in re.search(r'viewBox="([^"]+)"', pub).group(1).split()]
+    cb = edgy_render.content_bounds(page)
+    assert vb[2] * vb[3] <= 1.15 * (cb[2] + 48) * (cb[3] + 48), (vb, cb)     # ≤ content + margin
+    assert 'stroke-dasharray="4,4"' not in pub and 'stroke-dasharray="4,4"' in full   # no editor page frame
+    assert edgy_render.orientation_hint(page) == 'landscape'
+    # publication crop via the CLI
+    r = _run_generator(src, '--output', os.path.join(d, 'p.drawio'), '--preview', '--publication')
+    assert r.returncode == 0 and 'Orientation: landscape' in r.stdout, (r.stdout, r.stderr)
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

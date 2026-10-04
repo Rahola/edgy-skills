@@ -46,6 +46,7 @@ from edgy_core_links import (  # noqa: E402
     core_link_pairs,
 )
 import edgy_geometry as _geo  # noqa: E402 — portit ja sivut samasta paikasta kuin renderöijä ja lintti
+import edgy_text as _text     # noqa: E402 — tekstin mittaus glyyfitaulukoilla, sama kuin renderöijä ja lintti
 
 # Flow relationships → open arrowhead (data/value flows concretely)
 # Supported in FI, EN, FR, DE
@@ -230,6 +231,7 @@ class EDGYParser:
         self._layout_handles_tree = False
         self.uses_change_overlay = False
         self.layout_from = None    # (archimate file, view name, scale, dx, dy) tai None
+        self.legend = 'box'        # 'box' = laatikko oikeassa alakulmassa, 'strip' = kapea nauha alareunassa
 
     def parse_input(self, input_text: str) -> None:
         """Jäsennä käyttäjän syöte EDGY-elementeiksi"""
@@ -262,6 +264,14 @@ class EDGYParser:
                 # layout_from: path/to/model.archimate#View name [scale=1.0 dx=0 dy=0]
                 spec = line.split(':', 1)[1].strip()
                 self.layout_from = self._parse_layout_from(spec)
+                continue
+            elif line.startswith('legend:'):
+                # legend: box (oletus) | strip — nauha alareunassa säästää kanvasta
+                legend_value = line.split(':', 1)[1].strip().lower()
+                if legend_value in ('box', 'strip'):
+                    self.legend = legend_value
+                else:
+                    self.warnings.append(f"Tuntematon legend-arvo '{legend_value}' (sallitut: box, strip), käytetään 'box'")
                 continue
             elif line.startswith('map_type:'):
                 map_type_value = line.split(':')[1].strip().lower()
@@ -654,12 +664,12 @@ class EDGYParser:
         return '<br>'.join(parts)
 
     def _subtext_lines(self, element: dict, width: int) -> int:
-        """Arvioi alatekstirivien määrä (id + kuvaus) annetulla leveydellä (9px fontti)."""
+        """Alatekstirivien määrä (id + kuvaus) annetulla leveydellä — mitattu 9 px
+        normaalilla leikkauksella (edgy_text), ei merkkimäärällä."""
         sub = ' '.join(x for x in ((f"[{element['ref']}]" if element.get('ref') else ''), element.get('subtext', '')) if x)
         if not sub:
             return 0
-        chars_per_line = max(int((width - 12) / 5.2), 8)
-        return max(1, -(-len(sub) // chars_per_line))
+        return _text.lines_needed(sub, max(width - 12, 40), self._SUB_FONT, bold=False)
 
     def _get_edge_style(self, label: str, kind: str = None) -> str:
         """Palauta relaation draw.io-tyyli relaatiotyypin mukaan.
@@ -699,7 +709,8 @@ class EDGYParser:
             return base + "endArrow=open;endFill=0;dashed=1;"
 
     # Dynaamiset mitoitusvakiot
-    _CHAR_WIDTH = 8      # arvioitu merkin leveys fontStyle=1;fontSize=14 bold
+    _TITLE_FONT = 14     # nimen fontti (fontStyle=1 → lihavoitu), sama kuin _get_element_style
+    _SUB_FONT = 9        # alatekstin fontti (normaali leikkaus), sama kuin _build_display_value
     _WIDTH_PADDING = 20  # sisämarginaali molemmin puolin
     _MAX_WIDTH = 280     # leveimmän elementin yläraja
 
@@ -730,12 +741,15 @@ class EDGYParser:
             min_w, h = max(min_w, cw), max(h, ch)
 
         name = element.get('name') or element.get('value', '')
-        text_w = len(name) * self._CHAR_WIDTH + self._WIDTH_PADDING
+        # Leveys NIMEN mitatusta leveydestä (14 px bold, edgy_text): pentagonin
+        # nuolenkärki vie dx=20 px tekstialueesta
+        tip = 20 if shape == 'pentagon' else 0
+        text_w = _text.measure(name, self._TITLE_FONT, bold=True) + self._WIDTH_PADDING + tip
         w = max(min_w, min(text_w, self._MAX_WIDTH))
         w = int(math.ceil(w / 10) * 10)
 
-        # Nimi rivittyy jos se ei mahdu yhdelle riville
-        name_lines = max(1, -(-len(name) * self._CHAR_WIDTH // max(w - 16, 1)))
+        # Nimi rivittyy jos se ei mahdu yhdelle riville — rivitys mitattuna, ei arvioituna
+        name_lines = _text.lines_needed(name, max(w - 16 - tip, 40), self._TITLE_FONT, bold=True)
         extra = (name_lines - 1) * 18
         extra += self._subtext_lines(element, w) * 14
         if element.get('tags') or element.get('metrics'):
@@ -945,14 +959,21 @@ class EDGYParser:
             page_height = max(900, int(_math.ceil((max_y + 80) / 100) * 100))
         else:
             page_width, page_height = 1200, 900
-        # Legenda tarvitsee tilaa oikeasta alakulmasta: kasvata sivua jos sisältö ulottuu sinne
-        legend_h = 200 + (self._overlay_legend_height() if self.uses_change_overlay else 0)
-        legend_w = 220
-        for i in positions:
-            x, y = positions[i]
-            w, h = self._size_of(i)
-            if x + w > page_width - legend_w - 40 and y + h > page_height - legend_h - 40:
-                page_height = int(_math.ceil((y + h + legend_h + 60) / 100) * 100)
+        if self.legend == 'strip':
+            # Nauha alareunassa: sivun korkeus on sisältö + nauha, ei editorin 900 px oletus —
+            # harva kartta ei huku tyhjään kanvakseen
+            band_h = self._legend_strip_height(page_width)
+            content_bottom = max((positions[i][1] + self._size_of(i)[1] for i in positions), default=0)
+            page_height = max(300, int(_math.ceil((content_bottom + 30 + band_h + 16) / 10) * 10))
+        else:
+            # Legenda tarvitsee tilaa oikeasta alakulmasta: kasvata sivua jos sisältö ulottuu sinne
+            legend_h = 200 + (self._overlay_legend_height() if self.uses_change_overlay else 0)
+            legend_w = 220
+            for i in positions:
+                x, y = positions[i]
+                w, h = self._size_of(i)
+                if x + w > page_width - legend_w - 40 and y + h > page_height - legend_h - 40:
+                    page_height = int(_math.ceil((y + h + legend_h + 60) / 100) * 100)
 
         root = ET.Element("mxGraphModel", {
             "dx": str(page_width + 240), "dy": str(page_height - 24),
@@ -1092,9 +1113,101 @@ class EDGYParser:
                     ET.SubElement(arr, "mxPoint", {"x": str(int(round(px))), "y": str(int(round(py)))})
             next_id += 1
 
-        # 4) Legenda oikeaan alakulmaan
-        self._append_legend_cells(mx_root, next_id, page_width, page_height)
+        # 4) Legenda: laatikko oikeaan alakulmaan tai nauha alareunaan
+        if self.legend == 'strip':
+            self._append_legend_strip(mx_root, next_id, page_width, page_height)
+        else:
+            self._append_legend_cells(mx_root, next_id, page_width, page_height)
         return self._prettify_xml(root)
+
+    # Nauhalegendan sisältö: lyhyet nimet, jotta kuusi palaa ja neljä viivamallia mahtuvat yhdelle riville
+    _STRIP_CHIPS = [("#80ffb7", "Identity"), ("#a6c0ff", "Architecture"), ("#ff99bd", "Experience"),
+                    ("#ffd580", "Brand"), ("#e599ff", "Product"), ("#80eaff", "Organisation")]
+    _STRIP_LINES = [("endArrow=classic;endFill=1;strokeWidth=1;strokeColor=#333333;", "Link"),
+                    ("endArrow=open;endFill=0;strokeWidth=1;strokeColor=#333333;", "Flow"),
+                    ("endArrow=none;strokeWidth=1;strokeColor=#333333;", "Tree"),
+                    ("endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;", "Influence")]
+    _STRIP_ROW = 24
+
+    def _legend_strip_rows(self, page_width: int) -> int:
+        """Rivimäärä: palat ja viivamallit yhdellä rivillä jos mahtuvat, muuten kahdella; muutoskerros omalla rivillään."""
+        chips_w = sum(18 + _text.measure(lbl, 9) + 6 + 14 for _, lbl in self._STRIP_CHIPS)
+        lines_w = sum(28 + 4 + _text.measure(lbl, 9) + 6 + 14 for _, lbl in self._STRIP_LINES)
+        rows = 1 if 130 + chips_w + lines_w <= page_width - 40 else 2
+        return rows + (1 if self.uses_change_overlay else 0)
+
+    def _legend_strip_height(self, page_width: int) -> int:
+        return self._legend_strip_rows(page_width) * self._STRIP_ROW
+
+    def _append_legend_strip(self, mx_root, start_id: int, page_width: int, page_height: int) -> None:
+        """EDGY-legenda yhtenä kapeana nauhana sivun alareunassa (`legend: strip`).
+
+        Täyttää E009:n rakenteellisen tunnistuksen: otsikkotekstisolu, ≥ 3
+        värillistä palaa ja ≥ 1 irrallinen viivamalli (edge ilman source/target).
+        """
+        rows = self._legend_strip_rows(page_width)
+        row_h = self._STRIP_ROW
+        band_h = rows * row_h
+        y0 = page_height - 16 - band_h
+        cid = start_id
+
+        def text_cell(value, x, y, w, h, bold=False, size=9):
+            nonlocal cid
+            style = (f"text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;"
+                     f"fontSize={size};" + ("fontStyle=1;" if bold else ""))
+            cell = ET.SubElement(mx_root, "mxCell", {"id": str(cid), "value": value, "style": style, "vertex": "1", "parent": "1"})
+            ET.SubElement(cell, "mxGeometry", {"x": str(int(x)), "y": str(int(y)), "width": str(int(w)), "height": str(int(h)), "as": "geometry"})
+            cid += 1
+
+        bg = ET.SubElement(mx_root, "mxCell", {
+            "id": str(cid), "value": "",
+            "style": "rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#fafafa;strokeColor=#e5e5e5;strokeWidth=1;",
+            "vertex": "1", "parent": "1"})
+        ET.SubElement(bg, "mxGeometry", {"x": "20", "y": str(y0 - 4), "width": str(page_width - 40), "height": str(band_h + 8), "as": "geometry"})
+        cid += 1
+
+        x = 30
+        text_cell("<b>EDGY 23 — Legend</b>", x, y0, 120, row_h, bold=True, size=10)
+        x += 130
+        for color, label in self._STRIP_CHIPS:
+            chip = ET.SubElement(mx_root, "mxCell", {
+                "id": str(cid), "value": "",
+                "style": f"rounded=1;whiteSpace=wrap;html=1;fillColor={color};strokeColor=#ffffff;strokeWidth=1;",
+                "vertex": "1", "parent": "1"})
+            ET.SubElement(chip, "mxGeometry", {"x": str(x), "y": str(y0 + 6), "width": "14", "height": "12", "as": "geometry"})
+            cid += 1
+            tw = int(_text.measure(label, 9) + 6)
+            text_cell(html.escape(label), x + 18, y0, tw, row_h)
+            x += 18 + tw + 14
+        if rows >= 2 and (not self.uses_change_overlay or rows == 3):
+            x, y_line = 160, y0 + row_h          # viivamallit toiselle riville
+        else:
+            y_line = y0
+        for edge_style, label in self._STRIP_LINES:
+            arrow = ET.SubElement(mx_root, "mxCell", {"id": str(cid), "value": "", "style": f"edgeStyle=none;{edge_style}", "edge": "1", "parent": "1"})
+            geo = ET.SubElement(arrow, "mxGeometry", {"relative": "1", "as": "geometry"})
+            ET.SubElement(geo, "mxPoint", {"x": str(x), "y": str(y_line + 12), "as": "sourcePoint"})
+            ET.SubElement(geo, "mxPoint", {"x": str(x + 28), "y": str(y_line + 12), "as": "targetPoint"})
+            cid += 1
+            tw = int(_text.measure(label, 9) + 6)
+            text_cell(html.escape(label), x + 32, y_line, tw, row_h)
+            x += 28 + 4 + tw + 14
+        if self.uses_change_overlay:
+            x, y_ov = 30, y0 + (rows - 1) * row_h
+            text_cell("<b>Transition (extension)</b>", x, y_ov, 120, row_h, bold=True)
+            x += 130
+            for key, (color, dashed) in CHANGE_PALETTE.items():
+                swatch = ET.SubElement(mx_root, "mxCell", {
+                    "id": str(cid), "value": "",
+                    "style": f"rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor={color};strokeWidth=3;"
+                             + ("dashed=1;dashPattern=4 2;" if dashed else ""),
+                    "vertex": "1", "parent": "1"})
+                ET.SubElement(swatch, "mxGeometry", {"x": str(x), "y": str(y_ov + 6), "width": "22", "height": "11", "as": "geometry"})
+                cid += 1
+                label = CHANGE_LABELS[key].split(' / ')[0]
+                tw = int(_text.measure(label, 9) + 6)
+                text_cell(html.escape(label), x + 26, y_ov, tw, row_h)
+                x += 26 + tw + 14
 
     def _append_legend_cells(self, mx_root, start_id: int, page_width: int, page_height: int) -> None:
         """Lisää EDGY-legend draw.io-kaavion oikeaan alakulmaan."""

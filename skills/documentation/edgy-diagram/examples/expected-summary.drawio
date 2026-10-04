@@ -6,31 +6,31 @@
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
         <mxCell id="2" value="&lt;b&gt;Transit authority&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;steers and funds&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#80eaff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="340" y="60" width="160" height="80" as="geometry"/>
+          <mxGeometry x="350" y="60" width="140" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="3" value="&lt;b&gt;Platform team&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;defines and produces&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#80eaff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="560" y="60" width="130" height="80" as="geometry"/>
+          <mxGeometry x="550" y="60" width="120" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="4" value="&lt;b&gt;Suppliers&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;build and operate&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#80eaff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="740" y="60" width="120" height="80" as="geometry"/>
+          <mxGeometry x="730" y="60" width="120" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="5" value="&lt;b&gt;Map capabilities&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;what we must be able to do&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
           <mxGeometry x="280" y="230" width="150" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="6" value="&lt;b&gt;Decide building blocks&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;about ten, no product names&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="500" y="230" width="200" height="80" as="geometry"/>
+          <mxGeometry x="480" y="230" width="200" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="7" value="&lt;b&gt;Run work packages&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;one Outcome each&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="760" y="230" width="160" height="80" as="geometry"/>
+          <mxGeometry x="740" y="230" width="180" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="8" value="&lt;b&gt;Target architecture H1&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;tested against the capability map&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="410" y="400" width="200" height="80" as="geometry"/>
+          <mxGeometry x="420" y="400" width="170" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="9" value="&lt;b&gt;Decision log&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;why, and what we rejected&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="670" y="400" width="120" height="90" as="geometry"/>
+          <mxGeometry x="660" y="400" width="120" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="10" value="Used for: tenders, roadmap, onboarding new teams" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="460" y="580" width="280" height="80" as="geometry"/>
+          <mxGeometry x="460" y="570" width="280" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="11" value="performs" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=classic;endFill=1;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="2" target="5" parent="1">
           <mxGeometry relative="1" as="geometry"/>

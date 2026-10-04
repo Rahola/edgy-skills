@@ -20,6 +20,51 @@ perustelut.
 
 ---
 
+### 2026-10-04 — Claude Code (Sprint 10: text metrics, publication bounds, strip legend, --scale)
+
+**Assignment:** development-plan-2026-10 P2.1–P2.4.
+
+**Done:**
+- `scripts/edgy_text.py` (stdlib): per-glyph advance widths of Helvetica and
+  Helvetica-Bold (Adobe Core 14 metrics, which Arial matches), accents fall
+  back to the base letter, `measure` / `wrap` / `lines_needed`; Pillow with
+  a Liberation/Arimo/Arial font is used when present, never required
+  (`EDGY_TEXT_TABLE_ONLY=1` forces the tables). The generator sizes boxes
+  from the measured 14 px bold name (pentagon tip excluded from the text
+  area) and wraps descriptions at 9 px normal; the preview wraps with the
+  same function; W101 measures the same way and honours per-line
+  `font-weight`. Description rows no longer inherit the cell's bold
+  (`label_lines` returns an explicit weight per line) — F4.
+- `--publication` (renderer, generator `--preview` / `--engine native`):
+  viewBox from the bounding box of shapes, full routes, label boxes and
+  legend plus a 24 px margin, no editor-page frame; an orientation hint
+  (`landscape` / `portrait` / `square`) per page — F6.
+- `legend: strip` input option: one 24 px band along the bottom (title, six
+  short chips, four line samples; a second row when the page is narrow, a
+  third for the transition overlay); the page height becomes content +
+  band instead of the 900 px editor minimum. E009's structural detection is
+  satisfied by construction. Default stays `box`.
+- `edgy_lint.py --scale F` → W115 when a title, description or relation
+  label falls below 6 pt (px × F × 0.75) at the report scale.
+- Tests: 2 render, 1 lint, 2 structure; SKILL.md documents all four.
+
+**Regenerated once, as planned:** all 26 shipped `expected-*.drawio`
+changed because box widths now follow measured text (mostly 10–30 px
+narrower or wider, heights follow real wrapping). Every file still lints 0
+errors; previews of the facet map, reference architecture, F4 fixture and
+a strip-legend journey were looked at. Visual-rule aggregates after
+regeneration: eval set 46 (reference architecture, was 52) / 79 / 13 / 8 /
+6 / 1 — unchanged in kind, the layout work in Sprint 11 is what moves
+them.
+
+**Decisions:** glyph tables over a font dependency (the repo stays
+stdlib-only and deterministic across machines); overflow policy is "widen
+to 280 px, then wrap, then W101" — text is never scaled down. W115 reports
+one finding per cell with its smallest text, so a scaled-down map yields
+one line per box, not one per row.
+
+---
+
 ### 2026-10-04 — Claude Code (Sprint 9: shared geometry, visual lint rules)
 
 **Assignment:** development-plan-2026-10 P1.1–P1.4. One resolved geometry

@@ -135,6 +135,42 @@ elements:
     assert 'cost: high' in cells['Fare change'].get('value')
 
 
+def test_legend_strip_is_a_band_and_page_is_tight():
+    p, root, xml = gen("""
+map_type: journey
+legend: strip
+elements:
+  - journey: "Plan"
+  - journey: "Buy ticket"
+  - journey: "Travel"
+relationships:
+  - "Plan" -> "Buy ticket": "flows"
+  - "Buy ticket" -> "Travel": "flows"
+""")
+    model = root if root.tag == 'mxGraphModel' else root.find('.//mxGraphModel')
+    ph = float(model.get('pageHeight'))
+    assert ph < 450, f"strip legend: page height follows the content, got {ph}"
+    cells = cells_by_label(root)
+    title = cells['EDGY 23 — Legend']
+    g = title.find('mxGeometry')
+    assert float(g.get('y')) > 250 and float(g.get('y')) + 24 <= ph, "legend title sits in the bottom band"
+    assert 'Identity (Purpose' not in xml and 'Identity' in xml, "strip uses short chip names"
+    # unknown value → warning, box kept
+    q = EDGYParser()
+    q.parse_input("legend: ribbon\nelements:\n  - asset: \"A\"\n")
+    assert q.legend == 'box' and any('legend' in w for w in q.warnings)
+
+
+def test_element_width_follows_measured_title():
+    # 'Illinois' is narrow, 'WWW MMM' is wide — same character count, different measured widths
+    p, root, _ = gen("map_type: asset\nelements:\n  - asset: \"IIIIIIIIIIIIIIII\"\n  - asset: \"WWWWWWWWWWWWWWWW\"\n")
+    cells = cells_by_label(root)
+    narrow = float(cells['IIIIIIIIIIIIIIII'].find('mxGeometry').get('width'))
+    wide = float(cells['WWWWWWWWWWWWWWWW'].find('mxGeometry').get('width'))
+    assert narrow < wide, (narrow, wide)
+    assert wide <= 280 and narrow >= 120
+
+
 def test_transition_overlay_strokes_and_legend():
     p, root, xml = gen("""
 facet: architecture

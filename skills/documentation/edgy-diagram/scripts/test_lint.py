@@ -319,6 +319,36 @@ def test_visual_findings_carry_coordinates_and_visual_flag_filters():
     assert 'edgy-lint:' in r.stderr                       # summary goes to stderr, stdout is pure JSON
 
 
+def test_legend_strip_satisfies_e009_and_w115_scale():
+    p = EDGYParser()
+    p.parse_input("""
+map_type: asset
+legend: strip
+elements:
+  - asset: "Fare engine" {id: AST-01}
+  - asset: "Data lake" {id: AST-02}
+relationships:
+  - "Fare engine" -> "Data lake": "depends on"
+""")
+    xml = p.generate_xml()
+    with tempfile.NamedTemporaryFile('w', suffix='.drawio', delete=False, encoding='utf-8') as f:
+        f.write(xml)
+        path = f.name
+    try:
+        ns = edgy_lint.main.__globals__['argparse'].Namespace
+        f_default = edgy_lint.lint_file(path, ns(no_legend=False))
+        assert 'E009' not in {x.rule for x in f_default}, [str(x) for x in f_default]
+        assert not [x for x in f_default if x.level == 'ERROR'], [str(x) for x in f_default]
+        f_scaled = edgy_lint.lint_file(path, ns(no_legend=False, scale=0.3))
+        w115 = [x for x in f_scaled if x.rule == 'W115']
+        assert len(w115) == 3, [str(x) for x in w115]          # 2 elements + 1 relation label at 0.3
+        msgs = ' '.join(x.msg for x in w115)
+        assert 'description' in msgs and 'relation label' in msgs, msgs   # the 9 px id line is the smallest text
+        assert not [x for x in edgy_lint.lint_file(path, ns(no_legend=False, scale=1.0)) if x.rule == 'W115']
+    finally:
+        os.unlink(path)
+
+
 def test_fixtures_reproduce_visual_findings():
     """The eval fixtures lint 0/0 structurally and > 0 on the visual rules."""
     import subprocess

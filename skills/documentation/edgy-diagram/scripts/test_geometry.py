@@ -165,7 +165,7 @@ def test_edge_label_box_is_centred_and_raised_by_default():
     x, y, w, h = box
     assert abs((x + w / 2) - 100.0) < 1e-6                # centred on the midpoint
     assert y + h / 2 < 100.0                              # raised above the path
-    assert w > 11 * 0.55 * len('requires')
+    assert abs(w - (geo.approx_text_width('requires', 11.0) + geo.LABEL_PAD)) < 1e-6   # measured text + padding
     assert geo.edge_label_box(path, '', 11.0) is None
     assert geo.edge_label_box([(0.0, 0.0)], 'x', 11.0) is None
     with_y = geo.edge_label_box(path, 'requires', 11.0, relative_y=0.0)

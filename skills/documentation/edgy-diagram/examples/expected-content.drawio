@@ -6,28 +6,28 @@
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
         <mxCell id="2" value="Sustainability promise" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="80" width="200" height="60" as="geometry"/>
+          <mxGeometry x="80" y="80" width="170" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="3" value="On-time guarantee" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="330" y="80" width="160" height="60" as="geometry"/>
+          <mxGeometry x="310" y="80" width="150" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="4" value="Customer testimonials" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="180" width="190" height="60" as="geometry"/>
+          <mxGeometry x="80" y="180" width="180" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="5" value="Annual report" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="330" y="180" width="130" height="60" as="geometry"/>
+          <mxGeometry x="310" y="180" width="120" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="6" value="Service alerts" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="280" width="140" height="60" as="geometry"/>
+          <mxGeometry x="80" y="280" width="120" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="7" value="Travel inspiration blog" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="330" y="280" width="210" height="60" as="geometry"/>
+          <mxGeometry x="310" y="280" width="180" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="8" value="Loyalty programme rules" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="380" width="210" height="60" as="geometry"/>
+          <mxGeometry x="80" y="380" width="190" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="9" value="Pricing FAQ" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="330" y="380" width="120" height="60" as="geometry"/>
+          <mxGeometry x="310" y="380" width="120" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="10" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#cccccc;strokeWidth=1;" vertex="1" parent="1">
           <mxGeometry x="960" y="680" width="220" height="200" as="geometry"/>
