@@ -170,7 +170,7 @@
             <mxPoint x="0" y="-10" as="offset"/>
           </mxGeometry>
         </mxCell>
-        <mxCell id="55" value="pursues" style="edgeStyle=none;rounded=0;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=classic;endFill=1;" edge="1" source="25" target="17" parent="1">
+        <mxCell id="55" value="pursues" style="edgeStyle=none;rounded=0;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=classic;endFill=1;exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=0.3;entryY=1;entryDx=0;entryDy=0;" edge="1" source="25" target="17" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="40" y="20" as="offset"/>
           </mxGeometry>
@@ -209,7 +209,7 @@
             <mxPoint x="0" y="-10" as="offset"/>
           </mxGeometry>
         </mxCell>
-        <mxCell id="62" value="represents" style="edgeStyle=none;rounded=0;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=classic;endFill=1;" edge="1" source="27" target="17" parent="1">
+        <mxCell id="62" value="represents" style="edgeStyle=none;rounded=0;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=classic;endFill=1;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=0.7;entryY=1;entryDx=0;entryDy=0;" edge="1" source="27" target="17" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="55" y="60" as="offset"/>
           </mxGeometry>

@@ -187,6 +187,8 @@ Die folgenden EDGY 23 Diagramme werden mit dieser Analyse geliefert (im draw.io-
 
 Die Diagramme folgen der offiziellen EDGY 23 Farbpalette und Elementformen. Öffnen Sie `.drawio`-Dateien in der draw.io-Anwendung oder unter app.diagrams.net.
 
+Verwendet eine Karte den geplanten Ring (`triad`), zeigt sie je Typ ein primäres Element mit seinen Kernverknüpfungen; die übrigen Elemente erscheinen in „Weitere …“-Feldern ohne Verknüpfungen, und die Tabellen der Abschnitte 2–7 tragen das vollständige Detail.
+
 ---
 
 *Analyse basierend auf [Quellen]. Interne Unternehmensinformationen können insbesondere bei den Architektur- und Organisations-Elementen zusätzliche Tiefe bringen.*

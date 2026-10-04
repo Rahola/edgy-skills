@@ -20,6 +20,39 @@ perustelut.
 
 ---
 
+### 2026-10-04 — Claude Code (Sprint 12: assessment workflow, release v2.1.0)
+
+**Assignment:** development-plan-2026-10 P4.1–P4.3 — bring the triad and
+the visual rules into the assessment workflow, and prepare the bundle
+release.
+
+**Done:**
+- `edgy-model.schema.json`: optional `primary: boolean` on elements and
+  capabilities. `edgy_model_to_txt.py --layout triad` writes
+  `map_type: triad`; core links follow the primary element (flag, else
+  first) and the flag is written as `{primary: true}`. New
+  `scripts/test_model_to_txt.py` (3 tests, `check.sh` step
+  `edgy-model-tests`) runs the chain model → TXT → drawio → lint on the
+  fictional sample model: all four triad files 0 errors and no W111–W114.
+- The chain test caught a real gap: with longer names the straight
+  `organisation → purpose` and `brand → purpose` lines clipped the Story /
+  Content boxes. Fixed with fixed corner ports for those two pairs
+  (`_TRIAD_ANCHORS`), so the ring stays clean for any name length.
+- edgy-assessment 1.7.0: Phase 3 `--layout triad` and the primary rule;
+  Phase 4 `--visual` in the quality gate, all-facets ratio ≤ 1.2,
+  structural maps (purpose / capability / journey) recommended from the
+  same model with the same ids; Phase 5 `--warnings-as-errors --visual`,
+  final PDF pages reviewed at viewing scale with `--scale` and
+  `--publication`. Templates section 9 (fi/en/fr/de) explain the ring.
+- `CHANGELOG.md` v2.1.0, README versions, registry.
+
+**Not done here:** the plan's P3.4 "shipped examples visually clean" for
+the default facet / lane / reference layouts (see the Sprint 11 entry) and
+the status line in `docs/development-plan-2026-10.md`, which lives on the
+plan's own branch (PR #3).
+
+---
+
 ### 2026-10-04 — Claude Code (Sprint 11: map_type triad, purpose-tree layout)
 
 **Assignment:** development-plan-2026-10 P3.1–P3.4. The planned ring for

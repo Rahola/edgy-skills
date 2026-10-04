@@ -54,7 +54,8 @@ Releases are git tags (`v1.0.0`, `v2.0.0`, …); see [CHANGELOG.md](CHANGELOG.md
 
 ```bash
 EDGY_SKILLS_REF=v1.0.0 bash adapters/claude-code/install.sh --all   # previous generation
-EDGY_SKILLS_REF=v2.0.0 bash adapters/claude-code/install.sh --all   # pinned current release
+EDGY_SKILLS_REF=v2.0.0 bash adapters/claude-code/install.sh --all   # generator-first pipeline
+EDGY_SKILLS_REF=v2.1.0 bash adapters/claude-code/install.sh --all   # + visual lint, triad layout
 ```
 
 When an adapter runs from a local clone it installs that checkout, so use

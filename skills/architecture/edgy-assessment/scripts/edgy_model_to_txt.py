@@ -4,14 +4,19 @@ edgy_model_to_txt.py — Derive the four facet TXT inputs for edgy-diagram from
 an edgy-model.json, so that diagrams and analysis never disagree.
 
 Usage:
-  python3 edgy_model_to_txt.py <company>-edgy-model.json [--out DIR] [--prefix <company>] [--language fi|en|fr|de]
+  python3 edgy_model_to_txt.py <company>-edgy-model.json [--out DIR] [--prefix <company>]
+                               [--language fi|en|fr|de] [--layout default|triad]
 
 Writes <prefix>-identity.txt, <prefix>-architecture.txt, <prefix>-experience.txt
 and <prefix>-all-facets.txt. Elements become `- type: "Name - Description" [tags] {id: …}`;
 the model's active core links become relationships. A core link between two
-element *types* is drawn once, between the first (primary) element of each
-type — the report's tables carry the full detail, the diagram shows the
-structure. Standard library only.
+element *types* is drawn once, between the *primary* element of each type —
+the element flagged `"primary": true` in the model, otherwise the first of
+its type — and the flag is written into the TXT as `{primary: true}`. The
+report's tables carry the full detail, the diagram shows the structure.
+`--layout triad` adds `map_type: triad` to every file: the planned ring with
+"Further <type>" panels (edgy-diagram, EDGY extension) — use it when a facet
+has more than ~8 elements. Standard library only.
 """
 
 import argparse
@@ -54,10 +59,23 @@ def _clean(text):
     return " ".join(str(text or "").replace('"', "'").split())
 
 
+def primary_index(elements):
+    """Index of the element that carries the type's core links: the one flagged
+    `"primary": true` (the first such, if several), else 0."""
+    for i, e in enumerate(elements):
+        if isinstance(e, dict) and e.get("primary") is True:
+            return i
+    return 0
+
+
 def element_lines(model, types, with_ids=True):
+    """Returns (lines, names) where names[type] lists the element names with the
+    primary element FIRST, so relationship_lines can use names[type][0]."""
     lines, names = [], {}
     for t in types:
-        for i, e in enumerate(_as_list(model["elements"].get(t))):
+        elements = _as_list(model["elements"].get(t))
+        pi = primary_index(elements)
+        for i, e in enumerate(elements):
             name = _clean(e.get("name"))
             desc = _clean(e.get("description"))
             tags = [_clean(x) for x in e.get("tags", []) if _clean(x)]
@@ -69,9 +87,13 @@ def element_lines(model, types, with_ids=True):
             metrics = {}
             if with_ids:
                 metrics["id"] = e.get("id") or f"{t[:3].upper()}-{i + 1:02d}"
+            if e.get("primary") is True and i == pi:
+                metrics["primary"] = "true"
             metric_part = " {" + ", ".join(f"{k}: {v}" for k, v in metrics.items()) + "}" if metrics else ""
             lines.append(f'  - {t}: "{value}"{tag_part}{metric_part}')
             names.setdefault(t, []).append(name)
+        if t in names and pi:
+            names[t].insert(0, names[t].pop(pi))
     return lines, names
 
 
@@ -97,7 +119,7 @@ def relationship_lines(model, names, lang):
     return out
 
 
-def build(model, facet, lang):
+def build(model, facet, lang, layout="default"):
     if facet == "all":
         main_types = IDENTITY + ARCHITECTURE + EXPERIENCE
         inter = ["organisation", "product", "brand"]
@@ -105,7 +127,10 @@ def build(model, facet, lang):
         main_types, inter = FACETS[facet]
     header = [f"# Generated from edgy-model.json by edgy_model_to_txt.py — do not edit by hand; edit the model.",
               f"# company: {_clean(model.get('company'))} · assessed_at: {_clean(model.get('assessed_at'))}",
-              f"facet: {facet}", "", "elements:"]
+              f"facet: {facet}"]
+    if layout == "triad":
+        header.append("map_type: triad")
+    header += ["", "elements:"]
     el, names = element_lines(model, main_types)
     il, inames = element_lines(model, inter)
     names.update(inames)
@@ -120,6 +145,8 @@ def main(argv=None):
     ap.add_argument("--out", default=".")
     ap.add_argument("--prefix", help="file prefix (default: company slug)")
     ap.add_argument("--language", choices=list(VERB_KEY), help="verb language (default: model.language)")
+    ap.add_argument("--layout", choices=["default", "triad"], default="default",
+                    help="triad = planned ring with Further panels (map_type: triad in every file)")
     args = ap.parse_args(argv)
     model = json.loads(Path(args.model).read_text(encoding="utf-8"))
     lang = args.language or model.get("language", "en")
@@ -128,7 +155,7 @@ def main(argv=None):
     for facet in ("identity", "architecture", "experience", "all"):
         name = f"{prefix}-{'all-facets' if facet == 'all' else facet}.txt"
         path = Path(args.out) / name
-        path.write_text(build(model, facet, lang), encoding="utf-8")
+        path.write_text(build(model, facet, lang, args.layout), encoding="utf-8")
         print(path)
     return 0
 

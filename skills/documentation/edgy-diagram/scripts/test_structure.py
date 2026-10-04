@@ -227,12 +227,15 @@ def test_triad_edges_straight_with_two_detours():
     edges = [c for c in root.iter('mxCell') if c.get('edge') == '1' and c.get('source')]
     with_points = [c for c in edges if c.find('mxGeometry/Array[@as="points"]') is not None]
     assert len(with_points) == 2, len(with_points)
+    anchored_straight = 0
     for c in edges:
         st = c.get('style')
         if c in with_points:
             assert 'edgeStyle=orthogonalEdgeStyle' in st and 'exitX=' in st, st
         else:
-            assert 'edgeStyle=none' in st and 'exitX=' not in st, st
+            assert 'edgeStyle=none' in st, st
+            anchored_straight += 'exitX=' in st
+    assert anchored_straight == 2, anchored_straight      # organisation → purpose and brand → purpose use corner ports
     assert sum(1 for c in edges if c.find('mxGeometry/mxPoint[@as="offset"]') is not None) >= 20, "default label shifts"
     # triad defaults to the strip legend; an explicit legend: box wins
     assert 'Identity (Purpose' not in xml and 'EDGY 23 — Legend' in xml

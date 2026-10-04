@@ -1138,8 +1138,12 @@ class EDGYParser:
             elif triad:
                 # suora viiva reunasta reunaan: draw.io laskee kehäpisteet keskipisteiden suoralta
                 style = style.replace("edgeStyle=orthogonalEdgeStyle;rounded=1;", "edgeStyle=none;rounded=0;")
+                pair = (self.elements[key[0]]['type'], self.elements[key[1]]['type'])
                 if 'from' in rel['options'] or 'to' in rel['options']:
                     style += anchor_style
+                elif pair in self._TRIAD_ANCHORS:
+                    (ex, ey), (nx, ny) = self._TRIAD_ANCHORS[pair]
+                    style += f"exitX={ex};exitY={ey};exitDx=0;exitDy=0;entryX={nx};entryY={ny};entryDx=0;entryDy=0;"
             else:
                 style += anchor_style
             change = rel['options'].get('change')
@@ -1739,6 +1743,12 @@ class EDGYParser:
         ('product', 'journey'): (0, 12),
     }
     _TRIAD_DETOUR_SHIFT = {'left': (45, -150), 'right': (-45, -150)}   # reunaa kiertävä linkki: teksti sivun sisäpuolelle
+    # Kiinteät portit suorille viivoille, jotka muuten hipoisivat story-/content-laatikkoa pitkillä nimillä:
+    # (exitX, exitY), (entryX, entryY)
+    _TRIAD_ANCHORS = {
+        ('organisation', 'purpose'): ((1, 0), (0.3, 1)),
+        ('brand', 'purpose'): ((0, 0), (0.7, 1)),
+    }
     _TRIAD_FURTHER_TITLE = {'en': 'Further', 'fi': 'Muut', 'fr': 'Autres', 'de': 'Weitere'}
     _TYPE_PLURAL = {'purpose': 'purposes', 'story': 'stories', 'content': 'content', 'capability': 'capabilities',
                     'asset': 'assets', 'process': 'processes', 'task': 'tasks', 'channel': 'channels',
