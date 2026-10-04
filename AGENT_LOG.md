@@ -20,6 +20,53 @@ perustelut.
 
 ---
 
+### 2026-10-04 — Claude Code (Sprint 11: map_type triad, purpose-tree layout)
+
+**Assignment:** development-plan-2026-10 P3.1–P3.4. The planned ring for
+large models, and a purpose tree whose branches do not cross its children.
+
+**Done:**
+- `map_type: triad` (EDGY extension, opt-in) in `edgy_parser.py`: a slot
+  table per facet (`facet: all` ring 1340 px wide; single-facet variants
+  for identity / architecture / experience), one *primary* element per
+  type (`{primary: true}`, else the first of its type; several → warning,
+  first wins), straight `edgeStyle=none` core links drawn border to
+  border, two intersection links detoured along the page edge with fixed
+  ports and waypoints, a default label shift per slot pair (overridable
+  with the new `{label_dx, label_dy}` relationship options, emitted as
+  `<mxPoint as="offset">`), "Further <type>" panels (grey containers,
+  chips sized by measured text, 1–4 columns) for the non-primary elements,
+  links into a panel reported as a warning with the pair names — never
+  dropped silently. `legend: strip` by default, `legend: box` wins when
+  given; `group:` / `lane:` / `layout_from:` are ignored with a warning.
+  Collision resolution and grid snapping are bypassed for the ring.
+- `_layout_purpose` rewritten as a tidy tree: parent centred over its
+  children, a 90 px corridor between rows, children entered from the top
+  (`from: bottom, to: top` set on tree relationships), Outcomes in their
+  own row beneath the purpose they measure (`from: top, to: bottom`), a
+  wider child gap when a parent's own Outcomes rise through the child row,
+  `label: source` where routes share a corridor. Fixture F5: 13 visual
+  findings → 0.
+- Examples `triad-all-facets.txt` (12 primaries, 23 further, all 24 core
+  links, 2 reported links) and `triad-architecture.txt` (the 19-element
+  field case as a ring + panels); both lint **0 errors / 0 warnings
+  including W111–W114**. `references/map-types.md` has the slot tables.
+  SKILL.md 2.5.0. 6 new tests.
+
+**Regression guard:** without `map_type: triad` / `legend:`, every shipped
+example regenerates byte-identical to Sprint 10 except the two purpose
+maps, which change by design (P3.2).
+
+**Remaining gap, recorded honestly:** the shipped examples that use the
+default facet, lane and reference layouts still carry 48 W111 / 26 W112 /
+1 W113 (10 files). Those layouts were not in this plan's scope; the
+guidance now says to use `triad` for facet maps with many links, and the
+eval set measures the rest. `check.sh` therefore keeps "0 errors" for
+shipped examples; `--warnings-as-errors` is the bar for triad, purpose and
+the fixtures F1/F5 (tested).
+
+---
+
 ### 2026-10-04 — Claude Code (Sprint 10: text metrics, publication bounds, strip legend, --scale)
 
 **Assignment:** development-plan-2026-10 P2.1–P2.4.

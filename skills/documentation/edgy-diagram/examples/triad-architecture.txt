@@ -1,0 +1,55 @@
+# Triad (EDGY extension) for a single facet: intersection A (Organisation)
+# on top, the facet's three primary elements as a triangle inside the
+# container, intersection B (Product) below, "Further …" panels for the
+# remaining 9 capabilities, 5 assets, 5 processes and 4 products.
+# Acme Transit (fictional). Same model as eval/large-architecture-facet.txt.
+facet: architecture
+map_type: triad
+
+elements:
+  - capability: "Account-based travel" {id: CAP-02, primary: true}
+  - capability: "Ticketing" {id: CAP-01}
+  - capability: "Trip planning" {id: CAP-03}
+  - capability: "Real-time passenger information" {id: CAP-04}
+  - capability: "Inspection and fraud control" {id: CAP-05}
+  - capability: "Fleet management" {id: CAP-06}
+  - capability: "Customer care" {id: CAP-07}
+  - capability: "Revenue settlement" {id: CAP-08}
+  - capability: "Data and analytics" {id: CAP-09}
+  - asset: "Account-based ticketing platform" {id: AST-01}
+  - asset: "Payment gateway" {id: AST-02}
+  - asset: "Trip planner API" {id: AST-03}
+  - asset: "Vehicle telematics" {id: AST-04}
+  - asset: "Data lake" {id: AST-05}
+  - process: "Sell and validate tickets" {id: PRO-01}
+  - process: "Plan and publish timetables" {id: PRO-02}
+  - process: "Handle disruptions" {id: PRO-03}
+  - process: "Settle revenue" {id: PRO-04}
+  - process: "Resolve customer cases" {id: PRO-05}
+  - product: "Regional travel subscription" {id: PRD-01}
+  - product: "Single ticket" {id: PRD-02}
+  - product: "Travel planner app" {id: PRD-03}
+  - product: "Operator settlement report" {id: PRD-04}
+  - organisation: "Acme Transit" {id: ORG-01}
+
+relationships:
+  # drawn: core links between the primaries
+  - "Account-based travel" -> "Account-based ticketing platform": "requires"
+  - "Sell and validate tickets" -> "Account-based travel": "realises"
+  - "Sell and validate tickets" -> "Account-based ticketing platform": "requires"
+  - "Sell and validate tickets" -> "Regional travel subscription": "creates"
+  - "Regional travel subscription" -> "Account-based travel": "requires"
+  - "Acme Transit" -> "Account-based travel": "has"
+  - "Acme Transit" -> "Sell and validate tickets": "performs"
+  - "Acme Transit" -> "Regional travel subscription": "makes"
+  # reported, not drawn (one endpoint sits in a Further panel)
+  - "Ticketing" -> "Payment gateway": "requires"
+  - "Trip planning" -> "Trip planner API": "requires"
+  - "Real-time passenger information" -> "Vehicle telematics": "requires"
+  - "Revenue settlement" -> "Data lake": "requires"
+  - "Plan and publish timetables" -> "Trip planning": "realises"
+  - "Settle revenue" -> "Revenue settlement": "realises"
+  - "Settle revenue" -> "Operator settlement report": "creates"
+  - "Single ticket" -> "Ticketing": "requires"
+  - "Travel planner app" -> "Trip planning": "requires"
+  - "Acme Transit" -> "Fleet management": "has"

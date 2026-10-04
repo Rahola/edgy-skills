@@ -171,6 +171,131 @@ def test_element_width_follows_measured_title():
     assert wide <= 280 and narrow >= 120
 
 
+EXAMPLES = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'examples')
+
+
+def _triad_all():
+    with open(os.path.join(EXAMPLES, 'triad-all-facets.txt'), encoding='utf-8') as f:
+        return gen(f.read())
+
+
+def test_triad_all_facets_positions():
+    """The 12 primaries sit on the slot table (centres, ±2 px); page height ≤ 1.2 × width."""
+    p, root, xml = _triad_all()
+    cells = cells_by_label(root)
+    expected = {  # name → slot centre (cx, cy)
+        'Effortless everyday travel in the region': (650, 80), 'From a single bus line to a regional mobility platform': (400, 220),
+        'We keep the region moving': (910, 220), 'Acme Transit': (380, 400), 'Acme Transit brand': (920, 400),
+        'Account-based travel': (230, 560), 'Account-based ticketing platform': (180, 720), 'Sell and validate tickets': (380, 840),
+        'Buy a monthly subscription': (1070, 560), 'Mobile app': (1170, 720), 'Commute across two operators': (920, 840),
+        'Regional travel subscription': (650, 900),
+    }
+    for name, (cx, cy) in expected.items():
+        c = cells[name]
+        x, y = abs_pos(root, c)
+        g = c.find('mxGeometry')
+        got = (x + float(g.get('width')) / 2, y + float(g.get('height')) / 2)
+        assert abs(got[0] - cx) <= 2 and abs(got[1] - cy) <= 2, (name, got, (cx, cy))
+    model = root if root.tag == 'mxGraphModel' else root.find('.//mxGraphModel')
+    pw, ph = float(model.get('pageWidth')), float(model.get('pageHeight'))
+    assert ph <= 1.2 * pw, (pw, ph)
+    # the primary flag moved PRD-01 to the ring although it is not the first product
+    assert p.elements[[e for e, v in p.elements.items() if v.get('ref') == 'PRD-01'][0]].get('primary')
+
+
+def test_triad_further_panels_and_dropped_links():
+    p, root, xml = _triad_all()
+    cells = cells_by_label(root)
+    by_id = {c.get('id'): c for c in root.iter('mxCell')}
+    panels = [c for c in root.iter('mxCell') if c.get('vertex') == '1' and (c.get('value') or '').startswith('Further ')]
+    assert len(panels) == 12, [c.get('value') for c in panels]           # every type has at least one non-primary
+    panel_ids = {c.get('id') for c in panels}
+    chip = cells['Single ticket']
+    assert chip.get('parent') in panel_ids, "non-primary product sits in a Further panel"
+    for c in root.iter('mxCell'):
+        if c.get('edge') == '1' and c.get('source'):
+            assert by_id[c.get('source')].get('parent') not in panel_ids and by_id[c.get('target')].get('parent') not in panel_ids, \
+                "no edge may touch a panel chip"
+    assert any('2 relationship(s) not drawn' in w for w in p.warnings), p.warnings
+    # all 24 core links are drawn exactly once
+    verbs = [c.get('value') for c in root.iter('mxCell') if c.get('edge') == '1' and c.get('source')]
+    assert len(verbs) == 24, (len(verbs), verbs)
+
+
+def test_triad_edges_straight_with_two_detours():
+    p, root, xml = _triad_all()
+    edges = [c for c in root.iter('mxCell') if c.get('edge') == '1' and c.get('source')]
+    with_points = [c for c in edges if c.find('mxGeometry/Array[@as="points"]') is not None]
+    assert len(with_points) == 2, len(with_points)
+    for c in edges:
+        st = c.get('style')
+        if c in with_points:
+            assert 'edgeStyle=orthogonalEdgeStyle' in st and 'exitX=' in st, st
+        else:
+            assert 'edgeStyle=none' in st and 'exitX=' not in st, st
+    assert sum(1 for c in edges if c.find('mxGeometry/mxPoint[@as="offset"]') is not None) >= 20, "default label shifts"
+    # triad defaults to the strip legend; an explicit legend: box wins
+    assert 'Identity (Purpose' not in xml and 'EDGY 23 — Legend' in xml
+    q = EDGYParser()
+    q.parse_input("facet: architecture\nmap_type: triad\nlegend: box\nelements:\n  - capability: \"A\"\n  - product: \"P\"\n")
+    assert 'Identity (Purpose' in q.generate_xml()
+
+
+def test_triad_single_facet_primary_flag_and_layout_from_ignored():
+    p, root, xml = gen("""
+facet: architecture
+map_type: triad
+layout_from: nowhere.archimate#View
+elements:
+  - capability: "First"
+  - capability: "Chosen" {primary: true}
+  - asset: "Store"
+  - process: "Run"
+  - product: "Thing"
+  - organisation: "Org"
+relationships:
+  - "Chosen" -> "Store": "requires"
+  - "Org" -> "Thing": "makes"
+""")
+    cells = cells_by_label(root)
+    panels = {c.get('id') for c in root.iter('mxCell') if (c.get('value') or '').startswith('Further ')}
+    assert cells['First'].get('parent') in panels and cells['Chosen'].get('parent') not in panels
+    assert any('layout_from' in w for w in p.warnings)
+    x, y = abs_pos(root, cells['Chosen'])
+    g = cells['Chosen'].find('mxGeometry')
+    assert abs(x + float(g.get('width')) / 2 - 230) <= 2 and abs(y + float(g.get('height')) / 2 - 225) <= 2
+
+
+def test_purpose_tree_parent_centred_and_no_branch_through_children():
+    import tempfile
+    import edgy_lint
+    with open(os.path.join(EXAMPLES, 'eval', 'fixture-f5-purpose-tree.txt'), encoding='utf-8') as f:
+        p, root, xml = gen(f.read())
+    cells = cells_by_label(root)
+    parent = cells['Make everyday travel in the region effortless']
+    kids = [cells[n] for n in ('Seamless travel chains', 'Affordable and fair fares for every traveller group',
+                               'Zero-emission fleet', 'Trusted real-time information')]
+    px, py = abs_pos(root, parent)
+    pg = parent.find('mxGeometry')
+    pcx = px + float(pg.get('width')) / 2
+    xs = [abs_pos(root, k)[0] for k in kids]
+    ws = [float(k.find('mxGeometry').get('width')) for k in kids]
+    assert min(xs) < pcx < max(x + w for x, w in zip(xs, ws)), "parent over its children row"
+    assert abs(pcx - (min(xs) + max(x + w for x, w in zip(xs, ws))) / 2) < 60, "parent roughly centred"
+    ys = {round(abs_pos(root, k)[1]) for k in kids}
+    assert len(ys) == 1, f"children on one row: {ys}"
+    out = cells['Fare satisfaction ≥ 4.0 / 5']
+    assert abs_pos(root, out)[1] > abs_pos(root, kids[1])[1], "Outcome below its purpose"
+    with tempfile.NamedTemporaryFile('w', suffix='.drawio', delete=False, encoding='utf-8') as f:
+        f.write(xml)
+        path = f.name
+    try:
+        findings = edgy_lint.lint_file(path, edgy_lint.main.__globals__['argparse'].Namespace(no_legend=False))
+    finally:
+        os.unlink(path)
+    assert not any(x.rule == 'W111' for x in findings), [str(x) for x in findings if x.rule == 'W111']
+
+
 def test_transition_overlay_strokes_and_legend():
     p, root, xml = gen("""
 facet: architecture

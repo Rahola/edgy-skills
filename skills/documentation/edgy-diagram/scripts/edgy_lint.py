@@ -82,8 +82,8 @@ PALETTE = {
     '#80ffb7': 'identity', '#a6c0ff': 'architecture', '#ff99bd': 'experience',
     '#ffd580': 'brand', '#e599ff': 'product', '#80eaff': 'organisation',
 }
-NEUTRAL_FILLS = {'#ffffff', '#fff', 'none', '#f5f5f5', '#f4f4f4', '',
-                 '#e3ffee', '#e6edff', '#ffe6ef', '#eef2f7', '#c9d9ff', '#dce6ff'}  # container / lane tints
+NEUTRAL_FILLS = {'#ffffff', '#fff', 'none', '#f5f5f5', '#f4f4f4', '#fafafa', '#f3f4f6', '',
+                 '#e3ffee', '#e6edff', '#ffe6ef', '#eef2f7', '#c9d9ff', '#dce6ff'}  # container / lane / legend tints
 OVERLAY_STROKES = {'#6b778c', '#006644', '#b26b00', '#c25100', '#bf2600'}
 ALLOWED_STROKES = {'#fff', '#ffffff', '#262626', '#555555', '#333333', 'none', ''} | OVERLAY_STROKES
 TYPE_WORDS = {'purpose', 'content', 'story', 'capability', 'asset', 'process', 'task', 'channel', 'journey',

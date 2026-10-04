@@ -356,7 +356,7 @@ def test_fixtures_reproduce_visual_findings():
     gen = os.path.join(here, 'edgy_generator.py')
     eval_dir = os.path.join(here, '..', 'examples', 'eval')
     d = tempfile.mkdtemp()
-    expectations = {'fixture-f5-purpose-tree': 'W111', 'large-architecture-facet': 'W111', 'fixture-f1-ports-waypoints': 'W113'}
+    expectations = {'large-architecture-facet': 'W111', 'fixture-f1-ports-waypoints': 'W113'}
     for name, rule in expectations.items():
         out = os.path.join(d, name + '.drawio')
         r = subprocess.run([sys.executable, gen, os.path.join(eval_dir, name + '.txt'), '--output', out], capture_output=True, text=True)
@@ -365,6 +365,12 @@ def test_fixtures_reproduce_visual_findings():
         f = edgy_lint.lint_file(out, opts)
         assert not [x for x in f if x.level == 'ERROR'], [str(x) for x in f]
         assert any(x.rule == rule for x in f), (name, rule, sorted({x.rule for x in f}))
+    # F5 is fixed by the purpose-tree layout: no branch through a child box any more
+    out = os.path.join(d, 'f5.drawio')
+    r = subprocess.run([sys.executable, gen, os.path.join(eval_dir, 'fixture-f5-purpose-tree.txt'), '--output', out], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    f = edgy_lint.lint_file(out, edgy_lint.main.__globals__['argparse'].Namespace(no_legend=False))
+    assert not any(x.rule in ('W111', 'W112', 'W113') for x in f), [str(x) for x in f if x.rule in edgy_lint.VISUAL_RULES]
 
 
 def main():

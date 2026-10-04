@@ -220,3 +220,60 @@ Rules:
 </mxCell>
 ```
 
+
+## Triad — planned ring (EDGY extension)
+
+`map_type: triad` draws **one primary element per type** on a fixed ring and
+puts every other element of that type into a "Further <type>" panel below
+the ring, without lines. Core links are straight lines from border to
+border; two intersection–intersection links detour along the page edge.
+Links whose endpoint sits in a panel are reported on stderr (`triad: N
+relationship(s) not drawn …`) — the report tables carry them, the picture
+stays readable. The primary is `{primary: true}`, otherwise the first element
+of its type. The strip legend is the default (`legend: box` overrides).
+`group:`, `lane:` and `layout_from:` are ignored with a warning.
+
+### Slots, `facet: all` (box 210 × 74, Purpose 230 × 74; centres)
+
+| Element | centre (cx, cy) | Container (x, y, w, h) |
+|---------|-----------------|------------------------|
+| purpose | 650, 80 | Identity (260, 30, 800, 260) |
+| story | 400, 220 | Identity |
+| content | 910, 220 | Identity |
+| organisation | 380, 400 | — |
+| brand | 920, 400 | — |
+| capability | 230, 560 | Architecture (50, 500, 460, 410) |
+| asset | 180, 720 | Architecture |
+| process | 380, 840 | Architecture |
+| task | 1070, 560 | Experience (790, 500, 500, 410) |
+| channel | 1170, 720 | Experience |
+| journey | 920, 840 | Experience |
+| product | 650, 900 | — |
+
+Detours: `organisation → product` leaves left and runs down x = 20;
+`product → brand` leaves right and runs up x = 1310. Default label shifts
+per pair push the verb away from the nearest box (e.g. `story → purpose`
+−45 px, `brand → purpose` +55/+60); override with `{label_dx, label_dy}`.
+
+### Slots, single facet (page 1200 wide)
+
+| Role | architecture | experience | identity |
+|------|--------------|------------|----------|
+| intersection A, top | organisation (600, 62) | brand (600, 62) | — |
+| container | (60, 130, 1080, 330) | (60, 130, 1080, 440) | (60, 30, 1080, 320) |
+| left (Outcome base type) | capability (230, 225) | task (230, 225) | story (335, 270) |
+| right (Activity base type) | process (970, 225) | journey (970, 225) | content (870, 270) |
+| centre, lower (Object base type) | asset (600, 392) | channel (600, 492) | purpose (600, 98) top centre |
+| intersection B, below | product (600, 532) | product (600, 652) | organisation (330, 482), brand (870, 482) |
+
+The `A → B` link detours along x = 1150. Panels start 40 px under the ring:
+types with ≥ 5 further elements get a full-width 4-column panel, 2–4 a
+400 px 2-column panel, one a 240 px panel; panels wrap into rows.
+
+### When to use it
+
+A facet map with more than ~8 elements in one facet, or any `facet: all`
+map whose 24 core links stop being readable in the default column layout.
+Use `edgy_lint.py --visual` to confirm: a triad output should report no
+W111–W114. The ring is the overview; structural maps (purpose, capability,
+journey) answer the detailed questions with the same ids.

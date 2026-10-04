@@ -1,6 +1,6 @@
 ---
 name: edgy-diagram
-version: "2.4.1"
+version: "2.5.0"
 description: >
   Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML
   source and export them to PNG/SVG/PDF. Generator-first workflow
@@ -199,7 +199,7 @@ legend: box | strip                                       # optional; strip = on
 
 elements:
   - <element_type>: "<name>"
-  - <element_type>: "<name> - <description>" [tags] {id: X, change: new, size: M, metric: value}
+  - <element_type>: "<name> - <description>" [tags] {id: X, change: new, size: M, primary: true, metric: value}
   - <element_type>: "<name> | <subtext>"
   - group: "<area name>"              # container; the indented elements below are its children
     - <element_type>: "<name>"
@@ -208,7 +208,7 @@ elements:
 
 relationships:
   - "<source name>" -> "<target name>": "<verb>"
-  - "<source name>" -> "<target name>": "<verb>" {from: right, to: left, via: [(x,y)], change: replace, label: source}
+  - "<source name>" -> "<target name>": "<verb>" {from: right, to: left, via: [(x,y)], change: replace, label: source, label_dx: -30, label_dy: 20}
   # OR by type (only works if there is exactly one element of that type):
   - <source_type> -> <target_type>: "<verb>"
 ```
@@ -418,6 +418,7 @@ the parser warns.
 | `asset`, `channel`, `content`, `people`, `story`, `task` | grid (`cols ≈ √N`) | 5–8 | 7–30 |
 | `reference` *(extension)* | lanes top-down, Organisation/People left, `[external]` right, overlay strokes, one integration bus | 8 | 10–25 |
 | `summary` *(extension)* | who / does what / what results; warns above 4 boxes per row | 3 | 6–10 |
+| `triad` *(extension)* | **planned ring** for `facet: all` or one facet: one *primary* element per type carries the core links (`{primary: true}`, else the first of its type), straight border-to-border lines, two links detour along the page edge; the other elements sit in **"Further <type>" panels** without lines and their links are reported, not drawn; strip legend by default | 6 | 12 primaries + any number of further |
 
 Never model focus areas as Story in a purpose map; formulate capabilities as
 system-independent result nouns, 6–12 areas and 40–80 leaves (edgy-framework,

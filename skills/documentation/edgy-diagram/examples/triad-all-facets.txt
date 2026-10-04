@@ -1,0 +1,83 @@
+# Triad (EDGY extension): planned ring of one primary element per type.
+# Acme Transit (fictional). The first element of each type carries the core
+# links (or the one marked {primary: true}); the other elements of a type
+# appear in "Further <type>" panels below the ring without lines, and their
+# links are reported on stderr instead of being drawn. All 24 core links.
+facet: all
+map_type: triad
+
+elements:
+  # Identity
+  - purpose: "Effortless everyday travel in the region | corporate purpose" {id: PUR-01}
+  - purpose: "Zero-emission fleet by 2035" {id: PUR-12}
+  - purpose: "Affordable and fair fares" {id: PUR-13}
+  - story: "From a single bus line to a regional mobility platform" {id: STO-01}
+  - story: "The night the storm closed the bridge" {id: STO-02}
+  - content: "We keep the region moving | plain-language promise" {id: CON-01}
+  - content: "Fare rules explained in one page" {id: CON-02}
+  - content: "Annual sustainability report" {id: CON-03}
+  # Intersections
+  - organisation: "Acme Transit" {id: ORG-01}
+  - organisation: "Regional operators' consortium" {id: ORG-02}
+  - brand: "Acme Transit brand" {id: BRA-01}
+  - brand: "Night Rider" {id: BRA-02}
+  - product: "Regional travel subscription" {id: PRD-01, primary: true}
+  - product: "Single ticket" {id: PRD-02}
+  - product: "Travel planner app" {id: PRD-03}
+  - product: "Operator settlement report" {id: PRD-04}
+  # Architecture
+  - capability: "Account-based travel" {id: CAP-02}
+  - capability: "Ticketing" {id: CAP-01}
+  - capability: "Trip planning" {id: CAP-03}
+  - capability: "Real-time passenger information" {id: CAP-04}
+  - capability: "Revenue settlement" {id: CAP-08}
+  - asset: "Account-based ticketing platform" {id: AST-01}
+  - asset: "Payment gateway" {id: AST-02}
+  - asset: "Data lake" {id: AST-05}
+  - process: "Sell and validate tickets" {id: PRO-01}
+  - process: "Plan and publish timetables" {id: PRO-02}
+  - process: "Settle revenue" {id: PRO-04}
+  # Experience
+  - task: "Buy a monthly subscription" {id: TAS-01}
+  - task: "Check the next departure" {id: TAS-02}
+  - task: "Report a lost item" {id: TAS-03}
+  - channel: "Mobile app" {id: CHA-01}
+  - channel: "Ticket machines" {id: CHA-02}
+  - channel: "Customer service desk" {id: CHA-03}
+  - journey: "Commute across two operators" {id: JOU-01}
+  - journey: "Occasional trip to the airport" {id: JOU-02}
+
+relationships:
+  # Identity core links
+  - "From a single bus line to a regional mobility platform" -> "Effortless everyday travel in the region": "contextualises"
+  - "We keep the region moving" -> "Effortless everyday travel in the region": "expresses"
+  - "We keep the region moving" -> "From a single bus line to a regional mobility platform": "conveys"
+  # Organisation core links
+  - "Acme Transit" -> "Effortless everyday travel in the region": "pursues"
+  - "Acme Transit" -> "From a single bus line to a regional mobility platform": "authors"
+  - "Acme Transit" -> "Acme Transit brand": "builds"
+  - "Acme Transit" -> "Account-based travel": "has"
+  - "Acme Transit" -> "Sell and validate tickets": "performs"
+  - "Acme Transit" -> "Regional travel subscription": "makes"
+  # Brand core links
+  - "Acme Transit brand" -> "From a single bus line to a regional mobility platform": "evokes"
+  - "Acme Transit brand" -> "Effortless everyday travel in the region": "represents"
+  - "Acme Transit brand" -> "Buy a monthly subscription": "supports"
+  - "Acme Transit brand" -> "Commute across two operators": "appears in"
+  # Architecture core links
+  - "Account-based travel" -> "Account-based ticketing platform": "requires"
+  - "Sell and validate tickets" -> "Account-based travel": "realises"
+  - "Sell and validate tickets" -> "Account-based ticketing platform": "requires"
+  - "Sell and validate tickets" -> "Regional travel subscription": "creates"
+  # Experience core links
+  - "Buy a monthly subscription" -> "Commute across two operators": "is part of"
+  - "Buy a monthly subscription" -> "Mobile app": "uses"
+  - "Commute across two operators" -> "Mobile app": "traverses"
+  # Product core links
+  - "Regional travel subscription" -> "Account-based travel": "requires"
+  - "Regional travel subscription" -> "Buy a monthly subscription": "serves"
+  - "Regional travel subscription" -> "Commute across two operators": "features in"
+  - "Regional travel subscription" -> "Acme Transit brand": "embodies"
+  # Links to non-primary elements: reported, not drawn
+  - "Ticketing" -> "Payment gateway": "requires"
+  - "Settle revenue" -> "Operator settlement report": "creates"
