@@ -1,0 +1,42 @@
+# Fixture F1 — endpoint routing with explicit waypoints (fictional, Acme Oy).
+#
+# Several edges leave or enter the same side of the central "Hub", so the
+# generator spreads their ports along that side (0.15–0.85). The `via:`
+# waypoints below were computed for the *centre* port of each side. A renderer
+# that joins the real port straight to the first (or last) waypoint draws a
+# diagonal end segment — the F1 defect. The 3 × 3 asset grid also puts an
+# obstacle next to every endpoint. Exercises left, right, top and bottom.
+#
+# Grid (map_type: asset, 9 elements → 3 columns): 120 × 80 boxes (the id
+# line adds a row) at
+#   (80,80)  (260,80)  (440,80)
+#   (80,200) (260,200) (440,200)   ← "Hub" is the centre box, centre (320,240)
+#   (80,320) (260,320) (440,320)
+map_type: asset
+
+elements:
+  - asset: "North store" {id: AST-01}
+  - asset: "North hub" {id: AST-02}
+  - asset: "North depot" {id: AST-03}
+  - asset: "West store" {id: AST-04}
+  - asset: "Hub" {id: AST-05}
+  - asset: "East store" {id: AST-06}
+  - asset: "South store" {id: AST-07}
+  - asset: "South hub" {id: AST-08}
+  - asset: "South depot" {id: AST-09}
+
+relationships:
+  # three edges leave Hub's RIGHT side (ports at y = 212 / 240 / 268)
+  - "Hub" -> "East store": "depends on"
+  - "Hub" -> "North depot": "depends on" {via: [(410, 240), (410, 120)]}
+  - "Hub" -> "South depot": "depends on" {via: [(410, 240), (410, 360)]}
+  # three edges enter Hub's LEFT side
+  - "West store" -> "Hub": "depends on"
+  - "North store" -> "Hub": "depends on" {via: [(230, 120), (230, 240)]}
+  - "South store" -> "Hub": "depends on" {via: [(230, 360), (230, 240)]}
+  # two edges enter Hub's TOP side
+  - "North hub" -> "Hub": "depends on" {to: top}
+  - "North depot" -> "Hub": "depends on" {from: bottom, to: top, via: [(500, 180), (320, 180)]}
+  # two edges leave Hub's BOTTOM side
+  - "Hub" -> "South hub": "depends on" {from: bottom}
+  - "Hub" -> "South store": "depends on" {from: bottom, to: top, via: [(320, 300), (140, 300)]}

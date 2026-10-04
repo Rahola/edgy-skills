@@ -1,0 +1,66 @@
+# Eval: one facet with 19 elements (fictional, Acme Oy).
+#
+# Reproduces the field case behind development-plan-2026-10 §2.1: the default
+# `facet: architecture` layout stacks 19 elements in one column inside the
+# facet container, routes every core link straight through the column and
+# still lints 0/0. Metrics to watch: page height / width ratio (target
+# ≤ 1.2 with map_type: triad) and the visual rules W111–W114.
+facet: architecture
+
+elements:
+  - capability: "Ticketing" {id: CAP-01}
+  - capability: "Account-based travel" {id: CAP-02}
+  - capability: "Trip planning" {id: CAP-03}
+  - capability: "Real-time passenger information" {id: CAP-04}
+  - capability: "Inspection and fraud control" {id: CAP-05}
+  - capability: "Fleet management" {id: CAP-06}
+  - capability: "Customer care" {id: CAP-07}
+  - capability: "Revenue settlement" {id: CAP-08}
+  - capability: "Data and analytics" {id: CAP-09}
+  - asset: "Account-based ticketing platform" {id: AST-01}
+  - asset: "Payment gateway" {id: AST-02}
+  - asset: "Trip planner API" {id: AST-03}
+  - asset: "Vehicle telematics" {id: AST-04}
+  - asset: "Data lake" {id: AST-05}
+  - process: "Sell and validate tickets" {id: PRO-01}
+  - process: "Plan and publish timetables" {id: PRO-02}
+  - process: "Handle disruptions" {id: PRO-03}
+  - process: "Settle revenue" {id: PRO-04}
+  - process: "Resolve customer cases" {id: PRO-05}
+  - product: "Regional travel subscription" {id: PRD-01}
+  - product: "Single ticket" {id: PRD-02}
+  - product: "Travel planner app" {id: PRD-03}
+  - product: "Operator settlement report" {id: PRD-04}
+  - organisation: "Acme Transit" {id: ORG-01}
+
+relationships:
+  - "Ticketing" -> "Account-based ticketing platform": "requires"
+  - "Ticketing" -> "Payment gateway": "requires"
+  - "Account-based travel" -> "Account-based ticketing platform": "requires"
+  - "Trip planning" -> "Trip planner API": "requires"
+  - "Real-time passenger information" -> "Vehicle telematics": "requires"
+  - "Inspection and fraud control" -> "Account-based ticketing platform": "requires"
+  - "Fleet management" -> "Vehicle telematics": "requires"
+  - "Revenue settlement" -> "Data lake": "requires"
+  - "Data and analytics" -> "Data lake": "requires"
+  - "Sell and validate tickets" -> "Ticketing": "realises"
+  - "Sell and validate tickets" -> "Payment gateway": "requires"
+  - "Plan and publish timetables" -> "Trip planning": "realises"
+  - "Handle disruptions" -> "Real-time passenger information": "realises"
+  - "Settle revenue" -> "Revenue settlement": "realises"
+  - "Settle revenue" -> "Data lake": "requires"
+  - "Resolve customer cases" -> "Customer care": "realises"
+  - "Sell and validate tickets" -> "Single ticket": "creates"
+  - "Sell and validate tickets" -> "Regional travel subscription": "creates"
+  - "Plan and publish timetables" -> "Travel planner app": "creates"
+  - "Settle revenue" -> "Operator settlement report": "creates"
+  - "Regional travel subscription" -> "Account-based travel": "requires"
+  - "Single ticket" -> "Ticketing": "requires"
+  - "Travel planner app" -> "Trip planning": "requires"
+  - "Operator settlement report" -> "Revenue settlement": "requires"
+  - "Acme Transit" -> "Ticketing": "has"
+  - "Acme Transit" -> "Fleet management": "has"
+  - "Acme Transit" -> "Sell and validate tickets": "performs"
+  - "Acme Transit" -> "Settle revenue": "performs"
+  - "Acme Transit" -> "Regional travel subscription": "makes"
+  - "Acme Transit" -> "Travel planner app": "makes"

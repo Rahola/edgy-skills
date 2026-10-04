@@ -20,6 +20,46 @@ perustelut.
 
 ---
 
+### 2026-10-04 — Claude Code (Sprint 8: release hygiene, regression fixtures)
+
+**Assignment:** `docs/development-plan-2026-10.md` P0.2–P0.3. Make the
+findings of the two field reviews reproducible before changing any
+algorithm, and write down how a release is cut so the tag mistake (v1.0.0
+and v2.0.0 resolving to the same commit) cannot repeat.
+
+**Done:**
+- `CONTRIBUTING.md` — "Releasing (maintainers)": tag the merge commit after
+  the merge, verify with `git ls-remote --tags`, Release notes = CHANGELOG
+  entry, how to fix a tag that points at the wrong commit.
+- Five fictional (Acme Oy) fixtures in `examples/eval/`, each reproducing
+  one finding on the current generator/renderer/linter:
+  F1 distributed ports + `via:` waypoints on all four sides (diagonal end
+  segments in the native preview), F2 three label positions (all rendered
+  at the midpoint), F4 long bold titles in all three shapes, F5 purpose tree
+  with 4 children + 4 Outcomes + a second level (parent above the leftmost
+  child, branches through sibling boxes), and `large-architecture-facet`
+  (19 elements in one facet, 30 core links — edges through boxes, labels on
+  boxes). The fixtures are in `edgy-eval.py`'s default set.
+- `tools/edgy-eval.py` prints two new columns: **H/W** (page height / width
+  of the worst page) and **Visual** (sum of W111–W115 once the linter has
+  them).
+
+**Baseline (before Sprint 9), aggregates:** 12 eval inputs, 0 generator
+errors, 0 lint errors, 0 lint warnings — including the five fixtures that
+are visibly defective in their previews. H/W: 0.36–0.75 (no input above
+1.0; the single-facet layout is a grid, so the field case's 1.4 ratio comes
+from a column layout in `facet: all` with one dominant facet, covered by
+the triad work in Sprint 11). Visual: 0 everywhere, because the rules do
+not exist yet — that is the gap Sprint 9 closes.
+
+**Decisions:** the large single-facet fixture is named by what it is
+(`large-architecture-facet.txt`), not by the layout that will fix it; the
+`triad` examples come with Sprint 11. Fixture waypoints are computed from
+the generated positions (ids add a 9 px line, so boxes are 120 × 80 and
+rows sit at y = 80 / 200 / 320) and documented in the file header.
+
+---
+
 ### 2026-10-02 — Claude Code
 
 **Assignment:** Address the Copilot review on PR #2 (12 threads + one

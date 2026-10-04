@@ -27,6 +27,11 @@ EXAMPLES = REPO / "skills" / "documentation" / "edgy-diagram" / "examples"
 DEFAULT_INPUTS = [
     EXAMPLES / "eval" / "large-capability-map.txt",
     EXAMPLES / "eval" / "large-reference-architecture.txt",
+    EXAMPLES / "eval" / "large-architecture-facet.txt",
+    EXAMPLES / "eval" / "fixture-f1-ports-waypoints.txt",
+    EXAMPLES / "eval" / "fixture-f2-labels.txt",
+    EXAMPLES / "eval" / "fixture-f4-long-bold-title.txt",
+    EXAMPLES / "eval" / "fixture-f5-purpose-tree.txt",
     EXAMPLES / "multipage-map.txt",
     EXAMPLES / "full-edgy-map.txt",
     EXAMPLES / "purpose-hierarchy-map.txt",
@@ -41,7 +46,8 @@ def run_one(txt: Path, out_dir: Path) -> dict:
                          capture_output=True, text=True)
     gen_warnings = gen.stderr.count("Warning:")
     row = {"input": txt.name, "gen_exit": gen.returncode, "gen_warnings": gen_warnings,
-           "elements": 0, "edges": 0, "pages": 0, "lint_errors": 0, "lint_warnings": 0, "rules": {}}
+           "elements": 0, "edges": 0, "pages": 0, "ratio": 0.0,
+           "lint_errors": 0, "lint_warnings": 0, "visual": 0, "rules": {}}
     if gen.returncode != 0:
         row["error"] = gen.stderr.strip()[-300:]
         return row
@@ -50,6 +56,9 @@ def run_one(txt: Path, out_dir: Path) -> dict:
     models = [root] if root.tag == "mxGraphModel" else [d.find("mxGraphModel") for d in root.findall("diagram")]
     row["pages"] = len(models)
     for m in models:
+        pw, ph = float(m.get("pageWidth", 0) or 0), float(m.get("pageHeight", 0) or 0)
+        if pw:
+            row["ratio"] = max(row["ratio"], round(ph / pw, 2))   # page height / width, worst page
         cells = {c.get("id"): c for c in m.findall("./root/mxCell")}
         # Same classification as the linter: EDGY + base elements only — no legend
         # background, chips, containers, lanes or text cells.
@@ -72,6 +81,8 @@ def run_one(txt: Path, out_dir: Path) -> dict:
     row["rules"] = dict(rules)
     row["lint_errors"] = sum(1 for f in findings if f["level"] == "ERROR")
     row["lint_warnings"] = sum(1 for f in findings if f["level"] == "WARNING")
+    # visual rules (edge through a box, label on a box / label, outside the page)
+    row["visual"] = sum(v for k, v in rules.items() if k in ("W111", "W112", "W113", "W114", "W115"))
     return row
 
 
@@ -89,12 +100,13 @@ def main(argv=None) -> int:
     if args.json:
         print(json.dumps(rows, indent=2, ensure_ascii=False))
     else:
-        print("| Input | Pages | Elements | Edges | Generator warnings | Lint errors | Lint warnings | Rules |")
-        print("|-------|------:|---------:|------:|-------------------:|------------:|--------------:|-------|")
+        print("| Input | Pages | Elements | Edges | H/W | Generator warnings | Lint errors | Lint warnings | Visual | Rules |")
+        print("|-------|------:|---------:|------:|----:|-------------------:|------------:|--------------:|-------:|-------|")
         for r in rows:
             rules = ", ".join(f"{k}×{v}" for k, v in sorted(r["rules"].items())) or "—"
             status = " **GEN FAILED**" if r["gen_exit"] else ""
-            print(f"| {r['input']}{status} | {r['pages']} | {r['elements']} | {r['edges']} | {r['gen_warnings']} | {r['lint_errors']} | {r['lint_warnings']} | {rules} |")
+            print(f"| {r['input']}{status} | {r['pages']} | {r['elements']} | {r['edges']} | {r['ratio']:.2f} | "
+                  f"{r['gen_warnings']} | {r['lint_errors']} | {r['lint_warnings']} | {r['visual']} | {rules} |")
         print(f"\nedgy-eval: {len(rows)} inputs, {len(failed)} failing" + (f" (files kept in {out_dir})" if args.keep else ""))
         for r in failed:
             if r.get("error"):

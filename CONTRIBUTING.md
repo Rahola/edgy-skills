@@ -150,3 +150,35 @@ maps, notation) must preserve attribution and the share-alike obligation — see
 2. Make your change; run `bash tools/check.sh`.
 3. Open a PR using the template. CI runs validation + a nameless privacy reminder.
 4. A maintainer reviews and merges, verifying no private data in examples.
+
+## Releasing (maintainers)
+
+A release is a git tag `vMAJOR.MINOR.PATCH` on `main` plus a GitHub Release
+whose notes are the matching `CHANGELOG.md` entry. The adapters install any
+tag with `EDGY_SKILLS_REF=<tag>`, so a tag must point at the commit it claims
+to describe.
+
+1. Merge the PR first. Tag the **merge commit**, never the PR head and never
+   a commit that is still on a branch.
+2. Check that the skill versions in `SKILL.md` front matter match
+   `registry.yaml` (`check.sh` → `registry-sync`) and that `CHANGELOG.md` has
+   an entry for the bundle version.
+3. Tag and push:
+
+   ```bash
+   git fetch origin main
+   git tag -a vX.Y.Z <merge-commit> -m "edgy-skills vX.Y.Z"
+   git push origin vX.Y.Z
+   ```
+
+4. Verify before publishing the release: `git ls-remote --tags origin` must
+   show every tag on a **different** commit. Two tags on one commit means a
+   release was created against the wrong target — fix the tag
+   (`git tag -fa … && git push --force origin refs/tags/vX.Y.Z`) before
+   anyone installs it.
+5. Create the GitHub Release from the tag with the CHANGELOG entry as its
+   notes. Mark the newest bundle as *latest*.
+
+When the GitHub UI is used instead of the CLI, choose the target commit from
+*Recent Commits*, not the branch name: a branch target resolves to whatever
+the branch points at when the release is published.

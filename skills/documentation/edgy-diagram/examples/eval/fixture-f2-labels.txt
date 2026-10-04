@@ -1,0 +1,25 @@
+# Fixture F2 — edge label placement (fictional, Acme Oy).
+#
+# Three edges leave "Fare engine" towards three different targets with
+# `label: source`, `label: middle` and `label: target`. The generator writes
+# mxGeometry x = -0.5 / 0 / +0.5; a renderer that puts every label at the
+# midpoint of the path draws all three at the same relative place — the F2
+# defect. Edges are long (one empty grid column between source and target)
+# so the three positions are visibly distinct.
+map_type: asset
+
+elements:
+  - asset: "Fare engine" {id: AST-01}
+  - asset: "Spacer A" {id: AST-02}
+  - asset: "Account ledger" {id: AST-03}
+  - asset: "Spacer B" {id: AST-04}
+  - asset: "Spacer C" {id: AST-05}
+  - asset: "Payment gateway" {id: AST-06}
+  - asset: "Spacer D" {id: AST-07}
+  - asset: "Spacer E" {id: AST-08}
+  - asset: "Data lake" {id: AST-09}
+
+relationships:
+  - "Fare engine" -> "Account ledger": "depends on" {label: source}
+  - "Fare engine" -> "Payment gateway": "depends on" {label: middle}
+  - "Fare engine" -> "Data lake": "depends on" {label: target}
