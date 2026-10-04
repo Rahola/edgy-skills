@@ -1,6 +1,6 @@
 ---
 name: edgy-assessment
-version: "1.6.1"
+version: "1.7.0"
 description: >
   Comprehensive EDGY 23 Enterprise Design assessment: analysis, diagrams, and recommendations.
   Orchestrating skill that chains edgy-framework and edgy-diagram skills into a unified workflow.
@@ -308,6 +308,8 @@ Rules:
 
 ```bash
 python3 skills/architecture/edgy-assessment/scripts/edgy_model_to_txt.py <company>-edgy-model.json --prefix <company>
+# when any facet has more than ~8 elements, or the all-facets map is unreadable:
+python3 skills/architecture/edgy-assessment/scripts/edgy_model_to_txt.py <company>-edgy-model.json --prefix <company> --layout triad
 ```
 
 This derives elements (`"Name - Description" [tags] {id: …}`) and the active
@@ -316,6 +318,15 @@ the analysis (an earlier review found reports with five capabilities and
 diagrams with four). Edit the model, regenerate; never patch a TXT. The
 format below documents what the script produces, and is the fallback when
 Python is unavailable.
+
+**Primary element.** A core link between two element *types* is drawn once,
+between the primary element of each type: the one with `"primary": true` in
+the model, otherwise the first of its type. Set the flag in the model when
+the first element is not the one the story is about. `--layout triad` writes
+`map_type: triad` into every TXT: the planned ring (edgy-diagram, EDGY
+extension) with one primary per type and "Further <type>" panels for the
+rest; links into a panel are reported on stderr, never drawn silently, and
+the report's tables carry them.
 
 Produce 4 text files in edgy-diagram skill input format:
 
@@ -389,13 +400,34 @@ edgy-diagram skill (`references/xml-reference.md`) and is **not repeated
 here**. Before moving on, every one of the four files must pass:
 
 - `edgy_lint.py` — 0 errors (structure, layout, notation, semantics)
+- `edgy_lint.py --visual` reports nothing: no edge passes through a box, no
+  edge label lies on a box or another label (W111–W114 = 0). If it does,
+  switch the TXT files to `--layout triad` or fix the model; never patch
+  the XML
 - preview looked at (`--preview` / `edgy_render.py`) and the edgy-diagram
-  *Preview loop* checklist passed: no label on top of a box, every edge
-  visibly starts and ends, legend clear of content, page not much taller
-  than wide, facet columns visually separated (Identity < Architecture <
-  Experience), intersection elements between the facets they bridge
+  *Preview loop* checklist passed: every edge visibly starts and ends,
+  legend clear of content, **`all-facets` page height ≤ 1.2 × width**,
+  single-facet maps not taller than wide before any "Further" panels,
+  facet containers visually separated (Identity above or left of
+  Architecture and Experience), intersection elements between the facets
+  they bridge
 - relationships use only the active core links from the model (a core-link
   verb on a wrong pair is a model error — fix the model, regenerate)
+
+#### Structural maps (recommended, optional)
+
+The four relationship views are the overview. When the assessment answers
+a question they cannot show, add a structural map **from the same model and
+with the same ids** (one disconnected second model is worse than none):
+
+| Map | Question | How |
+|-----|----------|-----|
+| Purpose map | How do strategy and focus areas hang together? | `map_type: purpose`; mission / vision as top purposes, focus areas as sub-purposes (`contains`), KPIs as Outcomes (`measures`) — see edgy-framework *Strategy → EDGY* |
+| Capability map | What does the enterprise need to be able to do? | `map_type: capability`, one `group:` per analytical domain. State in the report that the grouping is analytical, not an organisation chart or an all-to-all dependency claim |
+| Journey map | Where does the experience break between stages? | `map_type: journey` for the lifecycle stages plus a hand-off / failure table in the report — a stage chain alone carries little analytical depth |
+
+Add a map only when it answers a useful question for this company; do not
+generate every map for every scope.
 
 If Python is unavailable and the XML must be written by hand, follow the
 edgy-diagram inline example and lint it in the next environment that has
@@ -430,12 +462,16 @@ Before completion, check ALL:
 - [ ] Output language matches `language` parameter
 
 #### Layout quality:
-- [ ] `edgy_lint.py` reports 0 errors for all four drawio files
+- [ ] `edgy_lint.py --warnings-as-errors --visual` passes for all four drawio files (0 errors, no W111–W114)
 - [ ] Every diagram was previewed (`--preview` / `edgy_render.py`) and looked at; the preview checklist passed
 - [ ] No elements at negative coordinates in any drawio file
 - [ ] No overlapping elements in any drawio file (min 10px gap)
-- [ ] All element text fits within element boundaries
-- [ ] Facet columns are visually separated (Identity < Architecture < Experience)
+- [ ] All element text fits within element boundaries (W101 = 0)
+- [ ] `all-facets` page height ≤ 1.2 × width; facet containers visually separated
+- [ ] **Final report pages looked at at the intended viewing size** — the SVG alone is not enough: check
+      captions, page breaks and footer clearance on the PDF page, and run `edgy_lint.py --scale <report scale>`
+      (no W115 = every title, description and relation label stays ≥ 6 pt). Use `--publication` for the
+      embedded image so a sparse map is not shrunk by empty canvas
 
 ---
 

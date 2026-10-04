@@ -187,6 +187,8 @@ Les diagrammes EDGY 23 suivants sont livrés avec cette analyse (au format draw.
 
 Les diagrammes suivent la palette de couleurs officielle et les formes d'éléments du standard EDGY 23. Ouvrez les fichiers `.drawio` dans l'application draw.io ou sur app.diagrams.net.
 
+Lorsqu'une carte utilise l'anneau planifié (`triad`), elle montre un élément principal par type avec ses liens fondamentaux ; les autres éléments apparaissent dans des panneaux « Autres … » sans liens, et les tableaux des sections 2 à 7 portent le détail complet.
+
 ---
 
 *Analyse basée sur [sources]. Les informations internes de l'entreprise peuvent apporter plus de profondeur, en particulier aux éléments Architecture et Organisation.*

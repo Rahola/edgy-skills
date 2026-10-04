@@ -1,0 +1,43 @@
+# Fixture F5 — purpose-tree layout (fictional, Acme Oy).
+#
+# One corporate purpose with four strategic sub-purposes, four measuring
+# Outcomes, a second hierarchy level under one sub-purpose, mixed box sizes
+# and long labels. The default purpose layout used to put the parent above
+# the leftmost child, so the branch to the rightmost child crossed the
+# intervening boxes — the F5 defect. Expected: parent centred over its
+# children, a routing corridor above the child row, Outcomes in their own
+# row beneath the purpose they measure, no branch through a child box.
+map_type: purpose
+
+elements:
+  - purpose: "Make everyday travel in the region effortless | corporate purpose" {id: PUR-01, size: L}
+  - purpose: "Seamless travel chains" {id: PUR-11}
+  - purpose: "Affordable and fair fares for every traveller group" {id: PUR-12}
+  - purpose: "Zero-emission fleet" {id: PUR-13, size: S}
+  - purpose: "Trusted real-time information" {id: PUR-14}
+  - purpose: "Door-to-door planning" {id: PUR-111}
+  - purpose: "One ticket, every operator" {id: PUR-112}
+  - outcome: "Door-to-door time −15 % | 2027 target" {id: OUT-01}
+  - outcome: "Fare satisfaction ≥ 4.0 / 5" {id: OUT-02}
+  - outcome: "CO2 per passenger-km −40 %" {id: OUT-03}
+  - outcome: "Disruption notice within 2 minutes in 95 % of cases" {id: OUT-04}
+  - content: "We keep the region moving - plain-language promise"
+  - story: "From a single bus line to a regional mobility platform"
+  - organisation: "Transit authority board"
+  - brand: "Acme Transit"
+
+relationships:
+  - "Make everyday travel in the region effortless" -> "Seamless travel chains": "contains"
+  - "Make everyday travel in the region effortless" -> "Affordable and fair fares for every traveller group": "contains"
+  - "Make everyday travel in the region effortless" -> "Zero-emission fleet": "contains"
+  - "Make everyday travel in the region effortless" -> "Trusted real-time information": "contains"
+  - "Seamless travel chains" -> "Door-to-door planning": "contains"
+  - "Seamless travel chains" -> "One ticket, every operator": "contains"
+  - "Door-to-door time −15 %" -> "Seamless travel chains": "measures"
+  - "Fare satisfaction ≥ 4.0 / 5" -> "Affordable and fair fares for every traveller group": "measures"
+  - "CO2 per passenger-km −40 %" -> "Zero-emission fleet": "measures"
+  - "Disruption notice within 2 minutes in 95 % of cases" -> "Trusted real-time information": "measures"
+  - "We keep the region moving" -> "Make everyday travel in the region effortless": "expresses"
+  - "From a single bus line to a regional mobility platform" -> "Make everyday travel in the region effortless": "contextualises"
+  - "Transit authority board" -> "Make everyday travel in the region effortless": "pursues"
+  - "Acme Transit" -> "Make everyday travel in the region effortless": "represents"

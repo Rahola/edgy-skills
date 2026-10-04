@@ -187,6 +187,8 @@ Tämän analyysin mukana toimitetaan seuraavat EDGY 23 -kaaviot (draw.io-muodoss
 
 Kaaviot noudattavat EDGY 23 -standardin virallista väripalettia ja elementtimuotoja. Avaa `.drawio`-tiedostot draw.io-sovelluksessa tai app.diagrams.net-sivustolla.
 
+Kun kartta käyttää suunniteltua kehää (`triad`), se näyttää yhden ensisijaisen elementin per tyyppi ydinlinkkeineen; muut elementit näkyvät "Muut …" -paneeleissa ilman linkkejä, ja lukujen 2–7 taulukot kantavat koko sisällön.
+
 ---
 
 *Analyysi perustuu [lähteisiin]. Yrityksen sisäinen tieto voi tuoda lisää syvyyttä erityisesti Architecture- ja Organisation-elementteihin.*

@@ -256,6 +256,15 @@ acceptance criteria are the visual rules.
 | Sprint 11 | P3.1–P3.4 (triad, purpose tree, examples, regression guard) | 4–5 working days | edgy-diagram **2.5.0** |
 | Sprint 12 | P4.1–P4.3 (schema, `--layout triad`, Phases 3–5, templates, CHANGELOG) | 2 working days | edgy-assessment **1.7.0**, bundle **v2.1.0** |
 
+**Status (2026-10-04):** Sprints 8–12 are implemented in PR #4 (edgy-diagram
+2.5.0, edgy-assessment 1.7.0, bundle v2.1.0) — see the `AGENT_LOG.md`
+entries dated 2026-10-04. P0.1 (moving the `v1.0.0` tag) is a manual
+maintainer action. P1.4 / P3.4 are met for the triad and purpose examples and
+the F1/F5 fixtures (`check.sh` step `edgy-lint-strict`); the shipped examples
+that use the default facet, lane and reference layouts still carry visual
+warnings (48 W111 / 26 W112 / 1 W113 in 10 files) because those layouts were
+outside this plan's scope — a follow-up plan item.
+
 Total 15–18 working days. Sprint 8 is independent and should ship first: the
 tag fix is a one-minute manual action and the fixtures make every later
 sprint's acceptance measurable. Sprints 9–10 change the output of existing

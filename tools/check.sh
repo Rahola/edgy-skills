@@ -6,8 +6,9 @@
 # tools/install-git-hooks.sh:lla) ja manuaalinen kontribuoija.
 #
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
-# edgy-tests, edgy-lint-tests, edgy-render-tests, edgy-structure-tests, edgy-tool-tests,
-# edgy-model, edgy-eval, edgy-lint, privacy-scan.
+# edgy-tests, edgy-geometry-tests, edgy-lint-tests, edgy-render-tests,
+# edgy-structure-tests, edgy-tool-tests, edgy-model, edgy-eval, edgy-lint,
+# privacy-scan.
 #
 # Käyttö:
 #   bash tools/check.sh                          # täysi tarkistus
@@ -199,10 +200,12 @@ run_step "core-links-sync" python3 tools/render-core-links.py --check
 # --- Vaihe 3c: EDGY-parserin ja -lintin testit -------------------------------
 EDGY_SCRIPTS="skills/documentation/edgy-diagram/scripts"
 run_step "edgy-tests" python3 "$EDGY_SCRIPTS/test_edgy.py"
+run_step "edgy-geometry-tests" python3 "$EDGY_SCRIPTS/test_geometry.py"
 run_step "edgy-lint-tests" python3 "$EDGY_SCRIPTS/test_lint.py"
 run_step "edgy-render-tests" python3 "$EDGY_SCRIPTS/test_render.py"
 run_step "edgy-structure-tests" python3 "$EDGY_SCRIPTS/test_structure.py"
 run_step "edgy-tool-tests" python3 tools/test_edgy_tools.py
+run_step "edgy-model-tests" python3 skills/architecture/edgy-assessment/scripts/test_model_to_txt.py
 
 # --- Vaihe 3c2: edgy-model.json-skeema + malli → TXT ------------------------
 # Jokaisen repoon kuuluvan *model*.json-esimerkin on vastattava skeemaa, ja
@@ -242,6 +245,24 @@ edgy_lint_examples() {
     python3 "$EDGY_SCRIPTS/edgy_lint.py" -q "${files[@]}"
 }
 run_step "edgy-lint" edgy_lint_examples
+
+# --- Vaihe 3e: strict-portti visuaalisesti puhtaille asetteluille ------------
+# Triad- ja purpose-esimerkit sekä fixtuurit F1 ja F5 on luvattu puhtaiksi myös
+# visuaalisista säännöistä (W111–W114): --warnings-as-errors on tässä se portti.
+edgy_lint_strict() {
+    local ex="skills/documentation/edgy-diagram/examples"
+    local tmp
+    tmp=$(mktemp -d)
+    for f in fixture-f1-ports-waypoints fixture-f5-purpose-tree; do
+        python3 "$EDGY_SCRIPTS/edgy_generator.py" "$ex/eval/$f.txt" --output "$tmp/$f.drawio" >/dev/null 2>&1 || { rm -rf "$tmp"; return 1; }
+    done
+    python3 "$EDGY_SCRIPTS/edgy_lint.py" -q --warnings-as-errors \
+        "$ex"/expected-triad-*.drawio "$ex"/expected-purpose.drawio "$ex"/expected-purpose-hierarchy.drawio "$tmp"/*.drawio
+    local rc=$?
+    rm -rf "$tmp"
+    return $rc
+}
+run_step "edgy-lint-strict" edgy_lint_strict
 
 # --- Vaihe 4: privacy-scan (asiakasreferenssien vuototarkistus) --------------
 # Estää yksityisten asiakas-/toimeksiantonimien päätymisen julkiseen repoon.

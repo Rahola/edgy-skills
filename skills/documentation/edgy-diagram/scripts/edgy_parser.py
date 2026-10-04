@@ -45,6 +45,8 @@ from edgy_core_links import (  # noqa: E402
     INFLUENCE_RELATIONSHIPS,
     core_link_pairs,
 )
+import edgy_geometry as _geo  # noqa: E402 — portit ja sivut samasta paikasta kuin renderöijä ja lintti
+import edgy_text as _text     # noqa: E402 — tekstin mittaus glyyfitaulukoilla, sama kuin renderöijä ja lintti
 
 # Flow relationships → open arrowhead (data/value flows concretely)
 # Supported in FI, EN, FR, DE
@@ -130,8 +132,9 @@ VALID_MAP_TYPES = {
     'purpose', 'brand', 'product', 'object',
     # Layout: grid (rows + columns)
     'asset', 'channel', 'content', 'people', 'story', 'task',
-    # EDGY extensions (not EDGY 23 map types): layered reference architecture, stakeholder summary
-    'reference', 'summary',
+    # EDGY extensions (not EDGY 23 map types): layered reference architecture, stakeholder summary,
+    # planned ring of one primary element per type ("Further …" panels for the rest)
+    'reference', 'summary', 'triad',
 }
 
 # Karttatyyppi → layout-strategia
@@ -154,6 +157,7 @@ MAP_TYPE_LAYOUT = {
     'task': 'grid',
     'reference': 'reference',
     'summary': 'summary',
+    'triad': 'triad',
 }
 # Stakeholder summary: max boxes per row before the parser warns
 SUMMARY_MAX_PER_ROW = 4
@@ -169,6 +173,7 @@ FACET_CONTAINER_FILLS = {
     'architecture': '#e6edff',
     'experience': '#ffe6ef',
     'group': '#eef2f7',      # käyttäjän määrittelemä ryhmä ilman fasettia
+    'further': '#f3f4f6',    # triadin "Further <type>" -paneeli (rakenne, ei EDGY-elementti)
 }
 FACET_TITLES = {'identity': 'Identity', 'architecture': 'Architecture', 'experience': 'Experience'}
 
@@ -203,7 +208,7 @@ CHANGE_LABELS = {
     'keep': 'keep / säilyy', 'new': 'new, strengthen / uusi', 'change': 'change, merge / muuttuu',
     'replace': 'replace / korvautuu', 'remove': 'remove / poistuu', 'decide': 'decide (open, see ADR) / päätettävä',
 }
-RESERVED_METRIC_KEYS = {'id', 'change', 'size', 'highlight'}
+RESERVED_METRIC_KEYS = {'id', 'change', 'size', 'highlight', 'primary'}
 
 # Ydinlinkkien parivalidointi: verbi → {(lähdetyyppi, kohdetyyppi), ...}
 # Sama verbi voi olla sallittu usealle parille (esim. requires/vaatii:
@@ -229,6 +234,12 @@ class EDGYParser:
         self._layout_handles_tree = False
         self.uses_change_overlay = False
         self.layout_from = None    # (archimate file, view name, scale, dx, dy) tai None
+        self.legend = 'box'        # 'box' = laatikko oikeassa alakulmassa, 'strip' = kapea nauha alareunassa
+        self._legend_explicit = False
+        self.language = 'en'       # generoitujen otsikoiden kieli (triadin "Further <type>" -paneelit): fi | en | fr | de
+        self._size_override = {}   # elem_id → (w, h): layoutin pakottama koko (triad: kehän laatikot, paneelien sirut)
+        self._triad_detours = {}   # (src, tgt) → (exit_side, entry_side, [(x, y), …]) kehää kiertävät linkit
+        self._triad_hidden = set() # paneeleihin jäävät (ei-ensisijaiset) elementit: niiden linkkejä ei piirretä
 
     def parse_input(self, input_text: str) -> None:
         """Jäsennä käyttäjän syöte EDGY-elementeiksi"""
@@ -261,6 +272,23 @@ class EDGYParser:
                 # layout_from: path/to/model.archimate#View name [scale=1.0 dx=0 dy=0]
                 spec = line.split(':', 1)[1].strip()
                 self.layout_from = self._parse_layout_from(spec)
+                continue
+            elif line.startswith('language:'):
+                # language: fi | en | fr | de — generoitujen otsikoiden kieli (verbit tulevat syötteestä sellaisinaan)
+                lang_value = line.split(':', 1)[1].strip().lower()
+                if lang_value in ('fi', 'en', 'fr', 'de'):
+                    self.language = lang_value
+                else:
+                    self.warnings.append(f"Tuntematon language-arvo '{lang_value}' (sallitut: fi, en, fr, de), käytetään 'en'")
+                continue
+            elif line.startswith('legend:'):
+                # legend: box (oletus) | strip — nauha alareunassa säästää kanvasta
+                legend_value = line.split(':', 1)[1].strip().lower()
+                if legend_value in ('box', 'strip'):
+                    self.legend = legend_value
+                    self._legend_explicit = True
+                else:
+                    self.warnings.append(f"Tuntematon legend-arvo '{legend_value}' (sallitut: box, strip), käytetään 'box'")
                 continue
             elif line.startswith('map_type:'):
                 map_type_value = line.split(':')[1].strip().lower()
@@ -342,6 +370,7 @@ class EDGYParser:
                         'change': change,
                         'size_class': size_class,
                         'highlight': metrics.get('highlight', '').lower() in ('1', 'true', 'yes', 'kyllä') or 'focus' in [t.lower() for t in tags],
+                        'primary': metrics.get('primary', '').lower() in ('1', 'true', 'yes', 'kyllä'),   # triad: kantaa tyypin linkit
                         'tags': [t for t in tags if t.lower() != 'focus'],
                         'metrics': {k: v for k, v in metrics.items() if k not in RESERVED_METRIC_KEYS},
                         'group': current_group,
@@ -518,6 +547,12 @@ class EDGYParser:
                     options['label'] = v.lower()
                 else:
                     self.warnings.append(f"Tuntematon label-arvo '{v}' (sallitut: source, middle, target), ohitetaan")
+            elif k in ('label_dx', 'label_dy'):
+                # tekstin siirtymä pikseleinä (draw.io: <mxPoint as="offset">)
+                try:
+                    options[k] = float(v)
+                except ValueError:
+                    self.warnings.append(f"Virheellinen {k}-arvo '{v}' (luku pikseleinä), ohitetaan")
             else:
                 self.warnings.append(f"Tuntematon relaatio-optio '{k}', ohitetaan")
         return options
@@ -653,12 +688,12 @@ class EDGYParser:
         return '<br>'.join(parts)
 
     def _subtext_lines(self, element: dict, width: int) -> int:
-        """Arvioi alatekstirivien määrä (id + kuvaus) annetulla leveydellä (9px fontti)."""
+        """Alatekstirivien määrä (id + kuvaus) annetulla leveydellä — mitattu 9 px
+        normaalilla leikkauksella (edgy_text), ei merkkimäärällä."""
         sub = ' '.join(x for x in ((f"[{element['ref']}]" if element.get('ref') else ''), element.get('subtext', '')) if x)
         if not sub:
             return 0
-        chars_per_line = max(int((width - 12) / 5.2), 8)
-        return max(1, -(-len(sub) // chars_per_line))
+        return _text.lines_needed(sub, max(width - 12, 40), self._SUB_FONT, bold=False)
 
     def _get_edge_style(self, label: str, kind: str = None) -> str:
         """Palauta relaation draw.io-tyyli relaatiotyypin mukaan.
@@ -698,7 +733,8 @@ class EDGYParser:
             return base + "endArrow=open;endFill=0;dashed=1;"
 
     # Dynaamiset mitoitusvakiot
-    _CHAR_WIDTH = 8      # arvioitu merkin leveys fontStyle=1;fontSize=14 bold
+    _TITLE_FONT = 14     # nimen fontti (fontStyle=1 → lihavoitu), sama kuin _get_element_style
+    _SUB_FONT = 9        # alatekstin fontti (normaali leikkaus), sama kuin _build_display_value
     _WIDTH_PADDING = 20  # sisämarginaali molemmin puolin
     _MAX_WIDTH = 280     # leveimmän elementin yläraja
 
@@ -714,6 +750,8 @@ class EDGYParser:
         import math
         if element.get('type') in STRUCTURE_TYPES:
             return self._computed_sizes.get(element['id'], (300, 160))
+        if element['id'] in self._size_override:        # layoutin pakottama koko (triad)
+            return self._size_override[element['id']]
         shape = EDGY_SHAPES.get(element['type'], 'rect')
 
         if shape == 'pentagon':
@@ -729,12 +767,15 @@ class EDGYParser:
             min_w, h = max(min_w, cw), max(h, ch)
 
         name = element.get('name') or element.get('value', '')
-        text_w = len(name) * self._CHAR_WIDTH + self._WIDTH_PADDING
+        # Leveys NIMEN mitatusta leveydestä (14 px bold, edgy_text): pentagonin
+        # nuolenkärki vie dx=20 px tekstialueesta
+        tip = 20 if shape == 'pentagon' else 0
+        text_w = _text.measure(name, self._TITLE_FONT, bold=True) + self._WIDTH_PADDING + tip
         w = max(min_w, min(text_w, self._MAX_WIDTH))
         w = int(math.ceil(w / 10) * 10)
 
-        # Nimi rivittyy jos se ei mahdu yhdelle riville
-        name_lines = max(1, -(-len(name) * self._CHAR_WIDTH // max(w - 16, 1)))
+        # Nimi rivittyy jos se ei mahdu yhdelle riville — rivitys mitattuna, ei arvioituna
+        name_lines = _text.lines_needed(name, max(w - 16 - tip, 40), self._TITLE_FONT, bold=True)
         extra = (name_lines - 1) * 18
         extra += self._subtext_lines(element, w) * 14
         if element.get('tags') or element.get('metrics'):
@@ -909,8 +950,9 @@ class EDGYParser:
             return ("whiteSpace=wrap;html=1;fillColor=#f4f4f4;strokeColor=none;align=left;verticalAlign=top;"
                     "spacingLeft=8;spacingTop=4;fontColor=#555555;fontSize=11;fontStyle=1;")
         fill = FACET_CONTAINER_FILLS.get(group.get('facet', 'group'), FACET_CONTAINER_FILLS['group'])
+        stroke = '#d0d4dc' if group.get('facet') == 'further' else '#ffffff'
         return (f"rounded=1;arcSize=6;container=1;collapsible=0;whiteSpace=wrap;html=1;"
-                f"fillColor={fill};strokeColor=#ffffff;strokeWidth=2;align=left;verticalAlign=top;"
+                f"fillColor={fill};strokeColor={stroke};strokeWidth=2;align=left;verticalAlign=top;"
                 f"spacingLeft=10;spacingTop=4;fontSize=12;fontStyle=1;fontColor=#333333;")
 
     def _size_of(self, eid: str) -> Tuple[int, int]:
@@ -944,14 +986,22 @@ class EDGYParser:
             page_height = max(900, int(_math.ceil((max_y + 80) / 100) * 100))
         else:
             page_width, page_height = 1200, 900
-        # Legenda tarvitsee tilaa oikeasta alakulmasta: kasvata sivua jos sisältö ulottuu sinne
-        legend_h = 200 + (self._overlay_legend_height() if self.uses_change_overlay else 0)
-        legend_w = 220
-        for i in positions:
-            x, y = positions[i]
-            w, h = self._size_of(i)
-            if x + w > page_width - legend_w - 40 and y + h > page_height - legend_h - 40:
-                page_height = int(_math.ceil((y + h + legend_h + 60) / 100) * 100)
+        legend_mode = self._effective_legend()
+        if legend_mode == 'strip':
+            # Nauha alareunassa: sivun korkeus on sisältö + nauha, ei editorin 900 px oletus —
+            # harva kartta ei huku tyhjään kanvakseen
+            band_h = self._legend_strip_height(page_width)
+            content_bottom = max((positions[i][1] + self._size_of(i)[1] for i in positions), default=0)
+            page_height = max(300, int(_math.ceil((content_bottom + 30 + band_h + 16) / 10) * 10))
+        else:
+            # Legenda tarvitsee tilaa oikeasta alakulmasta: kasvata sivua jos sisältö ulottuu sinne
+            legend_h = 200 + (self._overlay_legend_height() if self.uses_change_overlay else 0)
+            legend_w = 220
+            for i in positions:
+                x, y = positions[i]
+                w, h = self._size_of(i)
+                if x + w > page_width - legend_w - 40 and y + h > page_height - legend_h - 40:
+                    page_height = int(_math.ceil((y + h + legend_h + 60) / 100) * 100)
 
         root = ET.Element("mxGraphModel", {
             "dx": str(page_width + 240), "dy": str(page_height - 24),
@@ -984,6 +1034,8 @@ class EDGYParser:
         # 2) Elementit
         for idx, (elem_id, element) in enumerate(self.elements.items()):
             style = self._get_element_style(element)
+            if elem_id in self._triad_hidden:
+                style = style.replace('fontSize=14;', 'fontSize=12;')   # paneelisirut: pienempi otsikko
             w, h = sizes[elem_id]
             gid = element.get('group')
             if gid is not None and self.groups[gid]['kind'] == 'group' and gid in element_mapping:
@@ -1024,20 +1076,24 @@ class EDGYParser:
         outgoing_by_side = defaultdict(list)
         incoming_by_side = defaultdict(list)
         valid_rels = []
+        triad = self.map_type == 'triad'
+        if triad and self._triad_hidden:
+            # Paneeleihin jääneiden elementtien linkkejä ei piirretä — raportoidaan, ei pudoteta hiljaa
+            dropped = [k for k in order if k[0] in self._triad_hidden or k[1] in self._triad_hidden]
+            if dropped:
+                names = ', '.join(f"{self.elements[s]['name']} → {self.elements[t]['name']}" for s, t in dropped[:6])
+                self.warnings.append(
+                    f"triad: {len(dropped)} relationship(s) not drawn (non-primary endpoint in a Further panel): "
+                    f"{names}{' …' if len(dropped) > 6 else ''} — the report tables carry them")
+                order = [k for k in order if k not in set(dropped)]
         for key in order:
             rel = merged[key]
             sx, sy = abs_pos[rel['source']]
             tx, ty = abs_pos[rel['target']]
             sw, sh = sizes[rel['source']]
             tw, th = sizes[rel['target']]
-            dx = (tx + tw / 2) - (sx + sw / 2)
-            dy = (ty + th / 2) - (sy + sh / 2)
-            if abs(dx) >= abs(dy):
-                exit_side = 'right' if dx >= 0 else 'left'
-                entry_side = 'left' if dx >= 0 else 'right'
-            else:
-                exit_side = 'bottom' if dy >= 0 else 'top'
-                entry_side = 'top' if dy >= 0 else 'bottom'
+            exit_side = _geo.choose_side((sx, sy, sw, sh), (tx, ty, tw, th))
+            entry_side = _geo.opposite(exit_side)
             # Samalla kaistalla samalla rivillä, ei vierekkäin → reititys yläkautta (U-muoto),
             # jotta reuna ei kulje välissä olevien elementtien läpi
             sg = self.elements[rel['source']].get('group')
@@ -1052,11 +1108,7 @@ class EDGYParser:
             outgoing_by_side[(rel['source'], exit_side)].append(len(valid_rels) - 1)
             incoming_by_side[(rel['target'], entry_side)].append(len(valid_rels) - 1)
 
-        def _distribute(count, index):
-            """Hajota ankkurit tasaisesti välille 0.15-0.85."""
-            if count <= 1:
-                return 0.5
-            return 0.15 + (0.7 * index / (count - 1))
+        _distribute = _geo.distribute        # porttien jako 0.15–0.85, sama kuin renderöijällä ja lintillä
 
         for vi, (rel, exit_side, entry_side) in enumerate(valid_rels):
             src_list = outgoing_by_side[(rel['source'], exit_side)]
@@ -1076,7 +1128,33 @@ class EDGYParser:
                 entry_x = _distribute(len(tgt_list), tgt_idx)
             anchor_style = (f"exitX={exit_x};exitY={exit_y};exitDx=0;exitDy=0;"
                             f"entryX={entry_x};entryY={entry_y};entryDx=0;entryDy=0;")
-            style = self._get_edge_style(rel['labels'][0], rel['kind']) + anchor_style
+            style = self._get_edge_style(rel['labels'][0], rel['kind'])
+            key = (rel['source'], rel['target'])
+            if triad and not any(k in rel['options'] for k in ('label', 'label_dx', 'label_dy')):
+                # oletussiirtymä tekstille: pois lähimmästä laatikosta, slot-parin mukaan
+                pair = (self.elements[key[0]]['type'], self.elements[key[1]]['type'])
+                shift = self._TRIAD_DETOUR_SHIFT.get(key in self._triad_detours and self._triad_detours[key][0]) \
+                    if key in self._triad_detours else self._TRIAD_LABEL_SHIFT.get(pair)
+                if shift:
+                    rel['options'] = {**rel['options'], 'label_dx': shift[0], 'label_dy': shift[1]}
+            if triad and key in self._triad_detours:
+                # kehää kiertävä linkki: ortogonaalinen, kiinteät portit ja taitepisteet
+                d_exit, d_entry, d_points = self._triad_detours[key]
+                ex, ey = {'left': (0, 0.5), 'right': (1, 0.5), 'top': (0.5, 0), 'bottom': (0.5, 1)}[d_exit]
+                nx, ny = {'left': (0, 0.5), 'right': (1, 0.5), 'top': (0.5, 0), 'bottom': (0.5, 1)}[d_entry]
+                style += f"exitX={ex};exitY={ey};exitDx=0;exitDy=0;entryX={nx};entryY={ny};entryDx=0;entryDy=0;"
+                rel['options'] = {**rel['options'], 'via': d_points}
+            elif triad:
+                # suora viiva reunasta reunaan: draw.io laskee kehäpisteet keskipisteiden suoralta
+                style = style.replace("edgeStyle=orthogonalEdgeStyle;rounded=1;", "edgeStyle=none;rounded=0;")
+                pair = (self.elements[key[0]]['type'], self.elements[key[1]]['type'])
+                if 'from' in rel['options'] or 'to' in rel['options']:
+                    style += anchor_style
+                elif pair in self._TRIAD_ANCHORS:
+                    (ex, ey), (nx, ny) = self._TRIAD_ANCHORS[pair]
+                    style += f"exitX={ex};exitY={ey};exitDx=0;exitDy=0;entryX={nx};entryY={ny};entryDx=0;entryDy=0;"
+            else:
+                style += anchor_style
             change = rel['options'].get('change')
             if change:
                 color, dashed = CHANGE_PALETTE[change]
@@ -1095,15 +1173,111 @@ class EDGYParser:
             elif label_pos == 'target':
                 geo_attrs["x"] = "0.5"
             geo = ET.SubElement(cell, "mxGeometry", geo_attrs)
+            if 'label_dx' in rel['options'] or 'label_dy' in rel['options']:
+                # absoluuttinen tekstin siirtymä pikseleinä (sama sopimus renderöijässä ja lintissä)
+                ET.SubElement(geo, "mxPoint", {"x": str(int(round(rel['options'].get('label_dx', 0)))),
+                                               "y": str(int(round(rel['options'].get('label_dy', 0)))), "as": "offset"})
             if rel['options'].get('via'):
                 arr = ET.SubElement(geo, "Array", {"as": "points"})
                 for px, py in rel['options']['via']:
                     ET.SubElement(arr, "mxPoint", {"x": str(int(round(px))), "y": str(int(round(py)))})
             next_id += 1
 
-        # 4) Legenda oikeaan alakulmaan
-        self._append_legend_cells(mx_root, next_id, page_width, page_height)
+        # 4) Legenda: laatikko oikeaan alakulmaan tai nauha alareunaan
+        if legend_mode == 'strip':
+            self._append_legend_strip(mx_root, next_id, page_width, page_height)
+        else:
+            self._append_legend_cells(mx_root, next_id, page_width, page_height)
         return self._prettify_xml(root)
+
+    # Nauhalegendan sisältö: lyhyet nimet, jotta kuusi palaa ja neljä viivamallia mahtuvat yhdelle riville
+    _STRIP_CHIPS = [("#80ffb7", "Identity"), ("#a6c0ff", "Architecture"), ("#ff99bd", "Experience"),
+                    ("#ffd580", "Brand"), ("#e599ff", "Product"), ("#80eaff", "Organisation")]
+    _STRIP_LINES = [("endArrow=classic;endFill=1;strokeWidth=1;strokeColor=#333333;", "Link"),
+                    ("endArrow=open;endFill=0;strokeWidth=1;strokeColor=#333333;", "Flow"),
+                    ("endArrow=none;strokeWidth=1;strokeColor=#333333;", "Tree"),
+                    ("endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;", "Influence")]
+    _STRIP_ROW = 24
+
+    def _legend_strip_rows(self, page_width: int) -> int:
+        """Rivimäärä: palat ja viivamallit yhdellä rivillä jos mahtuvat, muuten kahdella; muutoskerros omalla rivillään."""
+        chips_w = sum(18 + _text.measure(lbl, 9) + 6 + 14 for _, lbl in self._STRIP_CHIPS)
+        lines_w = sum(28 + 4 + _text.measure(lbl, 9) + 6 + 14 for _, lbl in self._STRIP_LINES)
+        rows = 1 if 130 + chips_w + lines_w <= page_width - 40 else 2
+        return rows + (1 if self.uses_change_overlay else 0)
+
+    def _legend_strip_height(self, page_width: int) -> int:
+        return self._legend_strip_rows(page_width) * self._STRIP_ROW
+
+    def _append_legend_strip(self, mx_root, start_id: int, page_width: int, page_height: int) -> None:
+        """EDGY-legenda yhtenä kapeana nauhana sivun alareunassa (`legend: strip`).
+
+        Täyttää E009:n rakenteellisen tunnistuksen: otsikkotekstisolu, ≥ 3
+        värillistä palaa ja ≥ 1 irrallinen viivamalli (edge ilman source/target).
+        """
+        rows = self._legend_strip_rows(page_width)
+        row_h = self._STRIP_ROW
+        band_h = rows * row_h
+        y0 = page_height - 16 - band_h
+        cid = start_id
+
+        def text_cell(value, x, y, w, h, bold=False, size=9):
+            nonlocal cid
+            style = (f"text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;"
+                     f"fontSize={size};" + ("fontStyle=1;" if bold else ""))
+            cell = ET.SubElement(mx_root, "mxCell", {"id": str(cid), "value": value, "style": style, "vertex": "1", "parent": "1"})
+            ET.SubElement(cell, "mxGeometry", {"x": str(int(x)), "y": str(int(y)), "width": str(int(w)), "height": str(int(h)), "as": "geometry"})
+            cid += 1
+
+        bg = ET.SubElement(mx_root, "mxCell", {
+            "id": str(cid), "value": "",
+            "style": "rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#fafafa;strokeColor=#e5e5e5;strokeWidth=1;",
+            "vertex": "1", "parent": "1"})
+        ET.SubElement(bg, "mxGeometry", {"x": "20", "y": str(y0 - 4), "width": str(page_width - 40), "height": str(band_h + 8), "as": "geometry"})
+        cid += 1
+
+        x = 30
+        text_cell("<b>EDGY 23 — Legend</b>", x, y0, 120, row_h, bold=True, size=10)
+        x += 130
+        for color, label in self._STRIP_CHIPS:
+            chip = ET.SubElement(mx_root, "mxCell", {
+                "id": str(cid), "value": "",
+                "style": f"rounded=1;whiteSpace=wrap;html=1;fillColor={color};strokeColor=#ffffff;strokeWidth=1;",
+                "vertex": "1", "parent": "1"})
+            ET.SubElement(chip, "mxGeometry", {"x": str(x), "y": str(y0 + 6), "width": "14", "height": "12", "as": "geometry"})
+            cid += 1
+            tw = int(_text.measure(label, 9) + 6)
+            text_cell(html.escape(label), x + 18, y0, tw, row_h)
+            x += 18 + tw + 14
+        if rows >= 2 and (not self.uses_change_overlay or rows == 3):
+            x, y_line = 160, y0 + row_h          # viivamallit toiselle riville
+        else:
+            y_line = y0
+        for edge_style, label in self._STRIP_LINES:
+            arrow = ET.SubElement(mx_root, "mxCell", {"id": str(cid), "value": "", "style": f"edgeStyle=none;{edge_style}", "edge": "1", "parent": "1"})
+            geo = ET.SubElement(arrow, "mxGeometry", {"relative": "1", "as": "geometry"})
+            ET.SubElement(geo, "mxPoint", {"x": str(x), "y": str(y_line + 12), "as": "sourcePoint"})
+            ET.SubElement(geo, "mxPoint", {"x": str(x + 28), "y": str(y_line + 12), "as": "targetPoint"})
+            cid += 1
+            tw = int(_text.measure(label, 9) + 6)
+            text_cell(html.escape(label), x + 32, y_line, tw, row_h)
+            x += 28 + 4 + tw + 14
+        if self.uses_change_overlay:
+            x, y_ov = 30, y0 + (rows - 1) * row_h
+            text_cell("<b>Transition (extension)</b>", x, y_ov, 120, row_h, bold=True)
+            x += 130
+            for key, (color, dashed) in CHANGE_PALETTE.items():
+                swatch = ET.SubElement(mx_root, "mxCell", {
+                    "id": str(cid), "value": "",
+                    "style": f"rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor={color};strokeWidth=3;"
+                             + ("dashed=1;dashPattern=4 2;" if dashed else ""),
+                    "vertex": "1", "parent": "1"})
+                ET.SubElement(swatch, "mxGeometry", {"x": str(x), "y": str(y_ov + 6), "width": "22", "height": "11", "as": "geometry"})
+                cid += 1
+                label = CHANGE_LABELS[key].split(' / ')[0]
+                tw = int(_text.measure(label, 9) + 6)
+                text_cell(html.escape(label), x + 26, y_ov, tw, row_h)
+                x += 26 + tw + 14
 
     def _append_legend_cells(self, mx_root, start_id: int, page_width: int, page_height: int) -> None:
         """Lisää EDGY-legend draw.io-kaavion oikeaan alakulmaan."""
@@ -1250,6 +1424,24 @@ class EDGYParser:
         self._child_positions: Dict[str, Tuple[float, float]] = {}
         self._computed_sizes = {}
         self._layout_handles_tree = False
+        self._size_override = {}
+        self._triad_detours = {}
+        self._triad_hidden = set()
+        if self.map_type == 'triad':
+            # Suunniteltu kehä: sijainnit, kontit ja paneelit tulevat slot-taulusta;
+            # törmäysresoluutio ja ruudukkoon pyöristys ohitetaan tarkoituksella
+            positions = self._layout_triad()
+            self._group_positions = {gid: positions[gid] for gid in self.groups if gid in positions}
+            result: Dict[str, Tuple[int, int]] = {}
+            for eid, element in self.elements.items():
+                gid = element.get('group')
+                if gid is None:
+                    result[eid] = positions.get(eid, (100, 100))
+                else:
+                    gx, gy = self._group_positions.get(gid, (0, 0))
+                    rx, ry = self._child_positions.get(eid, (20, 40))
+                    result[eid] = (gx + rx, gy + ry)
+            return result
         self._prepare_facet_groups()
 
         for gid, group in self.groups.items():
@@ -1525,6 +1717,242 @@ class EDGYParser:
             row_h = max(row_h, h)
         return positions
 
+    # ---- triad (EDGY-laajennus): suunniteltu kehä --------------------------
+    #
+    # facet: all                           yksittäinen facet (esim. architecture)
+    #        ┌── Identity ───────┐                  [intersektio A]
+    #        │ story  purpose  content │        ┌─ Facet ─────────────────┐
+    #        └───────────────────┘              │ outcome-tyyppi  activity │
+    #   [organisation]          [brand]         │        object            │
+    # ┌ Architecture ┐   ┌ Experience ┐         └─────────────────────────┘
+    # │ capability   │   │   task     │                  [intersektio B]
+    # │ asset        │   │  channel   │           Further <type> -paneelit
+    # │   process    │   │ journey    │
+    # └──────────────┘   └────────────┘
+    #            [product]
+    #
+    # Yksi ENSISIJAINEN elementti per tyyppi kantaa ydinlinkit ({primary: true},
+    # muuten tyypin ensimmäinen). Muut elementit näkyvät "Further <tyyppi>"
+    # -paneeleissa ilman viivoja; niiden linkit raportoidaan (ei pudoteta hiljaa).
+    # Kaikki ydinlinkit ovat suoria viivoja reunasta reunaan; kaksi
+    # intersektio–intersektio-linkkiä kiertää sivun reunaa.
+
+    _TRIAD_W, _TRIAD_H = 210, 74          # kehän laatikko
+    _TRIAD_PAGE_W = 1340                  # facet: all -kehän nimellisleveys
+    # Tekstin oletussiirtymä (dx, dy) px suoralle viivalle slot-parin mukaan: poispäin lähimmästä laatikosta.
+    # Ylikirjoitus relaatio-optiolla {label_dx: …, label_dy: …} tai {label: source|target}.
+    _TRIAD_LABEL_SHIFT = {
+        ('story', 'purpose'): (-45, 0), ('content', 'purpose'): (40, 0), ('content', 'story'): (0, -10),
+        ('organisation', 'purpose'): (40, 20), ('organisation', 'story'): (-30, 0), ('organisation', 'brand'): (0, -10),
+        ('organisation', 'capability'): (-25, 0), ('organisation', 'process'): (30, 0),
+        ('brand', 'story'): (0, -10), ('brand', 'purpose'): (55, 60), ('brand', 'task'): (30, 0), ('brand', 'journey'): (-35, 0),
+        ('capability', 'asset'): (-30, 0), ('process', 'capability'): (30, 0), ('process', 'asset'): (0, -10),
+        ('task', 'journey'): (-35, 0), ('task', 'channel'): (30, 0), ('journey', 'channel'): (0, 12),
+        ('product', 'capability'): (-35, 0), ('process', 'product'): (0, 12), ('product', 'task'): (35, 0),
+        ('product', 'journey'): (0, 12),
+    }
+    _TRIAD_DETOUR_SHIFT = {'left': (45, -150), 'right': (-45, -150)}   # reunaa kiertävä linkki: teksti sivun sisäpuolelle
+    # Kiinteät portit suorille viivoille, jotka muuten hipoisivat story-/content-laatikkoa pitkillä nimillä:
+    # (exitX, exitY), (entryX, entryY)
+    _TRIAD_ANCHORS = {
+        ('organisation', 'purpose'): ((1, 0), (0.3, 1)),
+        ('brand', 'purpose'): ((0, 0), (0.7, 1)),
+    }
+    _TRIAD_FURTHER_TITLE = {'en': 'Further', 'fi': 'Muut', 'fr': 'Autres', 'de': 'Weitere'}
+    # Paneelin otsikon tyyppinimi monikossa, `language:`-avaimen mukaan (sama sanasto kuin edgy-framework)
+    _TYPE_PLURAL = {
+        'en': {'purpose': 'purposes', 'story': 'stories', 'content': 'content', 'capability': 'capabilities',
+               'asset': 'assets', 'process': 'processes', 'task': 'tasks', 'channel': 'channels',
+               'journey': 'journeys', 'organisation': 'organisations', 'product': 'products', 'brand': 'brands',
+               'people': 'people', 'activity': 'activities', 'outcome': 'outcomes', 'object': 'objects'},
+        'fi': {'purpose': 'tarkoitukset', 'story': 'tarinat', 'content': 'sisällöt', 'capability': 'kyvykkyydet',
+               'asset': 'resurssit', 'process': 'prosessit', 'task': 'tehtävät', 'channel': 'kanavat',
+               'journey': 'matkat', 'organisation': 'organisaatiot', 'product': 'tuotteet', 'brand': 'brändit',
+               'people': 'ihmiset', 'activity': 'toiminnot', 'outcome': 'tulokset', 'object': 'objektit'},
+        'fr': {'purpose': "raisons d'être", 'story': 'récits', 'content': 'contenus', 'capability': 'capacités',
+               'asset': 'actifs', 'process': 'processus', 'task': 'tâches', 'channel': 'canaux',
+               'journey': 'parcours', 'organisation': 'organisations', 'product': 'produits', 'brand': 'marques',
+               'people': 'personnes', 'activity': 'activités', 'outcome': 'résultats', 'object': 'objets'},
+        'de': {'purpose': 'Zwecke', 'story': 'Geschichten', 'content': 'Inhalte', 'capability': 'Fähigkeiten',
+               'asset': 'Ressourcen', 'process': 'Prozesse', 'task': 'Aufgaben', 'channel': 'Kanäle',
+               'journey': 'Reisen', 'organisation': 'Organisationen', 'product': 'Produkte', 'brand': 'Marken',
+               'people': 'Personen', 'activity': 'Aktivitäten', 'outcome': 'Ergebnisse', 'object': 'Objekte'},
+    }
+
+    def _effective_legend(self) -> str:
+        """Triad käyttää nauhalegendaa, ellei käyttäjä ole valinnut toisin."""
+        if self.map_type == 'triad' and not self._legend_explicit:
+            return 'strip'
+        return self.legend
+
+    def _triad_slots(self) -> Tuple[Dict[str, Tuple[int, int, int, int]], Dict[str, Tuple[str, Tuple[int, int, int, int]]],
+                     List[Tuple[str, str, str, str, int]]]:
+        """Slot-taulu: {tyyppi: (cx, cy, w, h)}, kontit {facet: (otsikko, (x, y, w, h))} ja
+        kiertoreitit [(lähdetyyppi, kohdetyyppi, exit, entry, reunan x)]."""
+        W, H = self._TRIAD_W, self._TRIAD_H
+        if self.facet == 'all':
+            slots = {
+                'purpose': (650, 80, 230, H), 'story': (400, 220, W, H), 'content': (910, 220, W, H),
+                'organisation': (380, 400, W, H), 'brand': (920, 400, W, H),
+                'capability': (230, 560, W, H), 'asset': (180, 720, W, H), 'process': (380, 840, W, H),
+                'task': (1070, 560, W, H), 'channel': (1170, 720, W, H), 'journey': (920, 840, W, H),
+                'product': (650, 900, W, H),
+            }
+            containers = {
+                'identity': ('Identity', (260, 30, 800, 260)),
+                'architecture': ('Architecture', (50, 500, 460, 410)),
+                'experience': ('Experience', (790, 500, 500, 410)),
+            }
+            detours = [('organisation', 'product', 'left', 'left', 20), ('product', 'brand', 'right', 'right', 1310)]
+            return slots, containers, detours
+        if self.facet == 'identity':
+            slots = {'purpose': (600, 98, 240, 76), 'story': (335, 270, 270, 80), 'content': (870, 270, 260, 64),
+                     'organisation': (330, 482, W, 64), 'brand': (870, 482, W, 64)}
+            containers = {'identity': ('Identity', (60, 30, 1080, 320))}
+            return slots, containers, []
+        if self.facet == 'architecture':
+            a, b, obj = 'organisation', 'product', 'asset'
+            left, right = 'capability', 'process'
+            cont_h, obj_cy, b_cy = 330, 392, 532
+        else:  # experience
+            a, b, obj = 'brand', 'product', 'channel'
+            left, right = 'task', 'journey'
+            cont_h, obj_cy, b_cy = 440, 492, 652
+        slots = {a: (600, 62, 220, 64), left: (230, 225, 240, 70), right: (970, 225, 240, 70),
+                 obj: (600, obj_cy, 220, 64), b: (600, b_cy, 220, 64)}
+        containers = {self.facet: (FACET_TITLES[self.facet], (60, 130, 1080, cont_h))}
+        detours = [(a, b, 'right', 'right', 1150)]
+        return slots, containers, detours
+
+    def _triad_primary(self, type_name: str, members: List[str]) -> str:
+        flagged = [m for m in members if self.elements[m].get('primary')]
+        if len(flagged) > 1:
+            names = ', '.join(self.elements[m]['name'] for m in flagged)
+            self.warnings.append(f"triad: useampi {type_name} merkitty {{primary: true}} ({names}) — käytetään ensimmäistä")
+        return flagged[0] if flagged else members[0]
+
+    def _triad_chip_size(self, eid: str, width: int) -> int:
+        """Paneelisirun korkeus: nimi (12 px bold) + id/kuvaus (9 px) rivitettynä sirun leveyteen."""
+        e = self.elements[eid]
+        name_lines = _text.lines_needed(e['name'], max(width - 16, 40), 12, bold=True)
+        sub = ' '.join(x for x in ((f"[{e['ref']}]" if e.get('ref') else ''), e.get('subtext', '')) if x)
+        sub_lines = _text.lines_needed(sub, max(width - 16, 40), 9) if sub else 0
+        return max(46, 14 + name_lines * 15 + sub_lines * 12)
+
+    def _layout_triad(self) -> Dict[str, Tuple[int, int]]:
+        """Suunniteltu kehä (ks. luokan kommentti). Palauttaa top-level-sijainnit
+        (kontit + konttien ulkopuoliset elementit); jäsenten suhteelliset
+        sijainnit menevät _child_positions-sanakirjaan, koot _size_override /
+        _computed_sizes -sanakirjoihin, kiertoreitit _triad_detours-sanakirjaan."""
+        self._layout_handles_tree = True
+        if self.layout_from:
+            self.warnings.append("triad: layout_from ei ole tuettu kehäasettelun kanssa — ohitetaan")
+            self.layout_from = None
+        user_groups = [g for g, grp in self.groups.items() if not grp.get('synthetic')]
+        if user_groups:
+            self.warnings.append("triad: group:/lane:-rakenteet ohitetaan — kehä sijoittaa elementit itse")
+        for gid in list(self.groups):
+            for m in self.groups[gid]['members']:
+                self.elements[m]['group'] = None
+            del self.groups[gid]
+
+        slots, containers, detours = self._triad_slots()
+        facets = {'identity': IDENTITY_ELEMENTS, 'architecture': ARCHITECTURE_ELEMENTS, 'experience': EXPERIENCE_ELEMENTS}
+        by_type: Dict[str, List[str]] = {}
+        for eid, e in self.elements.items():
+            by_type.setdefault(e['type'], []).append(eid)
+
+        positions: Dict[str, Tuple[int, int]] = {}
+        primaries: Dict[str, str] = {}
+        for t, members in by_type.items():
+            if t in slots:
+                primaries[t] = self._triad_primary(t, members)
+        # Kontit
+        for facet, (title, (cx0, cy0, cw, ch)) in containers.items():
+            gid = f"facet_{facet}"
+            self.groups[gid] = {'id': gid, 'kind': 'group', 'name': title, 'members': [], 'tags': [], 'metrics': {},
+                                'synthetic': True, 'facet': facet, 'layout': 'triad'}
+            self._computed_sizes[gid] = (cw, ch)
+            positions[gid] = (cx0, cy0)
+        # Ensisijaiset kehälle
+        for t, eid in primaries.items():
+            cx, cy, w, h = slots[t]
+            e = self.elements[eid]
+            name_lines = _text.lines_needed(e['name'], w - 16, self._TITLE_FONT, bold=True)
+            sub_lines = self._subtext_lines(e, w)
+            h = max(h, 20 + name_lines * 18 + sub_lines * 14 + (16 if e.get('tags') or e.get('metrics') else 0))
+            self._size_override[eid] = (w, h)
+            facet = next((f for f, types in facets.items() if t in types and f"facet_{f}" in self.groups), None)
+            if facet:
+                gid = f"facet_{facet}"
+                self.groups[gid]['members'].append(eid)
+                e['group'] = gid
+                gx, gy = positions[gid]
+                self._child_positions[eid] = (cx - w / 2 - gx, cy - h / 2 - gy)
+            else:
+                positions[eid] = (cx - w / 2, cy - h / 2)
+        # Kiertoreitit kehän reunaa pitkin
+        for s_type, t_type, exit_side, entry_side, edge_x in detours:
+            if s_type in primaries and t_type in primaries:
+                s_cy, t_cy = slots[s_type][1], slots[t_type][1]
+                self._triad_detours[(primaries[s_type], primaries[t_type])] = (exit_side, entry_side, [(edge_x, s_cy), (edge_x, t_cy)])
+        # "Further <type>" -paneelit kehän alle
+        ring_bottom = max([positions[g][1] + self._computed_sizes[g][1] for g in self.groups]
+                          + [positions[e][1] + self._size_override[e][1] for e in primaries.values() if e in positions])
+        page_w = self._TRIAD_PAGE_W if self.facet == 'all' else 1200
+        margin, gap = 50, 20
+        panels = []   # (tyyppi, jäsenet, sarakkeet, leveys)
+        for t, members in by_type.items():
+            rest = [m for m in members if m != primaries.get(t)]
+            if not rest:
+                continue
+            self._triad_hidden.update(rest)
+            if len(rest) >= 5:
+                panels.append((t, rest, 4, page_w - 2 * margin))
+            elif len(rest) >= 2:
+                panels.append((t, rest, 2, 400))
+            else:
+                panels.append((t, rest, 1, 240))
+        panels.sort(key=lambda p: -p[3])
+        y = ring_bottom + 40
+        x, row_h = margin, 0
+        lang_key = self.language if self.language in self._TRIAD_FURTHER_TITLE else 'en'
+        plural = self._TYPE_PLURAL[lang_key]
+        for t, rest, cols, pw in panels:
+            pad, top, cgap = 12, 30, 10
+            cw = int((pw - 2 * pad - (cols - 1) * cgap) / cols)
+            rows = -(-len(rest) // cols)
+            heights = [max(self._triad_chip_size(m, cw) for m in rest[r * cols:(r + 1) * cols]) for r in range(rows)]
+            ph = top + sum(heights) + (rows - 1) * cgap + pad
+            if x > margin and x + pw > page_w - margin:
+                x, y, row_h = margin, y + row_h + gap, 0
+            gid = f"further_{t}"
+            title = f"{self._TRIAD_FURTHER_TITLE[lang_key]} {plural.get(t, t)}"
+            self.groups[gid] = {'id': gid, 'kind': 'group', 'name': title, 'members': list(rest), 'tags': [],
+                                'metrics': {}, 'synthetic': True, 'facet': 'further', 'layout': 'triad'}
+            self._computed_sizes[gid] = (pw, ph)
+            positions[gid] = (x, y)
+            cy_rel = top
+            for r in range(rows):
+                for c, m in enumerate(rest[r * cols:(r + 1) * cols]):
+                    self.elements[m]['group'] = gid
+                    self._size_override[m] = (cw, heights[r])
+                    self._child_positions[m] = (pad + c * (cw + cgap), cy_rel)
+                cy_rel += heights[r] + cgap
+            x += pw + gap
+            row_h = max(row_h, ph)
+        # Elementit, joilla ei ole slottia (peruselementit yms.): rivi paneelien alle
+        placed = set(primaries.values()) | self._triad_hidden
+        leftovers = [e for e in self.elements if e not in placed]
+        if leftovers:
+            ly = y + row_h + gap if panels else ring_bottom + 40
+            lx = margin
+            for e in leftovers:
+                w, h = self._get_element_size(self.elements[e])
+                positions[e] = (lx, ly)
+                lx += w + 40
+        return positions
+
     # ---- karttatyypit -----------------------------------------------------
     def _calculate_map_type_layout(self, items: List[str], containers: List[str]) -> Dict[str, Tuple[int, int]]:
         """Laske layout karttatyypin mukaan. Reititä strategiaan MAP_TYPE_LAYOUT-taulun kautta."""
@@ -1635,10 +2063,11 @@ class EDGYParser:
         by_type = lambda t: [i for i in items if self.elements[i]['type'] == t]  # noqa: E731
         tree_children, child_set = self._compute_tree_structure()
         purposes = by_type('purpose')
-        top = [pid for pid in purposes if pid not in child_set]
-        subs = [pid for pid in purposes if pid in child_set]
-        if not top and purposes:
-            top, subs = purposes[:1], purposes[1:]
+        pset = set(purposes)
+        children = {p: [c for c in tree_children.get(p, []) if c in pset] for p in purposes}
+        roots = [pid for pid in purposes if pid not in child_set]
+        if not roots and purposes:
+            roots = purposes[:1]
         outcomes = by_type('outcome')
         attach: Dict[str, List[str]] = {}
         loose_outcomes = []
@@ -1646,67 +2075,126 @@ class EDGYParser:
             hit = None
             for rel in self.relationships:
                 other = rel['target'] if rel['source'] == o else rel['source'] if rel['target'] == o else None
-                if other in purposes:
+                if other in pset:
                     hit = other
                     break
             if hit:
                 attach.setdefault(hit, []).append(o)
             else:
                 loose_outcomes.append(o)
-        GAP_X, GAP_Y = 40, 50
+        H_GAP, V_GAP, O_GAP = 40, 90, 50    # sisarusväli, reittikäytävä rivien välissä, Outcome-rivin väli
+
+        def row_width(ids: List[str]) -> float:
+            return sum(sizes[i][0] for i in ids) + H_GAP * max(len(ids) - 1, 0)
+
+        def kid_gap(p: str) -> float:
+            """Lapsirivin väli: leveämpi kun vanhemman omat Outcomet nousevat lapsirivin läpi
+            (`measures`-viiva ja sen teksti tarvitsevat käytävän lasten välissä)."""
+            return H_GAP + 60 if attach.get(p) and children[p] else H_GAP
+
+        def subtree_w(p: str) -> float:
+            own = sizes[p][0]
+            kids = sum(subtree_w(c) for c in children[p]) + kid_gap(p) * max(len(children[p]) - 1, 0)
+            return max(own, kids, row_width(attach.get(p, [])))
+
+        def subtree_bottom(p: str, top: float) -> float:
+            """Alin y, jonka alipuu (lapset + omat Outcomet) tarvitsee."""
+            bottom = top + sizes[p][1]
+            if children[p]:
+                bottom = max(subtree_bottom(c, top + sizes[p][1] + V_GAP) for c in children[p])
+            if attach.get(p):
+                bottom = bottom + O_GAP + max(sizes[o][1] for o in attach[p])
+            return bottom
+
+        def place(p: str, cx: float, top: float) -> None:
+            """Vanhempi keskelle lastensa yläpuolelle; käytävä (V_GAP) lapsiriville;
+            Outcomet omalle riville alipuun alle, keskitettynä."""
+            w, h = sizes[p]
+            positions[p] = (cx - w / 2, top)
+            kids = children[p]
+            kids_bottom = top + h
+            if kids:
+                widths = [subtree_w(c) for c in kids]
+                gap = kid_gap(p)
+                total = sum(widths) + gap * (len(kids) - 1)
+                cursor = cx - total / 2
+                for c, cw in zip(kids, widths):
+                    place(c, cursor + cw / 2, top + h + V_GAP)
+                    cursor += cw + gap
+                kids_bottom = max(subtree_bottom(c, top + h + V_GAP) for c in kids)
+            outs = attach.get(p, [])
+            if outs:
+                oy = kids_bottom + O_GAP
+                ox = cx - row_width(outs) / 2
+                for o in outs:
+                    positions[o] = (ox, oy)
+                    ox += sizes[o][0] + H_GAP
+
         left_col = by_type('organisation') + by_type('content')
         right_col = by_type('brand') + by_type('story')
         left_w = max([sizes[i][0] for i in left_col], default=0)
-        right_w = max([sizes[i][0] for i in right_col], default=0)
         centre_x0 = 60 + (left_w + 80 if left_col else 0)
-
-        # Rivi 0: top purposes
-        y = 60
-        x = centre_x0
-        row_h = 0
-        for pid in top:
-            positions[pid] = (x, y)
-            x += sizes[pid][0] + GAP_X * 2
-            row_h = max(row_h, sizes[pid][1])
-        top_row_end = x - GAP_X * 2 if top else centre_x0 + 400
-        # Rivi 1: ali-purposet keskitettynä
-        y1 = y + row_h + GAP_Y + 20
-        x = centre_x0
-        sub_row_h = 0
-        for pid in subs:
-            col_w = max(sizes[pid][0], max([sizes[o][0] for o in attach.get(pid, [])], default=0))
-            positions[pid] = (x, y1)
-            oy = y1 + sizes[pid][1] + 30
-            for o in attach.get(pid, []):
-                positions[o] = (x, oy)
-                oy += sizes[o][1] + 20
-            sub_row_h = max(sub_row_h, oy - y1)
-            x += col_w + GAP_X
-        # Outcomet jotka kiinnittyvät top-purposeihin tai ovat irrallisia
-        for pid in top:
-            for o in attach.get(pid, []):
-                positions[o] = (x, y1)
-                x += sizes[o][0] + GAP_X
-        for o in loose_outcomes:
-            positions[o] = (x, y1)
-            x += sizes[o][0] + GAP_X
-        centre_right = max(x, top_row_end)
+        y0 = 60
+        cursor = centre_x0
+        for r in roots:
+            rw = subtree_w(r)
+            place(r, cursor + rw / 2, y0)
+            cursor += rw + H_GAP * 2
+        centre_right = max([positions[i][0] + sizes[i][0] for i in positions], default=centre_x0 + 400)
+        bottom = max([positions[i][1] + sizes[i][1] for i in positions], default=y0)
+        # Irralliset Outcomet omalle riville
+        if loose_outcomes:
+            ox, oy = centre_x0, bottom + O_GAP
+            for o in loose_outcomes:
+                positions[o] = (ox, oy)
+                ox += sizes[o][0] + H_GAP
+            centre_right = max(centre_right, ox - H_GAP)
+            bottom = oy + max(sizes[o][1] for o in loose_outcomes)
         # Vasen ja oikea sarake
-        ly = y
+        ly = y0
         for i in left_col:
             positions[i] = (60, ly)
             ly += sizes[i][1] + 30
-        ry = y
+        ry = y0
         for i in right_col:
             positions[i] = (centre_right + 60, ry)
             ry += sizes[i][1] + 30
         # Muut elementit alariville
         placed = set(positions)
-        bx, by = centre_x0, max(y1 + sub_row_h, ly, ry) + GAP_Y
+        bx, by = centre_x0, max(bottom, ly, ry) + O_GAP
         for i in items:
             if i not in placed:
                 positions[i] = (bx, by)
-                bx += sizes[i][0] + GAP_X
+                bx += sizes[i][0] + H_GAP
+        # Reititys: puuhaarat lähtevät vanhemman alareunasta ja tulevat lapsen yläreunaan
+        # (käytävä rivien välissä); Outcomen `measures` nousee yläreunasta Purposen alareunaan
+        attached = {o for group in attach.values() for o in group}
+        for rel in self.relationships:
+            s, t = rel['source'], rel['target']
+            opts = rel.setdefault('options', {})
+            if s in pset and t in children.get(s, []):
+                opts.setdefault('from', 'bottom')
+                opts.setdefault('to', 'top')
+            elif s in attached and t in pset:
+                opts.setdefault('from', 'top')
+                opts.setdefault('to', 'bottom')
+                if children.get(t):
+                    opts.setdefault('label', 'source')   # linja ohittaa lapsirivin: teksti Outcomen päässä
+            elif (s in left_col or s in right_col) and t in pset:
+                opts.setdefault('label', 'source')     # sarakkeen linkit jakavat käytävän: teksti lähellä lähdettä
+                # Useampi juuri: suora viiva sarakkeesta kauempaan juureen kulkisi lähemmän juuren
+                # läpi → kierrä ylärivin yläpuolelta (ulos sivulle, ylös, yli, alas juuren yläreunaan)
+                if len(roots) > 1 and t in roots and 'via' not in opts:
+                    sx, sy = positions[s]
+                    sw, sh = sizes[s]
+                    tx, ty = positions[t]
+                    tw = sizes[t][0]
+                    nearest = min(roots, key=lambda r: abs(positions[r][0] - sx))
+                    if nearest != t:
+                        out_x = sx + sw + 30 if s in right_col else sx - 30
+                        opts.setdefault('from', 'right' if s in right_col else 'left')
+                        opts.setdefault('to', 'top')
+                        opts['via'] = [(out_x, sy + sh / 2), (out_x, y0 - 30), (tx + tw / 2, y0 - 30)]
         return positions
 
     def _layout_organisation_roles(self, items: List[str]) -> Dict[str, Tuple[int, int]]:

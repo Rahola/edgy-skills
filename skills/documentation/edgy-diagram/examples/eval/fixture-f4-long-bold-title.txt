@@ -1,0 +1,25 @@
+# Fixture F4 — text fit with long bold titles (fictional, Acme Oy).
+#
+# Long names with descriptions, ids and a tag/metric line, in the three EDGY
+# shapes (rounded, rectangle, pentagon). The pentagon's usable text width is
+# narrower than its box. A constant-factor width estimate says these fit;
+# measured with a real bold font several of them overflow — the F4 defect.
+# Description rows must render in normal weight, not inherit the bold title.
+map_type: capability
+
+elements:
+  - capability: "Integrated multimodal journey planning and disruption management - planning, rebooking and refunds across operators" {id: CAP-01}
+  - capability: "Account-based travel - one identity, every operator, settled nightly" {id: CAP-02, size: S}
+  - capability: "Inspection and fraud control" {id: CAP-03, maturity: low}
+  - asset: "Open-loop contactless payment gateway with tokenised bank cards - PCI DSS scope reduced to the acquirer" {id: AST-01}
+  - asset: "Master data for stops, zones and fares" {id: AST-02, size: M}
+  - process: "Monthly fare settlement and operator revenue allocation" {id: PRO-01}
+  - process: "Incident-driven re-planning of the operating day" {id: PRO-02, size: L}
+  - product: "Regional travel subscription for commuters and occasional travellers alike" {id: PRD-01} [focus]
+
+relationships:
+  - "Integrated multimodal journey planning and disruption management" -> "Master data for stops, zones and fares": "requires"
+  - "Account-based travel" -> "Open-loop contactless payment gateway with tokenised bank cards": "requires"
+  - "Monthly fare settlement and operator revenue allocation" -> "Account-based travel": "realises"
+  - "Monthly fare settlement and operator revenue allocation" -> "Regional travel subscription for commuters and occasional travellers alike": "creates"
+  - "Regional travel subscription for commuters and occasional travellers alike" -> "Account-based travel": "requires"

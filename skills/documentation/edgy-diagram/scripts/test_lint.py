@@ -221,6 +221,158 @@ def test_json_output_is_pure_json():
         os.unlink(f.name)
 
 
+STRAIGHT = 'edgeStyle=none;endArrow=open;endFill=0;dashed=1;'
+
+
+def _findings(xml, *args):
+    with tempfile.NamedTemporaryFile('w', suffix='.drawio', delete=False, encoding='utf-8') as f:
+        f.write(xml)
+        path = f.name
+    try:
+        opts = edgy_lint.main.__globals__['argparse'].Namespace(no_legend=True)
+        return edgy_lint.lint_file(path, opts)
+    finally:
+        os.unlink(path)
+
+
+def test_w111_edge_through_box():
+    # A ── straight ──▶ C with B in the middle of the line
+    xml = HEAD + vertex(2, 'A', ASSET, 40, 100) + vertex(3, 'B', ASSET, 300, 100) + vertex(4, 'C', ASSET, 560, 100) + \
+        edge(10, 'depends on', STRAIGHT, 2, 4) + TAIL
+    f = _findings(xml)
+    w111 = [x for x in f if x.rule == 'W111']
+    assert len(w111) == 1 and w111[0].cell == '10' and w111[0].coords['other'] == '3', [str(x) for x in f]
+    assert w111[0].coords['inside_px'] >= 120
+    # move B out of the way → clean
+    xml = HEAD + vertex(2, 'A', ASSET, 40, 100) + vertex(3, 'B', ASSET, 300, 400) + vertex(4, 'C', ASSET, 560, 100) + \
+        edge(10, 'depends on', STRAIGHT, 2, 4) + TAIL
+    assert 'W111' not in rules(run(xml, '--no-legend'))
+
+
+def test_w111_allows_containers_and_nested_coordinates():
+    # the edge crosses a container (not an element) and a nested element is checked at its absolute position
+    cont = 'rounded=1;container=1;fillColor=#e6edff;strokeColor=#ffffff;'
+    xml = HEAD + vertex(2, 'A', ASSET, 40, 100) + vertex(5, 'Area', cont, 250, 20, 220, 300) + \
+        vertex(3, 'B', ASSET, 50, 80, parent='5') + vertex(4, 'C', ASSET, 560, 100) + \
+        edge(10, 'depends on', STRAIGHT, 2, 4) + TAIL
+    f = _findings(xml)
+    w111 = [x for x in f if x.rule == 'W111']
+    assert [x.coords['other'] for x in w111] == ['3'], [str(x) for x in f]   # B (abs 300,100), never the container
+
+
+def test_w112_label_on_box():
+    # a short edge whose label sits on the target box
+    xml = HEAD + vertex(2, 'A', ASSET, 40, 100) + vertex(3, 'B', ASSET, 180, 100) + \
+        edge(10, 'a rather long relationship label', STRAIGHT, 2, 3) + TAIL
+    f = _findings(xml)
+    assert any(x.rule == 'W112' for x in f), [str(x) for x in f]
+    # far apart → the label floats over empty space
+    xml = HEAD + vertex(2, 'A', ASSET, 40, 100) + vertex(3, 'B', ASSET, 600, 100) + \
+        edge(10, 'depends on', STRAIGHT, 2, 3) + TAIL
+    assert 'W112' not in rules(run(xml, '--no-legend'))
+
+
+def test_w113_label_on_label_but_not_for_a_tree_bus():
+    # a parent → children fan with one verb from one source is a bus: never W113
+    xml = HEAD + vertex(2, 'P', ASSET, 300, 40) + vertex(3, 'C1', ASSET, 40, 300) + vertex(4, 'C2', ASSET, 560, 300) + \
+        edge(10, 'contains', 'edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;', 2, 3) + \
+        edge(11, 'contains', 'edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;', 2, 4) + TAIL
+    f = _findings(xml)
+    assert not any(x.rule == 'W113' for x in f), [str(x) for x in f]
+    # same geometry, two different verbs from two different sources → W113
+    xml = HEAD + vertex(2, 'P', ASSET, 300, 40) + vertex(5, 'Q', ASSET, 300, 40) + vertex(3, 'C1', ASSET, 40, 300) + vertex(4, 'C2', ASSET, 560, 300) + \
+        edge(10, 'contains', 'edgeStyle=none;', 2, 3) + edge(11, 'enables', 'edgeStyle=none;', 5, 3) + TAIL
+    f = _findings(xml)
+    assert any(x.rule == 'W113' for x in f), [str(x) for x in f]
+
+
+def test_w114_outside_page():
+    xml = HEAD + vertex(2, 'A', ASSET, 40, 40) + vertex(3, 'B', ASSET, 650, 40) + \
+        edge(10, 'depends on', 'edgeStyle=none;', 2, 3) + TAIL          # B ends at x=770 < 800: label fits
+    assert 'W114' not in rules(run(xml, '--no-legend'))
+    xml = HEAD + vertex(2, 'A', ASSET, 40, 40) + vertex(3, 'B', ASSET, 700, 40) + \
+        edge(10, 'depends on', 'edgeStyle=orthogonalEdgeStyle;', 2, 3) + \
+        edge(11, 'x', 'edgeStyle=none;', 3, 2) + TAIL
+    # B extends past the page (E007) and a route with waypoints beyond it
+    xml2 = HEAD + vertex(2, 'A', ASSET, 40, 40) + vertex(3, 'B', ASSET, 600, 40) + \
+        ('<mxCell id="12" value="loops" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="2" target="3" parent="1">'
+         '<mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="400" y="650"/></Array></mxGeometry></mxCell>') + TAIL
+    f = _findings(xml2)
+    assert any(x.rule == 'W114' for x in f), [str(x) for x in f]
+
+
+def test_visual_findings_carry_coordinates_and_visual_flag_filters():
+    import json
+    import subprocess
+    xml = HEAD + vertex(2, 'A', ASSET, 40, 100) + vertex(3, 'B', ASSET, 300, 100) + vertex(4, 'C', ASSET, 560, 100) + \
+        edge(10, 'depends on', STRAIGHT, 2, 4) + TAIL
+    with tempfile.NamedTemporaryFile('w', suffix='.drawio', delete=False, encoding='utf-8') as f:
+        f.write(xml)
+        path = f.name
+    try:
+        r = subprocess.run([sys.executable, edgy_lint.__file__, '--visual', '--no-legend', path], capture_output=True, text=True)
+        data = json.loads(r.stdout)
+    finally:
+        os.unlink(path)
+    assert data and all(d['rule'] in edgy_lint.VISUAL_RULES for d in data), data
+    assert data[0]['coords']['edge'] == '10' and 'route' in data[0]['coords']
+    assert 'edgy-lint:' in r.stderr                       # summary goes to stderr, stdout is pure JSON
+
+
+def test_legend_strip_satisfies_e009_and_w115_scale():
+    p = EDGYParser()
+    p.parse_input("""
+map_type: asset
+legend: strip
+elements:
+  - asset: "Fare engine" {id: AST-01}
+  - asset: "Data lake" {id: AST-02}
+relationships:
+  - "Fare engine" -> "Data lake": "depends on"
+""")
+    xml = p.generate_xml()
+    with tempfile.NamedTemporaryFile('w', suffix='.drawio', delete=False, encoding='utf-8') as f:
+        f.write(xml)
+        path = f.name
+    try:
+        ns = edgy_lint.main.__globals__['argparse'].Namespace
+        f_default = edgy_lint.lint_file(path, ns(no_legend=False))
+        assert 'E009' not in {x.rule for x in f_default}, [str(x) for x in f_default]
+        assert not [x for x in f_default if x.level == 'ERROR'], [str(x) for x in f_default]
+        f_scaled = edgy_lint.lint_file(path, ns(no_legend=False, scale=0.3))
+        w115 = [x for x in f_scaled if x.rule == 'W115']
+        assert len(w115) == 3, [str(x) for x in w115]          # 2 elements + 1 relation label at 0.3
+        msgs = ' '.join(x.msg for x in w115)
+        assert 'description' in msgs and 'relation label' in msgs, msgs   # the 9 px id line is the smallest text
+        assert not [x for x in edgy_lint.lint_file(path, ns(no_legend=False, scale=1.0)) if x.rule == 'W115']
+    finally:
+        os.unlink(path)
+
+
+def test_fixtures_reproduce_visual_findings():
+    """The eval fixtures lint 0/0 structurally and > 0 on the visual rules."""
+    import subprocess
+    here = os.path.dirname(os.path.abspath(__file__))
+    gen = os.path.join(here, 'edgy_generator.py')
+    eval_dir = os.path.join(here, '..', 'examples', 'eval')
+    d = tempfile.mkdtemp()
+    ns = edgy_lint.main.__globals__['argparse'].Namespace
+    # the 19-element single facet in the default layout still reproduces the field defect
+    out = os.path.join(d, 'large.drawio')
+    r = subprocess.run([sys.executable, gen, os.path.join(eval_dir, 'large-architecture-facet.txt'), '--output', out], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    f = edgy_lint.lint_file(out, ns(no_legend=False))
+    assert not [x for x in f if x.level == 'ERROR'], [str(x) for x in f]
+    assert any(x.rule == 'W111' for x in f), sorted({x.rule for x in f})
+    # F1 (routing) and F5 (purpose tree) are fixed: clean under --warnings-as-errors, visual rules included
+    for name in ('fixture-f1-ports-waypoints', 'fixture-f5-purpose-tree'):
+        out = os.path.join(d, name + '.drawio')
+        r = subprocess.run([sys.executable, gen, os.path.join(eval_dir, name + '.txt'), '--output', out], capture_output=True, text=True)
+        assert r.returncode == 0, r.stderr
+        f = edgy_lint.lint_file(out, ns(no_legend=False))
+        assert not f, (name, [str(x) for x in f])
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

@@ -28,6 +28,8 @@ generator changes, never edit by hand). `check.sh` lints every expected file.
 | `purpose-hierarchy-map.txt` | `expected-purpose-hierarchy.drawio` | purpose hierarchy with Outcomes |
 | `organisation-roles-map.txt` | `expected-organisation-roles.drawio` | organisation role model |
 | `transition-overlay.txt` | `expected-transition-overlay.drawio` | transition overlay strokes, relationship options |
+| `triad-all-facets.txt` | `expected-triad-all-facets.drawio` | `map_type: triad` (extension) for `facet: all`: planned ring of 12 primaries with all 24 core links, "Further" panels, strip legend — 0 visual findings |
+| `triad-architecture.txt` | `expected-triad-architecture.drawio` | `map_type: triad` for one facet: intersection A on top, three primaries as a triangle, intersection B below, panels for 19 further elements |
 | `lanes-map.txt` | `expected-lanes.drawio` | `lane:` bands |
 | `reference-architecture-map.txt` | `expected-reference-architecture.drawio` | `reference` layout (extension) |
 | `summary-map.txt` | `expected-summary.drawio` | `summary` layout (extension) |

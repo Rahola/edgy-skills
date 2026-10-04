@@ -20,6 +20,232 @@ perustelut.
 
 ---
 
+### 2026-10-04 — Claude Code (PR #4 review fixes)
+
+Copilot review on PR #4: four findings, all reproduced and fixed.
+- Triad panel titles were English regardless of the report language: new
+  `language: fi|en|fr|de` input key (parser), per-language type plurals
+  for the "Further <type>" panels, `edgy_model_to_txt.py` writes the
+  model's language into every TXT. Test per language.
+- `--visual` claimed "with coordinates" but its filter included W115,
+  which has none: `VISUAL_RULES` is W111–W114 (docs already said so);
+  `edgy-eval.py` counts the same set.
+- "`--warnings-as-errors` enforced for F1/F5" was only true by test
+  assertion and F1 still carried a W113 (two labels meeting at a corner):
+  `label: source` on that edge, F1 and F5 asserted fully clean, and a new
+  `check.sh` step `edgy-lint-strict` lints triad + purpose examples and
+  the generated F1/F5 with `--warnings-as-errors`.
+- Releasing guide: compare *peeled* tag refs (`^{}` / `%(*objectname)`),
+  since annotated tags point at a tag object, not the commit.
+
+---
+
+### 2026-10-04 — Claude Code (Sprint 12: assessment workflow, release v2.1.0)
+
+**Assignment:** development-plan-2026-10 P4.1–P4.3 — bring the triad and
+the visual rules into the assessment workflow, and prepare the bundle
+release.
+
+**Done:**
+- `edgy-model.schema.json`: optional `primary: boolean` on elements and
+  capabilities. `edgy_model_to_txt.py --layout triad` writes
+  `map_type: triad`; core links follow the primary element (flag, else
+  first) and the flag is written as `{primary: true}`. New
+  `scripts/test_model_to_txt.py` (3 tests, `check.sh` step
+  `edgy-model-tests`) runs the chain model → TXT → drawio → lint on the
+  fictional sample model: all four triad files 0 errors and no W111–W114.
+- The chain test caught a real gap: with longer names the straight
+  `organisation → purpose` and `brand → purpose` lines clipped the Story /
+  Content boxes. Fixed with fixed corner ports for those two pairs
+  (`_TRIAD_ANCHORS`), so the ring stays clean for any name length.
+- edgy-assessment 1.7.0: Phase 3 `--layout triad` and the primary rule;
+  Phase 4 `--visual` in the quality gate, all-facets ratio ≤ 1.2,
+  structural maps (purpose / capability / journey) recommended from the
+  same model with the same ids; Phase 5 `--warnings-as-errors --visual`,
+  final PDF pages reviewed at viewing scale with `--scale` and
+  `--publication`. Templates section 9 (fi/en/fr/de) explain the ring.
+- `CHANGELOG.md` v2.1.0, README versions, registry.
+
+**Not done here:** the plan's P3.4 "shipped examples visually clean" for
+the default facet / lane / reference layouts (see the Sprint 11 entry) and
+the status line in `docs/development-plan-2026-10.md`, which lives on the
+plan's own branch (PR #3).
+
+---
+
+### 2026-10-04 — Claude Code (Sprint 11: map_type triad, purpose-tree layout)
+
+**Assignment:** development-plan-2026-10 P3.1–P3.4. The planned ring for
+large models, and a purpose tree whose branches do not cross its children.
+
+**Done:**
+- `map_type: triad` (EDGY extension, opt-in) in `edgy_parser.py`: a slot
+  table per facet (`facet: all` ring 1340 px wide; single-facet variants
+  for identity / architecture / experience), one *primary* element per
+  type (`{primary: true}`, else the first of its type; several → warning,
+  first wins), straight `edgeStyle=none` core links drawn border to
+  border, two intersection links detoured along the page edge with fixed
+  ports and waypoints, a default label shift per slot pair (overridable
+  with the new `{label_dx, label_dy}` relationship options, emitted as
+  `<mxPoint as="offset">`), "Further <type>" panels (grey containers,
+  chips sized by measured text, 1–4 columns) for the non-primary elements,
+  links into a panel reported as a warning with the pair names — never
+  dropped silently. `legend: strip` by default, `legend: box` wins when
+  given; `group:` / `lane:` / `layout_from:` are ignored with a warning.
+  Collision resolution and grid snapping are bypassed for the ring.
+- `_layout_purpose` rewritten as a tidy tree: parent centred over its
+  children, a 90 px corridor between rows, children entered from the top
+  (`from: bottom, to: top` set on tree relationships), Outcomes in their
+  own row beneath the purpose they measure (`from: top, to: bottom`), a
+  wider child gap when a parent's own Outcomes rise through the child row,
+  `label: source` where routes share a corridor. Fixture F5: 13 visual
+  findings → 0.
+- Examples `triad-all-facets.txt` (12 primaries, 23 further, all 24 core
+  links, 2 reported links) and `triad-architecture.txt` (the 19-element
+  field case as a ring + panels); both lint **0 errors / 0 warnings
+  including W111–W114**. `references/map-types.md` has the slot tables.
+  SKILL.md 2.5.0. 6 new tests.
+
+**Regression guard:** without `map_type: triad` / `legend:`, every shipped
+example regenerates byte-identical to Sprint 10 except the two purpose
+maps, which change by design (P3.2).
+
+**Remaining gap, recorded honestly:** the shipped examples that use the
+default facet, lane and reference layouts still carry 48 W111 / 26 W112 /
+1 W113 (10 files). Those layouts were not in this plan's scope; the
+guidance now says to use `triad` for facet maps with many links, and the
+eval set measures the rest. `check.sh` therefore keeps "0 errors" for
+shipped examples; `--warnings-as-errors` is the bar for triad, purpose and
+the fixtures F1/F5 (tested).
+
+---
+
+### 2026-10-04 — Claude Code (Sprint 10: text metrics, publication bounds, strip legend, --scale)
+
+**Assignment:** development-plan-2026-10 P2.1–P2.4.
+
+**Done:**
+- `scripts/edgy_text.py` (stdlib): per-glyph advance widths of Helvetica and
+  Helvetica-Bold (Adobe Core 14 metrics, which Arial matches), accents fall
+  back to the base letter, `measure` / `wrap` / `lines_needed`; Pillow with
+  a Liberation/Arimo/Arial font is used when present, never required
+  (`EDGY_TEXT_TABLE_ONLY=1` forces the tables). The generator sizes boxes
+  from the measured 14 px bold name (pentagon tip excluded from the text
+  area) and wraps descriptions at 9 px normal; the preview wraps with the
+  same function; W101 measures the same way and honours per-line
+  `font-weight`. Description rows no longer inherit the cell's bold
+  (`label_lines` returns an explicit weight per line) — F4.
+- `--publication` (renderer, generator `--preview` / `--engine native`):
+  viewBox from the bounding box of shapes, full routes, label boxes and
+  legend plus a 24 px margin, no editor-page frame; an orientation hint
+  (`landscape` / `portrait` / `square`) per page — F6.
+- `legend: strip` input option: one 24 px band along the bottom (title, six
+  short chips, four line samples; a second row when the page is narrow, a
+  third for the transition overlay); the page height becomes content +
+  band instead of the 900 px editor minimum. E009's structural detection is
+  satisfied by construction. Default stays `box`.
+- `edgy_lint.py --scale F` → W115 when a title, description or relation
+  label falls below 6 pt (px × F × 0.75) at the report scale.
+- Tests: 2 render, 1 lint, 2 structure; SKILL.md documents all four.
+
+**Regenerated once, as planned:** all 26 shipped `expected-*.drawio`
+changed because box widths now follow measured text (mostly 10–30 px
+narrower or wider, heights follow real wrapping). Every file still lints 0
+errors; previews of the facet map, reference architecture, F4 fixture and
+a strip-legend journey were looked at. Visual-rule aggregates after
+regeneration: eval set 46 (reference architecture, was 52) / 79 / 13 / 8 /
+6 / 1 — unchanged in kind, the layout work in Sprint 11 is what moves
+them.
+
+**Decisions:** glyph tables over a font dependency (the repo stays
+stdlib-only and deterministic across machines); overflow policy is "widen
+to 280 px, then wrap, then W101" — text is never scaled down. W115 reports
+one finding per cell with its smallest text, so a scaled-down map yields
+one line per box, not one per row.
+
+---
+
+### 2026-10-04 — Claude Code (Sprint 9: shared geometry, visual lint rules)
+
+**Assignment:** development-plan-2026-10 P1.1–P1.4. One resolved geometry
+for generator, preview and lint; fix the two renderer defects it exposed;
+add the visual rules the field case slipped through.
+
+**Done:**
+- `scripts/edgy_geometry.py` (stdlib): absolute boxes through the parent
+  chain, port distribution, side choice, border points, orthogonal route
+  normalisation (end segments perpendicular to their side, an OUTWARD step
+  when a waypoint lies behind the port, duplicates and *between*-collinear
+  points removed — an out-and-back spike is a real detour and stays), label
+  position as a fraction of arc length with perpendicular and absolute
+  offsets, Liang–Barsky clipping, bounding boxes. 17 tests.
+- `edgy_render.py` uses it: F1 (diagonal end segments with waypoints) and
+  F2 (`label: source|middle|target` all drawn at the midpoint) are fixed;
+  `edgeStyle=none` edges run border to border; `<mxPoint as="offset">` and
+  relative `y` move labels. The parser takes `distribute()` and the side
+  choice from the same module.
+- `edgy_lint.py` W111–W114 on that geometry, `--visual` JSON with cell ids
+  and coordinates, `Finding.coords`. Containers never count for W111; a
+  one-verb fan from one source is a bus for W113.
+- Tests: 4 render, 7 lint, `edgy-geometry-tests` step in `check.sh`.
+
+**Baseline → after, aggregates.** Shipped examples (26 files): structural
+0 errors / 0 warnings before and after; visual rules now report **83
+warnings** (W111 × 49, W112 × 33, W113 × 1) in 10 files. Eval fixtures:
+large single-facet map 79 visual findings, F5 purpose tree 13, F2 8, F4 6,
+F1 1 (W113 — the diagonal segments themselves are gone). The generator's
+output for every shipped example is byte-identical to before this sprint
+(the parser refactor changed no behaviour), so the 83 are the *existing*
+pictures measured honestly for the first time.
+
+**Decision:** the shipped examples are not made visually clean in this
+sprint. Most findings come from the single-column facet layout and the
+purpose tree, which Sprint 11 replaces (`triad`, purpose re-layout); fixing
+the inputs now would be redone. `check.sh` keeps "0 errors" for shipped
+examples until then; `--warnings-as-errors` becomes the bar in Sprint 11.
+
+---
+
+### 2026-10-04 — Claude Code (Sprint 8: release hygiene, regression fixtures)
+
+**Assignment:** `docs/development-plan-2026-10.md` P0.2–P0.3. Make the
+findings of the two field reviews reproducible before changing any
+algorithm, and write down how a release is cut so the tag mistake (v1.0.0
+and v2.0.0 resolving to the same commit) cannot repeat.
+
+**Done:**
+- `CONTRIBUTING.md` — "Releasing (maintainers)": tag the merge commit after
+  the merge, verify with `git ls-remote --tags`, Release notes = CHANGELOG
+  entry, how to fix a tag that points at the wrong commit.
+- Five fictional (Acme Oy) fixtures in `examples/eval/`, each reproducing
+  one finding on the current generator/renderer/linter:
+  F1 distributed ports + `via:` waypoints on all four sides (diagonal end
+  segments in the native preview), F2 three label positions (all rendered
+  at the midpoint), F4 long bold titles in all three shapes, F5 purpose tree
+  with 4 children + 4 Outcomes + a second level (parent above the leftmost
+  child, branches through sibling boxes), and `large-architecture-facet`
+  (19 elements in one facet, 30 core links — edges through boxes, labels on
+  boxes). The fixtures are in `edgy-eval.py`'s default set.
+- `tools/edgy-eval.py` prints two new columns: **H/W** (page height / width
+  of the worst page) and **Visual** (sum of W111–W115 once the linter has
+  them).
+
+**Baseline (before Sprint 9), aggregates:** 12 eval inputs, 0 generator
+errors, 0 lint errors, 0 lint warnings — including the five fixtures that
+are visibly defective in their previews. H/W: 0.36–0.75 (no input above
+1.0; the single-facet layout is a grid, so the field case's 1.4 ratio comes
+from a column layout in `facet: all` with one dominant facet, covered by
+the triad work in Sprint 11). Visual: 0 everywhere, because the rules do
+not exist yet — that is the gap Sprint 9 closes.
+
+**Decisions:** the large single-facet fixture is named by what it is
+(`large-architecture-facet.txt`), not by the layout that will fix it; the
+`triad` examples come with Sprint 11. Fixture waypoints are computed from
+the generated positions (ids add a 9 px line, so boxes are 120 × 80 and
+rows sit at y = 80 / 200 / 320) and documented in the file header.
+
+---
+
 ### 2026-10-02 — Claude Code
 
 **Assignment:** Address the Copilot review on PR #2 (12 threads + one
