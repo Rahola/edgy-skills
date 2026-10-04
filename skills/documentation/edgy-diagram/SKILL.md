@@ -124,6 +124,7 @@ cannot run, and then only for diagrams under ~15 cells — still lint it later.
 ```bash
 python3 scripts/edgy_lint.py <name>.drawio                       # 0 errors required
 python3 scripts/edgy_lint.py --warnings-as-errors <name>.drawio  # strict (shipped examples)
+python3 scripts/edgy_lint.py --visual <name>.drawio              # W111–W114 only, JSON with coordinates
 ```
 
 The linter checks structure (flat `mxCell` tree, edge geometry, dangling
@@ -132,7 +133,20 @@ parent chains resolved, no overlaps > 30 %, text fits), notation (legend,
 palette, intersection shapes, no type word in labels) and semantics (core-link
 verb only on an allowed pair, non-core verb never in core-link style, verbs
 from the vocabulary). Exit 1 = fix before delivery; warnings do not block but
-must be read. If it cannot run, check by hand that the file has more than the
+must be read.
+
+**Visual rules (W111–W114)** run on the same resolved geometry the preview
+draws (`edgy_geometry.py`: ports, orthogonal joins, waypoints, label boxes),
+so a clean structural lint is no longer mistaken for a readable picture:
+W111 an edge passes through an element that is not its source or target,
+W112 an edge label lies on an element, W113 a label lies on another label (a
+parent → children fan with one verb is one bus and is allowed), W114 a label
+or edge end leaves the page. They are warnings: fix them by moving the
+element, adding `via:` waypoints, changing `from:`/`to:`, or using `label:
+source|target`; `--visual` gives the cell ids and coordinates for a script to
+act on. A delivery should have none; `--warnings-as-errors` enforces that.
+
+If the linter cannot run, check by hand that the file has more than the
 two structural cells, one `vertex` per element, one `edge` with geometry per
 relationship, and is larger than 1000 bytes.
 
@@ -427,7 +441,8 @@ Lint finds structural and semantic errors; only a picture shows overlaps,
 cut text, spaghetti routing and labels on boxes. Generate with `--preview`
 (or run `edgy_render.py`), open the PNG/SVG and check:
 
-- [ ] no edge label on top of an element label; every edge visibly starts and ends at an element
+- [ ] no edge passes through a box and no edge label lies on a box or another label — `edgy_lint.py --visual` must report nothing (W111–W114 = 0)
+- [ ] every edge visibly starts and ends at an element; no diagonal end segments on orthogonal routes
 - [ ] nothing cut off or overlapping; text fits its element
 - [ ] legend clear of content; page height ≤ 1.5 × width (otherwise pages or another map type)
 - [ ] no element twice; intersection elements between the facets they bridge

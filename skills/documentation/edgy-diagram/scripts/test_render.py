@@ -261,6 +261,75 @@ def test_plantuml_engine_writes_one_source_per_page():
     assert 'Fare engine' in open(os.path.join(d, 'map-systems.puml'), encoding='utf-8').read()
 
 
+EVAL = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'examples', 'eval')
+
+
+def _svg_of_fixture(name):
+    d = tempfile.mkdtemp()
+    out = os.path.join(d, name + '.drawio')
+    r = _run_generator(os.path.join(EVAL, name + '.txt'), '--output', out)
+    assert r.returncode == 0, r.stderr
+    pages = edgy_document.load_pages_from_file(out)
+    page = edgy_render.Page(pages[0][1])
+    return page, edgy_render.page_to_svg(page, name)
+
+
+def _edge_paths(svg):
+    """[(x, y), …] per edge path drawn in the SVG (M … L … segments)."""
+    out = []
+    svg = re.sub(r'<defs>.*?</defs>', '', svg, flags=re.S)      # arrow markers are paths too
+    for d in re.findall(r'<path d="([^"]+)" fill="none"', svg):
+        pts = [tuple(float(v) for v in p.split(',')) for p in re.findall(r'(-?\d+\.?\d*,-?\d+\.?\d*)', d)]
+        out.append(pts)
+    return out
+
+
+def test_render_no_diagonal_endpoints():
+    # F1: ports spread along a side + waypoints computed for the centre port
+    page, svg = _svg_of_fixture('fixture-f1-ports-waypoints')
+    paths = [p for p in _edge_paths(svg) if len(p) >= 3]
+    assert len(paths) >= 6, len(paths)
+    for pts in paths:
+        for (ax, ay), (bx, by) in zip(pts, pts[1:]):
+            assert abs(ax - bx) < 0.6 or abs(ay - by) < 0.6, f'diagonal segment in {pts}'
+
+
+def test_render_label_fractions():
+    # F2: label: source / middle / target must land at different places along the edge
+    page, svg = _svg_of_fixture('fixture-f2-labels')
+    xs = [float(m) for m in re.findall(r'<text x="(-?\d+\.?\d*)" y="-?\d+\.?\d*" font-family="[^"]+" font-size="11(?:\.0)?"', svg)]
+    assert len(xs) == 3, xs
+    assert xs[0] < xs[1] < xs[2], xs        # source 25 % < middle 50 % < target 75 %
+
+
+def test_render_straight_edges_border_to_border():
+    # edgeStyle=none between two boxes: a single segment that starts and ends on the borders
+    xml = ('<mxGraphModel pageWidth="600" pageHeight="300"><root><mxCell id="0"/><mxCell id="1" parent="0"/>'
+           '<mxCell id="a" value="A" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#fff;" vertex="1" parent="1"><mxGeometry x="40" y="40" width="120" height="60" as="geometry"/></mxCell>'
+           '<mxCell id="b" value="B" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#fff;" vertex="1" parent="1"><mxGeometry x="400" y="160" width="120" height="60" as="geometry"/></mxCell>'
+           '<mxCell id="e" value="requires" style="edgeStyle=none;endArrow=classic;endFill=1;" edge="1" source="a" target="b" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>'
+           '</root></mxGraphModel>')
+    page = edgy_render.Page(ET.fromstring(xml))
+    svg = edgy_render.page_to_svg(page)
+    paths = _edge_paths(svg)
+    assert len(paths) == 1 and len(paths[0]) == 2, paths
+    (x1, y1), (x2, y2) = paths[0]
+    assert abs(x1 - 160) < 0.6 and 40 <= y1 <= 100      # leaves A on its right border
+    assert abs(x2 - 400) < 0.6 and 160 <= y2 <= 220     # enters B on its left border
+
+
+def test_render_label_offset_point_moves_label():
+    xml = ('<mxGraphModel pageWidth="600" pageHeight="300"><root><mxCell id="0"/><mxCell id="1" parent="0"/>'
+           '<mxCell id="a" value="A" style="fillColor=#a6c0ff;" vertex="1" parent="1"><mxGeometry x="40" y="40" width="120" height="60" as="geometry"/></mxCell>'
+           '<mxCell id="b" value="B" style="fillColor=#a6c0ff;" vertex="1" parent="1"><mxGeometry x="400" y="40" width="120" height="60" as="geometry"/></mxCell>'
+           '<mxCell id="e" value="requires" style="edgeStyle=none;" edge="1" source="a" target="b" parent="1">'
+           '<mxGeometry relative="1" as="geometry"><mxPoint x="0" y="30" as="offset"/></mxGeometry></mxCell>'
+           '</root></mxGraphModel>')
+    svg = edgy_render.page_to_svg(edgy_render.Page(ET.fromstring(xml)))
+    ys = [float(m) for m in re.findall(r'<text x="-?\d+\.?\d*" y="(-?\d+\.?\d*)" font-family="[^"]+" font-size="11(?:\.0)?"', svg)]
+    assert len(ys) == 1 and ys[0] > 70 + 20, ys            # 30 px below the path (y = 70), not raised above it
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

@@ -62,8 +62,9 @@ field list and local validation steps.
 ```bash
 pip install pyyaml
 bash tools/check.sh            # validator + registry-sync + examples-refs + core-links-sync
-                               # + edgy-tests + edgy-lint-tests + edgy-render-tests + edgy-structure-tests
-                               # + edgy-model + edgy-eval + edgy-lint + privacy-scan
+                               # + edgy-tests + edgy-geometry-tests + edgy-lint-tests + edgy-render-tests
+                               # + edgy-structure-tests + edgy-tool-tests + edgy-model + edgy-eval
+                               # + edgy-lint + privacy-scan
 ```
 
 `check.sh` also runs the EDGY parser and linter tests and lints every

@@ -33,23 +33,13 @@ from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from edgy_document import load_pages_from_file, unique_slugs  # noqa: E402
+import edgy_geometry as geo  # noqa: E402 — ports, routes and label boxes shared with parser and lint
 
 CHAR_W = 0.55
 LINE_H = 1.2
 FONT = "Helvetica, Arial, sans-serif"
 
-
-def style_dict(style: str) -> Dict[str, str]:
-    d: Dict[str, str] = {}
-    for part in (style or '').split(';'):
-        if not part:
-            continue
-        if '=' in part:
-            k, v = part.split('=', 1)
-            d[k] = v
-        else:
-            d[part] = '1'
-    return d
+style_dict = geo.style_dict
 
 
 def label_lines(value: str) -> List[Tuple[str, bool, Optional[float]]]:
@@ -102,83 +92,18 @@ class Page:
         self._abs: Dict[str, Tuple[float, float, float, float]] = {}
 
     def geom(self, c):
-        g = c.find('mxGeometry')
-        if g is None:
-            return None
-        return [float(g.get(k, 0) or 0) for k in ('x', 'y', 'width', 'height')]
+        return geo.geometry_of(c)
 
     def abs_box(self, cid):
-        if cid in self._abs:
-            return self._abs[cid]
-        c = self.cells.get(cid)
-        if c is None or c.get('vertex') != '1':
-            return None
-        g = self.geom(c)
-        if g is None:
-            return None
-        x, y, w, h = g
-        p = self.cells.get(c.get('parent'))
-        guard = 0
-        while p is not None and p.get('vertex') == '1' and guard < 50:
-            pg = self.geom(p)
-            if pg:
-                x += pg[0]
-                y += pg[1]
-            p = self.cells.get(p.get('parent'))
-            guard += 1
-        self._abs[cid] = (x, y, w, h)
-        return self._abs[cid]
+        return geo.abs_box(self.cells, cid, self._abs)
 
-
-def _side_point(box, side, frac=0.5):
-    x, y, w, h = box
-    return {
-        'left': (x, y + h * frac), 'right': (x + w, y + h * frac),
-        'top': (x + w * frac, y), 'bottom': (x + w * frac, y + h),
-    }[side]
-
-
-def _anchor(box, st, prefix, other_box):
-    """Point on the box border: from exitX/entryX style if present, else by direction."""
-    kx, ky = f'{prefix}X', f'{prefix}Y'
-    x, y, w, h = box
-    if kx in st and ky in st:
-        try:
-            fx, fy = float(st[kx]), float(st[ky])
-            fx = min(max(fx, 0.0), 1.0)
-            fy = min(max(fy, 0.0), 1.0)
-            side = 'left' if fx == 0 else 'right' if fx == 1 else 'top' if fy == 0 else 'bottom' if fy == 1 else None
-            return (x + w * fx, y + h * fy), side
-        except ValueError:
-            pass
-    if other_box is None:
-        return (x + w / 2, y + h / 2), None
-    ox, oy, ow, oh = other_box
-    dx = (ox + ow / 2) - (x + w / 2)
-    dy = (oy + oh / 2) - (y + h / 2)
-    if abs(dx) >= abs(dy):
-        side = 'right' if dx >= 0 else 'left'
-    else:
-        side = 'bottom' if dy >= 0 else 'top'
-    return _side_point(box, side), side
-
-
-def _orthogonal(p1, s1, p2, s2, points):
-    """Polyline for an orthogonal edge; explicit waypoints win."""
-    if points:
-        return [p1] + points + [p2]
-    (x1, y1), (x2, y2) = p1, p2
-    if s1 in ('left', 'right') and s2 in ('left', 'right'):
-        mx = (x1 + x2) / 2
-        return [p1, (mx, y1), (mx, y2), p2]
-    if s1 in ('top', 'bottom') and s2 in ('top', 'bottom'):
-        my = (y1 + y2) / 2
-        return [p1, (x1, my), (x2, my), p2]
-    if s1 in ('left', 'right'):
-        return [p1, (x2, y1), p2]
-    if s1 in ('top', 'bottom'):
-        return [p1, (x1, y2), p2]
-    return [p1, p2]
+    def edge_path(self, c):
+        """Polyline of an edge cell — the same route the linter checks."""
+        st = style_dict(c.get('style'))
+        points, sp, tp, _offset, _rx, _ry = geo.edge_points(c)
+        sb = self.abs_box(c.get('source')) if c.get('source') else None
+        tb = self.abs_box(c.get('target')) if c.get('target') else None
+        return geo.edge_path(sb, tb, st, points, sp, tp)
 
 
 def page_to_svg(page: Page, title: Optional[str] = None) -> str:
@@ -289,32 +214,10 @@ def page_to_svg(page: Page, title: Optional[str] = None) -> str:
         if c.get('edge') != '1':
             continue
         st = style_dict(c.get('style'))
-        g = c.find('mxGeometry')
-        sb = page.abs_box(c.get('source')) if c.get('source') else None
-        tb = page.abs_box(c.get('target')) if c.get('target') else None
-        points: List[Tuple[float, float]] = []
-        if g is not None:
-            arr = g.find("Array[@as='points']")
-            if arr is not None:
-                for p in arr.findall('mxPoint'):
-                    points.append((float(p.get('x', 0)), float(p.get('y', 0))))
-        if sb is None or tb is None:
-            if g is None:
-                continue
-            sp = g.find("mxPoint[@as='sourcePoint']")
-            tp = g.find("mxPoint[@as='targetPoint']")
-            if sp is None or tp is None:
-                continue
-            p1 = (float(sp.get('x', 0)), float(sp.get('y', 0)))
-            p2 = (float(tp.get('x', 0)), float(tp.get('y', 0)))
-            path = [p1] + points + [p2]
-        else:
-            p1, s1 = _anchor(sb, st, 'exit', tb)
-            p2, s2 = _anchor(tb, st, 'entry', sb)
-            if st.get('edgeStyle') in ('orthogonalEdgeStyle', 'elbowEdgeStyle') or points:
-                path = _orthogonal(p1, s1, p2, s2, points)
-            else:
-                path = [p1, p2]
+        path = page.edge_path(c)
+        if path is None or len(path) < 2:
+            continue
+        _points, _sp, _tp, offset, rel_x, rel_y = geo.edge_points(c)
         color = st.get('strokeColor', '#000000')
         if color == 'none':
             color = '#000000'
@@ -331,28 +234,17 @@ def page_to_svg(page: Page, title: Optional[str] = None) -> str:
             attrs += f' marker-start="url(#{marker(kind, color)})"'
         d = 'M ' + ' L '.join(f'{px:.1f},{py:.1f}' for px, py in path)
         parts.append(f'<path d="{d}" fill="none" stroke="{color}" stroke-width="{sw}"{dash}{attrs}/>')
-        # label near the middle of the path
+        # label: position along the path from mxGeometry x (-1 … 1 → 0 … 100 %),
+        # perpendicular offset from y, absolute offset from <mxPoint as="offset">
         lab = ' '.join(t for t, _, _ in label_lines(c.get('value') or ''))
         if lab:
-            total = sum(((path[i + 1][0] - path[i][0]) ** 2 + (path[i + 1][1] - path[i][1]) ** 2) ** 0.5 for i in range(len(path) - 1))
-            target = total / 2
-            mx, my = path[0]
-            acc = 0.0
-            for i in range(len(path) - 1):
-                (ax, ay), (bx, by) = path[i], path[i + 1]
-                seg = ((bx - ax) ** 2 + (by - ay) ** 2) ** 0.5
-                if acc + seg >= target and seg > 0:
-                    t = (target - acc) / seg
-                    mx, my = ax + (bx - ax) * t, ay + (by - ay) * t
-                    break
-                acc += seg
             fs = float(st.get('fontSize', 11) or 11)
-            lw = len(lab) * fs * CHAR_W + 8
             fc = st.get('fontColor', '#000000')
-            # label sits just above the path so short edges stay visible
-            ly = my - fs * 0.6
-            parts.append(f'<rect x="{mx - lw / 2:.1f}" y="{ly - fs * 0.85:.1f}" width="{lw:.1f}" height="{fs * 1.3:.1f}" fill="#ffffff" fill-opacity="0.8"/>'
-                         f'<text x="{mx:.1f}" y="{ly + fs * 0.2:.1f}" font-family="{FONT}" font-size="{fs}" fill="{fc}" text-anchor="middle">{esc(lab)}</text>')
+            lbox = geo.edge_label_box(path, lab, fs, rel_x, rel_y, offset)
+            if lbox:
+                lx, ly, lw, lh = lbox
+                parts.append(f'<rect x="{lx:.1f}" y="{ly:.1f}" width="{lw:.1f}" height="{lh:.1f}" fill="#ffffff" fill-opacity="0.8"/>'
+                             f'<text x="{lx + lw / 2:.1f}" y="{ly + lh / 2 + fs * 0.35:.1f}" font-family="{FONT}" font-size="{fs}" fill="{fc}" text-anchor="middle">{esc(lab)}</text>')
 
     pad = 20
     vx, vy = minx - pad, miny - pad

@@ -6,8 +6,9 @@
 # tools/install-git-hooks.sh:lla) ja manuaalinen kontribuoija.
 #
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
-# edgy-tests, edgy-lint-tests, edgy-render-tests, edgy-structure-tests, edgy-tool-tests,
-# edgy-model, edgy-eval, edgy-lint, privacy-scan.
+# edgy-tests, edgy-geometry-tests, edgy-lint-tests, edgy-render-tests,
+# edgy-structure-tests, edgy-tool-tests, edgy-model, edgy-eval, edgy-lint,
+# privacy-scan.
 #
 # Käyttö:
 #   bash tools/check.sh                          # täysi tarkistus
@@ -199,6 +200,7 @@ run_step "core-links-sync" python3 tools/render-core-links.py --check
 # --- Vaihe 3c: EDGY-parserin ja -lintin testit -------------------------------
 EDGY_SCRIPTS="skills/documentation/edgy-diagram/scripts"
 run_step "edgy-tests" python3 "$EDGY_SCRIPTS/test_edgy.py"
+run_step "edgy-geometry-tests" python3 "$EDGY_SCRIPTS/test_geometry.py"
 run_step "edgy-lint-tests" python3 "$EDGY_SCRIPTS/test_lint.py"
 run_step "edgy-render-tests" python3 "$EDGY_SCRIPTS/test_render.py"
 run_step "edgy-structure-tests" python3 "$EDGY_SCRIPTS/test_structure.py"

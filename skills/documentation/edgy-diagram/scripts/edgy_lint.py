@@ -36,6 +36,16 @@ Rules
   W106 empty container                       W107 double-escaped HTML entity in a label
   W108 unlabelled edge between two elements  W109 label repeats the element type ("Capability X")
   W110 stroke colour outside EDGY white / base-element dark / transition overlay palette
+
+Visual rules — computed on the same resolved geometry the native renderer
+draws (edgy_geometry.py): ports, orthogonal joins, waypoints, label boxes.
+  W111 edge passes through an element that is neither its source nor target (> 8 px inside)
+  W112 edge label overlaps an element (> 20 % of the label box)
+  W113 edge label overlaps another edge label (> 20 % of the smaller box; a
+       parent → children fan with one verb is one bus and does not count)
+  W114 edge label or edge end outside the page
+  --visual prints only the visual findings, as JSON with page, cell ids and
+  coordinates, for a machine to act on.
 """
 
 import argparse
@@ -49,8 +59,10 @@ import urllib.parse
 import xml.etree.ElementTree as ET
 import zlib
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import edgy_geometry as geo  # noqa: E402 — the renderer's geometry, so lint checks what is drawn
+
 try:  # vocabulary from the generated module next to this file
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from edgy_core_links import core_link_pairs, INFLUENCE_RELATIONSHIPS  # noqa: E402
     from edgy_parser import FLOW_RELATIONSHIPS, TREE_RELATIONSHIPS  # noqa: E402
 except Exception:  # pragma: no cover — lint must still run standalone
@@ -59,6 +71,11 @@ except Exception:  # pragma: no cover — lint must still run standalone
     INFLUENCE_RELATIONSHIPS = set()
     FLOW_RELATIONSHIPS = set()
     TREE_RELATIONSHIPS = set()
+
+VISUAL_RULES = ('W111', 'W112', 'W113', 'W114', 'W115')
+W111_MIN_INSIDE = 8.0      # px of an edge inside a foreign element before it counts
+W112_MIN_OVERLAP = 0.20    # share of the label box over an element
+W113_MIN_OVERLAP = 0.20    # share of the smaller label box over another label
 
 PALETTE = {
     '#80ffb7': 'identity', '#a6c0ff': 'architecture', '#ff99bd': 'experience',
@@ -82,9 +99,10 @@ LINE_H = 1.25   # line height as a fraction of font size
 
 
 class Finding:
-    def __init__(self, level, rule, msg, file, line=None, cell=None, page=None):
+    def __init__(self, level, rule, msg, file, line=None, cell=None, page=None, coords=None):
         self.level, self.rule, self.msg, self.file, self.line, self.cell, self.page = \
             level, rule, msg, file, line, cell, page
+        self.coords = coords   # visual rules: {'edge': id, 'other': id, 'box': [x, y, w, h], …}
 
     def __str__(self):
         loc = f"{self.file}:{self.line}" if self.line else self.file
@@ -427,6 +445,83 @@ def lint_model(path, page, model, lines, opts):
                 add('ERROR', 'E011', f'"{verb}" is not one of the 24 core links but is drawn with the solid core-link arrow — use dashed influence style (endArrow=open;endFill=0;dashed=1)', i)
             if not known:
                 add('WARNING', 'W105', f'verb "{verb}" is not in the core-link, flow, tree or influence vocabulary', i)
+
+    # W111–W114 visual rules — on the renderer's geometry (edgy_geometry)
+    F.extend(visual_findings(path, page, lines, cells, elements, containers, page_w, page_h))
+    return F
+
+
+def visual_findings(path, page, lines, cells, elements, containers, page_w, page_h):
+    """Edge routes and label boxes against element boxes, other labels and the
+    page. `elements` is {id: (cell, style, abs_box)} of EDGY elements."""
+    F = []
+
+    def add(rule, msg, cell, coords):
+        F.append(Finding('WARNING', rule, msg, path, lines.get(cell) if cell else None, cell, page, coords))
+
+    cache = {}
+    boxes = {i: box for i, (_c, _st, box) in elements.items() if box}
+    labels = []   # (edge id, source id, verb, label box)
+    for i, e in cells.items():
+        if e.get('edge') != '1':
+            continue
+        src, tgt = e.get('source'), e.get('target')
+        if not src or not tgt:
+            continue   # legend samples and free lines are not routes between elements
+        st = style_dict(e.get('style'))
+        points, sp, tp, offset, rel_x, rel_y = geo.edge_points(e)
+        sb = geo.abs_box(cells, src, cache)
+        tb = geo.abs_box(cells, tgt, cache)
+        route = geo.edge_path(sb, tb, st, points, sp, tp)
+        if not route or len(route) < 2:
+            continue
+        # W111: through a foreign element (containers never count)
+        for j, box in boxes.items():
+            if j in (src, tgt) or j in containers:
+                continue
+            inside = geo.path_through_box(route, box)
+            if inside > W111_MIN_INSIDE:
+                add('W111', f'edge "{strip_html(e.get("value") or "").strip() or "(unlabelled)"}" passes through element {j} ({inside:.0f} px inside) — move the element, add via: waypoints or change the exit/entry side',
+                    i, {'edge': i, 'other': j, 'inside_px': round(inside, 1), 'route': [[round(x), round(y)] for x, y in route]})
+        # W114a: route end outside the page
+        if page_w and page_h:
+            for px, py in (route[0], route[-1]):
+                if px < 0 or py < 0 or px > page_w or py > page_h:
+                    add('W114', f'edge end at ({px:.0f},{py:.0f}) is outside the page {page_w:.0f}x{page_h:.0f}', i,
+                        {'edge': i, 'point': [round(px), round(py)]})
+                    break
+        verb = strip_html(e.get('value') or '').strip()
+        if not verb:
+            continue
+        fs = float(st.get('fontSize', 11) or 11)
+        lbox = geo.edge_label_box(route, verb.split('\n')[0], fs, rel_x, rel_y, offset)
+        if lbox is None:
+            continue
+        labels.append((i, src, verb.lower(), lbox))
+        area = max(lbox[2] * lbox[3], 1.0)
+        # W112: label over an element (its own ends included — a label on the source box is unreadable too)
+        for j, box in boxes.items():
+            if j in containers:
+                continue
+            share = geo.rect_intersection(lbox, box) / area
+            if share > W112_MIN_OVERLAP:
+                add('W112', f'label "{verb}" lies {100 * share:.0f} % over element {j} — use label: source/target, an offset, or a longer edge',
+                    i, {'edge': i, 'other': j, 'share': round(share, 2), 'label_box': [round(v) for v in lbox]})
+        # W114b: label outside the page
+        if geo.outside_page(lbox, page_w, page_h):
+            add('W114', f'label "{verb}" extends outside the page', i, {'edge': i, 'label_box': [round(v) for v in lbox]})
+    # W113: label over another label; a fan of edges from one source with one verb is a bus
+    for a in range(len(labels)):
+        ia, sa, va, ba = labels[a]
+        for b in range(a + 1, len(labels)):
+            ib, sb_, vb, bb = labels[b]
+            if sa == sb_ and va == vb:
+                continue
+            inter = geo.rect_intersection(ba, bb)
+            smaller = max(min(ba[2] * ba[3], bb[2] * bb[3]), 1.0)
+            if inter / smaller > W113_MIN_OVERLAP:
+                add('W113', f'label "{va}" overlaps label "{vb}" of edge {ib} by {100 * inter / smaller:.0f} %', ia,
+                    {'edge': ia, 'other': ib, 'share': round(inter / smaller, 2)})
     return F
 
 
@@ -452,6 +547,8 @@ def main(argv=None):
     ap.add_argument('--warnings-as-errors', action='store_true')
     ap.add_argument('--no-legend', action='store_true', help='do not require a legend')
     ap.add_argument('--json', action='store_true', help='print findings as JSON')
+    ap.add_argument('--visual', action='store_true',
+                    help='print only the visual findings (W111–W115) as JSON with coordinates')
     ap.add_argument('-q', '--quiet', action='store_true', help='print only the summary line')
     opts = ap.parse_args(argv)
 
@@ -464,7 +561,10 @@ def main(argv=None):
 
     errors = [x for x in all_findings if x.level == 'ERROR']
     warnings = [x for x in all_findings if x.level == 'WARNING']
-    if opts.json:
+    if opts.visual:
+        opts.json = True
+        print(json.dumps([x.as_dict() for x in all_findings if x.rule in VISUAL_RULES], ensure_ascii=False, indent=2))
+    elif opts.json:
         print(json.dumps([x.as_dict() for x in all_findings], ensure_ascii=False, indent=2))
     elif not opts.quiet:
         for x in all_findings:

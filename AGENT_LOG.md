@@ -20,6 +20,47 @@ perustelut.
 
 ---
 
+### 2026-10-04 — Claude Code (Sprint 9: shared geometry, visual lint rules)
+
+**Assignment:** development-plan-2026-10 P1.1–P1.4. One resolved geometry
+for generator, preview and lint; fix the two renderer defects it exposed;
+add the visual rules the field case slipped through.
+
+**Done:**
+- `scripts/edgy_geometry.py` (stdlib): absolute boxes through the parent
+  chain, port distribution, side choice, border points, orthogonal route
+  normalisation (end segments perpendicular to their side, an OUTWARD step
+  when a waypoint lies behind the port, duplicates and *between*-collinear
+  points removed — an out-and-back spike is a real detour and stays), label
+  position as a fraction of arc length with perpendicular and absolute
+  offsets, Liang–Barsky clipping, bounding boxes. 17 tests.
+- `edgy_render.py` uses it: F1 (diagonal end segments with waypoints) and
+  F2 (`label: source|middle|target` all drawn at the midpoint) are fixed;
+  `edgeStyle=none` edges run border to border; `<mxPoint as="offset">` and
+  relative `y` move labels. The parser takes `distribute()` and the side
+  choice from the same module.
+- `edgy_lint.py` W111–W114 on that geometry, `--visual` JSON with cell ids
+  and coordinates, `Finding.coords`. Containers never count for W111; a
+  one-verb fan from one source is a bus for W113.
+- Tests: 4 render, 7 lint, `edgy-geometry-tests` step in `check.sh`.
+
+**Baseline → after, aggregates.** Shipped examples (26 files): structural
+0 errors / 0 warnings before and after; visual rules now report **83
+warnings** (W111 × 49, W112 × 33, W113 × 1) in 10 files. Eval fixtures:
+large single-facet map 79 visual findings, F5 purpose tree 13, F2 8, F4 6,
+F1 1 (W113 — the diagonal segments themselves are gone). The generator's
+output for every shipped example is byte-identical to before this sprint
+(the parser refactor changed no behaviour), so the 83 are the *existing*
+pictures measured honestly for the first time.
+
+**Decision:** the shipped examples are not made visually clean in this
+sprint. Most findings come from the single-column facet layout and the
+purpose tree, which Sprint 11 replaces (`triad`, purpose re-layout); fixing
+the inputs now would be redone. `check.sh` keeps "0 errors" for shipped
+examples until then; `--warnings-as-errors` becomes the bar in Sprint 11.
+
+---
+
 ### 2026-10-04 — Claude Code (Sprint 8: release hygiene, regression fixtures)
 
 **Assignment:** `docs/development-plan-2026-10.md` P0.2–P0.3. Make the

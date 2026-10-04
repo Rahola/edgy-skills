@@ -45,6 +45,7 @@ from edgy_core_links import (  # noqa: E402
     INFLUENCE_RELATIONSHIPS,
     core_link_pairs,
 )
+import edgy_geometry as _geo  # noqa: E402 — portit ja sivut samasta paikasta kuin renderöijä ja lintti
 
 # Flow relationships → open arrowhead (data/value flows concretely)
 # Supported in FI, EN, FR, DE
@@ -1030,14 +1031,8 @@ class EDGYParser:
             tx, ty = abs_pos[rel['target']]
             sw, sh = sizes[rel['source']]
             tw, th = sizes[rel['target']]
-            dx = (tx + tw / 2) - (sx + sw / 2)
-            dy = (ty + th / 2) - (sy + sh / 2)
-            if abs(dx) >= abs(dy):
-                exit_side = 'right' if dx >= 0 else 'left'
-                entry_side = 'left' if dx >= 0 else 'right'
-            else:
-                exit_side = 'bottom' if dy >= 0 else 'top'
-                entry_side = 'top' if dy >= 0 else 'bottom'
+            exit_side = _geo.choose_side((sx, sy, sw, sh), (tx, ty, tw, th))
+            entry_side = _geo.opposite(exit_side)
             # Samalla kaistalla samalla rivillä, ei vierekkäin → reititys yläkautta (U-muoto),
             # jotta reuna ei kulje välissä olevien elementtien läpi
             sg = self.elements[rel['source']].get('group')
@@ -1052,11 +1047,7 @@ class EDGYParser:
             outgoing_by_side[(rel['source'], exit_side)].append(len(valid_rels) - 1)
             incoming_by_side[(rel['target'], entry_side)].append(len(valid_rels) - 1)
 
-        def _distribute(count, index):
-            """Hajota ankkurit tasaisesti välille 0.15-0.85."""
-            if count <= 1:
-                return 0.5
-            return 0.15 + (0.7 * index / (count - 1))
+        _distribute = _geo.distribute        # porttien jako 0.15–0.85, sama kuin renderöijällä ja lintillä
 
         for vi, (rel, exit_side, entry_side) in enumerate(valid_rels):
             src_list = outgoing_by_side[(rel['source'], exit_side)]
