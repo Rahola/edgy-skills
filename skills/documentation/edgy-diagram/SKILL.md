@@ -185,8 +185,8 @@ W117–W120 and whether they ran, the language check W116, the text-size check
 W115 at the preset's reference width, the preview image size and
 orientation, and the generator warnings. Three fields are never set by the
 tooling: `visual_approval`, `semantic_approval`, `delivery_notes` — a
-person fills them in after looking at the preview, and `null` means *not
-approved*. `edgy_qa.py --require-approvals` reports lint and the approvals
+person fills them in after looking at the preview, as `"<name or role>,
+YYYY-MM-DD"`, and `null` (or anything else) means *not approved*. `edgy_qa.py --require-approvals` reports lint and the approvals
 on separate lines and exits 1 while either approval is null; `edgy-eval.py`
 and the edgy-assessment Phase 5 read the manifest instead of re-linting.
 Schema: `assets/qa.schema.json`.

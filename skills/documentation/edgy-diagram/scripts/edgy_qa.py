@@ -20,6 +20,7 @@ import argparse
 import datetime as _dt
 import json
 import os
+import re
 import sys
 from collections import Counter
 
@@ -51,9 +52,13 @@ def _page_facts(drawio_path):
     return out
 
 
+APPROVAL_RE = re.compile(r'^\s*\S.*,\s*\d{4}-\d{2}-\d{2}\s*$')
+
+
 def is_approval(value) -> bool:
-    """An approval is a person's non-empty name-and-date string; any other value (true, 1, an object) is not."""
-    return isinstance(value, str) and bool(value.strip())
+    """An approval is a person's name and an ISO date: "<name or role>, YYYY-MM-DD".
+    Anything else (true, 1, an object, "approved", a name without a date) is not."""
+    return isinstance(value, str) and bool(APPROVAL_RE.match(value))
 
 
 def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=None, generator_warnings=None,
@@ -155,7 +160,7 @@ def approval_status(manifest):
     def show(value):
         if is_approval(value):
             return value.strip()
-        return 'NOT APPROVED (null)' if value is None else f'NOT APPROVED (not a reviewer name and date: {value!r})'
+        return 'NOT APPROVED (null)' if value is None else f'NOT APPROVED (expected "<name>, YYYY-MM-DD", got {value!r})'
     lines = [f"lint: {t['lint_errors']} error(s), {t['lint_warnings']} warning(s); visual W111–W114: {t['visual']}; "
              f"layout W117–W120: {t['layout_quality']}",
              f"visual approval: {show(manifest.get('visual_approval'))}",
@@ -167,7 +172,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description='Read qa.json manifests and report their approval status')
     ap.add_argument('files', nargs='+', help='qa.json files')
     ap.add_argument('--require-approvals', action='store_true',
-                    help='exit 1 unless visual_approval and semantic_approval are both a non-empty reviewer name-and-date string')
+                    help='exit 1 unless visual_approval and semantic_approval are both "<name>, YYYY-MM-DD"')
     args = ap.parse_args(argv)
     rc = 0
     for f in args.files:

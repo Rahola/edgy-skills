@@ -406,6 +406,12 @@ def test_native_presets_differ_only_in_frame():
             if c.get('vertex') == '1' and 'Legend' in (c.get('value') or ''):
                 return page.abs_box(cid)[0]
     assert legend_x(pages['publication']) < page_w(pages['publication']) / 2 < legend_x(pages['presentation'])
+    # a triad keeps the preset's box legend (its own strip default is not a choice)
+    tri = os.path.join(here, '..', 'examples', 'triad-architecture.txt')
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), tri, '--output', os.path.join(d, 'tri.drawio'), '--preview', '--preset', 'presentation'], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    tp = edgy_render.Page(edgy_document.load_pages_from_file(os.path.join(d, 'tri.drawio'))[0][1])
+    assert legend_x(tp) > tp.page_w / 2, 'box legend on the right'
     vb = {p: [float(v) for v in re.search(r'viewBox="([^"]+)"', svgs[p]).group(1).split()] for p in svgs}
     assert vb['presentation'][2] > vb['publication'][2] or vb['presentation'][3] > vb['publication'][3], 'presentation has the wider margin'
 
@@ -479,11 +485,12 @@ def test_qa_manifest_schema_and_approvals_null():
     assert qa3['pages'][0]['edges'] == 24, qa3['pages'][0]['edges']
     # approvals: only a reviewer name-and-date string counts
     assert not edgy_qa.is_approval(True) and not edgy_qa.is_approval(1) and not edgy_qa.is_approval({'automated': True}) and not edgy_qa.is_approval(' ')
-    assert edgy_qa.is_approval('Reviewer, 2026-10-09')
+    assert not edgy_qa.is_approval('approved') and not edgy_qa.is_approval('Reviewer') and not edgy_qa.is_approval('2026-10-09')
+    assert edgy_qa.is_approval('Reviewer, 2026-10-09') and edgy_qa.is_approval('Lead architect (Acme Oy), 2026-10-09')
     qa['visual_approval'] = True; qa['semantic_approval'] = 1
     bad = os.path.join(d, 'bad.qa.json'); open(bad, 'w', encoding='utf-8').write(json.dumps(qa))
     r = subprocess.run([sys.executable, os.path.join(here, 'edgy_qa.py'), '--require-approvals', bad], capture_output=True, text=True)
-    assert r.returncode == 1 and 'not a reviewer name and date' in r.stdout, r.stdout
+    assert r.returncode == 1 and 'YYYY-MM-DD' in r.stdout, r.stdout
     assert qa['pages'][0]['image'] is None, 'no preview requested'
     repo = os.path.abspath(os.path.join(here, '..', '..', '..', '..'))
     v = subprocess.run([sys.executable, os.path.join(repo, 'tools', 'validate-edgy-model.py'), '--schema',

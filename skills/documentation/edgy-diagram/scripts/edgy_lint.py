@@ -68,7 +68,7 @@ them off for a run. Every finding carries the numbers it measured.
        is wider than 4.5:1 or taller than 1:4.5 (a page made only of pentagons —
        a sequence — is exempt)
   W121 series (--series A B C): the files differ in legend placement, content
-       margin, card width of a shared type or label font sizes
+       margin, the set of card widths of a shared type or label font sizes
 """
 
 import argparse
@@ -741,7 +741,7 @@ def layout_findings(path, page, lines, cells, elements, kinds, containers, page_
             if grown_w and grown_h and util < W119_MIN_UTILISATION:
                 add('W119', f'content covers {util:.0%} of the {page_w:.0f}x{page_h:.0f} page (content {w:.0f}x{h:.0f}, minimum {W119_MIN_UTILISATION:.0%}) '
                             f'— legend: strip, a tighter layout, or split the view')
-        all_pentagons = all(shape_of(st) == 'pentagon' for (_c, st, _b) in elements.values())
+        all_pentagons = bool(elements) and all(shape_of(st) == 'pentagon' for (_c, st, _b) in elements.values())
         ratio = w / h if h else 0
         if ratio and max(w, h) >= W120_MIN_SIDE and not all_pentagons and not (W120_MIN_RATIO <= ratio <= W120_MAX_RATIO):
             shape = 'wide' if ratio > W120_MAX_RATIO else 'tall'
@@ -796,8 +796,8 @@ def _page_profile(model):
     widths = {}
     for i, (_c, _st, box) in elements.items():
         if box:
-            widths.setdefault(kinds[i], []).append(box[2])
-    card_width = {k: sorted(v)[len(v) // 2] for k, v in widths.items()}
+            widths.setdefault(kinds[i], set()).add(round(box[2]))
+    card_width = {k: tuple(sorted(v)) for k, v in widths.items()}   # every distinct width of the type, not a median
     fonts = {'element': set(), 'edge': set()}
     for i, c in cells.items():
         st = style_dict(c.get('style'))
@@ -844,8 +844,10 @@ def series_findings(paths):
                 add(f'content margin is ({prof["margin"][0]:.0f},{prof["margin"][1]:.0f}) px here vs ({ref["margin"][0]:.0f},{ref["margin"][1]:.0f}) in the reference')
         for kind in sorted(prof['card_width']):
             base_w, base_file = width_baseline[kind]
-            if abs(base_w - prof['card_width'][kind]) > 0.5:     # the baseline occurrence itself has a zero delta
-                add(f'{kind} cards are {prof["card_width"][kind]:.0f} px wide here vs {base_w:.0f} px in the reference — set card_width for the series',
+            if prof['card_width'][kind] != base_w:     # the baseline occurrence itself is equal
+                here = ', '.join(f'{w:g}' for w in prof['card_width'][kind])
+                ref_w = ', '.join(f'{w:g}' for w in base_w)
+                add(f'{kind} cards are {here} px wide here vs {ref_w} px in the reference — set card_width for the series',
                     ref_path=base_file)
         for what in ('element', 'edge'):
             b = prof['fonts'][what]

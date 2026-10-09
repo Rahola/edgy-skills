@@ -545,6 +545,16 @@ def test_w121_series():
     msgs = [(x.page, x.msg) for x in edgy_lint.series_findings([wp])]
     assert any(pg == 'Two' and 'task cards are 300 px wide' in m for pg, m in msgs), msgs
     assert not any(pg == 'One' and 'legend' in m for pg, m in msgs), msgs
+    # the full set of widths is compared, not a median: 180/200/200 against 200 is a finding
+    mixed = HEAD + vertex(2, 'A', ASSET, 60, 60, 200) + vertex(3, 'B', ASSET, 300, 60, 200) + vertex(4, 'C', ASSET, 540, 60, 180) + TAIL
+    plain = HEAD + vertex(2, 'A', ASSET, 60, 60, 200) + vertex(3, 'B', ASSET, 300, 60, 200) + TAIL
+    pm = os.path.join(d, 'plain.drawio'); open(pm, 'w', encoding='utf-8').write(plain)
+    mm = os.path.join(d, 'mixed.drawio'); open(mm, 'w', encoding='utf-8').write(mixed)
+    msgs = [x.msg for x in edgy_lint.series_findings([pm, mm]) if 'asset cards' in x.msg]
+    assert len(msgs) == 1 and '180, 200 px wide here vs 200 px' in msgs[0], msgs
+    # W120: a wide page without classified elements (containers only) is not a pentagon sequence — it is judged
+    empty = _head(1700, 900) + vertex(2, 'Area', CONT, 60, 60, 1500, 60) + TAIL
+    assert [x for x in _run_opts(empty) if x.rule == 'W120'], 'an empty element set is not the pentagon exemption'
     # the edge-font baseline comes from the first page that has an edge: an edge-less first file does not silence it
     def mk(name, fs):
         xml = HEAD + vertex(2, 'A', ASSET, 60, 60) + vertex(3, 'B', ASSET, 300, 60) + \

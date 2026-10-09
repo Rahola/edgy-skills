@@ -515,7 +515,7 @@ Before completion, check ALL:
 #### Approvals (`qa.json`, one per diagram):
 - [ ] `python3 $G/edgy_qa.py --require-approvals <company>-*.qa.json` exits 0 — it lists the lint result and
       the two approvals on **separate lines**: zero lint findings is never an approval
-- [ ] `visual_approval` set by the person who looked at every preview (name and date)
+- [ ] `visual_approval` set by the person who looked at every preview, as `"<name or role>, YYYY-MM-DD"`
 - [ ] `semantic_approval` set by the person who answered the semantic review (Phase 4b) — for a delivery
       with a purpose map, after every S-finding has an answer in the report
 - [ ] `delivery_notes` carries anything the reader must know (a layout option that was switched off, a

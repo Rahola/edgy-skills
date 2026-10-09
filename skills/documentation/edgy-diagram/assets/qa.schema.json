@@ -40,8 +40,8 @@
     },
     "totals": {"type": "object", "required": ["elements", "edges", "lint_errors", "lint_warnings", "visual", "layout_quality"]},
     "semantic_review": {},
-    "visual_approval": {},
-    "semantic_approval": {},
+    "visual_approval": {"description": "Set by a person: \"<name or role>, YYYY-MM-DD\"; null = not approved"},
+    "semantic_approval": {"description": "Set by a person: \"<name or role>, YYYY-MM-DD\"; null = not approved"},
     "delivery_notes": {}
   }
 }

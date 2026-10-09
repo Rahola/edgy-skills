@@ -334,6 +334,7 @@ def main():
         for _, p in pages:
             if not p._legend_explicit:
                 p.legend = edgy_render.NATIVE_PRESETS[native_preset]['legend']
+                p._legend_explicit = True        # a preset is a choice: the triad's own strip default must not override it
     heading = [p.title for _, p in pages]        # one band per page: a page-level title:/footnote: overrides the head
     footnote = [p.footnote for _, p in pages]
     if args.bare and len(pages) > 1:
