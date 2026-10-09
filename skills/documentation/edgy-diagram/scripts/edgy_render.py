@@ -17,9 +17,13 @@ Native presets (NATIVE_PRESETS) crop to the content like --publication, with
 a fixed margin (publication 24 px, presentation 48 px), an optional title band
 above and footnote band below, and a reference width for the W115 text-size
 check (publication: a 160 mm report column = 605 px at 96 dpi; presentation:
-a 1920 px slide). The draw.io CLI presets of edgy_generator.py keep their
-names and semantics; `presentation` means the native preset only with
---engine native or --preview.
+a 1920 px slide). This standalone entry point applies the *frame only*
+(margin, crop, bands) to an existing file: the legend placement is whatever
+the file carries, and no W115 check or qa.json is produced here — use
+edgy_generator.py --preview --preset <name> (or --engine native) for the full
+preset. The draw.io CLI presets of edgy_generator.py keep their names and
+semantics; `presentation` means the native preset only with --engine native
+or --preview.
 
 Outputs <base>.svg / <base>.png for a single page, <base>-<page>.svg / .png
 per page for multi-page files. Exit 0 when SVG was written (PNG is optional
@@ -439,8 +443,9 @@ def main(argv=None) -> int:
                     help='crop to the content bounds (shapes, routes, arrowheads, labels, legend) instead of '
                          'the editor page, and print an orientation hint per page')
     ap.add_argument('--preset', choices=list(NATIVE_PRESETS), default=None,
-                    help='native preset: crop to content with a fixed margin (publication 24 px, presentation 48 px), '
-                         'title / footnote bands; see NATIVE_PRESETS')
+                    help='native preset frame only: crop to content with a fixed margin (publication 24 px, presentation 48 px) '
+                         'and title / footnote bands. Legend placement, the W115 check and qa.json come from '
+                         'edgy_generator.py --preview --preset <name>')
     ap.add_argument('--title', default=None, help='title band above the content (native presets)')
     ap.add_argument('--footnote', default=None, help='footnote band below the content (native presets)')
     args = ap.parse_args(argv)

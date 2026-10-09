@@ -35,8 +35,15 @@ with `--engine native` or `--preview`, and the draw.io CLI preset with
 
 ```bash
 python3 edgy_generator.py in.txt --output out.drawio --preview --preset publication
-python3 edgy_render.py out.drawio --preset presentation --title "Purpose map" --footnote "Source: …"
+python3 edgy_render.py out.drawio --preset presentation --title "Purpose map" --footnote "Source: …"   # frame only, see below
 ```
+
+`edgy_render.py --preset` applies the **frame only** of the preset to an
+existing `.drawio`: margin, crop to content, title and footnote bands. The
+legend placement is already in the file (the generator chose it), and the
+standalone renderer runs no W115 check and writes no `qa.json`. For the full
+preset — legend, text-size check at the reference width, manifest — generate
+with `edgy_generator.py … --preview --preset <name>` (or `--engine native`).
 
 ## PlantUML output
 
