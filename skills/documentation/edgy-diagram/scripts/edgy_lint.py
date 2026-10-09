@@ -48,7 +48,8 @@ draws (edgy_geometry.py): ports, orthogonal joins, waypoints, label boxes.
   W114 edge label or edge end outside the page
   W115 text below 6 pt at --scale (title, description, relation label)
   W116 edge label is a vocabulary verb of another language than the map's
-       (map language: --language, else the legend title the generator wrote)
+       (map language: --language, else the edgyLang marker the generator writes
+       when the input set language:; silent otherwise)
   --visual prints only the visual findings (W111–W114), as JSON with page,
   cell ids and coordinates, for a machine to act on.
 
@@ -487,18 +488,15 @@ def lint_model(path, page, model, lines, opts):
                 add('WARNING', 'W105', f'verb "{verb}" is not in the core-link, flow, tree or influence vocabulary', i)
 
     # W116 label language: a vocabulary verb spelled in another language than the map's.
-    # The map language comes from --language or from the legend title the generator wrote.
+    # The map language comes from --language or from the `edgyLang=` marker the generator writes
+    # on the legend title only when the input set `language:` — a default (English) legend is
+    # not a language choice, so a map without `language:` is never checked.
     map_lang = getattr(opts, 'language', None)
     if not map_lang:
         for i, c in cells.items():
             st = style_dict(c.get('style'))
-            if c.get('vertex') == '1' and 'text' in st:
-                label = strip_html(c.get('value') or '').strip()
-                for lang, title in LEGEND_TITLES.items():
-                    if label == title:
-                        map_lang = lang
-                        break
-            if map_lang:
+            if c.get('vertex') == '1' and st.get('edgyLang') in LEGEND_TITLES:
+                map_lang = st.get('edgyLang')
                 break
     if map_lang:
         for i, e in edges.items():
@@ -889,7 +887,7 @@ def main(argv=None):
     ap.add_argument('--visual', action='store_true',
                     help='print only the visual findings (W111–W114) as JSON with coordinates')
     ap.add_argument('--language', choices=['fi', 'en', 'fr', 'de'], default=None,
-                    help='map language for W116 (default: detected from the legend title the generator writes)')
+                    help='map language for W116 (default: the edgyLang marker the generator writes when the input set language:)')
     ap.add_argument('--scale', type=float, default=None,
                     help='report scale (rendered px per diagram px, e.g. 0.4 when a 1600 px page is printed '
                          '640 px wide); W115 when a title, description or relation label falls below 6 pt')

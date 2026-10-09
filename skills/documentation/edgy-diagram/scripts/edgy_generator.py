@@ -133,8 +133,8 @@ def export_with_drawio_cli(input_path: str, output_path: str, format: str, extra
         # Tarkista että draw.io CLI on saatavilla
         import subprocess
 
-        # Yritä löytää draw.io
-        drawio_paths = [
+        # Yritä löytää draw.io; EDGY_DRAWIO=<binary> ohittaa haun (testit asettavat sen olemattomaksi)
+        drawio_paths = [os.environ['EDGY_DRAWIO']] if os.environ.get('EDGY_DRAWIO') else [
             'drawio',
             '/Applications/draw.io.app/Contents/MacOS/draw.io',
             'C:\\Program Files\\draw.io\\draw.io.exe'

@@ -382,6 +382,25 @@ def test_w116_label_language_mismatch():
     assert not [x for x in lint_of(free) if x.rule == 'W116']
 
 
+def test_w116_silent_without_explicit_language():
+    """The default (English) legend is not a language choice: Finnish verbs in a map without language: pass."""
+    p = EDGYParser()
+    p.parse_input('map_type: purpose\nelements:\n  - purpose: "Tavoite A"\n  - purpose: "Tavoite B"\nrelationships:\n  - "Tavoite A" -> "Tavoite B": "sisältää"\n')
+    xml = p.generate_xml()
+    with tempfile.NamedTemporaryFile('w', suffix='.drawio', delete=False, encoding='utf-8') as f:
+        f.write(xml); path = f.name
+    try:
+        ns = edgy_lint.main.__globals__['argparse'].Namespace
+        assert not [x for x in edgy_lint.lint_file(path, ns(no_legend=False)) if x.rule == 'W116']
+        assert 'edgyLang=' not in xml
+        assert [x for x in edgy_lint.lint_file(path, ns(no_legend=False, language='en')) if x.rule == 'W116'], '--language still checks'
+    finally:
+        os.unlink(path)
+    p2 = EDGYParser()
+    p2.parse_input('map_type: purpose\nlanguage: fi\nelements:\n  - purpose: "A"\n  - purpose: "B"\n')
+    assert 'edgyLang=fi;' in p2.generate_xml()
+
+
 def test_fixtures_reproduce_visual_findings():
     """The eval fixtures lint 0/0 structurally and > 0 on the visual rules."""
     import subprocess

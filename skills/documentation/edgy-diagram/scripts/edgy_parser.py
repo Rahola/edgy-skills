@@ -1365,10 +1365,10 @@ class EDGYParser:
         y0 = page_height - 16 - band_h
         cid = start_id
 
-        def text_cell(value, x, y, w, h, bold=False, size=9):
+        def text_cell(value, x, y, w, h, bold=False, size=9, extra=''):
             nonlocal cid
             style = (f"text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;"
-                     f"fontSize={size};" + ("fontStyle=1;" if bold else ""))
+                     f"fontSize={size};" + ("fontStyle=1;" if bold else "") + extra)
             cell = ET.SubElement(mx_root, "mxCell", {"id": str(cid), "value": value, "style": style, "vertex": "1", "parent": "1"})
             ET.SubElement(cell, "mxGeometry", {"x": str(int(x)), "y": str(int(y)), "width": str(int(w)), "height": str(int(h)), "as": "geometry"})
             cid += 1
@@ -1381,7 +1381,7 @@ class EDGYParser:
         cid += 1
 
         x = 30
-        text_cell(f"<b>{html.escape(L['title'])}</b>", x, y0, 120, row_h, bold=True, size=10)
+        text_cell(f"<b>{html.escape(L['title'])}</b>", x, y0, 120, row_h, bold=True, size=10, extra=self._lang_marker())
         x += 130
         for color, label in zip(self._CHIP_COLOURS, L['chips_short']):
             chip = ET.SubElement(mx_root, "mxCell", {
@@ -1448,7 +1448,7 @@ class EDGYParser:
         # Otsikkorivi
         title = ET.SubElement(mx_root, "mxCell", {
             "id": str(cid), "value": f"<b>{html.escape(L['title'])}</b>",
-            "style": "text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontStyle=1;",
+            "style": "text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontStyle=1;" + self._lang_marker(),
             "vertex": "1", "parent": "1"
         })
         ET.SubElement(title, "mxGeometry", {"x": str(lx + 8), "y": str(ly + 4), "width": str(lw - 16), "height": "18", "as": "geometry"})
@@ -2103,6 +2103,11 @@ class EDGYParser:
                'journey': 'Reisen', 'organisation': 'Organisationen', 'product': 'Produkte', 'brand': 'Marken',
                'people': 'Personen', 'activity': 'Aktivitäten', 'outcome': 'Ergebnisse', 'object': 'Objekte'},
     }
+
+    def _lang_marker(self) -> str:
+        """`edgyLang=<lang>;` legendan otsikkosoluun vain kun `language:` on asetettu —
+        lint W116 lukee kartan kielen tästä, ei otsikon tekstistä (oletuslegenda ei ole kielivalinta)."""
+        return f"edgyLang={self.language};" if self._language_explicit else ''
 
     def _legend_text(self) -> dict:
         """Legendan ja generoitujen otsikoiden tekstit kartan kielellä (`language:`), oletus 'en'."""

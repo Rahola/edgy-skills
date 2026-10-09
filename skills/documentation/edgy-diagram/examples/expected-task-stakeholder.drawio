@@ -44,7 +44,7 @@
         <mxCell id="14" value="" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#fafafa;strokeColor=#e5e5e5;strokeWidth=1;" vertex="1" parent="1">
           <mxGeometry x="20" y="696" width="1160" height="32" as="geometry"/>
         </mxCell>
-        <mxCell id="15" value="&lt;b&gt;EDGY 23 — Legend&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+        <mxCell id="15" value="&lt;b&gt;EDGY 23 — Legend&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=10;fontStyle=1;edgyLang=en;" vertex="1" parent="1">
           <mxGeometry x="30" y="700" width="120" height="24" as="geometry"/>
         </mxCell>
         <mxCell id="16" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#ffffff;strokeWidth=1;" vertex="1" parent="1">
@@ -175,7 +175,7 @@
         <mxCell id="17" value="" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#fafafa;strokeColor=#e5e5e5;strokeWidth=1;" vertex="1" parent="1">
           <mxGeometry x="20" y="546" width="1160" height="32" as="geometry"/>
         </mxCell>
-        <mxCell id="18" value="&lt;b&gt;EDGY 23 — Legend&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+        <mxCell id="18" value="&lt;b&gt;EDGY 23 — Legend&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=10;fontStyle=1;edgyLang=en;" vertex="1" parent="1">
           <mxGeometry x="30" y="550" width="120" height="24" as="geometry"/>
         </mxCell>
         <mxCell id="19" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#ffffff;strokeWidth=1;" vertex="1" parent="1">
