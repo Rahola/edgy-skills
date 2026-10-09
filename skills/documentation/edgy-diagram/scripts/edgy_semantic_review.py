@@ -83,12 +83,15 @@ def _task_verb(name: str, lang_hint: str) -> str:
     return ''
 
 
-def _has_provenance(e: dict) -> bool:
-    tags = {t.lower() for t in e.get('tags', [])}
-    if tags & PROVENANCE_TAGS:
-        return True
-    status = (e.get('metrics') or {}).get('status', '').lower()
-    return status in PROVENANCE_TAGS or status in ('confirmed', 'proposed')
+def _has_provenance_tag(e: dict) -> bool:
+    """Purpose (and any element): a provenance tag [confirmed] / [analytical] / [proposed]."""
+    return bool({t.lower() for t in e.get('tags', [])} & PROVENANCE_TAGS)
+
+
+def _has_metric_status(e: dict) -> bool:
+    """Outcome: {status: confirmed|proposed} — a provenance tag alone does not say whether the target value is confirmed."""
+    status = (e.get('metrics') or {}).get('status', '').strip().lower()
+    return status in ('confirmed', 'proposed')
 
 
 def _stems(name: str) -> set:
@@ -115,7 +118,7 @@ def review_parser(p: EDGYParser, page: str = None) -> List[Dict]:
         if m:
             add('S006', 'warning', e, f'metric value in the name ("{m.group(0).strip()}")',
                 'Is this an Outcome that measures a Purpose? Put the target value on an Outcome with its status (confirmed / proposed).')
-        if is_purpose_map and not _has_provenance(e):
+        if is_purpose_map and not _has_provenance_tag(e):
             add('S004', 'warning', e, 'no provenance tag',
                 'Is this purpose confirmed from a public source, an analytical interpretation, or a proposal? Tag it [confirmed] / [analytical] / [proposed].')
     if is_purpose_map:
@@ -127,7 +130,7 @@ def review_parser(p: EDGYParser, page: str = None) -> List[Dict]:
             if not measured:
                 add('S002', 'warning', o, 'no `measures` relationship to a Purpose' + (' (linked otherwise)' if linked else ''),
                     'Which Purpose does this result verify? Add `"<outcome>" -> "<purpose>": "measures"` or drop the Outcome from this map.')
-            if not _has_provenance(o):
+            if not _has_metric_status(o):
                 add('S003', 'warning', o, 'no metric status',
                     'Is the metric and its target value confirmed by the organisation or proposed by the analysis? Add {status: confirmed} or {status: proposed}.')
         # S005 only where the child already looks like an action or a metric (S001 / S006) —

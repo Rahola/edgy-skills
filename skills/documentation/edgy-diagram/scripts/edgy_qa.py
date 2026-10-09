@@ -60,6 +60,12 @@ def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=No
                    layout_quality=True):
     """`pages` is [(name, EDGYParser)], `previews` the result list of edgy_render.render_file (or None)."""
     previews = previews or []
+    base_dir = os.path.dirname(os.path.abspath(drawio_path))
+
+    def rel(path):
+        # paths relative to the manifest's directory: the delivery folder can move, and no local directory name leaks
+        return os.path.relpath(path, base_dir) if path else None
+
     names = [name for name, _ in pages]
     facts = _page_facts(drawio_path)
     ref_width = edgy_render.NATIVE_PRESETS[preset]['ref_width'] if preset in edgy_render.NATIVE_PRESETS else None
@@ -89,7 +95,7 @@ def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=No
             'language_check': {'findings': rules.get('W116', 0)},
             'text_size': {'preset': preset, 'reference_width': ref_width, 'scale': scale,
                           'findings': rules.get('W115', 0) if scale else None},
-            'image': ({'svg': prev['svg'], 'png': prev.get('png'), 'width': prev.get('width'), 'height': prev.get('height'),
+            'image': ({'svg': rel(prev['svg']), 'png': rel(prev.get('png')), 'width': prev.get('width'), 'height': prev.get('height'),
                        'orientation': prev.get('orientation')} if prev else None),
             'semantic_review': ({'findings': len(semantic), 'questions': sum(1 for f in semantic if f['level'] == 'warning')}
                                 if p.map_type == 'purpose' else None),

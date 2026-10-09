@@ -266,32 +266,6 @@ Rules:
 After completing sections 1–9, add a final section:
 
 ```markdown
-#### Phase 2b — Semantic review of the purpose map (MANDATORY when a purpose map is delivered)
-
-A purpose map that lints clean can still be wrong in meaning (actions as
-Purposes, proposed metrics shown as confirmed, influences drawn as
-`contains`). Before Phase 3:
-
-1. Tag every element of the purpose map with its provenance —
-   `[confirmed]` (public source), `[analytical]` (your interpretation) or
-   `[proposed]` — and every Outcome with `{status: confirmed|proposed}`.
-   For the four facet files `edgy_model_to_txt.py` writes the tags from the
-   model's `provenance` fields; the purpose map is a structural map written
-   from the same model (Phase 4 table), so its Outcomes and their
-   `{status: …}` are written by the analyst — the model has no Outcome
-   type.
-2. Run the review and read every question:
-   ```bash
-   python3 skills/documentation/edgy-diagram/scripts/edgy_semantic_review.py <company>-purpose.txt
-   ```
-   S001 action as a Purpose, S002 Outcome measures nothing, S003 / S004
-   missing provenance, S005 `contains` that may be an influence, S006 metric
-   in a Purpose name. Fix the **model**, regenerate.
-3. Walk the checklist in edgy-framework *Purpose map semantic review* and
-   write the sign-off line into the report (section 9) and the delivery
-   note: `Semantic review: approved by <role>, <date> — S-findings answered: <n>`.
-   The tool never approves; a person does. Zero findings is not a sign-off.
-
 ## Ehdotetut jatkoanalyysit
 
 Nämä jatkoanalyysit on priorisoitu löydettyjen kehitysalueiden ja
@@ -422,7 +396,7 @@ the image for the report; `--preset presentation` for slides. The
 `qa.json` written next to each `.drawio` carries the counts, the lint, the
 visual / layout / language checks and the preview size; its
 `visual_approval` and `semantic_approval` stay `null` until a person sets
-them in Phase 5.
+them in Phase 5 (the semantic one after Phase 4b).
 
 Read every generator warning: a core-link verb on a wrong pair or a verb
 outside the vocabulary means the TXT file (and usually the analysis) is
@@ -476,6 +450,33 @@ with the same ids** (one disconnected second model is worse than none):
 Add a map only when it answers a useful question for this company; do not
 generate every map for every scope.
 
+#### Phase 4b — Semantic review of the purpose map (MANDATORY when a purpose map is delivered)
+
+A purpose map that lints clean can still be wrong in meaning (actions as
+Purposes, proposed metrics shown as confirmed, influences drawn as
+`contains`). After the purpose map TXT is written (structural maps above)
+and before its diagram is generated:
+
+1. Tag every element of the purpose map with its provenance —
+   `[confirmed]` (public source), `[analytical]` (your interpretation) or
+   `[proposed]` — and every Outcome with `{status: confirmed|proposed}`.
+   For the four facet files `edgy_model_to_txt.py` writes the tags from the
+   model's `provenance` fields; the purpose map is a structural map written
+   from the same model (Phase 4 table), so its Outcomes and their
+   `{status: …}` are written by the analyst — the model has no Outcome
+   type.
+2. Run the review and read every question:
+   ```bash
+   python3 skills/documentation/edgy-diagram/scripts/edgy_semantic_review.py <company>-purpose.txt
+   ```
+   S001 action as a Purpose, S002 Outcome measures nothing, S003 / S004
+   missing provenance, S005 `contains` that may be an influence, S006 metric
+   in a Purpose name. Fix the **model**, regenerate.
+3. Walk the checklist in edgy-framework *Purpose map semantic review* and
+   write the sign-off line into the report (section 9) and the delivery
+   note: `Semantic review: approved by <role>, <date> — S-findings answered: <n>`.
+   The tool never approves; a person does. Zero findings is not a sign-off.
+
 If Python is unavailable and the XML must be written by hand, follow the
 edgy-diagram inline example and lint it in the next environment that has
 Python; the file must still contain more than the two structural cells, one
@@ -512,7 +513,7 @@ Before completion, check ALL:
 - [ ] `python3 $G/edgy_qa.py --require-approvals <company>-*.qa.json` exits 0 — it lists the lint result and
       the two approvals on **separate lines**: zero lint findings is never an approval
 - [ ] `visual_approval` set by the person who looked at every preview (name and date)
-- [ ] `semantic_approval` set by the person who answered the semantic review (Phase 2b) — for a delivery
+- [ ] `semantic_approval` set by the person who answered the semantic review (Phase 4b) — for a delivery
       with a purpose map, after every S-finding has an answer in the report
 - [ ] `delivery_notes` carries anything the reader must know (a layout option that was switched off, a
       warning that was accepted and why)

@@ -55,7 +55,7 @@ FLOW_RELATIONSHIPS = {
     'virtaa', 'siirtyy', 'lähettää', 'vastaanottaa', 'tuottaa dataa', 'palauttaa',   # FI
     'flows', 'transfers', 'sends', 'receives', 'produces data', 'returns',          # EN
     'circule', 'transfère', 'envoie', 'reçoit', 'produit des données', 'retourne',  # FR
-    'fließt', 'überträgt', 'sendet', 'empfängt', 'erzeugt Daten', 'gibt zurück',    # DE
+    'fließt', 'überträgt', 'sendet', 'empfängt', 'erzeugt daten', 'gibt zurück',    # DE (lower case: labels are lowered before the check)
 }
 
 # Tree hierarchy relationships → solid line, no arrowhead

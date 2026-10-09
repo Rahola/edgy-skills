@@ -391,6 +391,7 @@ def test_native_presets_differ_only_in_frame():
         assert 'Acme Transit — purpose' in svg and 'fictional example' in svg, preset
         qa = json.load(open(os.path.join(d, preset + '.qa.json'), encoding='utf-8'))
         assert qa['preset'] == preset and qa['pages'][0]['text_size']['reference_width'] == edgy_render.NATIVE_PRESETS[preset]['ref_width']
+        assert qa['pages'][0]['image']['svg'] == preset + '.svg' and not os.path.isabs(qa['pages'][0]['image']['png'] or ''), qa['pages'][0]['image']
         assert qa['pages'][0]['text_size']['scale'] is not None
     pages = {p: edgy_render.Page(edgy_document.load_pages_from_file(os.path.join(d, p + '.drawio'))[0][1]) for p in svgs}
     # the content (elements + edges) is identical; only the legend placement differs between the presets
@@ -468,6 +469,13 @@ def test_qa_manifest_schema_and_approvals_null():
     for extra in (['--format', 'pdf', '--preset', 'publication'], ['--format', 'png', '--engine', 'drawio', '--preset', 'publication']):
         r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'x.png')] + extra, capture_output=True, text=True)
         assert r.returncode == 2 and 'native preset' in r.stderr, (extra, r.stderr)
+    # publication without a native render is refused; presentation without --preview stays the draw.io CLI preset
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'plain.drawio'), '--preset', 'publication'], capture_output=True, text=True)
+    assert r.returncode == 2 and 'native preset' in r.stderr, r.stderr
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'slide.png'), '--preset', 'presentation'], capture_output=True, text=True)
+    assert r.returncode == 0 and not os.path.exists(os.path.join(d, 'slide.png.drawio')) and os.path.exists(os.path.join(d, 'slide.drawio')), r.stdout + r.stderr
+    # manifest image paths are relative to the manifest's directory
+    qa_prev = json.load(open(os.path.join(d, 'publication.qa.json'), encoding='utf-8')) if os.path.exists(os.path.join(d, 'publication.qa.json')) else None
     # --qa with a draw.io CLI export: the manifest is written before the export (the CLI is absent here, the file stays)
     out4 = os.path.join(d, 'cli.png')
     r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', out4, '--format', 'png', '--qa'], capture_output=True, text=True)

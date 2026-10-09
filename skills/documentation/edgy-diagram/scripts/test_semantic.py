@@ -82,6 +82,17 @@ def test_generator_flag_prints_review():
     assert 'S001' in r.stderr and 'not an approval' in r.stderr, r.stderr
 
 
+def test_s003_needs_status_and_s004_needs_tag():
+    import edgy_semantic_review as sr
+    from edgy_parser import EDGYParser
+    p = EDGYParser()
+    p.parse_input('map_type: purpose\nelements:\n  - purpose: "Effortless travel" {status: confirmed}\n'
+                  '  - outcome: "Door-to-door time −15 %" [confirmed]\nrelationships:\n  - "Door-to-door time −15 %" -> "Effortless travel": "measures"\n')
+    rules = [f['rule'] for f in sr.review_parser(p, None)]
+    assert 'S004' in rules, 'a status on a Purpose is not a provenance tag'
+    assert 'S003' in rules, 'a tag on an Outcome is not a metric status'
+
+
 def test_s006_matches_values_ending_in_a_symbol():
     import edgy_semantic_review as sr
     for name in ('Cut churn 15%', 'Save 50 €', 'Reach 95 % on time', 'Cost 3 €/trip'):

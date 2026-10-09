@@ -289,15 +289,15 @@ def main():
     #   never silently rendered without the preset's margins and bands.
     native_preset = None
     extra_export_args = None
-    if args.preset in edgy_render.NATIVE_PRESETS and (args.preset not in EXPORT_PRESETS or args.engine == 'native'
-                                                       or args.format == 'drawio'):
+    native_render = args.engine == 'native' or (args.preview and args.format == 'drawio')
+    if args.preset in edgy_render.NATIVE_PRESETS and (args.preset not in EXPORT_PRESETS or native_render):
         native_preset = args.preset
-        if args.format == 'pdf' or (args.format in ('png', 'svg') and args.engine != 'native'):
+        if not native_render or args.format == 'pdf':
             print(f"Error: --preset {args.preset} is a native preset: use --engine native with --format png|svg, "
-                  f"or --format drawio with --preview", file=sys.stderr)
+                  f"or --preview with the default .drawio output", file=sys.stderr)
             sys.exit(2)
     elif args.preset:
-        args.format, extra_export_args = EXPORT_PRESETS[args.preset]
+        args.format, extra_export_args = EXPORT_PRESETS[args.preset]   # draw.io CLI preset, e.g. --preset presentation --output slide.png
     if args.qa is None:
         args.qa = bool(args.preview)
 

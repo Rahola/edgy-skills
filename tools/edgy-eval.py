@@ -23,6 +23,7 @@ REPO = Path(__file__).resolve().parent.parent
 SCRIPTS = REPO / "skills" / "documentation" / "edgy-diagram" / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 import edgy_lint  # noqa: E402 — element classification shared with the linter
+import edgy_qa  # noqa: E402 — the approval rule of the manifest gate
 EXAMPLES = REPO / "skills" / "documentation" / "edgy-diagram" / "examples"
 DEFAULT_INPUTS = [
     EXAMPLES / "eval" / "large-capability-map.txt",
@@ -73,7 +74,8 @@ def run_one(txt: Path, out_dir: Path) -> dict:
     t = manifest["totals"]
     row.update({"elements": t["elements"], "edges": t["edges"], "lint_errors": t["lint_errors"],
                 "lint_warnings": t["lint_warnings"], "visual": t["visual"], "layout": t["layout_quality"],
-                "rules": dict(rules), "approved": bool(manifest.get("visual_approval"))})
+                "rules": dict(rules),
+                "approved": edgy_qa.is_approval(manifest.get("visual_approval")) and edgy_qa.is_approval(manifest.get("semantic_approval"))})
     return row
 
 

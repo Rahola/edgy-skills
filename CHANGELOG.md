@@ -61,7 +61,7 @@ widths. The draw.io CLI presets keep their names and semantics.
   `tools/regen-examples.sh`.
 
 **edgy-assessment 1.8.0**
-- Phase 2b semantic review of the purpose map with a sign-off line; Phase 3
+- Phase 4b semantic review of the purpose map with a sign-off line; Phase 3
   `language` and the model's `layout` block written into every TXT
   (`edgy-model.schema.json`); Phase 4 `--preset publication`, `--series`
   across the four files; Phase 5 reads `qa.json` and requires both

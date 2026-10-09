@@ -327,6 +327,15 @@ def test_flow_verbs_sends_receives_translate():
     assert 'lähettää' in _edge_labels(root) and p.relationships[0]['kind'] == 'flow'
 
 
+def test_german_produces_data_is_a_flow_verb():
+    p, root, xml = gen('map_type: asset\nlanguage: de\nelements:\n  - asset: "A"\n  - asset: "B"\nrelationships:\n  - "A" -> "B": "erzeugt Daten"\n')
+    assert p.relationships[0]['kind'] == 'flow' and not any('tuntematon' in w.lower() for w in p.warnings), p.warnings
+    import edgy_lint, tempfile
+    d = tempfile.mkdtemp(); path = os.path.join(d, 'de.drawio'); open(path, 'w', encoding='utf-8').write(xml)
+    f = edgy_lint.lint_file(path, edgy_lint.main.__globals__['argparse'].Namespace(no_legend=False))
+    assert not [x for x in f if x.rule in ('W105', 'W116')], [str(x) for x in f]
+
+
 def test_legend_follows_language():
     import html as _html
     from edgy_parser import LEGEND_TEXT
