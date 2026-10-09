@@ -20,6 +20,24 @@ Use `--preset` to apply ready-made export settings:
 
 Esimerkki: `python3 edgy_generator.py input.txt --preset presentation --output slide.png`
 
+### Native presets (`--engine native`, `--preview`)
+
+| Preset | Margin | Legend (unless the input sets one) | W115 reference width | Bands |
+|--------|-------:|------------------------------------|----------------------|-------|
+| `publication` | 24 px | `strip` | 605 px — a 160 mm report column at 96 dpi: the text is tested at the size it is printed | `title:` above, `footnote:` below |
+| `presentation` | 48 px | `box` | 1920 px — a full-width slide | `title:` above, `footnote:` below |
+
+Both crop to the content like `--publication`. The same input rendered with
+both presets differs only in this frame. `qa.json` records the preset, the
+scale and the W115 count. `--preset presentation` means the native preset
+with `--engine native` or `--preview`, and the draw.io CLI preset with
+`--engine drawio` and a PNG/PDF/SVG format.
+
+```bash
+python3 edgy_generator.py in.txt --output out.drawio --preview --preset publication
+python3 edgy_render.py out.drawio --preset presentation --title "Purpose map" --footnote "Source: …"
+```
+
 ## PlantUML output
 
 EDGY-kaaviot voi tuottaa myös PlantUML-lähdetiedostona käyttämällä

@@ -123,6 +123,10 @@ def relationship_lines(model, names, lang):
     return out
 
 
+LAYOUT_KEYS = ("legend", "card_width", "equal_cards", "group_columns", "cards_per_row", "equal_group_width",
+               "align_groups", "title", "footnote")   # model.layout → TXT header, in this order
+
+
 def build(model, facet, lang, layout="default"):
     if facet == "all":
         main_types = IDENTITY + ARCHITECTURE + EXPERIENCE
@@ -135,6 +139,13 @@ def build(model, facet, lang, layout="default"):
               f"language: {lang if lang in VERB_KEY else 'en'}"]   # generated headings (e.g. triad panels) in the report language
     if layout == "triad":
         header.append("map_type: triad")
+    # layout block of the model → edgy-diagram document keys, identical in every file (series consistency)
+    opts = model.get("layout") if isinstance(model.get("layout"), dict) else {}
+    for key in LAYOUT_KEYS:
+        if key in opts and opts[key] is not None:
+            value = opts[key]
+            value = str(value).lower() if isinstance(value, bool) else value
+            header.append(f"{key}: {value}")
     header += ["", "elements:"]
     el, names = element_lines(model, main_types)
     il, inames = element_lines(model, inter)

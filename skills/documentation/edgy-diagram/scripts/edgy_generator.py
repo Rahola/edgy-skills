@@ -10,6 +10,7 @@ from edgy_parser import EDGYParser
 from edgy_to_plantuml import generate_plantuml
 from edgy_document import parse_document, build_mxfile, unique_slugs
 import edgy_render
+import edgy_qa
 
 def read_input_file(file_path: str) -> str:
     """Lue syötetiedosto"""
@@ -83,33 +84,36 @@ def report_layout_warnings(pages, before_counts) -> None:
         print(f"{n} layout warning(s) — see above.", file=sys.stderr)
 
 
-def render_preview(drawio_path: str, png: bool = True, publication: bool = False) -> bool:
+def render_preview(drawio_path: str, png: bool = True, publication: bool = False, preset: str = None,
+                   heading: str = None, footnote: str = None):
     """CLI-vapaa esikatselu: SVG aina, PNG jos Chromium löytyy.
 
-    Palauttaa False jos SVG:tä ei saatu kirjoitettua — esikatselu on
-    pakollinen vaihe, joten kutsuja päättää ajon virheeseen. Puuttuva PNG
-    (ei Chromiumia) ei ole virhe: SVG riittää katselmointiin.
-    `publication` rajaa kuvan sisältöön (ei editorisivuun).
+    Palauttaa render_file-tuloslistan, tai None jos SVG:tä ei saatu
+    kirjoitettua — esikatselu on pakollinen vaihe, joten kutsuja päättää ajon
+    virheeseen. Puuttuva PNG (ei Chromiumia) ei ole virhe: SVG riittää
+    katselmointiin. `publication` rajaa kuvan sisältöön (ei editorisivuun);
+    natiivi `preset` lisää marginaalin sekä otsikko-/alaviitenauhat.
     """
     try:
-        results = edgy_render.render_file(drawio_path, png=png, publication=publication)
+        results = edgy_render.render_file(drawio_path, png=png, publication=publication, preset=preset,
+                                          heading=heading, footnote=footnote)
     except Exception as e:  # noqa: BLE001 — raportoidaan ja palautetaan virhe
         print(f"Error: preview failed: {e}", file=sys.stderr)
-        return False
+        return None
     if not results:
         print("Error: preview produced no pages", file=sys.stderr)
-        return False
+        return None
     for r in results:
         label = f" [page {r['page']}]" if r['page'] else ""
         print(f"Preview SVG: {r['svg']}{label}")
         if r['png']:
             print(f"Preview PNG: {r['png']}")
-        if publication:
+        if publication or preset:
             print(f"Orientation: {r.get('orientation', 'square')}{label}")
     if png and not any(r['png'] for r in results):
         print("Preview: no Chromium/Chrome found — SVG only. Open the SVG in a browser, "
               "or set EDGY_CHROMIUM=<binary> for PNG.")
-    return True
+    return results
 
 
 # Export-presetit: (format, extra draw.io CLI args)
@@ -248,8 +252,11 @@ def main():
                        help='Render engine for png/svg/pdf (default drawio). native = pure-Python SVG '
                             '(+PNG via headless Chromium when available), no draw.io/Java needed; '
                             'approximate rendering, no pdf. Ignored for drawio/plantuml/puml formats.')
-    parser.add_argument('--preset', choices=list(EXPORT_PRESETS.keys()),
-                       help='Export preset (presentation/print/web) — ohittaa --format')
+    parser.add_argument('--preset', choices=sorted(set(EXPORT_PRESETS) | set(edgy_render.NATIVE_PRESETS)),
+                       help='draw.io CLI export preset (presentation/print/web — overrides --format), or a native preset '
+                            '(publication/presentation) for --engine native and --preview: fixed margin, title/footnote '
+                            'bands, legend placement, crop to content, W115 at the preset reference width. '
+                            '"presentation" is the CLI preset with --engine drawio and the native one otherwise')
     parser.add_argument('--output', help='Output file path')
     parser.add_argument('--preview', action='store_true',
                        help='After writing the .drawio, also write an SVG (and PNG when Chromium is '
@@ -266,12 +273,29 @@ def main():
     parser.add_argument('--semantic-review', action='store_true',
                        help='Run edgy_semantic_review.py on the input and print its questions to stderr '
                             '(never blocks generation; a reviewer signs off — see edgy-framework)')
+    parser.add_argument('--qa', dest='qa', action='store_true', default=None,
+                       help='Write <output>.qa.json next to the .drawio: counts, lint, visual / layout / language '
+                            'checks, preview sizes and the approval fields a person fills in (on by default with --preview)')
+    parser.add_argument('--no-qa', dest='qa', action='store_false', help='Do not write the qa.json manifest')
+    parser.add_argument('--no-layout-quality', action='store_true',
+                       help='qa.json: run the lint without the layout-quality rules W117–W120 (recorded in the manifest)')
 
     args = parser.parse_args()
 
+    # Natiivi preset (publication/presentation) koskee natiivirenderiä ja esikatselua; draw.io CLI:n
+    # presentation/print/web säilyvät ennallaan kun viedään CLI:llä
+    native_preset = None
     extra_export_args = None
-    if args.preset:
+    if args.preset in edgy_render.NATIVE_PRESETS and (args.engine == 'native' or args.preview or args.format == 'drawio'
+                                                       or args.preset not in EXPORT_PRESETS):
+        native_preset = args.preset
+        if args.format in ('png', 'svg') and args.engine == 'drawio':
+            args.engine = 'native'
+            print(f"Note: --preset {args.preset} is a native preset — rendering with --engine native", file=sys.stderr)
+    elif args.preset:
         args.format, extra_export_args = EXPORT_PRESETS[args.preset]
+    if args.qa is None:
+        args.qa = bool(args.preview)
 
     # Lue syöte
     if os.path.exists(args.input):
@@ -298,6 +322,12 @@ def main():
         print(f"Semantic review: {n_q} question(s), {len(findings) - n_q} hint(s) — a clean run is not an approval; "
               f"a reviewer signs off (edgy-framework, Purpose map semantic review).", file=sys.stderr)
     edgy_parser = pages[0][1]   # ensimmäinen sivu: oletusnimet ja PlantUML-engine
+    if native_preset:
+        # Presetin legendapaikka, ellei syöte ole valinnut: publication → strip, presentation → box
+        for _, p in pages:
+            if not p._legend_explicit:
+                p.legend = edgy_render.NATIVE_PRESETS[native_preset]['legend']
+    heading, footnote = edgy_parser.title, edgy_parser.footnote
     if args.bare and len(pages) > 1:
         print("Error: --bare supports single-page input only", file=sys.stderr)
         sys.exit(2)
@@ -370,20 +400,37 @@ def main():
         results = edgy_render.render_file(temp_drawio_path, png=(fmt == 'png'),
                                           base=os.path.splitext(os.path.basename(output_path))[0],
                                           out_dir=os.path.dirname(os.path.abspath(output_path)),
-                                          publication=args.publication)
+                                          publication=args.publication, preset=native_preset,
+                                          heading=heading, footnote=footnote)
         for r in results:
             label = f" [page {r['page']}]" if r['page'] else ""
             print(f"Successfully rendered: {r['png'] or r['svg']}{label}")
         if fmt == 'png' and not any(r['png'] for r in results):
             print("Warning: no Chromium/Chrome found — wrote SVG only (set EDGY_CHROMIUM=<binary>).", file=sys.stderr)
+        previews = results
     elif fmt != 'drawio':
         export_with_drawio_cli(temp_drawio_path, output_path, fmt, extra_export_args)
+        previews = None
     else:
         print(f"EDGY diagram created: {output_path}")
-        if args.preview and not render_preview(output_path, publication=args.publication):
-            print("The .drawio file was written but the mandatory preview was not — "
-                  "fix the error above before delivery.", file=sys.stderr)
-            sys.exit(3)
+        previews = None
+        if args.preview:
+            previews = render_preview(output_path, publication=args.publication, preset=native_preset,
+                                      heading=heading, footnote=footnote)
+            if previews is None:
+                print("The .drawio file was written but the mandatory preview was not — "
+                      "fix the error above before delivery.", file=sys.stderr)
+                sys.exit(3)
+    if args.qa and os.path.exists(temp_drawio_path):
+        # qa.json: samat luvut evalille, assessmentin Phase 5:lle ja katselmoijalle; hyväksyntäkentät jäävät null
+        gen_warnings = [w for _, p in pages for w in p.warnings]
+        manifest = edgy_qa.build_manifest(temp_drawio_path, pages, input_path=args.input if os.path.exists(args.input) else None,
+                                          preset=native_preset, previews=previews, generator_warnings=gen_warnings,
+                                          layout_quality=not args.no_layout_quality)
+        qa_path = edgy_qa.write_manifest(temp_drawio_path, manifest)
+        t = manifest['totals']
+        print(f"QA manifest: {qa_path} — lint {t['lint_errors']}/{t['lint_warnings']}, visual {t['visual']}, "
+              f"layout {t['layout_quality']}; visual_approval and semantic_approval are null until a person sets them")
 
 if __name__ == "__main__":
     main()

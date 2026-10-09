@@ -9,6 +9,21 @@
     "company": {"type": "string", "minLength": 1},
     "assessed_at": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}"},
     "language": {"type": "string", "enum": ["fi", "en", "fr", "de"]},
+    "layout": {
+      "type": "object",
+      "description": "Optional edgy-diagram document keys written into every generated TXT (legend, card sizing, grid, title band). Same values for all four files keep the series consistent (lint --series).",
+      "properties": {
+        "legend": {"type": "string", "enum": ["box", "strip"]},
+        "card_width": {"type": "integer", "minimum": 60, "maximum": 600},
+        "equal_cards": {"type": "boolean"},
+        "group_columns": {"type": "integer", "minimum": 1, "maximum": 12},
+        "cards_per_row": {"type": "integer", "minimum": 1, "maximum": 12},
+        "equal_group_width": {"type": "boolean"},
+        "align_groups": {"type": "string", "enum": ["grid", "none"]},
+        "title": {"type": "string"},
+        "footnote": {"type": "string"}
+      }
+    },
     "schema_version": {"type": "string"},
     "elements": {
       "type": "object",

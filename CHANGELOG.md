@@ -4,6 +4,74 @@ Releases of the edgy-skills bundle are git tags. Each skill also carries its
 own semantic version in its `SKILL.md` front matter and in `registry.yaml`.
 Install a release with `EDGY_SKILLS_REF=<tag>` (see README → Versions).
 
+## v2.2.0 — 2026-10
+
+Semantic review of purpose maps, verbs and legend in the map language,
+measured layout quality with standard-sized cards, a task map with
+stakeholder lanes, native publication presets and a QA manifest with
+human-only approvals. Background:
+`docs/development-plan-2026-10-semantics-and-layout.md` (field feedback on
+a delivered series of maps).
+
+| Skill | v2.1.0 | v2.2.0 |
+|-------|--------|--------|
+| edgy-diagram | 2.5.0 | **2.6.0** |
+| edgy-assessment | 1.7.0 | **1.8.0** |
+| edgy-framework | 1.4.1 | **1.5.0** |
+| edgy-deep-dive | 1.1.0 | 1.1.0 |
+| edgy-target-state | 1.0.1 | 1.0.1 |
+
+No breaking changes to the input format. Generated output changed once:
+`equal_cards` is on by default (one size per element type and page) and
+every layout starts its content at (60, 60), so every shipped
+`expected-*.drawio` was regenerated; `equal_cards: false` restores measured
+widths. The draw.io CLI presets keep their names and semantics.
+
+**edgy-diagram 2.6.0**
+- `scripts/edgy_semantic_review.py` (S001–S006, `--semantic-review` on the
+  generator): action as a Purpose, Outcome that measures nothing, missing
+  provenance (`[confirmed]` / `[analytical]` / `[proposed]`,
+  `{status: …}` on Outcomes), `contains` that may be an influence, metric
+  in a Purpose name. It asks; a reviewer signs off.
+- `language:` renders the legend, the generated headings and every
+  vocabulary verb in fi / en / fr / de (`translate_verbs: false` keeps the
+  input spelling); lint **W116** label in another language than the map's.
+- Lint **W117–W120** layout quality, on by default (`--no-layout-quality`):
+  size spread, near-alignment and uneven gaps, balance on grown pages,
+  aspect; **W121** `--series` across the files of one delivery (legend
+  placement, content margin, card width per type, font sizes). Every
+  finding carries its numbers.
+- Layout options `card_width`, `equal_cards` (default true),
+  `group_columns`, `cards_per_row`, `equal_group_width`, `align_groups:
+  grid`; uniform 60 px content margin; triad panels stretch to their row.
+- `map_type: task` stakeholder **inventory** (lanes × `stages:` columns, no
+  edges; a related People / Organisation element becomes the lane) and
+  **path** (tasks → journey / channels, vertical ports);
+  `examples/task-stakeholder-map.txt`.
+- Native presets `--preset publication | presentation` for `--preview` and
+  `--engine native`: margin, legend placement, `title:` / `footnote:`
+  bands, crop to content, W115 at the preset's reference width.
+- `qa.json` manifest (`--qa`, on with `--preview`; `scripts/edgy_qa.py`,
+  `assets/qa.schema.json`): counts, lint, visual / layout / language /
+  text-size checks, preview sizes, generator warnings, and the human-only
+  fields `visual_approval`, `semantic_approval`, `delivery_notes`.
+  `tools/edgy-eval.py` reads it (new **Layout** column).
+- Eval fixtures `series-acme-*` and `fixture-s1-purpose-semantics`;
+  `check.sh` steps `edgy-semantic-tests`, `edgy-series`, `edgy-qa`;
+  `tools/regen-examples.sh`.
+
+**edgy-assessment 1.8.0**
+- Phase 2b semantic review of the purpose map with a sign-off line; Phase 3
+  `language` and the model's `layout` block written into every TXT
+  (`edgy-model.schema.json`); Phase 4 `--preset publication`, `--series`
+  across the four files; Phase 5 reads `qa.json` and requires both
+  approvals (`edgy_qa.py --require-approvals`), lint and approvals on
+  separate lines; templates section 9 states the provenance convention.
+
+**edgy-framework 1.5.0**
+- *Purpose map semantic review* checklist: Purpose vs task, Outcome vs
+  Purpose, provenance tags, when `contains` is an influence; sign-off line.
+
 ## v2.1.0 — 2026-10
 
 Geometry fidelity, visual lint rules and a planned ring layout for large

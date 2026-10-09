@@ -40,7 +40,7 @@ skills:
 
   - id: edgy-diagram
     path: skills/documentation/edgy-diagram
-    version: 2.5.0
+    version: 2.6.0
     category: documentation
     tags: [diagram, drawio, visualization, documentation, edgy, enterprise-design, fi, en, fr, de]
     agents: [claude-code, cursor, generic]

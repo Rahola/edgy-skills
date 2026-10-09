@@ -56,6 +56,7 @@ Releases are git tags (`v1.0.0`, `v2.0.0`, …); see [CHANGELOG.md](CHANGELOG.md
 EDGY_SKILLS_REF=v1.0.0 bash adapters/claude-code/install.sh --all   # previous generation
 EDGY_SKILLS_REF=v2.0.0 bash adapters/claude-code/install.sh --all   # generator-first pipeline
 EDGY_SKILLS_REF=v2.1.0 bash adapters/claude-code/install.sh --all   # + visual lint, triad layout
+EDGY_SKILLS_REF=v2.2.0 bash adapters/claude-code/install.sh --all   # + semantic review, layout quality, qa.json
 ```
 
 When an adapter runs from a local clone it installs that checkout, so use
@@ -157,7 +158,7 @@ rules, publication bounds and the planned `triad` layout — is
 localisation of verbs and legend, layout consistency and options, task map,
 native presets, QA manifest — is
 [`docs/development-plan-2026-10-semantics-and-layout.md`](docs/development-plan-2026-10-semantics-and-layout.md)
-(proposal; defaults decided, awaiting the go).
+(shipped in v2.2.0).
 
 ## Contributing
 

@@ -11,6 +11,15 @@ the draw.io CLI export when publication quality is required.
 
 Usage:
   python3 edgy_render.py FILE.drawio [--out DIR] [--no-png] [--scale 1.5]
+  python3 edgy_render.py FILE.drawio --preset publication|presentation [--title T] [--footnote F]
+
+Native presets (NATIVE_PRESETS) crop to the content like --publication, with
+a fixed margin (publication 24 px, presentation 48 px), an optional title band
+above and footnote band below, and a reference width for the W115 text-size
+check (publication: a 160 mm report column = 605 px at 96 dpi; presentation:
+a 1920 px slide). The draw.io CLI presets of edgy_generator.py keep their
+names and semantics; `presentation` means the native preset only with
+--engine native or --preview.
 
 Outputs <base>.svg / <base>.png for a single page, <base>-<page>.svg / .png
 per page for multi-page files. Exit 0 when SVG was written (PNG is optional
@@ -39,6 +48,14 @@ import edgy_text  # noqa: E402 — glyph-table text measurement shared with pars
 CHAR_W = 0.55
 LINE_H = 1.2
 FONT = "Helvetica, Arial, sans-serif"
+# Native presets: margin around the content, reference width (96-dpi px) the
+# image is scaled to for the W115 text-size check, legend placement the
+# generator uses when the input does not set one.
+NATIVE_PRESETS = {
+    'publication':  {'margin': 24, 'ref_width': 605,  'legend': 'strip', 'describe': '160 mm report column'},
+    'presentation': {'margin': 48, 'ref_width': 1920, 'legend': 'box',   'describe': '1920 px slide'},
+}
+TITLE_FS, FOOTNOTE_FS = 18, 11
 
 style_dict = geo.style_dict
 
@@ -132,10 +149,16 @@ def content_bounds(page: Page) -> Optional[Tuple[float, float, float, float]]:
     return geo.bbox_of(boxes, points)
 
 
-def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = False) -> str:
+def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = False,
+                preset: Optional[str] = None, heading: Optional[str] = None, footnote: Optional[str] = None) -> str:
     """SVG of one page. `publication=True` crops the viewBox to the content
     bounds (+ margin) instead of the editor page, so a sparse map is not
-    dominated by empty canvas when it is scaled into a report."""
+    dominated by empty canvas when it is scaled into a report. A native
+    `preset` crops the same way with the preset's margin and adds a title
+    band (`heading`) above and a footnote band below the content."""
+    if preset and preset not in NATIVE_PRESETS:
+        raise ValueError(f'unknown native preset {preset!r} (known: {", ".join(NATIVE_PRESETS)})')
+    publication = publication or bool(preset)
     parts: List[str] = []
     markers: Dict[str, str] = {}
     minx = miny = 0.0
@@ -281,9 +304,20 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
                 parts.append(f'<rect x="{lx:.1f}" y="{ly:.1f}" width="{lw:.1f}" height="{lh:.1f}" fill="#ffffff" fill-opacity="0.8"/>'
                              f'<text x="{lx + lw / 2:.1f}" y="{ly + lh / 2 + fs * 0.35:.1f}" font-family="{FONT}" font-size="{fs}" fill="{fc}" text-anchor="middle">{esc(lab)}</text>')
 
-    pad = 24 if publication else 20
+    pad = NATIVE_PRESETS[preset]['margin'] if preset else (24 if publication else 20)
     vx, vy = minx - pad, miny - pad
     vw, vh = (maxx - minx) + 2 * pad, (maxy - miny) + 2 * pad
+    if preset and heading:
+        band = TITLE_FS * 2
+        vy -= band
+        vh += band
+        parts.append(f'<text x="{minx:.1f}" y="{miny - pad - band / 2 + TITLE_FS * 0.35:.1f}" font-family="{FONT}" font-size="{TITLE_FS}" '
+                     f'font-weight="bold" fill="#262626">{esc(heading)}</text>')
+    if preset and footnote:
+        band = FOOTNOTE_FS * 2.4
+        vh += band
+        parts.append(f'<text x="{minx:.1f}" y="{maxy + pad + band / 2 + FOOTNOTE_FS * 0.35:.1f}" font-family="{FONT}" font-size="{FOOTNOTE_FS}" '
+                     f'fill="#555555">{esc(footnote)}</text>')
     head = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{vx:.0f} {vy:.0f} {vw:.0f} {vh:.0f}" width="{vw:.0f}" height="{vh:.0f}">\n'
             f'<title>{esc(title or "EDGY diagram")}</title>\n<defs>{"".join(markers.values())}</defs>\n'
             f'<rect x="{vx:.0f}" y="{vy:.0f}" width="{vw:.0f}" height="{vh:.0f}" fill="#ffffff"/>\n')
@@ -345,9 +379,11 @@ def svg_to_png(svg_path: str, png_path: str, width: int, height: int, chromium: 
 
 
 def render_file(path: str, out_dir: Optional[str] = None, png: bool = True, scale: float = 1.5,
-                base: Optional[str] = None, publication: bool = False) -> List[dict]:
-    """Render every page → [{'page', 'svg', 'png', 'orientation'}]; png is None
-    when not produced. `publication` crops to the content bounds."""
+                base: Optional[str] = None, publication: bool = False, preset: Optional[str] = None,
+                heading: Optional[str] = None, footnote: Optional[str] = None) -> List[dict]:
+    """Render every page → [{'page', 'svg', 'png', 'orientation', 'width', 'height', 'preset'}];
+    png is None when not produced. `publication` crops to the content bounds; a native
+    `preset` adds its margin, title and footnote bands (see NATIVE_PRESETS)."""
     pages = load_pages_from_file(path)
     if not pages:
         raise ValueError('no diagram pages found')
@@ -359,19 +395,20 @@ def render_file(path: str, out_dir: Optional[str] = None, png: bool = True, scal
     slugs = unique_slugs([name or str(i) for i, (name, _) in enumerate(pages, 1)])
     for (name, model), slug in zip(pages, slugs):
         page = Page(model)
-        svg = page_to_svg(page, name, publication=publication)
+        svg = page_to_svg(page, name, publication=publication, preset=preset, heading=heading, footnote=footnote)
         stem = base if len(pages) == 1 else f'{base}-{slug}'
         svg_path = os.path.join(out_dir, stem + '.svg')
         with open(svg_path, 'w', encoding='utf-8') as f:
             f.write(svg)
         png_path = None
+        m = re.search(r'width="(\d+)" height="(\d+)"', svg)
+        w, h = (int(m.group(1)), int(m.group(2))) if m else (1200, 900)
         if png and chromium:
-            m = re.search(r'width="(\d+)" height="(\d+)"', svg)
-            w, h = (int(m.group(1)), int(m.group(2))) if m else (1200, 900)
             candidate = os.path.join(out_dir, stem + '.png')
             if svg_to_png(svg_path, candidate, w, h, chromium, scale):
                 png_path = candidate
-        results.append({'page': name, 'svg': svg_path, 'png': png_path, 'orientation': orientation_hint(page)})
+        results.append({'page': name, 'svg': svg_path, 'png': png_path, 'orientation': orientation_hint(page),
+                        'width': w, 'height': h, 'preset': preset})
     return results
 
 
@@ -384,9 +421,15 @@ def main(argv=None) -> int:
     ap.add_argument('--publication', action='store_true',
                     help='crop to the content bounds (shapes, routes, arrowheads, labels, legend) instead of '
                          'the editor page, and print an orientation hint per page')
+    ap.add_argument('--preset', choices=list(NATIVE_PRESETS), default=None,
+                    help='native preset: crop to content with a fixed margin (publication 24 px, presentation 48 px), '
+                         'title / footnote bands; see NATIVE_PRESETS')
+    ap.add_argument('--title', default=None, help='title band above the content (native presets)')
+    ap.add_argument('--footnote', default=None, help='footnote band below the content (native presets)')
     args = ap.parse_args(argv)
     try:
-        results = render_file(args.file, args.out, png=not args.no_png, scale=args.scale, publication=args.publication)
+        results = render_file(args.file, args.out, png=not args.no_png, scale=args.scale, publication=args.publication,
+                              preset=args.preset, heading=args.title, footnote=args.footnote)
     except Exception as e:  # noqa: BLE001
         print(f'edgy-render: cannot render {args.file}: {e}', file=sys.stderr)
         return 2
@@ -395,7 +438,7 @@ def main(argv=None) -> int:
         print(f"svg: {r['svg']}{label}")
         if r['png']:
             print(f"png: {r['png']}")
-        if args.publication:
+        if args.publication or args.preset:
             print(f"orientation: {r['orientation']}{label}", file=sys.stderr)
     if not args.no_png and not any(r['png'] for r in results):
         print('note: no Chromium/Chrome found — SVG only (set EDGY_CHROMIUM=<binary> or use the draw.io CLI for PNG)')

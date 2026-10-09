@@ -259,7 +259,7 @@ LEGEND_TEXT = {
     },
 }
 LEGEND_TITLES = {lang: t['title'] for lang, t in LEGEND_TEXT.items()}   # lint päättelee kartan kielen otsikosta
-RESERVED_METRIC_KEYS = {'id', 'change', 'size', 'highlight', 'primary'}
+RESERVED_METRIC_KEYS = {'id', 'change', 'size', 'highlight', 'primary', 'stage'}
 
 # Ydinlinkkien parivalidointi: verbi → {(lähdetyyppi, kohdetyyppi), ...}
 # Sama verbi voi olla sallittu usealle parille (esim. requires/vaatii:
@@ -297,6 +297,11 @@ class EDGYParser:
         self.cards_per_row = None    # cards_per_row: N — kontin sisäinen ruudukko N sarakkeeseen
         self.equal_group_width = False  # equal_group_width: true — kontit saavat leveimmän kontin leveyden
         self.align_groups = None     # align_groups: grid — kontit yhteiseen rivi/sarake-ruudukkoon (rivin korkeus = korkein)
+        self.stages = []             # stages: A, B, C — tehtäväkartan sarakkeet (kaistat = sidosryhmät)
+        self.title = None            # title: — natiivipresettien otsikkonauha
+        self.footnote = None         # footnote: — natiivipresettien alaviitenauha
+        self._hidden = set()         # elementit, joita ei piirretä (tehtäväkartta: kaistaksi muuttunut sidosryhmä)
+        self._stage_headers = []     # [(teksti, x, y, w)] sarakeotsikot kaistojen yläpuolelle
         self._size_override = {}   # elem_id → (w, h): layoutin pakottama koko (triad: kehän laatikot, paneelien sirut)
         self._triad_detours = {}   # (src, tgt) → (exit_side, entry_side, [(x, y), …]) kehää kiertävät linkit
         self._triad_hidden = set() # paneeleihin jäävät (ei-ensisijaiset) elementit: niiden linkkejä ei piirretä
@@ -352,6 +357,15 @@ class EDGYParser:
                 continue
             elif line.split(':')[0].strip() in self._LAYOUT_OPTION_KEYS:
                 self._parse_layout_option(line)
+                continue
+            elif line.startswith('stages:'):
+                # stages: Plan, Buy, Ride — tehtäväkartan sarakkeet; tehtävä kiinnittyy {stage: Buy}; "none" tyhjentää
+                raw = line.split(':', 1)[1].strip()
+                self.stages = [] if raw.lower() in ('', 'none') else [x.strip() for x in raw.split(',') if x.strip()]
+                continue
+            elif line.startswith('title:') or line.startswith('footnote:'):
+                key, _, raw = line.partition(':')
+                setattr(self, key.strip(), raw.strip().strip('"') or None)
                 continue
             elif line.startswith('legend:'):
                 # legend: box (oletus) | strip — nauha alareunassa säästää kanvasta
@@ -445,6 +459,7 @@ class EDGYParser:
                         'primary': metrics.get('primary', '').lower() in ('1', 'true', 'yes', 'kyllä'),   # triad: kantaa tyypin linkit
                         'tags': [t for t in tags if t.lower() != 'focus'],
                         'metrics': {k: v for k, v in metrics.items() if k not in RESERVED_METRIC_KEYS},
+                        'stage': metrics.get('stage'),       # tehtäväkartan sarake (stages:)
                         'group': current_group,
                     }
                     if current_group is not None:
@@ -1006,7 +1021,7 @@ class EDGYParser:
         min_x = min(x for x, y in positions.values())
         min_y = min(y for x, y in positions.values())
         shift_x = MARGIN - min_x
-        shift_y = MARGIN - min_y
+        shift_y = MARGIN + getattr(self, '_top_reserve', 0) - min_y
         if shift_x or shift_y:
             for eid in positions:
                 x, y = positions[eid]
@@ -1140,8 +1155,26 @@ class EDGYParser:
             element_mapping[gid] = str(next_id)
             next_id += 1
 
+        # 1b) Vaiheotsikot kaistojen yläpuolelle (edgyRole=header: lint lukee ne sisällöksi)
+        lanes = [g for g in self.groups.values() if g['kind'] == 'lane' and g['id'] in group_pos]
+        if self.stages and self.map_type == 'task' and lanes:
+            first = min(lanes, key=lambda g: group_pos[g['id']][1])
+            lx, ly = group_pos[first['id']]
+            col_w = max([self._get_element_size(self.elements[m])[0] for g in lanes for m in g['members']] + [120])
+            for i, stage in enumerate(self.stages):
+                cell = ET.SubElement(mx_root, "mxCell", {
+                    "id": str(next_id), "value": html.escape(stage),
+                    "style": "text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#333333;edgyRole=header;",
+                    "vertex": "1", "parent": "1",
+                })
+                ET.SubElement(cell, "mxGeometry", {"x": str(int(round(lx + 20 + i * (col_w + 20)))), "y": str(int(round(ly - 30))),
+                                                   "width": str(int(col_w)), "height": "24", "as": "geometry"})
+                next_id += 1
+
         # 2) Elementit
         for idx, (elem_id, element) in enumerate(self.elements.items()):
+            if elem_id in self._hidden:
+                continue
             style = self._get_element_style(element)
             if elem_id in self._triad_hidden:
                 style = style.replace('fontSize=14;', 'fontSize=12;')   # paneelisirut: pienempi otsikko
@@ -1541,8 +1574,12 @@ class EDGYParser:
                     rx, ry = self._child_positions.get(eid, (20, 40))
                     result[eid] = (gx + rx, gy + ry)
             return result
+        self._hidden = set()
+        self._stage_headers = []
+        self._top_reserve = 0
         self._equalise_cards()
         self._prepare_facet_groups()
+        self._prepare_task_lanes()
 
         for gid, group in self.groups.items():
             self._layout_group_members(gid, group)
@@ -1554,7 +1591,7 @@ class EDGYParser:
                 for g in gids:
                     self._computed_sizes[g] = (widest, self._computed_sizes[g][1])
 
-        top_items = [eid for eid, e in self.elements.items() if e.get('group') is None]
+        top_items = [eid for eid, e in self.elements.items() if e.get('group') is None and eid not in self._hidden]
         lanes = [gid for gid, g in self.groups.items() if g['kind'] == 'lane']
         containers = [gid for gid, g in self.groups.items() if g['kind'] == 'group']
 
@@ -1562,6 +1599,8 @@ class EDGYParser:
             positions = self._layout_reference(lanes, containers + top_items)
         elif lanes:
             positions = self._layout_lanes(lanes, containers + top_items)
+        elif self.map_type == 'task' and self._task_path_targets(top_items):
+            positions = self._layout_task_path(top_items)
         elif self.map_type:
             positions = self._calculate_map_type_layout(top_items, containers)
         else:
@@ -1619,6 +1658,91 @@ class EDGYParser:
             for m in members:
                 self._size_override[m] = (width, height)
 
+    # ---- tehtäväkartta: sidosryhmäinventaario ja polku ----------------------
+    def _prepare_task_lanes(self) -> None:
+        """map_type: task ilman kaistoja: jos People/Organisation-elementillä on
+        relaatio tehtäviin, siitä tulee kaista (sidosryhmä) ja tehtävät sen
+        jäseniä. Sidosryhmäelementtiä ja sen relaatioita ei piirretä — kaista
+        kantaa ne (raportoidaan, ei pudoteta hiljaa). Kaistoja ei koskaan
+        keksitä: ilman relaatioita tehtävät jäävät ruudukkoon tai polkuun."""
+        for gid in [g for g, grp in self.groups.items() if grp.get('synthetic') == 'task']:
+            for m in self.groups[gid]['members']:
+                self.elements[m]['group'] = None
+            del self.groups[gid]
+        if self.map_type != 'task' or any(g['kind'] == 'lane' for g in self.groups.values()):
+            return
+        holders = [eid for eid, e in self.elements.items() if e['type'] in ('people', 'organisation')]
+        tasks = {eid for eid, e in self.elements.items() if e['type'] == 'task' and e.get('group') is None}
+        assigned: Dict[str, List[str]] = {}
+        for rel in self.relationships:
+            s, t = rel['source'], rel['target']
+            holder, task = (s, t) if s in holders and t in tasks else (t, s) if t in holders and s in tasks else (None, None)
+            if holder and task not in sum(assigned.values(), []):
+                assigned.setdefault(holder, []).append(task)
+        if not assigned:
+            return
+        for holder in holders:
+            if holder not in assigned:
+                continue
+            gid = f"lane_{holder}"
+            self.groups[gid] = {'id': gid, 'kind': 'lane', 'name': self.elements[holder]['name'], 'members': assigned[holder],
+                                'tags': [], 'metrics': {}, 'synthetic': 'task'}
+            for m in assigned[holder]:
+                self.elements[m]['group'] = gid
+            self._hidden.add(holder)
+        n_rel = sum(1 for r in self.relationships if r['source'] in self._hidden or r['target'] in self._hidden)
+        self.warnings.append(f"task map: {len(self._hidden)} stakeholder(s) drawn as lanes, {n_rel} stakeholder relationship(s) "
+                             f"shown by lane membership instead of edges")
+
+    def _task_path_targets(self, items: List[str]) -> bool:
+        """Polkuvariantti: tehtävistä on relaatioita journey- tai channel-elementteihin."""
+        types = {i: self.elements[i]['type'] for i in items}
+        return any(types.get(r['source']) == 'task' and types.get(r['target']) in ('journey', 'channel')
+                   for r in self.relationships)
+
+    def _layout_task_path(self, items: List[str]) -> Dict[str, Tuple[int, int]]:
+        """Tehtäväkartan polku: matkat ylärivillä, tehtävät keskirivillä syötejärjestyksessä,
+        kanavat alarivillä — task → journey (is part of) nousee, task → channel (uses) laskee,
+        kumpikaan ei kulje toisen tehtävän läpi. Muut elementit riviin alimmaksi."""
+        positions: Dict[str, Tuple[int, int]] = {}
+        sizes = {i: self._size_of(i) for i in items}
+        by_type = lambda t: [i for i in items if self.elements[i]['type'] == t]  # noqa: E731
+        journeys, tasks, channels = by_type('journey'), by_type('task'), by_type('channel')
+        rest = [i for i in items if i not in journeys and i not in tasks and i not in channels]
+        GAP_X, GAP_Y = 40, 110
+        x0, y = 60, 60
+
+        def row(ids: List[str], top: float, centre: float) -> float:
+            total = sum(sizes[i][0] for i in ids) + GAP_X * (len(ids) - 1)
+            x = max(x0, centre - total / 2)
+            h = 0
+            for i in ids:
+                positions[i] = (x, top)
+                x += sizes[i][0] + GAP_X
+                h = max(h, sizes[i][1])
+            return top + h
+
+        task_w = sum(sizes[i][0] for i in tasks) + GAP_X * (len(tasks) - 1)
+        centre = x0 + task_w / 2
+        # Pystyportit oletuksena: matkaan ylös (top → bottom), kanavaan alas (bottom → top);
+        # vaakasegmentti jää rivien väliin eikä kulje naapuritehtävän läpi. Syötteen from:/to: voittaa.
+        for rel in self.relationships:
+            if rel['source'] in tasks:
+                opts = rel.setdefault('options', {})
+                if rel['target'] in journeys:
+                    opts.setdefault('from', 'top'); opts.setdefault('to', 'bottom')
+                elif rel['target'] in channels:
+                    opts.setdefault('from', 'bottom'); opts.setdefault('to', 'top')
+        if journeys:
+            y = row(journeys, y, centre) + GAP_Y
+        if tasks:
+            y = row(tasks, y, centre) + GAP_Y
+        if channels:
+            y = row(channels, y, centre) + GAP_Y
+        if rest:
+            row(rest, y, centre)
+        return positions
+
     # ---- ryhmät ------------------------------------------------------------
     def _prepare_facet_groups(self) -> None:
         """Luo synteettiset facet-kontit kun käyttäjä ei ole määritellyt ryhmiä
@@ -1657,6 +1781,29 @@ class EDGYParser:
             self._computed_sizes[gid] = (240, 100)
             return
         sizes = {m: self._get_element_size(self.elements[m]) for m in members}
+        if group['kind'] == 'lane' and self.stages and self.map_type == 'task':
+            # Matriisi: sarake = vaihe ({stage: X}), sarakeleveys sama joka kaistassa; useat
+            # samaan vaiheeseen kuuluvat tehtävät pinotaan; vaiheeton tehtävä → viimeinen sarake + varoitus
+            col_w = max([self._get_element_size(self.elements[m])[0] for g in self.groups.values() if g['kind'] == 'lane'
+                         for m in g['members']] + [120])
+            cols = {st.lower(): i for i, st in enumerate(self.stages)}
+            stacks: Dict[int, List[str]] = {}
+            for m in members:
+                st = (self.elements[m].get('stage') or '').strip().lower()
+                if st not in cols:
+                    self.warnings.append(f"task map: '{self.elements[m]['name']}' has no known stage "
+                                         f"(stages: {', '.join(self.stages)}) — placed in the last column")
+                stacks.setdefault(cols.get(st, len(self.stages)), []).append(m)
+            height = PAD_TOP
+            for c, stack in stacks.items():
+                y = PAD_TOP
+                for m in stack:
+                    self._child_positions[m] = (PAD_X + c * (col_w + GAP), y)
+                    y += sizes[m][1] + GAP
+                height = max(height, y)
+            n_cols = len(self.stages) + (1 if len(self.stages) in stacks else 0)
+            self._computed_sizes[gid] = (PAD_X * 2 + n_cols * col_w + (n_cols - 1) * GAP, height - GAP + PAD_BOTTOM)
+            return
         if group['kind'] == 'lane':
             max_w = 1100
             x, y, row_h, width = PAD_X, PAD_TOP, 0, 0
@@ -1741,6 +1888,7 @@ class EDGYParser:
         """Kaistat päällekkäin ylhäältä alas; muut top-level-kohteet riviin kaistojen alle."""
         positions: Dict[str, Tuple[int, int]] = {}
         x0, y = 60, 60
+        self._top_reserve = 40 if (self.stages and self.map_type == 'task') else 0   # vaiheotsikot kaistojen yläpuolelle
         width = max(self._computed_sizes[l][0] for l in lanes)
         for l in lanes:
             self._computed_sizes[l] = (width, self._computed_sizes[l][1])

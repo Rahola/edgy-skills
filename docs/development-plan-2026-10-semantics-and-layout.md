@@ -1,6 +1,6 @@
 # EDGY skills development plan (2026-10, part 2): semantic quality, localisation, layout consistency
 
-**Revision 2 (2026-10-09) — proposal; decisions taken: layout-quality rules and card equalisation are on by default, both opt-out.** Follow-up to
+**Revision 3 (2026-10-09) — implemented: Sprints 13–16 shipped as v2.2.0 (edgy-diagram 2.6.0, edgy-assessment 1.8.0, edgy-framework 1.5.0); decisions taken: layout-quality rules and card equalisation are on by default, both opt-out. Deviations from the proposal are recorded in `AGENT_LOG.md` (Sprints 13–16).** Follow-up to
 [`development-plan-2026-10.md`](development-plan-2026-10.md), whose Sprints
 8–12 shipped as **v2.1.0** (edgy-diagram 2.5.0, edgy-assessment 1.7.0).
 

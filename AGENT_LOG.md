@@ -20,6 +20,61 @@ perustelut.
 
 ---
 
+### 2026-10-09 — Claude Code (Sprint 16: task stakeholder map, native presets, qa.json, assessment 1.8.0, v2.2.0)
+
+**Assignment:** development-plan-2026-10-semantics-and-layout P2.1–P2.5.
+
+**Done:**
+- `map_type: task` **inventory**: one `lane:` per stakeholder; without
+  lanes a People / Organisation element with relationships to the tasks
+  becomes the lane (not drawn as a box, its relationships shown by
+  membership and reported on stderr); `stages:` + `{stage: …}` make a
+  matrix with header cells (`edgyRole=header`, which the linter counts as
+  content). No edge is ever added. **Path**: tasks with `is part of` /
+  `uses` links get journeys above and channels below with vertical ports
+  by default. Example `task-stakeholder-map.txt` (two pages), both pages
+  strict-clean.
+- Native presets `--preset publication | presentation` (`edgy_render.py`
+  `NATIVE_PRESETS`): margin 24 / 48 px, legend strip / box unless the
+  input sets one, `title:` / `footnote:` bands, crop to content, W115 at
+  the preset's reference width. The CLI presets keep their names;
+  `presentation` resolves to the native preset with `--engine native` or
+  `--preview` and to the CLI preset with `--engine drawio` and an image
+  format.
+- `qa.json` (`scripts/edgy_qa.py`, `assets/qa.schema.json`): per page
+  counts, lint, visual / layout / language / text-size checks, image size,
+  semantic-review count for purpose pages; `visual_approval`,
+  `semantic_approval`, `delivery_notes` are null until a person sets them.
+  `edgy_qa.py --require-approvals` prints lint and approvals on separate
+  lines and exits 1 on a null approval. `tools/edgy-eval.py` reads the
+  manifest instead of re-parsing; `check.sh` step `edgy-qa` validates a
+  fresh manifest against the schema and asserts it is *not* approved.
+- edgy-assessment 1.8.0: `layout` block in the model schema → document
+  keys in every TXT; Phase 4 `--preset publication` and `--series`; Phase
+  5 approvals from `qa.json`; chain test (model → 4 TXT → 4 drawio, no
+  W121, manifests present, `--require-approvals` fails until both fields
+  are set).
+- Docs: SKILL.md 2.6.0, `references/map-types.md` (task), `references/
+  export.md` (native presets), CHANGELOG v2.2.0, README, plan revision 3.
+
+**Decisions and deviations from the proposal:**
+- The W115 reference for `publication` is **605 px** (160 mm at 96 dpi),
+  not "160 mm at 300 dpi": the point size of printed text depends on the
+  printed width, not on the printer's pixel density; a 2000 px map printed
+  160 mm wide gives 2.7 pt titles, and the check now says so.
+- The assessment series check runs on the default layout: the triad ring
+  uses type-specific slot sizes and a 12 px chip font by design, so
+  `--series` over four triad files reports W121 on purpose; the Phase 4
+  text tells the agent to compare the default-layout files.
+- Stakeholder → task verbs: EDGY has no core link for People → Task, so
+  the shipped example uses explicit lanes; the derived form (any verb,
+  `performs` in the test) is covered by a structure test and warns like
+  any non-core verb.
+- `edgy-framework` did not change in this sprint; its 1.5.0 (Sprint 13) is
+  part of v2.2.0.
+
+---
+
 ### 2026-10-09 — Claude Code (Sprint 15: layout-quality rules, layout options, equal cards)
 
 **Assignment:** development-plan-2026-10-semantics-and-layout P1.5–P1.8.

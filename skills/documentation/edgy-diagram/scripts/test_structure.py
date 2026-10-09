@@ -721,6 +721,78 @@ def test_uniform_content_margin():
         assert min(xs) == 60 and min(ys) == 60, (min(xs), min(ys), src[:20])
 
 
+# ---- Sprint 16: task stakeholder map ---------------------------------------------
+def _edges(root):
+    return [c for c in root.iter('mxCell') if c.get('edge') == '1' and c.get('source') and c.get('target')]
+
+
+def test_task_inventory_has_no_edges():
+    """Explicit lanes + stages: a matrix with header cells, lane members at root, 0 edges, strict lint clean."""
+    import edgy_lint, tempfile
+    with open(os.path.join(EXAMPLES, 'task-stakeholder-map.txt'), encoding='utf-8') as f:
+        text = f.read()
+    import edgy_document
+    pages = edgy_document.parse_document(text)
+    inv = dict(pages)['Inventory']
+    xml = inv.generate_xml(); root = ET.fromstring(xml)
+    assert not _edges(root), 'inventory variant draws no relationship'
+    headers = [c for c in root.iter('mxCell') if 'edgyRole=header' in (c.get('style') or '')]
+    assert [c.get('value') for c in headers] == ['Plan', 'Buy', 'Ride']
+    cells = cells_by_label(root)
+    hx = {c.get('value'): float(c.find('mxGeometry').get('x')) for c in headers}
+    assert abs(abs_pos(root, cells['Buy a ticket'])[0] - hx['Buy']) < 1 and abs(abs_pos(root, cells['Check tickets'])[0] - hx['Ride']) < 1
+    assert abs_pos(root, cells['Validate the ticket'])[0] == abs_pos(root, cells['Follow the vehicle'])[0], 'two tasks of one stage stack'
+    assert 'stage: Ride' not in xml, 'the stage is shown by the column, not in the subtext'
+    assert float(headers[0].find('mxGeometry').get('y')) >= 20, 'headers stay on the page'
+    d = tempfile.mkdtemp(); path = os.path.join(d, 'i.drawio'); open(path, 'w', encoding='utf-8').write(xml)
+    f = edgy_lint.lint_file(path, edgy_lint.main.__globals__['argparse'].Namespace(no_legend=False))
+    assert not f, [str(x) for x in f]
+
+
+def test_task_lanes_derived_from_stakeholder_relationships():
+    p, root, xml = gen("""
+map_type: task
+elements:
+  - people: "Passenger"
+  - organisation: "Customer service"
+  - task: "Plan a trip"
+  - task: "Buy a ticket"
+  - task: "Answer a refund claim"
+  - task: "Loose task"
+relationships:
+  - "Passenger" -> "Plan a trip": "performs"
+  - "Passenger" -> "Buy a ticket": "performs"
+  - "Customer service" -> "Answer a refund claim": "performs"
+""")
+    lanes = [c for c in root.iter('mxCell') if c.get('vertex') == '1' and 'verticalAlign=top' in c.get('style', '') and 'strokeColor=none' in c.get('style', '')]
+    assert sorted(c.get('value') for c in lanes) == ['Customer service', 'Passenger'], [c.get('value') for c in lanes]
+    cells = cells_by_label(root)
+    assert 'Passenger' in cells and cells['Passenger'] in lanes, 'the stakeholder is the lane, not a box'
+    assert not _edges(root), 'stakeholder relationships become lane membership'
+    assert any('stakeholder(s) drawn as lanes' in w for w in p.warnings), p.warnings
+    assert abs_pos(root, cells['Loose task'])[1] > abs_pos(root, cells['Answer a refund claim'])[1], 'unassigned task below the lanes'
+
+
+def test_task_path_variant():
+    """task → journey / channel without lanes: journeys above, tasks in input order, channels below; vertical ports."""
+    import edgy_lint, tempfile, edgy_document
+    with open(os.path.join(EXAMPLES, 'task-stakeholder-map.txt'), encoding='utf-8') as f:
+        pages = edgy_document.parse_document(f.read())
+    path_page = dict(pages)['Path']
+    xml = path_page.generate_xml(); root = ET.fromstring(xml)
+    cells = cells_by_label(root)
+    jy = abs_pos(root, cells['Daily commute'])[1]
+    ty = {n: abs_pos(root, cells[n])[1] for n in ('Plan a trip', 'Buy a ticket', 'Validate the ticket', 'Follow the vehicle')}
+    cy = abs_pos(root, cells['Mobile app'])[1]
+    assert jy < min(ty.values()) and len(set(ty.values())) == 1 and max(ty.values()) < cy
+    xs = [abs_pos(root, cells[n])[0] for n in ('Plan a trip', 'Buy a ticket', 'Validate the ticket', 'Follow the vehicle')]
+    assert xs == sorted(xs), 'input order left to right'
+    assert len(_edges(root)) == 8
+    d = tempfile.mkdtemp(); path = os.path.join(d, 'p.drawio'); open(path, 'w', encoding='utf-8').write(xml)
+    f = edgy_lint.lint_file(path, edgy_lint.main.__globals__['argparse'].Namespace(no_legend=False))
+    assert not f, [str(x) for x in f]
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

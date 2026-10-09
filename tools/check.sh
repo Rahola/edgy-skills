@@ -8,7 +8,7 @@
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
 # edgy-tests, edgy-geometry-tests, edgy-lint-tests, edgy-render-tests,
 # edgy-structure-tests, edgy-tool-tests, edgy-model, edgy-eval, edgy-lint,
-# edgy-lint-strict, edgy-series,
+# edgy-lint-strict, edgy-series, edgy-qa,
 # privacy-scan.
 #
 # Käyttö:
@@ -283,6 +283,25 @@ edgy_series() {
     return $rc
 }
 run_step "edgy-series" edgy_series
+
+# --- Vaihe 3g: qa.json-manifesti -----------------------------------------------
+# Generaattorin --qa kirjoittaa manifestin; sen on validoiduttava skeemaa vasten
+# ja hyväksyntäkenttien on oltava null (työkalu ei koskaan hyväksy itse):
+# edgy_qa.py --require-approvals palauttaa 1.
+edgy_qa_manifest() {
+    local ex="skills/documentation/edgy-diagram/examples"
+    local tmp
+    tmp=$(mktemp -d)
+    python3 "$EDGY_SCRIPTS/edgy_generator.py" "$ex/task-stakeholder-map.txt" --output "$tmp/t.drawio" --qa >/dev/null 2>&1 || { rm -rf "$tmp"; return 1; }
+    python3 tools/validate-edgy-model.py --schema skills/documentation/edgy-diagram/assets/qa.schema.json "$tmp/t.qa.json" >/dev/null || { rm -rf "$tmp"; return 1; }
+    if python3 "$EDGY_SCRIPTS/edgy_qa.py" --require-approvals "$tmp/t.qa.json" >/dev/null; then
+        echo "edgy-qa: a fresh manifest must not count as approved" >&2
+        rm -rf "$tmp"; return 1
+    fi
+    rm -rf "$tmp"
+    return 0
+}
+run_step "edgy-qa" edgy_qa_manifest
 
 # --- Vaihe 4: privacy-scan (asiakasreferenssien vuototarkistus) --------------
 # Estää yksityisten asiakas-/toimeksiantonimien päätymisen julkiseen repoon.

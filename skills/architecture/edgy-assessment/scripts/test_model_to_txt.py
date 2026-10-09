@@ -91,6 +91,48 @@ def test_chain_per_language_has_no_language_mismatch():
         assert not [f for f in findings if f['level'] == 'ERROR'], (lang, [f['msg'] for f in findings if f['level'] == 'ERROR'])
 
 
+def test_layout_block_is_written_to_every_file():
+    model = _model()
+    model['layout'] = {'legend': 'strip', 'card_width': 200, 'equal_group_width': True, 'title': 'Acme Oy — EDGY'}
+    for facet in ('identity', 'architecture', 'experience', 'all'):
+        head = m2t.build(model, facet, 'en').split('elements:')[0]
+        assert 'legend: strip' in head and 'card_width: 200' in head and 'equal_group_width: true' in head and 'title: Acme Oy — EDGY' in head, head
+
+
+def test_assessment_chain_requires_approvals():
+    """Four files from one model: --series clean, a qa.json per file with null approvals →
+    the Phase 5 check (edgy_qa.py --require-approvals) fails until a person sets both fields."""
+    d = tempfile.mkdtemp()
+    model = _model()
+    model['layout'] = {'legend': 'strip'}
+    path = Path(d) / 'model.json'
+    path.write_text(json.dumps(model), encoding='utf-8')
+    r = subprocess.run([sys.executable, str(HERE / 'edgy_model_to_txt.py'), str(path), '--out', d, '--prefix', 'acme'],
+                       capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    outs = []
+    for txt in sorted(Path(d).glob('acme-*.txt')):
+        out = Path(d) / (txt.stem + '.drawio')
+        g = subprocess.run([sys.executable, str(DIAGRAM / 'edgy_generator.py'), str(txt), '--output', str(out), '--qa'], capture_output=True, text=True)
+        assert g.returncode == 0, (txt.name, g.stderr)
+        assert (Path(d) / (txt.stem + '.qa.json')).exists(), txt.name
+        outs.append(str(out))
+    lint = subprocess.run([sys.executable, str(DIAGRAM / 'edgy_lint.py'), '--json', '--series'] + outs, capture_output=True, text=True)
+    findings = json.loads(lint.stdout)
+    assert not [f for f in findings if f['rule'] == 'W121'], [f['msg'] for f in findings if f['rule'] == 'W121']
+    qa_files = sorted(str(q) for q in Path(d).glob('acme-*.qa.json'))
+    check = subprocess.run([sys.executable, str(DIAGRAM / 'edgy_qa.py'), '--require-approvals'] + qa_files, capture_output=True, text=True)
+    assert check.returncode == 1 and 'NOT APPROVED' in check.stdout, check.stdout
+    for q in qa_files:
+        m = json.loads(Path(q).read_text(encoding='utf-8'))
+        assert m['visual_approval'] is None and m['semantic_approval'] is None
+        m['visual_approval'] = 'Reviewer, 2026-10-09'
+        m['semantic_approval'] = 'Reviewer, 2026-10-09'
+        Path(q).write_text(json.dumps(m), encoding='utf-8')
+    check = subprocess.run([sys.executable, str(DIAGRAM / 'edgy_qa.py'), '--require-approvals'] + qa_files, capture_output=True, text=True)
+    assert check.returncode == 0, check.stdout
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

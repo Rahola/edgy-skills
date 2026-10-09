@@ -627,9 +627,25 @@ def _container_boxes(cells, containers):
     return out
 
 
-def content_bbox(elements, cbox):
-    """Bounding box of EDGY elements and top-level containers (the legend is not content)."""
-    boxes = [box for (_c, _st, box) in elements.values() if box] + list(cbox.values())
+def _band_boxes(cells):
+    """Lanes (borderless bands) and header cells the generator marks edgyRole=header
+    (stage columns, title / footnote): visible layout, so content for W119–W121."""
+    out = {}
+    for i, c in cells.items():
+        if c.get('vertex') != '1':
+            continue
+        st = style_dict(c.get('style'))
+        is_lane = st.get('strokeColor') == 'none' and st.get('verticalAlign') == 'top' and 'text' not in st
+        if is_lane or st.get('edgyRole') == 'header':
+            g = c.find('mxGeometry')
+            if g is not None and c.get('parent') == '1':
+                out[i] = tuple(float(g.get(k, 0) or 0) for k in ('x', 'y', 'width', 'height'))
+    return out
+
+
+def content_bbox(elements, cbox, bands=None):
+    """Bounding box of EDGY elements, top-level containers, lanes and header cells (the legend is not content)."""
+    boxes = [box for (_c, _st, box) in elements.values() if box] + list(cbox.values()) + list((bands or {}).values())
     if not boxes:
         return None
     x0 = min(b[0] for b in boxes)
@@ -710,7 +726,7 @@ def layout_findings(path, page, lines, cells, elements, kinds, containers, page_
                             f'(×{max(gaps) / min(gaps):.2f}, limit ×{W118_GAP_SPREAD}) — equal_group_width: true or align_groups: grid', items[0][0])
 
     # W119 balance and W120 aspect on the content bounding box
-    bbox = content_bbox(elements, cbox)
+    bbox = content_bbox(elements, cbox, _band_boxes(cells))
     if bbox and page_w and page_h:
         x0, y0, w, h = bbox
         grown_w, grown_h = page_w > W119_MIN_PAGE[0], page_h > W119_MIN_PAGE[1]
@@ -769,7 +785,7 @@ def series_profile(path):
     elements = {i: (c, st, abs_box(c)) for i, (c, st, _k) in cls['elements'].items()}
     kinds = {i: k for i, (_c, _st, k) in cls['elements'].items()}
     cbox = _container_boxes(cells, cls['containers'])
-    bbox = content_bbox(elements, cbox)
+    bbox = content_bbox(elements, cbox, _band_boxes(cells))
     legend = None
     for i, c in cells.items():
         st = style_dict(c.get('style'))

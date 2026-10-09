@@ -342,6 +342,14 @@ diagrams with four). Edit the model, regenerate; never patch a TXT. The
 format below documents what the script produces, and is the fallback when
 Python is unavailable.
 
+**Layout block.** An optional `layout` object in the model (`legend`,
+`card_width`, `equal_cards`, `group_columns`, `cards_per_row`,
+`equal_group_width`, `align_groups`, `title`, `footnote`) is written as
+document keys into every TXT, so the four files share one legend placement,
+card sizing and grid — `edgy_lint.py --series` (Phase 4) then reports
+nothing. Set `language` in the model: the verbs and the legend render in
+that language (W116 otherwise).
+
 **Primary element.** A core link between two element *types* is drawn once,
 between the primary element of each type: the one with `"primary": true` in
 the model, otherwise the first of its type. Set the flag in the model when
@@ -397,11 +405,21 @@ Generate a drawio diagram for each TXT file **with the edgy-diagram generator** 
 
 ```bash
 G=skills/documentation/edgy-diagram/scripts
-python3 $G/edgy_generator.py <company>-identity.txt --output <company>-identity.drawio --preview
+python3 $G/edgy_generator.py <company>-identity.txt --output <company>-identity.drawio --preview --preset publication
 python3 $G/edgy_lint.py <company>-identity.drawio      # 0 errors required
-# --preview wrote <company>-identity.svg (+ .png when Chromium is available): open it and check
-# the preview checklist (edgy-diagram SKILL.md, "Preview loop") before moving on
+# --preview wrote <company>-identity.svg (+ .png when Chromium is available) and <company>-identity.qa.json:
+# open the image and check the preview checklist (edgy-diagram SKILL.md, "Preview loop") before moving on
+# series check across the four files of this delivery (legend placement, margins, card widths, fonts):
+python3 $G/edgy_lint.py --series <company>-identity.drawio <company>-architecture.drawio <company>-experience.drawio <company>-all-facets.drawio
 ```
+
+`--preset publication` (native preset: 24 px margin, strip legend, W115 at a
+160 mm column, `title:` / `footnote:` bands from the model's layout block) is
+the image for the report; `--preset presentation` for slides. The
+`qa.json` written next to each `.drawio` carries the counts, the lint, the
+visual / layout / language checks and the preview size; its
+`visual_approval` and `semantic_approval` stay `null` until a person sets
+them in Phase 5.
 
 Read every generator warning: a core-link verb on a wrong pair or a verb
 outside the vocabulary means the TXT file (and usually the analysis) is
@@ -436,6 +454,9 @@ here**. Before moving on, every one of the four files must pass:
   they bridge
 - relationships use only the active core links from the model (a core-link
   verb on a wrong pair is a model error — fix the model, regenerate)
+- `edgy_lint.py --series` over the four files reports no W121: one legend
+  placement, one content margin, one card width per type, one font size
+  across the delivery (set the model's `layout` block, never patch a file)
 
 #### Structural maps (recommended, optional)
 
@@ -484,8 +505,18 @@ Before completion, check ALL:
 - [ ] Relationships use official 24 core links
 - [ ] Output language matches `language` parameter
 
+#### Approvals (`qa.json`, one per diagram):
+- [ ] `python3 $G/edgy_qa.py --require-approvals <company>-*.qa.json` exits 0 — it lists the lint result and
+      the two approvals on **separate lines**: zero lint findings is never an approval
+- [ ] `visual_approval` set by the person who looked at every preview (name and date)
+- [ ] `semantic_approval` set by the person who answered the semantic review (Phase 2b) — for a delivery
+      with a purpose map, after every S-finding has an answer in the report
+- [ ] `delivery_notes` carries anything the reader must know (a layout option that was switched off, a
+      warning that was accepted and why)
+
 #### Layout quality:
 - [ ] `edgy_lint.py --warnings-as-errors --visual` passes for all four drawio files (0 errors, no W111–W114)
+- [ ] `edgy_lint.py --series` over the four files reports no W121; the layout rules W117–W120 report nothing or each finding is answered in `delivery_notes`
 - [ ] Every diagram was previewed (`--preview` / `edgy_render.py`) and looked at; the preview checklist passed
 - [ ] No elements at negative coordinates in any drawio file
 - [ ] No overlapping elements in any drawio file (min 10px gap)
