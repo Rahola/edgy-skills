@@ -443,6 +443,15 @@ def test_qa_manifest_schema_and_approvals_null():
     assert r.returncode == 0, r.stderr
     qa = json.load(open(os.path.join(d, 'm.qa.json'), encoding='utf-8'))
     assert len(qa['pages']) == 2 and qa['pages'][1]['name'] == 'Systems'
+    # pages are matched by ordinal: two pages with one name keep their own counts and images
+    dup = MULTI.replace('- name: "Systems"', '- name: "Roles & actors"')
+    src2 = os.path.join(d, 'dup.txt'); open(src2, 'w', encoding='utf-8').write(dup)
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src2, '--output', os.path.join(d, 'dup.drawio'), '--preview', '--no-png'], capture_output=True, text=True) if False else \
+        subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src2, '--output', os.path.join(d, 'dup.drawio'), '--preview'], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    qd = json.load(open(os.path.join(d, 'dup.qa.json'), encoding='utf-8'))
+    assert qd['pages'][0]['elements'] != qd['pages'][1]['elements'] and qd['pages'][0]['image']['svg'] != qd['pages'][1]['image']['svg'], qd['pages']
+    assert qd['pages'][0]['edges'] == 1 and qd['pages'][1]['edges'] == 0
     assert qa['visual_approval'] is None and qa['semantic_approval'] is None and qa['delivery_notes'] is None
     assert qa['pages'][0]['layout_quality'] == {'ran': False, 'findings': 0}
     assert qa['pages'][1]['elements'] == {'asset': 5} and qa['pages'][0]['edges'] == 1
@@ -475,14 +484,22 @@ def test_qa_manifest_schema_and_approvals_null():
     r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'x.drawio'), '--engine', 'native', '--preset', 'publication'], capture_output=True, text=True)
     assert r.returncode == 2 and 'native preset' in r.stderr, 'no native render runs for .drawio output without --preview'
     r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'slide.png'), '--preset', 'presentation'], capture_output=True, text=True)
-    assert r.returncode == 0 and not os.path.exists(os.path.join(d, 'slide.png.drawio')) and os.path.exists(os.path.join(d, 'slide.drawio')), r.stdout + r.stderr
+    # the CLI preset path was taken (slide.drawio, not slide.png.drawio); without the CLI the export is not confirmed → exit 1
+    assert r.returncode == 1 and not os.path.exists(os.path.join(d, 'slide.png.drawio')) and os.path.exists(os.path.join(d, 'slide.drawio')), r.stdout + r.stderr
     # manifest image paths are relative to the manifest's directory
     qa_prev = json.load(open(os.path.join(d, 'publication.qa.json'), encoding='utf-8')) if os.path.exists(os.path.join(d, 'publication.qa.json')) else None
-    # --qa with a draw.io CLI export: the manifest is written before the export (the CLI is absent here, the file stays)
+    # --qa with a draw.io CLI export: without the CLI the export is not confirmed → exit 1, no manifest, .drawio kept
     out4 = os.path.join(d, 'cli.png')
     r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', out4, '--format', 'png', '--qa'], capture_output=True, text=True)
-    assert r.returncode == 0 and os.path.exists(os.path.join(d, 'cli.qa.json')), r.stdout + r.stderr
-    assert json.load(open(os.path.join(d, 'cli.qa.json'), encoding='utf-8'))['output'] == 'cli.png', 'the manifest names the delivery file'
+    assert r.returncode == 1 and 'no qa.json written' in r.stderr and not os.path.exists(os.path.join(d, 'cli.qa.json')), r.stdout + r.stderr
+    assert os.path.exists(os.path.join(d, 'cli.drawio'))
+    # with a confirmed export the manifest names the delivery file
+    import edgy_qa, edgy_document
+    pages = edgy_document.parse_document(MULTI)
+    for _n, pp in pages:
+        pp.generate_xml()
+    m = edgy_qa.build_manifest(out, pages, output_path=out4)
+    assert m['output'] == 'cli.png'
     # --no-qa: nothing written
     out2 = os.path.join(d, 'n.drawio')
     subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', out2, '--no-qa'], capture_output=True, text=True)

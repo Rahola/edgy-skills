@@ -95,7 +95,7 @@ def test_s003_needs_status_and_s004_needs_tag():
 
 def test_s006_matches_values_ending_in_a_symbol():
     import edgy_semantic_review as sr
-    for name in ('Cut churn 15%', 'Save 50 €', 'Reach 95 % on time', 'Cost 3 €/trip'):
+    for name in ('Cut churn 15%', 'Save 50 €', 'Reach 95 % on time', 'Cost 3 €/trip', 'Waiting time under 5 minutes', 'Odotus alle 5 minuuttia', 'Within 1 minute'):
         assert sr.METRIC_RE.search(name), name
     assert not sr.METRIC_RE.search('Platform 9 hub'), 'a bare number is no metric'
 

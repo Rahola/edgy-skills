@@ -166,7 +166,8 @@ layouts that the options below should fix: `card_width`, `equal_cards`,
 `--no-layout-quality` switches them off for a run; a delivery records whether
 they ran. **W121 (`--series`)** checks the files of one delivery against the
 first: legend placement, content margin, card width of every shared type and
-label font sizes must agree — generate the series with the same options.
+label font sizes must agree on every page of every file — generate the
+series with the same options.
 
 **Language (W116).** With `language:` set, the generator renders the legend
 and every vocabulary verb in that language (`contains` → `sisältää`,
@@ -503,16 +504,16 @@ the parser warns.
 | `journey`, `activity`, `process` | sequence (pentagon row, left → right) | 4 | 6–8 |
 | `brand`, `product`, `object` | hub-and-spoke | 5–6 | 7–15 |
 | `asset`, `channel`, `content`, `people`, `story` | grid (`cols ≈ √N`) | 5–8 | 7–30 |
-| `task` | **stakeholder inventory** when lanes exist or a People / Organisation element has relationships to the tasks: one lane per stakeholder (a related stakeholder becomes the lane and is not drawn as a box), `stages:` as columns with `{stage: …}`, no edges; **path** when tasks link to a journey (`is part of`) or channels (`uses`): journeys above, tasks in input order, channels below; grid otherwise | 5–8 | 7–30 |
+| `task` | **stakeholder inventory** when lanes exist or a People / Organisation element has relationships to the tasks: one lane per stakeholder (a related stakeholder becomes the lane and is not drawn as a box), `stages:` as columns with `{stage: …}`; it has no edges because its input has no other relationships (one written between two tasks is drawn); **path** when tasks link to a journey (`is part of`) or channels (`uses`): journeys above, tasks in input order, channels below; grid otherwise | 5–8 | 7–30 |
 | `reference` *(extension)* | lanes top-down, Organisation/People left, `[external]` right, overlay strokes, one integration bus | 8 | 10–25 |
 | `summary` *(extension)* | who / does what / what results; warns above 4 boxes per row | 3 | 6–10 |
 | `triad` *(extension)* | **planned ring** for `facet: all` or one facet: one *primary* element per type carries the core links (`{primary: true}`, else the first of its type), straight border-to-border lines, two links detour along the page edge; the other elements sit in **"Further <type>" panels** without lines and their links are reported, not drawn; strip legend by default | 6 | 12 primaries + any number of further |
 
 The two task-map variants are documented pages of one input
 (`examples/task-stakeholder-map.txt`): the inventory answers *who does what
-at which stage* and draws no relationship — a map is never given a link just
-to look connected; the path answers *which journey and channels a task
-touches*. Never model focus areas as Story in a purpose map; formulate capabilities as
+at which stage* and carries no relationships in its input — a map is never
+given a link just to look connected; the path answers *which journey and
+channels a task touches*. Never model focus areas as Story in a purpose map; formulate capabilities as
 system-independent result nouns, 6–12 areas and 40–80 leaves (edgy-framework,
 *Formulating capabilities*). Input/layout sketches per strategy and the
 **pairwise map** spec used by `edgy-deep-dive`: `references/map-types.md`.

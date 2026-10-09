@@ -509,6 +509,15 @@ def test_w121_series():
     subprocess.run([sys.executable, gen, narrow_txt, '--output', narrow], capture_output=True, text=True)
     msgs = [x.msg for x in edgy_lint.series_findings([outs[0], outs[1], narrow])]   # capability map first: no task cards in it
     assert any('task cards are' in m and 'series-acme-task.drawio' in m for m in msgs), msgs
+    # every page of a file is compared: a second page with a box legend differs from the strip reference
+    two_pages = os.path.join(d, 'two.txt')
+    open(two_pages, 'w', encoding='utf-8').write('language: en\npages:\n  - name: "One"\n    map_type: task\n    legend: strip\n    elements:\n      - task: "A"\n      - task: "B"\n'
+                                                 '  - name: "Two"\n    map_type: task\n    legend: box\n    elements:\n      - task: "C"\n      - task: "D"\n')
+    two = os.path.join(d, 'two.drawio')
+    subprocess.run([sys.executable, gen, two_pages, '--output', two], capture_output=True, text=True)
+    msgs = [(x.page, x.msg) for x in edgy_lint.series_findings([outs[1], two])]
+    assert any(pg == 'Two' and 'legend is a box here' in m for pg, m in msgs), msgs
+    assert not any(pg == 'One' and 'legend' in m for pg, m in msgs), msgs
     # CLI: --series adds W121 to the run
     r = subprocess.run([sys.executable, os.path.join(here, 'edgy_lint.py'), '--series', '--json', outs[2], wide], capture_output=True, text=True)
     import json

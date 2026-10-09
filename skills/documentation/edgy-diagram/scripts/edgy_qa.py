@@ -70,14 +70,20 @@ def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=No
     names = [name for name, _ in pages]
     facts = _page_facts(drawio_path)
     ref_width = edgy_render.NATIVE_PRESETS[preset]['ref_width'] if preset in edgy_render.NATIVE_PRESETS else None
-    # one lint run per page scale: the W115 scale depends on the page's rendered width
+    # pages are matched by ordinal (file order = parser order = preview order), never by name:
+    # two pages may share a name. Each page is linted on its own model with its own W115 scale.
+    models = list(edgy_lint.load_models(drawio_path))
+    lines = edgy_lint.line_index(drawio_path)
     per_page = []
     semantic_total = 0
     for idx, (name, p) in enumerate(pages):
-        prev = next((r for r in previews if (r.get('page') == name) or (len(pages) == 1)), None)
+        prev = previews[idx] if idx < len(previews) else None
         scale = round(ref_width / prev['width'], 4) if (ref_width and prev and prev.get('width')) else None
         opts = argparse.Namespace(no_legend=False, language=None, scale=scale, no_layout_quality=not layout_quality)
-        findings = [f for f in edgy_lint.lint_file(drawio_path, opts) if f.page in (None, name)]
+        if idx < len(models):
+            findings = edgy_lint.lint_model(drawio_path, name if len(pages) > 1 else None, models[idx][1], lines, opts)
+        else:
+            findings = []
         rules = Counter(f.rule for f in findings)
         counts = Counter(e['type'] for e in p.elements.values() if e['id'] not in getattr(p, '_hidden', set()))
         drawn_edges = facts[idx][3] if idx < len(facts) else 0

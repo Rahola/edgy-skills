@@ -96,8 +96,10 @@ stakeholder; `stages:` gives the columns and every task picks its column
 with `{stage: …}` (a task without a known stage goes to a trailing column
 with a warning). Without lanes, a People or Organisation element that has
 relationships to the tasks *becomes* the lane: it is not drawn as a box and
-its relationships are shown by membership, reported on stderr. No edges are
-drawn — never add a relationship to make a map look connected.
+its relationships are shown by membership, reported on stderr. The
+inventory has no edges because its input has no other relationships; a
+relationship written between two tasks is drawn like anywhere else — never
+add one to make a map look connected.
 
 ```
 map_type: task

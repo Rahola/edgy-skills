@@ -753,12 +753,12 @@ def layout_findings(path, page, lines, cells, elements, kinds, containers, page_
 
 
 def series_profile(path):
-    """Per-file layout profile for W121: legend placement, content margin,
-    median card width per type, element and edge font sizes (first page)."""
-    models = list(load_models(path))
-    if not models:
-        return None
-    _page, model = models[0]
+    """Layout profiles for W121, one per page of the file: [(page name, profile)] with
+    legend placement, content margin, median card width per type, element and edge font sizes."""
+    return [(page, _page_profile(model)) for page, model in load_models(path)]
+
+
+def _page_profile(model):
     root = model.find('root')
     cells = {c.get('id'): c for c in root.findall('mxCell')} if root is not None else {}
     cls = classify_cells(cells)
@@ -816,24 +816,24 @@ def series_findings(paths):
     margin, card width of every shared type and label font sizes. The first
     file is the reference; every difference is reported on the file that differs."""
     F = []
-    profiles = []
+    profiles = []   # (file, page name or None, profile) — every page of every file
     for p in paths:
         try:
-            prof = series_profile(p)
+            pages = series_profile(p)
         except (ET.ParseError, ValueError, zlib.error, UnicodeDecodeError):
-            prof = None
-        if prof:
-            profiles.append((p, prof))
+            pages = []
+        for page, prof in pages:
+            profiles.append((p, page if len(pages) > 1 else None, prof))
     if len(profiles) < 2:
         return F
-    ref_path, ref = profiles[0]
+    ref_path, ref_page, ref = profiles[0]
     width_baseline = {}   # type → (width, file it was first seen in): a type absent from the first file still gets compared
-    for p, prof in profiles:
+    for p, _page, prof in profiles:
         for kind, w in prof['card_width'].items():
             width_baseline.setdefault(kind, (w, p))
-    for p, prof in profiles[1:]:
-        def add(msg, ref_path=ref_path):
-            F.append(Finding('WARNING', 'W121', f'{msg} (reference: {os.path.basename(ref_path)})', p))
+    for p, page, prof in profiles[1:]:
+        def add(msg, ref_path=ref_path, page=page):
+            F.append(Finding('WARNING', 'W121', f'{msg} (reference: {os.path.basename(ref_path)})', p, page=page))
         if ref['legend'] and prof['legend'] and ref['legend'] != prof['legend']:
             add(f'legend is a {prof["legend"]} here but a {ref["legend"]} in the reference — use the same legend: setting in the series')
         if ref['margin'] and prof['margin']:

@@ -127,8 +127,8 @@ EXPORT_PRESETS = {
 }
 
 
-def export_with_drawio_cli(input_path: str, output_path: str, format: str, extra_args: list = None) -> None:
-    """Vie draw.io CLI:llä"""
+def export_with_drawio_cli(input_path: str, output_path: str, format: str, extra_args: list = None) -> bool:
+    """Vie draw.io CLI:llä. Palauttaa True vain kun output_path on kirjoitettu."""
     try:
         # Tarkista että draw.io CLI on saatavilla
         import subprocess
@@ -151,8 +151,8 @@ def export_with_drawio_cli(input_path: str, output_path: str, format: str, extra
                 continue
 
         if not drawio_cmd:
-            print("Warning: draw.io CLI not found. Skipping export.")
-            return
+            print("Warning: draw.io CLI not found. Skipping export — the .drawio file is kept.", file=sys.stderr)
+            return False
 
         # Suorita vienti
         cmd = [drawio_cmd, '-x', '-f', format, '-e']
@@ -164,15 +164,17 @@ def export_with_drawio_cli(input_path: str, output_path: str, format: str, extra
 
         result = subprocess.run(cmd, capture_output=True, text=True)
 
-        if result.returncode == 0:
+        if result.returncode == 0 and os.path.exists(output_path):
             print(f"Successfully exported to {output_path}")
             # Poista väliaikainen .drawio tiedosto
             os.remove(input_path)
-        else:
-            print(f"Export failed: {result.stderr}")
+            return True
+        print(f"Export failed: {result.stderr}", file=sys.stderr)
+        return False
 
     except Exception as e:
-        print(f"Export error: {e}")
+        print(f"Export error: {e}", file=sys.stderr)
+        return False
 
 
 def _find_plantuml_cmd():
@@ -398,19 +400,22 @@ def main():
     temp_drawio_path = output_path if fmt == 'drawio' else output_path.replace(f'.{fmt}', '.drawio')
     write_drawio_file(xml_content, temp_drawio_path)
 
-    def write_qa(previews):
+    def write_qa(previews, manifest=None):
         # qa.json: samat luvut evalille, assessmentin Phase 5:lle ja katselmoijalle; hyväksyntäkentät jäävät null.
-        # Kutsutaan ennen kuin draw.io CLI -vienti poistaa väliaikaisen .drawio-tiedoston.
+        # CLI-vienti: manifesti rakennetaan ennen vientiä (lint lukee .drawion) mutta kirjoitetaan vasta kun vienti onnistui.
         if not args.qa:
             return
-        gen_warnings = [w for _, p in pages for w in p.warnings]
-        manifest = edgy_qa.build_manifest(temp_drawio_path, pages, input_path=args.input if os.path.exists(args.input) else None,
-                                          preset=native_preset, previews=previews, generator_warnings=gen_warnings,
-                                          layout_quality=not args.no_layout_quality, output_path=output_path)
+        manifest = manifest or build_qa(previews)
         qa_path = edgy_qa.write_manifest(temp_drawio_path, manifest)
         t = manifest['totals']
         print(f"QA manifest: {qa_path} — lint {t['lint_errors']}/{t['lint_warnings']}, visual {t['visual']}, "
               f"layout {t['layout_quality']}; visual_approval and semantic_approval are null until a person sets them")
+
+    def build_qa(previews):
+        gen_warnings = [w for _, p in pages for w in p.warnings]
+        return edgy_qa.build_manifest(temp_drawio_path, pages, input_path=args.input if os.path.exists(args.input) else None,
+                                      preset=native_preset, previews=previews, generator_warnings=gen_warnings,
+                                      layout_quality=not args.no_layout_quality, output_path=output_path)
 
     if fmt != 'drawio' and args.engine == 'native':
         if fmt == 'pdf':
@@ -428,8 +433,12 @@ def main():
             print("Warning: no Chromium/Chrome found — wrote SVG only (set EDGY_CHROMIUM=<binary>).", file=sys.stderr)
         write_qa(results)
     elif fmt != 'drawio':
-        write_qa(None)                      # the CLI export removes the intermediate .drawio on success
-        export_with_drawio_cli(temp_drawio_path, output_path, fmt, extra_export_args)
+        manifest = build_qa(None) if args.qa else None      # lint reads the .drawio, which the export removes on success
+        if not export_with_drawio_cli(temp_drawio_path, output_path, fmt, extra_export_args):
+            print(f"Error: {output_path} was not produced{'; no qa.json written' if args.qa else ''}. "
+                  f"The .drawio file is kept at {temp_drawio_path}.", file=sys.stderr)
+            sys.exit(1)
+        write_qa(None, manifest)            # only after the delivery file exists
     else:
         print(f"EDGY diagram created: {output_path}")
         previews = None
