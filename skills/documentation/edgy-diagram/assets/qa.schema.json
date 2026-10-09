@@ -20,7 +20,7 @@
         "properties": {
           "name": {"type": "string"},
           "map_type": {},
-          "facet": {"type": "string"},
+          "facet": {"description": "The facet of a facet layout (identity | architecture | experience | all); null for a map-type layout"},
           "language": {"type": "string", "enum": ["fi", "en", "fr", "de"]},
           "elements": {"type": "object"},
           "edges": {"type": "integer", "minimum": 0},

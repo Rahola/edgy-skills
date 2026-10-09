@@ -68,9 +68,19 @@ def primary_index(elements):
     return 0
 
 
-def element_lines(model, types, with_ids=True):
+# provenance tags in the four languages the semantic review accepts (edgy_semantic_review.PROVENANCE_TAGS)
+PROVENANCE_TAGS = {
+    "en": {"confirmed": "confirmed", "analytical": "analytical", "proposed": "proposed"},
+    "fi": {"confirmed": "vahvistettu", "analytical": "analyyttinen", "proposed": "ehdotettu"},
+    "fr": {"confirmed": "confirmé", "analytical": "analytique", "proposed": "proposé"},
+    "de": {"confirmed": "bestätigt", "analytical": "analytisch", "proposed": "vorgeschlagen"},
+}
+
+
+def element_lines(model, types, with_ids=True, lang="en"):
     """Returns (lines, names) where names[type] lists the element names with the
-    primary element FIRST, so relationship_lines can use names[type][0]."""
+    primary element FIRST, so relationship_lines can use names[type][0].
+    Provenance tags are written in `lang` (the report language)."""
     lines, names = [], {}
     for t in types:
         elements = _as_list(model["elements"].get(t))
@@ -84,8 +94,10 @@ def element_lines(model, types, with_ids=True):
                     tags.append(_clean(e[key]).lower())
             # provenance: confirmed (public source) | analytical (this analysis) | proposed — read by
             # edgy_semantic_review.py and shown on the element's tag line
-            if e.get("provenance") in ("confirmed", "analytical", "proposed") and e["provenance"] not in tags:
-                tags.append(e["provenance"])
+            if e.get("provenance") in ("confirmed", "analytical", "proposed"):
+                tag = PROVENANCE_TAGS.get(lang, PROVENANCE_TAGS["en"])[e["provenance"]]
+                if tag not in tags:
+                    tags.append(tag)
             value = f"{name} - {desc}" if desc else name
             tag_part = f" [{', '.join(tags)}]" if tags else ""
             metrics = {}
@@ -147,8 +159,8 @@ def build(model, facet, lang, layout="default"):
             value = str(value).lower() if isinstance(value, bool) else _clean(value)   # free text on one line: a newline would start a new directive
             header.append(f"{key}: {value}")
     header += ["", "elements:"]
-    el, names = element_lines(model, main_types)
-    il, inames = element_lines(model, inter)
+    el, names = element_lines(model, main_types, lang=lang)
+    il, inames = element_lines(model, inter, lang=lang)
     names.update(inames)
     rel = relationship_lines(model, names, lang)
     body = header + el + ["  # intersection elements"] + il + ["", "relationships:"] + rel

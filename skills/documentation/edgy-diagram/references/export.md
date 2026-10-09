@@ -27,8 +27,10 @@ Esimerkki: `python3 edgy_generator.py input.txt --preset presentation --output s
 | `publication` | 24 px | `strip` | 605 px — a 160 mm report column at 96 dpi: the text is tested at the size it is printed | `title:` above, `footnote:` below |
 | `presentation` | 48 px | `box` | 1920 px — a full-width slide | `title:` above, `footnote:` below |
 
-Both crop to the content like `--publication`. The same input rendered with
-both presets differs only in this frame. `qa.json` records the preset, the
+Both crop to the content like `--publication`. When the input fixes
+`legend:`, the same input rendered with both presets differs only in this
+frame; without it the legend placement follows the preset (`strip` /
+`box`) and the page layout changes with it. `qa.json` records the preset, the
 scale and the W115 count. `--preset presentation` means the native preset
 with `--engine native` or `--preview`, and the draw.io CLI preset with
 `--engine drawio` and a PNG/PDF/SVG format.

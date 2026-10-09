@@ -91,6 +91,16 @@ def test_chain_per_language_has_no_language_mismatch():
         assert not [f for f in findings if f['level'] == 'ERROR'], (lang, [f['msg'] for f in findings if f['level'] == 'ERROR'])
 
 
+def test_provenance_tags_follow_the_report_language():
+    model = _model()
+    model['elements']['purpose']['provenance'] = 'confirmed'
+    for lang, tag in (('en', 'confirmed'), ('fi', 'vahvistettu'), ('fr', 'confirmé'), ('de', 'bestätigt')):
+        txt = m2t.build(model, 'identity', lang)
+        line = [l for l in txt.splitlines() if l.strip().startswith('- purpose:')][0]
+        assert f'[{tag}' in line or f', {tag}]' in line, (lang, line)
+        assert not (lang != 'en' and 'confirmed' in line), (lang, line)
+
+
 def test_layout_block_is_written_to_every_file():
     model = _model()
     model['layout'] = {'legend': 'strip', 'card_width': 200, 'equal_group_width': True, 'title': 'Acme Oy — EDGY\nmap_type: triad'}

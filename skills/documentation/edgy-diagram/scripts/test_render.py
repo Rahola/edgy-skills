@@ -476,6 +476,7 @@ def test_qa_manifest_schema_and_approvals_null():
     assert qf['pages'][0]['semantic_review']['findings'] >= 1 and qf['semantic_review']['findings'] >= 1, qf['pages'][0]['semantic_review']
     assert qa['pages'][0]['layout_quality'] == {'ran': False, 'findings': 0}
     assert qa['pages'][1]['elements'] == {'asset': 5} and qa['pages'][0]['edges'] == 1
+    assert qa['pages'][0]['facet'] == 'architecture' and qa['pages'][1]['facet'] is None, 'a map-type page has no facet'
     # edges are counted as drawn: the triad reports links into panels instead of drawing them
     import edgy_qa
     tri = os.path.join(here, '..', 'examples', 'triad-all-facets.txt')

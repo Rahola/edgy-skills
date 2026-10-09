@@ -229,8 +229,9 @@ the image that goes into a report, the plain preview for editing. The
 otherwise, W115 tested at a 160 mm report column = 605 px at 96 dpi) and
 `--preset presentation` (48 px margin, `legend: box`, W115 at a 1920 px
 slide); both crop to the content and draw the `title:` band above and the
-`footnote:` band below when the input sets them. The same input rendered with
-the two presets differs only in that frame. The draw.io CLI presets
+`footnote:` band below when the input sets them. With `legend:` fixed in the
+input, the same input rendered with the two presets differs only in that
+frame; otherwise the legend placement follows the preset too. The draw.io CLI presets
 (`presentation`, `print`, `web`) keep their names and semantics; with
 `--engine drawio` and a PNG/PDF/SVG format `presentation` is the CLI preset.
 Text is

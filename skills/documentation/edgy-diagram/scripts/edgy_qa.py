@@ -106,7 +106,9 @@ def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=No
         semantic_total += len(semantic)
         page_w, page_h = (facts[idx][1], facts[idx][2]) if idx < len(facts) else (0, 0)
         per_page.append({
-            'name': name, 'map_type': p.map_type, 'facet': p.facet, 'language': p.language,
+            'name': name, 'map_type': p.map_type,
+            'facet': None if p.map_type else p.facet,     # a map-type layout has no facet; the parser default is not metadata
+            'language': p.language,
             'elements': dict(sorted(counts.items())), 'edges': drawn_edges,
             'page': {'width': page_w, 'height': page_h, 'ratio': round(page_h / page_w, 2) if page_w else 0},
             'lint': {'errors': sum(1 for f in findings if f.level == 'ERROR'),
