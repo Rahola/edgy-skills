@@ -349,6 +349,39 @@ relationships:
         os.unlink(path)
 
 
+def test_w116_label_language_mismatch():
+    src = ("map_type: purpose\nlanguage: fi\nelements:\n  - purpose: \"Sujuva arki\" [vahvistettu]\n"
+           "  - purpose: \"Saumattomat matkaketjut\" [analyyttinen]\nrelationships:\n"
+           "  - \"Sujuva arki\" -> \"Saumattomat matkaketjut\": \"contains\"\n")
+    ns = edgy_lint.main.__globals__['argparse'].Namespace
+
+    def lint_of(text, **kw):
+        p = EDGYParser()
+        p.parse_input(text)
+        xml = p.generate_xml()
+        with tempfile.NamedTemporaryFile('w', suffix='.drawio', delete=False, encoding='utf-8') as f:
+            f.write(xml)
+            path = f.name
+        try:
+            return edgy_lint.lint_file(path, ns(no_legend=False, **kw))
+        finally:
+            os.unlink(path)
+
+    # generator translates → no W116; the legend title tells the linter the map is Finnish
+    assert not [x for x in lint_of(src) if x.rule == 'W116']
+    # translation off → the English verb survives in a Finnish map → W116
+    f = lint_of(src.replace('language: fi', 'language: fi\ntranslate_verbs: false'))
+    assert [x.rule for x in f if x.rule == 'W116'] == ['W116'], [str(x) for x in f]
+    assert 'sisältää' not in ' '.join(x.msg for x in f) or 'language: fi' in ' '.join(x.msg for x in f)
+    # no language in the file: nothing to compare against unless --language says so
+    plain = src.replace('language: fi\n', '')
+    assert not [x for x in lint_of(plain) if x.rule == 'W116']
+    assert [x.rule for x in lint_of(plain, language='fi') if x.rule == 'W116'] == ['W116']
+    # free text is not a vocabulary verb → never W116
+    free = src.replace('"contains"', '"kuuluu kokonaisuuteen"').replace('language: fi', 'language: fi\ntranslate_verbs: false')
+    assert not [x for x in lint_of(free) if x.rule == 'W116']
+
+
 def test_fixtures_reproduce_visual_findings():
     """The eval fixtures lint 0/0 structurally and > 0 on the visual rules."""
     import subprocess

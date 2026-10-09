@@ -146,6 +146,14 @@ element, adding `via:` waypoints, changing `from:`/`to:`, or using `label:
 source|target`; `--visual` gives the cell ids and coordinates for a script to
 act on. A delivery should have none; `--warnings-as-errors` enforces that.
 
+**Language (W116).** With `language:` set, the generator renders the legend
+and every vocabulary verb in that language (`contains` → `sisältää`,
+`requires` → `vaatii`; the model keeps the canonical verb) and the linter
+reads the map language from the legend title (`--language` overrides).
+W116 fires when an edge label is a vocabulary verb of another language — an
+English `contains` left in a Finnish map, for example. Free text is never
+flagged.
+
 **Semantic review (purpose maps).** Notation and geometry say nothing about
 meaning: a purpose map can lint clean while its "purposes" are development
 actions. `python3 scripts/edgy_semantic_review.py <name>.txt` (or
@@ -208,7 +216,8 @@ and Product, `all` all three. Full tables: `references/vocabulary.md`.
 facet: identity | architecture | experience | all
 map_type: capability | organisation | journey | purpose   # optional, overrides facet layout
 legend: box | strip                                       # optional; strip = one band along the bottom, page as tall as the content
-language: fi | en | fr | de                               # optional; language of generated headings (triad "Further <type>" panels)
+language: fi | en | fr | de                               # optional; legend, generated headings and vocabulary verbs render in this language
+translate_verbs: true | false                             # optional (default true): with language: set, a vocabulary verb written in another language is rendered translated ("contains" → "sisältää"); the model keeps the canonical verb
 
 elements:
   - <element_type>: "<name>"

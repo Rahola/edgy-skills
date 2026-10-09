@@ -20,6 +20,37 @@ perustelut.
 
 ---
 
+### 2026-10-09 — Claude Code (Sprint 14: verbs and legend in the map language, W116)
+
+**Assignment:** development-plan-2026-10-semantics-and-layout P1.1–P1.4.
+A `language: fi` map left `contains` and the whole legend in English
+without a warning.
+
+**Done:**
+- `scripts/edgy_vocab.py`: `languages_of(verb)` and `translate(verb,
+  lang)` built from the generated vocabulary (24 core links, influence
+  verbs) plus the flow and tree verbs in four languages. The model keeps
+  the canonical verb; only the rendered label changes.
+- Parser: with `language:` set, every vocabulary verb is rendered in that
+  language (`translate_verbs: false` keeps the input spelling); free text
+  and already-correct verbs stay as written; merged `a / b` labels
+  translate per part. `LEGEND_TEXT[lang]` drives the box and strip
+  legends, the transition rows and the triad panel titles; `'en'` is
+  byte-for-byte the previous strings, so inputs without `language:` are
+  unchanged (every shipped example regenerates identically).
+- Lint **W116**: an edge label that is a vocabulary verb of another
+  language than the map's. The map language comes from `--language` or
+  from the legend title the generator wrote (`LEGEND_TITLES`); without
+  either the rule is silent.
+- Tests: 2 structure, 1 lint, and the model → TXT → drawio → lint chain
+  for fi / fr / de asserts no W116 and no errors.
+
+**Decision:** EDGY facet names (Identity, Architecture, Experience) stay
+untranslated in every legend — they are the notation's proper nouns; the
+element type names inside the parentheses are translated.
+
+---
+
 ### 2026-10-09 — Claude Code (Sprint 13: semantic review of purpose maps)
 
 **Assignment:** `docs/development-plan-2026-10-semantics-and-layout.md`

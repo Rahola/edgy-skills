@@ -281,6 +281,64 @@ def test_triad_panel_titles_follow_language():
     assert q.language == 'en' and any('language' in w for w in q.warnings)
 
 
+FI_PURPOSE = """
+map_type: purpose
+language: fi
+elements:
+  - purpose: "Sujuva arki" [vahvistettu]
+  - purpose: "Saumattomat matkaketjut" [analyyttinen]
+  - outcome: "Ovelta ovelle −15 %" {status: proposed}
+  - organisation: "Joukkoliikennelautakunta"
+relationships:
+  - "Sujuva arki" -> "Saumattomat matkaketjut": "contains"
+  - "Ovelta ovelle −15 %" -> "Saumattomat matkaketjut": "measures"
+  - "Joukkoliikennelautakunta" -> "Sujuva arki": "pursues"
+"""
+
+
+def _edge_labels(root):
+    return [c.get('value') for c in root.iter('mxCell') if c.get('edge') == '1' and c.get('source')]
+
+
+def test_verbs_render_in_map_language():
+    p, root, xml = gen(FI_PURPOSE)
+    labels = _edge_labels(root)
+    assert sorted(labels) == ['mittaa', 'sisältää', 'tavoittelee'], labels     # contains / measures / pursues → fi
+    assert p.relationships[0]['label'] == 'contains', 'the model keeps the canonical verb'
+    # already Finnish and free text stay as written; translate_verbs: false keeps English
+    p2, root2, _ = gen(FI_PURPOSE.replace('"contains"', '"sisältää"').replace('"pursues"', '"ajaa eteenpäin"'))
+    assert sorted(_edge_labels(root2)) == ['ajaa eteenpäin', 'mittaa', 'sisältää']
+    p3, root3, _ = gen(FI_PURPOSE.replace('language: fi', 'language: fi\ntranslate_verbs: false'))
+    assert 'contains' in _edge_labels(root3)
+    # merged duplicate labels translate per part
+    p4, root4, _ = gen("facet: architecture\nlanguage: de\nelements:\n  - capability: \"A\"\n  - asset: \"B\"\n"
+                       "relationships:\n  - \"A\" -> \"B\": \"requires\"\n  - \"A\" -> \"B\": \"depends on\"\n")
+    assert _edge_labels(root4) == ['erfordert / hängt ab von'], _edge_labels(root4)
+    # no language: → verbs untouched (byte-identity of the existing examples)
+    p5, root5, _ = gen(FI_PURPOSE.replace('language: fi\n', ''))
+    assert 'contains' in _edge_labels(root5)
+
+
+def test_legend_follows_language():
+    import html as _html
+    from edgy_parser import LEGEND_TEXT
+    for lang in ('fi', 'fr', 'de'):
+        p, root, xml = gen(FI_PURPOSE.replace('language: fi', f'language: {lang}'))
+        xml = _html.unescape(_html.unescape(xml))      # value="…&amp;#x27;…": html label escaped once, XML once
+        L = LEGEND_TEXT[lang]
+        assert L['title'] in xml and L['lines'][2] in xml and L['chips'][0] in xml, (lang, L['title'])
+        assert 'Tree (hierarkia)' not in xml, lang
+        with_overlay = FI_PURPOSE.replace('language: fi', f'language: {lang}\nlegend: strip') \
+                                 .replace('  - organisation:', '  - capability: "K" {change: new}\n  - organisation:')
+        p2, root2, xml2 = gen(with_overlay)
+        xml2 = _html.unescape(_html.unescape(xml2))
+        for s in (L['title'], L['lines_short'][0], L['overlay_short'], L['change']['new']):
+            assert s in xml2, (lang, s)
+    # default: exactly the old English strings
+    p, root, xml = gen(FI_PURPOSE.replace('language: fi\n', ''))
+    assert 'EDGY 23 — Legend' in xml and 'Tree (hierarkia)' in xml
+
+
 def test_purpose_tree_parent_centred_and_no_branch_through_children():
     import tempfile
     import edgy_lint

@@ -47,6 +47,7 @@ from edgy_core_links import (  # noqa: E402
 )
 import edgy_geometry as _geo  # noqa: E402 — portit ja sivut samasta paikasta kuin renderöijä ja lintti
 import edgy_text as _text     # noqa: E402 — tekstin mittaus glyyfitaulukoilla, sama kuin renderöijä ja lintti
+import edgy_vocab as _vocab   # noqa: E402 — verbien kielet ja käännökset (ydinlinkit, influence, flow, tree)
 
 # Flow relationships → open arrowhead (data/value flows concretely)
 # Supported in FI, EN, FR, DE
@@ -208,6 +209,56 @@ CHANGE_LABELS = {
     'keep': 'keep / säilyy', 'new': 'new, strengthen / uusi', 'change': 'change, merge / muuttuu',
     'replace': 'replace / korvautuu', 'remove': 'remove / poistuu', 'decide': 'decide (open, see ADR) / päätettävä',
 }
+
+# ─── Legenda ja generoidut otsikot kielen mukaan (`language:`) ─────────────
+# 'en' on nykyinen oletus (merkkijonot täsmälleen kuten ennen); EDGY-fasettien
+# nimet (Identity/Architecture/Experience) ovat erisnimiä eikä niitä käännetä.
+LEGEND_TEXT = {
+    'en': {
+        'title': 'EDGY 23 — Legend',
+        'chips': ['Identity (Purpose, Story, Content)', 'Architecture (Capability, Asset, Process)',
+                  'Experience (Task, Channel, Journey)', 'Brand', 'Product', 'Organisation'],
+        'chips_short': ['Identity', 'Architecture', 'Experience', 'Brand', 'Product', 'Organisation'],
+        'lines': ['Link (core link)', 'Flow (tieto/arvo)', 'Tree (hierarkia)', 'Influence (ohjaa)'],
+        'lines_short': ['Link', 'Flow', 'Tree', 'Influence'],
+        'overlay': 'Transition (extension, stroke only)', 'overlay_short': 'Transition (extension)',
+        'change': CHANGE_LABELS,
+    },
+    'fi': {
+        'title': 'EDGY 23 — Selite',
+        'chips': ['Identity (Tarkoitus, Tarina, Sisältö)', 'Architecture (Kyvykkyys, Resurssi, Prosessi)',
+                  'Experience (Tehtävä, Kanava, Matka)', 'Brändi', 'Tuote', 'Organisaatio'],
+        'chips_short': ['Identity', 'Architecture', 'Experience', 'Brändi', 'Tuote', 'Organisaatio'],
+        'lines': ['Linkki (ydinlinkki)', 'Virta (tieto/arvo)', 'Puu (hierarkia)', 'Vaikutus (ohjaa)'],
+        'lines_short': ['Linkki', 'Virta', 'Puu', 'Vaikutus'],
+        'overlay': 'Siirtymä (laajennus, vain reunaviiva)', 'overlay_short': 'Siirtymä (laajennus)',
+        'change': {'keep': 'säilyy', 'new': 'uusi, vahvistuu', 'change': 'muuttuu, yhdistyy',
+                   'replace': 'korvautuu', 'remove': 'poistuu', 'decide': 'päätettävä (avoin, ks. ADR)'},
+    },
+    'fr': {
+        'title': 'EDGY 23 — Légende',
+        'chips': ["Identity (Raison d'être, Récit, Contenu)", 'Architecture (Capacité, Actif, Processus)',
+                  'Experience (Tâche, Canal, Parcours)', 'Marque', 'Produit', 'Organisation'],
+        'chips_short': ['Identity', 'Architecture', 'Experience', 'Marque', 'Produit', 'Organisation'],
+        'lines': ['Lien (lien fondamental)', 'Flux (données/valeur)', 'Arbre (hiérarchie)', 'Influence (guide)'],
+        'lines_short': ['Lien', 'Flux', 'Arbre', 'Influence'],
+        'overlay': 'Transition (extension, contour seul)', 'overlay_short': 'Transition (extension)',
+        'change': {'keep': 'conserver', 'new': 'nouveau, renforcer', 'change': 'modifier, fusionner',
+                   'replace': 'remplacer', 'remove': 'supprimer', 'decide': 'à décider (ouvert, voir ADR)'},
+    },
+    'de': {
+        'title': 'EDGY 23 — Legende',
+        'chips': ['Identity (Zweck, Geschichte, Inhalt)', 'Architecture (Fähigkeit, Ressource, Prozess)',
+                  'Experience (Aufgabe, Kanal, Reise)', 'Marke', 'Produkt', 'Organisation'],
+        'chips_short': ['Identity', 'Architecture', 'Experience', 'Marke', 'Produkt', 'Organisation'],
+        'lines': ['Verknüpfung (Kernverknüpfung)', 'Fluss (Daten/Wert)', 'Baum (Hierarchie)', 'Einfluss (steuert)'],
+        'lines_short': ['Verknüpfung', 'Fluss', 'Baum', 'Einfluss'],
+        'overlay': 'Übergang (Erweiterung, nur Kontur)', 'overlay_short': 'Übergang (Erweiterung)',
+        'change': {'keep': 'bleibt', 'new': 'neu, gestärkt', 'change': 'ändert sich, zusammengeführt',
+                   'replace': 'ersetzt', 'remove': 'entfällt', 'decide': 'zu entscheiden (offen, siehe ADR)'},
+    },
+}
+LEGEND_TITLES = {lang: t['title'] for lang, t in LEGEND_TEXT.items()}   # lint päättelee kartan kielen otsikosta
 RESERVED_METRIC_KEYS = {'id', 'change', 'size', 'highlight', 'primary'}
 
 # Ydinlinkkien parivalidointi: verbi → {(lähdetyyppi, kohdetyyppi), ...}
@@ -236,7 +287,9 @@ class EDGYParser:
         self.layout_from = None    # (archimate file, view name, scale, dx, dy) tai None
         self.legend = 'box'        # 'box' = laatikko oikeassa alakulmassa, 'strip' = kapea nauha alareunassa
         self._legend_explicit = False
-        self.language = 'en'       # generoitujen otsikoiden kieli (triadin "Further <type>" -paneelit): fi | en | fr | de
+        self.language = 'en'       # generoitujen tekstien kieli (legenda, triadin paneelit, verbit): fi | en | fr | de
+        self._language_explicit = False
+        self.translate_verbs = True  # language: asetettu → sanaston verbit renderöidään kartan kielellä (translate_verbs: false kytkee pois)
         self._size_override = {}   # elem_id → (w, h): layoutin pakottama koko (triad: kehän laatikot, paneelien sirut)
         self._triad_detours = {}   # (src, tgt) → (exit_side, entry_side, [(x, y), …]) kehää kiertävät linkit
         self._triad_hidden = set() # paneeleihin jäävät (ei-ensisijaiset) elementit: niiden linkkejä ei piirretä
@@ -278,8 +331,17 @@ class EDGYParser:
                 lang_value = line.split(':', 1)[1].strip().lower()
                 if lang_value in ('fi', 'en', 'fr', 'de'):
                     self.language = lang_value
+                    self._language_explicit = True
                 else:
                     self.warnings.append(f"Tuntematon language-arvo '{lang_value}' (sallitut: fi, en, fr, de), käytetään 'en'")
+                continue
+            elif line.startswith('translate_verbs:'):
+                # translate_verbs: true | false — renderöidäänkö sanaston verbit kartan kielellä
+                tv = line.split(':', 1)[1].strip().lower()
+                if tv in ('true', 'false', 'yes', 'no', 'kyllä', 'ei'):
+                    self.translate_verbs = tv in ('true', 'yes', 'kyllä')
+                else:
+                    self.warnings.append(f"Tuntematon translate_verbs-arvo '{tv}' (sallitut: true, false), käytetään 'true'")
                 continue
             elif line.startswith('legend:'):
                 # legend: box (oletus) | strip — nauha alareunassa säästää kanvasta
@@ -1162,7 +1224,7 @@ class EDGYParser:
                 if dashed:
                     style += "dashed=1;dashPattern=8 4;"
             cell = ET.SubElement(mx_root, "mxCell", {
-                "id": str(next_id), "value": " / ".join(rel['labels']), "style": style,
+                "id": str(next_id), "value": " / ".join(self._render_verb(v) for v in rel['labels']), "style": style,
                 "edge": "1", "source": element_mapping[rel['source']],
                 "target": element_mapping[rel['target']], "parent": "1",
             })
@@ -1190,19 +1252,19 @@ class EDGYParser:
             self._append_legend_cells(mx_root, next_id, page_width, page_height)
         return self._prettify_xml(root)
 
-    # Nauhalegendan sisältö: lyhyet nimet, jotta kuusi palaa ja neljä viivamallia mahtuvat yhdelle riville
-    _STRIP_CHIPS = [("#80ffb7", "Identity"), ("#a6c0ff", "Architecture"), ("#ff99bd", "Experience"),
-                    ("#ffd580", "Brand"), ("#e599ff", "Product"), ("#80eaff", "Organisation")]
-    _STRIP_LINES = [("endArrow=classic;endFill=1;strokeWidth=1;strokeColor=#333333;", "Link"),
-                    ("endArrow=open;endFill=0;strokeWidth=1;strokeColor=#333333;", "Flow"),
-                    ("endArrow=none;strokeWidth=1;strokeColor=#333333;", "Tree"),
-                    ("endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;", "Influence")]
+    # Legendan värit ja viivatyylit; tekstit tulevat LEGEND_TEXT[language]-taulusta
+    _CHIP_COLOURS = ("#80ffb7", "#a6c0ff", "#ff99bd", "#ffd580", "#e599ff", "#80eaff")
+    _LINE_STYLES = ("endArrow=classic;endFill=1;strokeWidth=1;strokeColor=#333333;",
+                    "endArrow=open;endFill=0;strokeWidth=1;strokeColor=#333333;",
+                    "endArrow=none;strokeWidth=1;strokeColor=#333333;",
+                    "endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;")
     _STRIP_ROW = 24
 
     def _legend_strip_rows(self, page_width: int) -> int:
         """Rivimäärä: palat ja viivamallit yhdellä rivillä jos mahtuvat, muuten kahdella; muutoskerros omalla rivillään."""
-        chips_w = sum(18 + _text.measure(lbl, 9) + 6 + 14 for _, lbl in self._STRIP_CHIPS)
-        lines_w = sum(28 + 4 + _text.measure(lbl, 9) + 6 + 14 for _, lbl in self._STRIP_LINES)
+        L = self._legend_text()
+        chips_w = sum(18 + _text.measure(lbl, 9) + 6 + 14 for lbl in L['chips_short'])
+        lines_w = sum(28 + 4 + _text.measure(lbl, 9) + 6 + 14 for lbl in L['lines_short'])
         rows = 1 if 130 + chips_w + lines_w <= page_width - 40 else 2
         return rows + (1 if self.uses_change_overlay else 0)
 
@@ -1215,6 +1277,7 @@ class EDGYParser:
         Täyttää E009:n rakenteellisen tunnistuksen: otsikkotekstisolu, ≥ 3
         värillistä palaa ja ≥ 1 irrallinen viivamalli (edge ilman source/target).
         """
+        L = self._legend_text()
         rows = self._legend_strip_rows(page_width)
         row_h = self._STRIP_ROW
         band_h = rows * row_h
@@ -1237,9 +1300,9 @@ class EDGYParser:
         cid += 1
 
         x = 30
-        text_cell("<b>EDGY 23 — Legend</b>", x, y0, 120, row_h, bold=True, size=10)
+        text_cell(f"<b>{html.escape(L['title'])}</b>", x, y0, 120, row_h, bold=True, size=10)
         x += 130
-        for color, label in self._STRIP_CHIPS:
+        for color, label in zip(self._CHIP_COLOURS, L['chips_short']):
             chip = ET.SubElement(mx_root, "mxCell", {
                 "id": str(cid), "value": "",
                 "style": f"rounded=1;whiteSpace=wrap;html=1;fillColor={color};strokeColor=#ffffff;strokeWidth=1;",
@@ -1253,7 +1316,7 @@ class EDGYParser:
             x, y_line = 160, y0 + row_h          # viivamallit toiselle riville
         else:
             y_line = y0
-        for edge_style, label in self._STRIP_LINES:
+        for edge_style, label in zip(self._LINE_STYLES, L['lines_short']):
             arrow = ET.SubElement(mx_root, "mxCell", {"id": str(cid), "value": "", "style": f"edgeStyle=none;{edge_style}", "edge": "1", "parent": "1"})
             geo = ET.SubElement(arrow, "mxGeometry", {"relative": "1", "as": "geometry"})
             ET.SubElement(geo, "mxPoint", {"x": str(x), "y": str(y_line + 12), "as": "sourcePoint"})
@@ -1264,7 +1327,7 @@ class EDGYParser:
             x += 28 + 4 + tw + 14
         if self.uses_change_overlay:
             x, y_ov = 30, y0 + (rows - 1) * row_h
-            text_cell("<b>Transition (extension)</b>", x, y_ov, 120, row_h, bold=True)
+            text_cell(f"<b>{html.escape(L['overlay_short'])}</b>", x, y_ov, 120, row_h, bold=True)
             x += 130
             for key, (color, dashed) in CHANGE_PALETTE.items():
                 swatch = ET.SubElement(mx_root, "mxCell", {
@@ -1274,7 +1337,7 @@ class EDGYParser:
                     "vertex": "1", "parent": "1"})
                 ET.SubElement(swatch, "mxGeometry", {"x": str(x), "y": str(y_ov + 6), "width": "22", "height": "11", "as": "geometry"})
                 cid += 1
-                label = CHANGE_LABELS[key].split(' / ')[0]
+                label = L['change'][key].split(' / ')[0]
                 tw = int(_text.measure(label, 9) + 6)
                 text_cell(html.escape(label), x + 26, y_ov, tw, row_h)
                 x += 26 + tw + 14
@@ -1300,9 +1363,10 @@ class EDGYParser:
         ET.SubElement(bg, "mxGeometry", {"x": str(lx), "y": str(ly), "width": str(lw), "height": str(lh), "as": "geometry"})
         cid += 1
 
+        L = self._legend_text()
         # Otsikkorivi
         title = ET.SubElement(mx_root, "mxCell", {
-            "id": str(cid), "value": "<b>EDGY 23 — Legend</b>",
+            "id": str(cid), "value": f"<b>{html.escape(L['title'])}</b>",
             "style": "text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontStyle=1;",
             "vertex": "1", "parent": "1"
         })
@@ -1310,14 +1374,7 @@ class EDGYParser:
         cid += 1
 
         # Elementtivärit
-        elem_items = [
-            ("#80ffb7", "Identity (Purpose, Story, Content)"),
-            ("#a6c0ff", "Architecture (Capability, Asset, Process)"),
-            ("#ff99bd", "Experience (Task, Channel, Journey)"),
-            ("#ffd580", "Brand"),
-            ("#e599ff", "Product"),
-            ("#80eaff", "Organisation"),
-        ]
+        elem_items = list(zip(("#80ffb7", "#a6c0ff", "#ff99bd", "#ffd580", "#e599ff", "#80eaff"), L['chips']))
         for i, (color, label) in enumerate(elem_items):
             row_y = ly + 26 + i * 18
             dot = ET.SubElement(mx_root, "mxCell", {
@@ -1347,12 +1404,7 @@ class EDGYParser:
         cid += 1
 
         # Relaatiotyypit
-        rel_items = [
-            ("endArrow=classic;endFill=1;strokeWidth=1;strokeColor=#333333;", "Link (core link)"),
-            ("endArrow=open;endFill=0;strokeWidth=1;strokeColor=#333333;", "Flow (tieto/arvo)"),
-            ("endArrow=none;strokeWidth=1;strokeColor=#333333;", "Tree (hierarkia)"),
-            ("endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;", "Influence (ohjaa)"),
-        ]
+        rel_items = list(zip(self._LINE_STYLES, L['lines']))
         rel_y_start = sep_y + 8
         for i, (edge_style, label) in enumerate(rel_items):
             row_y = rel_y_start + i * 16
@@ -1384,7 +1436,7 @@ class EDGYParser:
             ET.SubElement(sep2, "mxGeometry", {"x": str(lx + 8), "y": str(oy), "width": str(lw - 16), "height": "6", "as": "geometry"})
             cid += 1
             title2 = ET.SubElement(mx_root, "mxCell", {
-                "id": str(cid), "value": "<b>Transition (extension, stroke only)</b>",
+                "id": str(cid), "value": f"<b>{html.escape(L['overlay'])}</b>",
                 "style": "text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;fontStyle=1;",
                 "vertex": "1", "parent": "1"})
             ET.SubElement(title2, "mxGeometry", {"x": str(lx + 8), "y": str(oy + 8), "width": str(lw - 16), "height": "16", "as": "geometry"})
@@ -1399,7 +1451,7 @@ class EDGYParser:
                 ET.SubElement(swatch, "mxGeometry", {"x": str(lx + 8), "y": str(row_y + 2), "width": "22", "height": "11", "as": "geometry"})
                 cid += 1
                 txt = ET.SubElement(mx_root, "mxCell", {
-                    "id": str(cid), "value": html.escape(CHANGE_LABELS[key]),
+                    "id": str(cid), "value": html.escape(L['change'][key]),
                     "style": "text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;",
                     "vertex": "1", "parent": "1"})
                 ET.SubElement(txt, "mxGeometry", {"x": str(lx + 36), "y": str(row_y), "width": str(lw - 44), "height": "16", "as": "geometry"})
@@ -1778,6 +1830,20 @@ class EDGYParser:
                'journey': 'Reisen', 'organisation': 'Organisationen', 'product': 'Produkte', 'brand': 'Marken',
                'people': 'Personen', 'activity': 'Aktivitäten', 'outcome': 'Ergebnisse', 'object': 'Objekte'},
     }
+
+    def _legend_text(self) -> dict:
+        """Legendan ja generoitujen otsikoiden tekstit kartan kielellä (`language:`), oletus 'en'."""
+        return LEGEND_TEXT.get(self.language, LEGEND_TEXT['en'])
+
+    def _render_verb(self, verb: str) -> str:
+        """Sanaston verbi kartan kielellä kun `language:` on asetettu ja translate_verbs on päällä;
+        vapaa teksti ja jo oikeankieliset verbit palautetaan sellaisinaan. Kanoninen koodi pysyy mallissa."""
+        if not (self._language_explicit and self.translate_verbs):
+            return verb
+        if self.language in _vocab.languages_of(verb):
+            return verb
+        translated = _vocab.translate(verb, self.language)
+        return translated if translated else verb
 
     def _effective_legend(self) -> str:
         """Triad käyttää nauhalegendaa, ellei käyttäjä ole valinnut toisin."""

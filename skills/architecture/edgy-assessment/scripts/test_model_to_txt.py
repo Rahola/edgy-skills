@@ -69,6 +69,28 @@ def test_chain_model_to_txt_to_drawio_lints_clean_with_triad():
         assert not visual, (txt.name, [f['msg'] for f in visual])
 
 
+def test_chain_per_language_has_no_language_mismatch():
+    """fi / fr / de models: verbs and legend come out in the model language — no W116."""
+    for lang in ('fi', 'fr', 'de'):
+        d = tempfile.mkdtemp()
+        model = _model()
+        model['language'] = lang
+        path = Path(d) / 'model.json'
+        path.write_text(json.dumps(model), encoding='utf-8')
+        r = subprocess.run([sys.executable, str(HERE / 'edgy_model_to_txt.py'), str(path), '--out', d, '--prefix', 'acme'],
+                           capture_output=True, text=True)
+        assert r.returncode == 0, r.stderr
+        txt = Path(d) / 'acme-identity.txt'
+        assert f'language: {lang}' in txt.read_text(encoding='utf-8')
+        out = Path(d) / 'acme-identity.drawio'
+        g = subprocess.run([sys.executable, str(DIAGRAM / 'edgy_generator.py'), str(txt), '--output', str(out)], capture_output=True, text=True)
+        assert g.returncode == 0, g.stderr
+        lint = subprocess.run([sys.executable, str(DIAGRAM / 'edgy_lint.py'), '--json', str(out)], capture_output=True, text=True)
+        findings = json.loads(lint.stdout)
+        assert not [f for f in findings if f['rule'] == 'W116'], (lang, [f['msg'] for f in findings if f['rule'] == 'W116'])
+        assert not [f for f in findings if f['level'] == 'ERROR'], (lang, [f['msg'] for f in findings if f['level'] == 'ERROR'])
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

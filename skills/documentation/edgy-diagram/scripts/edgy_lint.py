@@ -44,8 +44,11 @@ draws (edgy_geometry.py): ports, orthogonal joins, waypoints, label boxes.
   W113 edge label overlaps another edge label (> 20 % of the smaller box; a
        parent → children fan with one verb is one bus and does not count)
   W114 edge label or edge end outside the page
-  --visual prints only the visual findings, as JSON with page, cell ids and
-  coordinates, for a machine to act on.
+  W115 text below 6 pt at --scale (title, description, relation label)
+  W116 edge label is a vocabulary verb of another language than the map's
+       (map language: --language, else the legend title the generator wrote)
+  --visual prints only the visual findings (W111–W114), as JSON with page,
+  cell ids and coordinates, for a machine to act on.
 """
 
 import argparse
@@ -65,13 +68,18 @@ import edgy_text  # noqa: E402 — glyph-table text measurement, the same the re
 
 try:  # vocabulary from the generated module next to this file
     from edgy_core_links import core_link_pairs, INFLUENCE_RELATIONSHIPS  # noqa: E402
-    from edgy_parser import FLOW_RELATIONSHIPS, TREE_RELATIONSHIPS  # noqa: E402
+    from edgy_parser import FLOW_RELATIONSHIPS, TREE_RELATIONSHIPS, LEGEND_TITLES  # noqa: E402
+    from edgy_vocab import languages_of  # noqa: E402
 except Exception:  # pragma: no cover — lint must still run standalone
     def core_link_pairs(_verb):
         return set()
     INFLUENCE_RELATIONSHIPS = set()
     FLOW_RELATIONSHIPS = set()
     TREE_RELATIONSHIPS = set()
+    LEGEND_TITLES = {}
+
+    def languages_of(_verb):
+        return set()
 
 VISUAL_RULES = ('W111', 'W112', 'W113', 'W114')   # geometry findings with coordinates; W115 (--scale) is a size check
 W111_MIN_INSIDE = 8.0      # px of an edge inside a foreign element before it counts
@@ -449,6 +457,30 @@ def lint_model(path, page, model, lines, opts):
             if not known:
                 add('WARNING', 'W105', f'verb "{verb}" is not in the core-link, flow, tree or influence vocabulary', i)
 
+    # W116 label language: a vocabulary verb spelled in another language than the map's.
+    # The map language comes from --language or from the legend title the generator wrote.
+    map_lang = getattr(opts, 'language', None)
+    if not map_lang:
+        for i, c in cells.items():
+            st = style_dict(c.get('style'))
+            if c.get('vertex') == '1' and 'text' in st:
+                label = strip_html(c.get('value') or '').strip()
+                for lang, title in LEGEND_TITLES.items():
+                    if label == title:
+                        map_lang = lang
+                        break
+            if map_lang:
+                break
+    if map_lang:
+        for i, e in edges.items():
+            if e.get('source') not in elements or e.get('target') not in elements:
+                continue
+            for part in strip_html(e.get('value') or '').split(' / '):
+                verb = part.strip().lower()
+                langs = languages_of(verb)
+                if langs and map_lang not in langs:
+                    add('WARNING', 'W116', f'label "{part.strip()}" is a {"/".join(sorted(langs))} vocabulary verb in a {map_lang} map — write it in {map_lang}, or set language: {map_lang} in the input so the generator renders it', i)
+
     # W111–W114 visual rules — on the renderer's geometry (edgy_geometry)
     F.extend(visual_findings(path, page, lines, cells, elements, containers, page_w, page_h))
 
@@ -572,6 +604,8 @@ def main(argv=None):
     ap.add_argument('--json', action='store_true', help='print findings as JSON')
     ap.add_argument('--visual', action='store_true',
                     help='print only the visual findings (W111–W114) as JSON with coordinates')
+    ap.add_argument('--language', choices=['fi', 'en', 'fr', 'de'], default=None,
+                    help='map language for W116 (default: detected from the legend title the generator writes)')
     ap.add_argument('--scale', type=float, default=None,
                     help='report scale (rendered px per diagram px, e.g. 0.4 when a 1600 px page is printed '
                          '640 px wide); W115 when a title, description or relation label falls below 6 pt')
