@@ -107,11 +107,21 @@ def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=No
             'semantic_review': ({'findings': len(semantic), 'questions': sum(1 for f in semantic if f['level'] == 'warning')}
                                 if p.map_type == 'purpose' else None),
         })
+    # The files that actually exist: the requested delivery file when it does, else what the renderer
+    # wrote (a multi-page native export is <stem>-<page>.svg/.png per page, never the requested single name).
+    outputs = []
+    if output_path and os.path.exists(output_path):
+        outputs.append(rel(os.path.abspath(output_path)))
+    elif previews:
+        outputs = [rel(r.get('png') or r['svg']) for r in previews]
+    elif os.path.exists(drawio_path):
+        outputs.append(rel(os.path.abspath(drawio_path)))
     return {
         'manifest_version': MANIFEST_VERSION,
         'generated_at': _dt.datetime.now(_dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
         'input': os.path.basename(input_path) if input_path else None,
-        'output': os.path.basename(output_path or drawio_path),
+        'output': outputs[0] if outputs else os.path.basename(output_path or drawio_path),
+        'outputs': outputs,
         'preset': preset,
         'generator_warnings': list(generator_warnings or []),
         'pages': per_page,

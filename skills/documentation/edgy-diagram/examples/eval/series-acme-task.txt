@@ -1,6 +1,8 @@
 # Series fixture 2/3 — task map of the same fictional delivery (Acme Transit).
-# Inventory variant: no relationships are drawn — a map is never given a link
-# just to look connected (the path variant would add task → journey / channel).
+# A plain task grid without relationships (no lanes, no stakeholder links, so
+# neither the inventory nor the path variant applies) — a map is never given a
+# link just to look connected. The stakeholder inventory and path variants are
+# in examples/task-stakeholder-map.txt.
 map_type: task
 language: en
 legend: strip

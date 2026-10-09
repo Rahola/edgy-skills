@@ -499,7 +499,13 @@ def test_qa_manifest_schema_and_approvals_null():
     for _n, pp in pages:
         pp.generate_xml()
     m = edgy_qa.build_manifest(out, pages, output_path=out4)
-    assert m['output'] == 'cli.png'
+    assert m['output'] == os.path.basename(out) and m['outputs'] == [os.path.basename(out)], 'cli.png does not exist: the manifest names the file that does'
+    # a multi-page native export: the manifest lists the per-page files the renderer wrote, not the requested single name
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'maps.svg'), '--format', 'svg', '--engine', 'native', '--qa'], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    qm = json.load(open(os.path.join(d, 'maps.qa.json'), encoding='utf-8'))
+    assert qm['outputs'] == ['maps-roles-actors.svg', 'maps-systems.svg'] and qm['output'] == 'maps-roles-actors.svg', qm['outputs']
+    assert all(os.path.exists(os.path.join(d, f)) for f in qm['outputs'])
     # --no-qa: nothing written
     out2 = os.path.join(d, 'n.drawio')
     subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', out2, '--no-qa'], capture_output=True, text=True)
