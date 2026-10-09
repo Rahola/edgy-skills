@@ -464,6 +464,14 @@ def test_qa_manifest_schema_and_approvals_null():
     v = subprocess.run([sys.executable, os.path.join(repo, 'tools', 'validate-edgy-model.py'), '--schema',
                         os.path.join(here, '..', 'assets', 'qa.schema.json'), os.path.join(d, 'm.qa.json')], capture_output=True, text=True)
     assert v.returncode == 0, v.stdout + v.stderr
+    # a native preset with an unsupported engine / format is refused, never silently exported without its frame
+    for extra in (['--format', 'pdf', '--preset', 'publication'], ['--format', 'png', '--engine', 'drawio', '--preset', 'publication']):
+        r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'x.png')] + extra, capture_output=True, text=True)
+        assert r.returncode == 2 and 'native preset' in r.stderr, (extra, r.stderr)
+    # --qa with a draw.io CLI export: the manifest is written before the export (the CLI is absent here, the file stays)
+    out4 = os.path.join(d, 'cli.png')
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', out4, '--format', 'png', '--qa'], capture_output=True, text=True)
+    assert r.returncode == 0 and os.path.exists(os.path.join(d, 'cli.qa.json')), r.stdout + r.stderr
     # --no-qa: nothing written
     out2 = os.path.join(d, 'n.drawio')
     subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', out2, '--no-qa'], capture_output=True, text=True)

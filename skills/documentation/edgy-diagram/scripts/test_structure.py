@@ -779,6 +779,21 @@ relationships:
     assert not _edges(root), 'stakeholder relationships become lane membership'
     assert any('stakeholder(s) drawn as lanes' in w for w in p.warnings), p.warnings
     assert abs_pos(root, cells['Loose task'])[1] > abs_pos(root, cells['Answer a refund claim'])[1], 'unassigned task below the lanes'
+    # a task related to two stakeholders: one lane holds it, the other lane names it — no box, no edge
+    p2, root2, _ = gen("""
+map_type: task
+elements:
+  - people: "Passenger"
+  - people: "Driver"
+  - task: "Validate the ticket"
+relationships:
+  - "Passenger" -> "Validate the ticket": "performs"
+  - "Driver" -> "Validate the ticket": "performs"
+""")
+    lanes2 = sorted(c.get('value') for c in root2.iter('mxCell') if c.get('vertex') == '1' and 'verticalAlign=top' in c.get('style', '') and 'strokeColor=none' in c.get('style', ''))
+    assert lanes2 == ['Driver (also: Validate the ticket)', 'Passenger'], lanes2
+    assert not _edges(root2) and {p2.elements[h]['name'] for h in p2._hidden} == {'Passenger', 'Driver'}
+    assert any('shares 1 task(s)' in w for w in p2.warnings), p2.warnings
 
 
 def test_task_path_variant():

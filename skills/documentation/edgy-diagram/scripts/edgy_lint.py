@@ -827,8 +827,12 @@ def series_findings(paths):
     if len(profiles) < 2:
         return F
     ref_path, ref = profiles[0]
+    width_baseline = {}   # type → (width, file it was first seen in): a type absent from the first file still gets compared
+    for p, prof in profiles:
+        for kind, w in prof['card_width'].items():
+            width_baseline.setdefault(kind, (w, p))
     for p, prof in profiles[1:]:
-        def add(msg):
+        def add(msg, ref_path=ref_path):
             F.append(Finding('WARNING', 'W121', f'{msg} (reference: {os.path.basename(ref_path)})', p))
         if ref['legend'] and prof['legend'] and ref['legend'] != prof['legend']:
             add(f'legend is a {prof["legend"]} here but a {ref["legend"]} in the reference — use the same legend: setting in the series')
@@ -836,9 +840,11 @@ def series_findings(paths):
             dx, dy = prof['margin'][0] - ref['margin'][0], prof['margin'][1] - ref['margin'][1]
             if abs(dx) > W121_MARGIN_TOL or abs(dy) > W121_MARGIN_TOL:
                 add(f'content margin is ({prof["margin"][0]:.0f},{prof["margin"][1]:.0f}) px here vs ({ref["margin"][0]:.0f},{ref["margin"][1]:.0f}) in the reference')
-        for kind in sorted(set(ref['card_width']) & set(prof['card_width'])):
-            if abs(ref['card_width'][kind] - prof['card_width'][kind]) > 0.5:
-                add(f'{kind} cards are {prof["card_width"][kind]:.0f} px wide here vs {ref["card_width"][kind]:.0f} px in the reference — set card_width for the series')
+        for kind in sorted(prof['card_width']):
+            base_w, base_file = width_baseline[kind]
+            if base_file != p and abs(base_w - prof['card_width'][kind]) > 0.5:
+                add(f'{kind} cards are {prof["card_width"][kind]:.0f} px wide here vs {base_w:.0f} px in the reference — set card_width for the series',
+                    ref_path=base_file)
         for what in ('element', 'edge'):
             a, b = ref['fonts'][what], prof['fonts'][what]
             if a and b and a != b:

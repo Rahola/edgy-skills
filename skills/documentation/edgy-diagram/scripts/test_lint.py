@@ -502,6 +502,13 @@ def test_w121_series():
     subprocess.run([sys.executable, gen, os.path.join(d, 'boxed.txt'), '--output', boxed], capture_output=True, text=True)
     msgs = [x.msg for x in edgy_lint.series_findings([outs[1], boxed])]
     assert len(msgs) == 1 and 'legend is a box here but a strip' in msgs[0], msgs
+    # a type absent from the first file is still compared between the later files
+    narrow_txt = os.path.join(d, 'narrow.txt')
+    open(narrow_txt, 'w', encoding='utf-8').write(open(os.path.join(eval_dir, 'series-acme-task.txt'), encoding='utf-8').read().replace('legend: strip', 'legend: strip\ncard_width: 120'))
+    narrow = os.path.join(d, 'narrow.drawio')
+    subprocess.run([sys.executable, gen, narrow_txt, '--output', narrow], capture_output=True, text=True)
+    msgs = [x.msg for x in edgy_lint.series_findings([outs[0], outs[1], narrow])]   # capability map first: no task cards in it
+    assert any('task cards are' in m and 'series-acme-task.drawio' in m for m in msgs), msgs
     # CLI: --series adds W121 to the run
     r = subprocess.run([sys.executable, os.path.join(here, 'edgy_lint.py'), '--series', '--json', outs[2], wide], capture_output=True, text=True)
     import json

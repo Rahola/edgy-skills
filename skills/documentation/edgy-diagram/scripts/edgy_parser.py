@@ -1673,26 +1673,41 @@ class EDGYParser:
             return
         holders = [eid for eid, e in self.elements.items() if e['type'] in ('people', 'organisation')]
         tasks = {eid for eid, e in self.elements.items() if e['type'] == 'task' and e.get('group') is None}
-        assigned: Dict[str, List[str]] = {}
+        related: Dict[str, List[str]] = {}      # holder → every task it relates to (input order)
         for rel in self.relationships:
             s, t = rel['source'], rel['target']
             holder, task = (s, t) if s in holders and t in tasks else (t, s) if t in holders and s in tasks else (None, None)
-            if holder and task not in sum(assigned.values(), []):
-                assigned.setdefault(holder, []).append(task)
-        if not assigned:
+            if holder and task not in related.setdefault(holder, []):
+                related[holder].append(task)
+        if not related:
             return
+        # A task sits in one lane (its first stakeholder); every other related stakeholder still becomes a
+        # lane and names the shared task in its title, so no stakeholder stays a box with an edge.
+        placed: Dict[str, str] = {}
+        shared: Dict[str, List[str]] = {}
         for holder in holders:
-            if holder not in assigned:
+            if holder not in related:
                 continue
+            own = [t for t in related[holder] if t not in placed]
+            for t in own:
+                placed[t] = holder
+            shared[holder] = [t for t in related[holder] if t not in own]
             gid = f"lane_{holder}"
-            self.groups[gid] = {'id': gid, 'kind': 'lane', 'name': self.elements[holder]['name'], 'members': assigned[holder],
+            name = self.elements[holder]['name']
+            if shared[holder]:
+                name += " (also: " + ", ".join(self.elements[t]['name'] for t in shared[holder]) + ")"
+            self.groups[gid] = {'id': gid, 'kind': 'lane', 'name': name, 'members': own,
                                 'tags': [], 'metrics': {}, 'synthetic': 'task'}
-            for m in assigned[holder]:
+            for m in own:
                 self.elements[m]['group'] = gid
             self._hidden.add(holder)
         n_rel = sum(1 for r in self.relationships if r['source'] in self._hidden or r['target'] in self._hidden)
         self.warnings.append(f"task map: {len(self._hidden)} stakeholder(s) drawn as lanes, {n_rel} stakeholder relationship(s) "
                              f"shown by lane membership instead of edges")
+        for holder, extra in shared.items():
+            if extra:
+                self.warnings.append(f"task map: '{self.elements[holder]['name']}' shares {len(extra)} task(s) placed in another lane "
+                                     f"({', '.join(self.elements[t]['name'] for t in extra)}) — named in the lane title, not drawn twice")
 
     def _task_path_targets(self, items: List[str]) -> bool:
         """Polkuvariantti: tehtävistä on relaatioita journey- tai channel-elementteihin."""

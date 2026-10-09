@@ -284,14 +284,18 @@ def main():
 
     # Natiivi preset (publication/presentation) koskee natiivirenderiä ja esikatselua; draw.io CLI:n
     # presentation/print/web säilyvät ennallaan kun viedään CLI:llä
+    # - publication: native only. - presentation: native with --engine native or --format drawio (+ --preview),
+    #   the draw.io CLI preset with --engine drawio and an image format. Unsupported combinations are refused,
+    #   never silently rendered without the preset's margins and bands.
     native_preset = None
     extra_export_args = None
-    if args.preset in edgy_render.NATIVE_PRESETS and (args.engine == 'native' or args.preview or args.format == 'drawio'
-                                                       or args.preset not in EXPORT_PRESETS):
+    if args.preset in edgy_render.NATIVE_PRESETS and (args.preset not in EXPORT_PRESETS or args.engine == 'native'
+                                                       or args.format == 'drawio'):
         native_preset = args.preset
-        if args.format in ('png', 'svg') and args.engine == 'drawio':
-            args.engine = 'native'
-            print(f"Note: --preset {args.preset} is a native preset — rendering with --engine native", file=sys.stderr)
+        if args.format == 'pdf' or (args.format in ('png', 'svg') and args.engine != 'native'):
+            print(f"Error: --preset {args.preset} is a native preset: use --engine native with --format png|svg, "
+                  f"or --format drawio with --preview", file=sys.stderr)
+            sys.exit(2)
     elif args.preset:
         args.format, extra_export_args = EXPORT_PRESETS[args.preset]
     if args.qa is None:
@@ -394,6 +398,20 @@ def main():
     temp_drawio_path = output_path if fmt == 'drawio' else output_path.replace(f'.{fmt}', '.drawio')
     write_drawio_file(xml_content, temp_drawio_path)
 
+    def write_qa(previews):
+        # qa.json: samat luvut evalille, assessmentin Phase 5:lle ja katselmoijalle; hyväksyntäkentät jäävät null.
+        # Kutsutaan ennen kuin draw.io CLI -vienti poistaa väliaikaisen .drawio-tiedoston.
+        if not args.qa:
+            return
+        gen_warnings = [w for _, p in pages for w in p.warnings]
+        manifest = edgy_qa.build_manifest(temp_drawio_path, pages, input_path=args.input if os.path.exists(args.input) else None,
+                                          preset=native_preset, previews=previews, generator_warnings=gen_warnings,
+                                          layout_quality=not args.no_layout_quality)
+        qa_path = edgy_qa.write_manifest(temp_drawio_path, manifest)
+        t = manifest['totals']
+        print(f"QA manifest: {qa_path} — lint {t['lint_errors']}/{t['lint_warnings']}, visual {t['visual']}, "
+              f"layout {t['layout_quality']}; visual_approval and semantic_approval are null until a person sets them")
+
     if fmt != 'drawio' and args.engine == 'native':
         if fmt == 'pdf':
             print("Error: the native engine renders svg/png only; use --engine drawio for pdf", file=sys.stderr)
@@ -408,10 +426,10 @@ def main():
             print(f"Successfully rendered: {r['png'] or r['svg']}{label}")
         if fmt == 'png' and not any(r['png'] for r in results):
             print("Warning: no Chromium/Chrome found — wrote SVG only (set EDGY_CHROMIUM=<binary>).", file=sys.stderr)
-        previews = results
+        write_qa(results)
     elif fmt != 'drawio':
+        write_qa(None)                      # the CLI export removes the intermediate .drawio on success
         export_with_drawio_cli(temp_drawio_path, output_path, fmt, extra_export_args)
-        previews = None
     else:
         print(f"EDGY diagram created: {output_path}")
         previews = None
@@ -422,16 +440,7 @@ def main():
                 print("The .drawio file was written but the mandatory preview was not — "
                       "fix the error above before delivery.", file=sys.stderr)
                 sys.exit(3)
-    if args.qa and os.path.exists(temp_drawio_path):
-        # qa.json: samat luvut evalille, assessmentin Phase 5:lle ja katselmoijalle; hyväksyntäkentät jäävät null
-        gen_warnings = [w for _, p in pages for w in p.warnings]
-        manifest = edgy_qa.build_manifest(temp_drawio_path, pages, input_path=args.input if os.path.exists(args.input) else None,
-                                          preset=native_preset, previews=previews, generator_warnings=gen_warnings,
-                                          layout_quality=not args.no_layout_quality)
-        qa_path = edgy_qa.write_manifest(temp_drawio_path, manifest)
-        t = manifest['totals']
-        print(f"QA manifest: {qa_path} — lint {t['lint_errors']}/{t['lint_warnings']}, visual {t['visual']}, "
-              f"layout {t['layout_quality']}; visual_approval and semantic_approval are null until a person sets them")
+        write_qa(previews)
 
 if __name__ == "__main__":
     main()

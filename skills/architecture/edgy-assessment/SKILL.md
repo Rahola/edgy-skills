@@ -275,8 +275,11 @@ Purposes, proposed metrics shown as confirmed, influences drawn as
 1. Tag every element of the purpose map with its provenance —
    `[confirmed]` (public source), `[analytical]` (your interpretation) or
    `[proposed]` — and every Outcome with `{status: confirmed|proposed}`.
-   `edgy_model_to_txt.py` writes them from the model's `provenance` and
-   `metric_status` fields.
+   For the four facet files `edgy_model_to_txt.py` writes the tags from the
+   model's `provenance` fields; the purpose map is a structural map written
+   from the same model (Phase 4 table), so its Outcomes and their
+   `{status: …}` are written by the analyst — the model has no Outcome
+   type.
 2. Run the review and read every question:
    ```bash
    python3 skills/documentation/edgy-diagram/scripts/edgy_semantic_review.py <company>-purpose.txt
