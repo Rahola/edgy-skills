@@ -36,12 +36,24 @@ def manifest_path(drawio_path: str) -> str:
     return stem + '.qa.json'
 
 
-def _page_sizes(drawio_path):
-    """[(page name, width, height)] from the file, in page order."""
+def _page_facts(drawio_path):
+    """[(page name, width, height, drawn edges)] from the generated file, in page order.
+    Edges are counted as drawn — merged `a / b` labels are one edge, links the
+    triad reports instead of drawing are none — the same count edgy-eval.py used."""
     out = []
     for name, model in edgy_lint.load_models(drawio_path):
-        out.append((name, float(model.get('pageWidth', 0) or 0), float(model.get('pageHeight', 0) or 0)))
+        root = model.find('root')
+        cells = {c.get('id'): c for c in root.findall('mxCell')} if root is not None else {}
+        elements = edgy_lint.classify_cells(cells)['elements']
+        edges = sum(1 for c in cells.values()
+                    if c.get('edge') == '1' and c.get('source') in elements and c.get('target') in elements)
+        out.append((name, float(model.get('pageWidth', 0) or 0), float(model.get('pageHeight', 0) or 0), edges))
     return out
+
+
+def is_approval(value) -> bool:
+    """An approval is a person's non-empty name-and-date string; any other value (true, 1, an object) is not."""
+    return isinstance(value, str) and bool(value.strip())
 
 
 def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=None, generator_warnings=None,
@@ -49,7 +61,7 @@ def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=No
     """`pages` is [(name, EDGYParser)], `previews` the result list of edgy_render.render_file (or None)."""
     previews = previews or []
     names = [name for name, _ in pages]
-    sizes = _page_sizes(drawio_path)
+    facts = _page_facts(drawio_path)
     ref_width = edgy_render.NATIVE_PRESETS[preset]['ref_width'] if preset in edgy_render.NATIVE_PRESETS else None
     # one lint run per page scale: the W115 scale depends on the page's rendered width
     per_page = []
@@ -61,11 +73,10 @@ def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=No
         findings = [f for f in edgy_lint.lint_file(drawio_path, opts) if f.page in (None, name)]
         rules = Counter(f.rule for f in findings)
         counts = Counter(e['type'] for e in p.elements.values() if e['id'] not in getattr(p, '_hidden', set()))
-        drawn_edges = sum(1 for r in p.relationships if r['source'] not in getattr(p, '_hidden', set())
-                          and r['target'] not in getattr(p, '_hidden', set()))
+        drawn_edges = facts[idx][3] if idx < len(facts) else 0
         semantic = edgy_semantic_review.review_parser(p, name if len(pages) > 1 else None) if p.map_type == 'purpose' else []
         semantic_total += len(semantic)
-        page_w, page_h = (sizes[idx][1], sizes[idx][2]) if idx < len(sizes) else (0, 0)
+        page_w, page_h = (facts[idx][1], facts[idx][2]) if idx < len(facts) else (0, 0)
         per_page.append({
             'name': name, 'map_type': p.map_type, 'facet': p.facet, 'language': p.language,
             'elements': dict(sorted(counts.items())), 'edges': drawn_edges,
@@ -116,17 +127,22 @@ def write_manifest(drawio_path, manifest):
 def approval_status(manifest):
     """Lines a reviewer reads: lint and approvals reported separately, never merged."""
     t = manifest['totals']
+    def show(value):
+        if is_approval(value):
+            return value.strip()
+        return 'NOT APPROVED (null)' if value is None else f'NOT APPROVED (not a reviewer name and date: {value!r})'
     lines = [f"lint: {t['lint_errors']} error(s), {t['lint_warnings']} warning(s); visual W111–W114: {t['visual']}; "
              f"layout W117–W120: {t['layout_quality']}",
-             f"visual approval: {manifest.get('visual_approval') or 'NOT APPROVED (null)'}",
-             f"semantic approval: {manifest.get('semantic_approval') or 'NOT APPROVED (null)'}"]
+             f"visual approval: {show(manifest.get('visual_approval'))}",
+             f"semantic approval: {show(manifest.get('semantic_approval'))}"]
     return lines
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description='Read qa.json manifests and report their approval status')
     ap.add_argument('files', nargs='+', help='qa.json files')
-    ap.add_argument('--require-approvals', action='store_true', help='exit 1 when visual_approval or semantic_approval is null')
+    ap.add_argument('--require-approvals', action='store_true',
+                    help='exit 1 unless visual_approval and semantic_approval are both a non-empty reviewer name-and-date string')
     args = ap.parse_args(argv)
     rc = 0
     for f in args.files:
@@ -134,7 +150,7 @@ def main(argv=None):
         print(f"{f}:")
         for line in approval_status(m):
             print(f"  {line}")
-        if args.require_approvals and not (m.get('visual_approval') and m.get('semantic_approval')):
+        if args.require_approvals and not (is_approval(m.get('visual_approval')) and is_approval(m.get('semantic_approval'))):
             rc = 1
     return rc
 

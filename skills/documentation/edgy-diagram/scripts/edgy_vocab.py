@@ -26,6 +26,8 @@ from edgy_core_links import CORE_LINKS, INFLUENCE_VERBS, LANGUAGES  # noqa: E402
 FLOW_VERBS = [
     {'en': 'flows', 'fi': 'virtaa', 'fr': 'circule', 'de': 'fließt'},
     {'en': 'transfers', 'fi': 'siirtyy', 'fr': 'transfère', 'de': 'überträgt'},
+    {'en': 'sends', 'fi': 'lähettää', 'fr': 'envoie', 'de': 'sendet'},
+    {'en': 'receives', 'fi': 'vastaanottaa', 'fr': 'reçoit', 'de': 'empfängt'},
     {'en': 'produces data', 'fi': 'tuottaa dataa', 'fr': 'produit des données', 'de': 'erzeugt Daten'},
     {'en': 'returns', 'fi': 'palauttaa', 'fr': 'retourne', 'de': 'gibt zurück'},
 ]

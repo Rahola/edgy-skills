@@ -319,6 +319,14 @@ def test_verbs_render_in_map_language():
     assert 'contains' in _edge_labels(root5)
 
 
+def test_flow_verbs_sends_receives_translate():
+    from edgy_vocab import translate, languages_of
+    assert translate('sends', 'fi') == 'lähettää' and translate('receives', 'de') == 'empfängt' and translate('envoie', 'en') == 'sends'
+    assert languages_of('vastaanottaa') == {'fi'}
+    p, root, _ = gen('map_type: asset\nlanguage: fi\nelements:\n  - asset: "A"\n  - asset: "B"\nrelationships:\n  - "A" -> "B": "sends"\n')
+    assert 'lähettää' in _edge_labels(root) and p.relationships[0]['kind'] == 'flow'
+
+
 def test_legend_follows_language():
     import html as _html
     from edgy_parser import LEGEND_TEXT

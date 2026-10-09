@@ -327,7 +327,8 @@ def main():
         for _, p in pages:
             if not p._legend_explicit:
                 p.legend = edgy_render.NATIVE_PRESETS[native_preset]['legend']
-    heading, footnote = edgy_parser.title, edgy_parser.footnote
+    heading = [p.title for _, p in pages]        # one band per page: a page-level title:/footnote: overrides the head
+    footnote = [p.footnote for _, p in pages]
     if args.bare and len(pages) > 1:
         print("Error: --bare supports single-page input only", file=sys.stderr)
         sys.exit(2)

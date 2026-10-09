@@ -305,6 +305,11 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
                              f'<text x="{lx + lw / 2:.1f}" y="{ly + lh / 2 + fs * 0.35:.1f}" font-family="{FONT}" font-size="{fs}" fill="{fc}" text-anchor="middle">{esc(lab)}</text>')
 
     pad = NATIVE_PRESETS[preset]['margin'] if preset else (24 if publication else 20)
+    if preset:
+        # a title or footnote wider than the diagram widens the frame instead of being clipped
+        for text, fs, bold in ((heading, TITLE_FS, True), (footnote, FOOTNOTE_FS, False)):
+            if text:
+                maxx = max(maxx, minx + edgy_text.measure(text, fs, bold=bold))
     vx, vy = minx - pad, miny - pad
     vw, vh = (maxx - minx) + 2 * pad, (maxy - miny) + 2 * pad
     if preset and heading:
@@ -383,7 +388,8 @@ def render_file(path: str, out_dir: Optional[str] = None, png: bool = True, scal
                 heading: Optional[str] = None, footnote: Optional[str] = None) -> List[dict]:
     """Render every page → [{'page', 'svg', 'png', 'orientation', 'width', 'height', 'preset'}];
     png is None when not produced. `publication` crops to the content bounds; a native
-    `preset` adds its margin, title and footnote bands (see NATIVE_PRESETS)."""
+    `preset` adds its margin, title and footnote bands (see NATIVE_PRESETS). `heading` and
+    `footnote` are one string for every page or a sequence with one entry per page."""
     pages = load_pages_from_file(path)
     if not pages:
         raise ValueError('no diagram pages found')
@@ -393,9 +399,15 @@ def render_file(path: str, out_dir: Optional[str] = None, png: bool = True, scal
     chromium = find_chromium() if png else None
     results = []
     slugs = unique_slugs([name or str(i) for i, (name, _) in enumerate(pages, 1)])
-    for (name, model), slug in zip(pages, slugs):
+    def per_page(value, i):
+        if isinstance(value, (list, tuple)):
+            return value[i] if i < len(value) else None
+        return value
+
+    for i, ((name, model), slug) in enumerate(zip(pages, slugs)):
         page = Page(model)
-        svg = page_to_svg(page, name, publication=publication, preset=preset, heading=heading, footnote=footnote)
+        svg = page_to_svg(page, name, publication=publication, preset=preset,
+                          heading=per_page(heading, i), footnote=per_page(footnote, i))
         stem = base if len(pages) == 1 else f'{base}-{slug}'
         svg_path = os.path.join(out_dir, stem + '.svg')
         with open(svg_path, 'w', encoding='utf-8') as f:

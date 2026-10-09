@@ -82,6 +82,13 @@ def test_generator_flag_prints_review():
     assert 'S001' in r.stderr and 'not an approval' in r.stderr, r.stderr
 
 
+def test_s006_matches_values_ending_in_a_symbol():
+    import edgy_semantic_review as sr
+    for name in ('Cut churn 15%', 'Save 50 €', 'Reach 95 % on time', 'Cost 3 €/trip'):
+        assert sr.METRIC_RE.search(name), name
+    assert not sr.METRIC_RE.search('Platform 9 hub'), 'a bare number is no metric'
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

@@ -60,7 +60,7 @@ PROVENANCE_TAGS = {
     'bestätigt', 'analytisch', 'vorgeschlagen',
 }
 MEASURES_VERBS = {'measures', 'mittaa', 'mesure', 'misst', 'measure'}
-METRIC_RE = re.compile(r'(\d+([.,]\d+)?\s?(%|€|eur|kpl|pcs|h|min|pv|d|days?|hours?|km|t|co2)\b)|([≥≤<>]\s?\d)|(\d+\s?/\s?\d+)', re.I)
+METRIC_RE = re.compile(r'(\d+([.,]\d+)?\s?(%|€|eur|kpl|pcs|h|min|pv|d|days?|hours?|km|t|co2)(?!\w))|([≥≤<>]\s?\d)|(\d+\s?/\s?\d+)', re.I)
 STEM_MIN = 5
 
 

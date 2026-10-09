@@ -409,6 +409,25 @@ def test_native_presets_differ_only_in_frame():
     assert vb['presentation'][2] > vb['publication'][2] or vb['presentation'][3] > vb['publication'][3], 'presentation has the wider margin'
 
 
+def test_bands_per_page_and_wide_title_widens_frame():
+    import subprocess
+    here = os.path.dirname(os.path.abspath(__file__))
+    d = tempfile.mkdtemp()
+    src = os.path.join(d, 'in.txt')
+    long_title = 'A deliberately very long title band that is much wider than the two small boxes of this tiny page ' * 2
+    text = MULTI.replace('  - name: "Systems"\n', '  - name: "Systems"\n    title: "Systems view"\n').replace('facet: architecture', f'facet: architecture\ntitle: "{long_title.strip()}"')
+    open(src, 'w', encoding='utf-8').write(text)
+    out = os.path.join(d, 'm.drawio')
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', out, '--preview', '--preset', 'publication'], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    first = open(os.path.join(d, 'm-roles-actors.svg'), encoding='utf-8').read()
+    second = open(os.path.join(d, 'm-systems.svg'), encoding='utf-8').read()
+    assert long_title.strip()[:40] in first and 'Systems view' not in first
+    assert 'Systems view' in second and long_title.strip()[:40] not in second, 'page-level title overrides the head'
+    vb = [float(v) for v in re.search(r'viewBox="([^"]+)"', first).group(1).split()]
+    assert vb[2] >= edgy_render.edgy_text.measure(long_title.strip(), edgy_render.TITLE_FS, bold=True), 'frame at least as wide as the title'
+
+
 def page_w(page):
     return page.page_w
 
@@ -426,6 +445,20 @@ def test_qa_manifest_schema_and_approvals_null():
     assert qa['visual_approval'] is None and qa['semantic_approval'] is None and qa['delivery_notes'] is None
     assert qa['pages'][0]['layout_quality'] == {'ran': False, 'findings': 0}
     assert qa['pages'][1]['elements'] == {'asset': 5} and qa['pages'][0]['edges'] == 1
+    # edges are counted as drawn: the triad reports links into panels instead of drawing them
+    import edgy_qa
+    tri = os.path.join(here, '..', 'examples', 'triad-all-facets.txt')
+    out3 = os.path.join(d, 't.drawio')
+    subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), tri, '--output', out3, '--qa'], capture_output=True, text=True)
+    qa3 = json.load(open(os.path.join(d, 't.qa.json'), encoding='utf-8'))
+    assert qa3['pages'][0]['edges'] == 24, qa3['pages'][0]['edges']
+    # approvals: only a reviewer name-and-date string counts
+    assert not edgy_qa.is_approval(True) and not edgy_qa.is_approval(1) and not edgy_qa.is_approval({'automated': True}) and not edgy_qa.is_approval(' ')
+    assert edgy_qa.is_approval('Reviewer, 2026-10-09')
+    qa['visual_approval'] = True; qa['semantic_approval'] = 1
+    bad = os.path.join(d, 'bad.qa.json'); open(bad, 'w', encoding='utf-8').write(json.dumps(qa))
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_qa.py'), '--require-approvals', bad], capture_output=True, text=True)
+    assert r.returncode == 1 and 'not a reviewer name and date' in r.stdout, r.stdout
     assert qa['pages'][0]['image'] is None, 'no preview requested'
     repo = os.path.abspath(os.path.join(here, '..', '..', '..', '..'))
     v = subprocess.run([sys.executable, os.path.join(repo, 'tools', 'validate-edgy-model.py'), '--schema',

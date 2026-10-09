@@ -52,10 +52,10 @@ import edgy_vocab as _vocab   # noqa: E402 — verbien kielet ja käännökset (
 # Flow relationships → open arrowhead (data/value flows concretely)
 # Supported in FI, EN, FR, DE
 FLOW_RELATIONSHIPS = {
-    'virtaa', 'siirtyy', 'tuottaa dataa', 'palauttaa',           # FI
-    'flows', 'transfers', 'sends', 'receives', 'produces data', 'returns',  # EN
-    'circule', 'transfère', 'produit des données', 'retourne',   # FR
-    'fließt', 'überträgt', 'erzeugt Daten', 'gibt zurück',       # DE
+    'virtaa', 'siirtyy', 'lähettää', 'vastaanottaa', 'tuottaa dataa', 'palauttaa',   # FI
+    'flows', 'transfers', 'sends', 'receives', 'produces data', 'returns',          # EN
+    'circule', 'transfère', 'envoie', 'reçoit', 'produit des données', 'retourne',  # FR
+    'fließt', 'überträgt', 'sendet', 'empfängt', 'erzeugt Daten', 'gibt zurück',    # DE
 }
 
 # Tree hierarchy relationships → solid line, no arrowhead
