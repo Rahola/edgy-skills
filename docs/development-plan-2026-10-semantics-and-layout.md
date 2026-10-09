@@ -1,6 +1,6 @@
 # EDGY skills development plan (2026-10, part 2): semantic quality, localisation, layout consistency
 
-**Revision 1 (2026-10-09) — proposal, awaiting approval.** Follow-up to
+**Revision 2 (2026-10-09) — proposal; decisions taken: layout-quality rules and card equalisation are on by default, both opt-out.** Follow-up to
 [`development-plan-2026-10.md`](development-plan-2026-10.md), whose Sprints
 8–12 shipped as **v2.1.0** (edgy-diagram 2.5.0, edgy-assessment 1.7.0).
 
@@ -106,9 +106,9 @@ explain; they never decide.
 | Provenance on elements (`[confirmed]` / `[analytical]` / `[proposed]` tags, `status:` on Outcomes) | **In** (P0) | Notation-level convention; carried into the report tables |
 | Verb rendering in the `language:` of the map; legend localised; W116 mismatch warning | **In** (P1) | The vocabulary already has all four languages; this is the rendering side |
 | Changing the canonical verb codes in the YAML / model | **Out** | Model stays language-neutral (`verb_en` is the key, as today) |
-| Layout-quality rules W117–W120 behind `--layout-quality` | **In** (P1), warnings, opt-in flag | Measurable, deterministic, no taste judgements |
+| Layout-quality rules W117–W120, on by default, `--no-layout-quality` to switch off | **In** (P1), warnings | Measurable, deterministic, no taste judgements; a warning that is off by default is never read |
 | Document-level layout options: `card_width`, `equal_cards`, `group_columns`, `cards_per_row`, `equal_group_width`, `align_groups` | **In** (P1) | Direct field need; opt-in, default output unchanged except for the equalisation default below |
-| Moderate equalisation of card sizes within one view **by default** | **In** (P1), can be switched off | The reviewer's "reasonable default"; regenerates shipped examples once |
+| Moderate equalisation of card sizes within one view **by default** (`equal_cards: false` to switch off) | **In** (P1) | The reviewer's "reasonable default"; regenerates shipped examples once |
 | `map_type: task` stakeholder inventory layout; inventory vs path | **In** (P2) | Documented map type with its own layout, like `organisation` roles |
 | Inventing relationships to fill a map | **Out**, stated in the skill | Same rule as "never drop links silently", in reverse |
 | `--preset publication` / `presentation` for the native renderer | **In** (P2) | Margins, title band, legend placement, W115 at the preset scale |
@@ -126,7 +126,7 @@ model  ──►  semantic review (NEW, flags + checklist; expert approves)
 input  ──►  generator: language-aware labels + legend; layout options; equal cards
    │
    ▼
-lint:  structural E/W  ·  visual W111–W114  ·  layout quality W117–W120 (NEW, opt-in)
+lint:  structural E/W  ·  visual W111–W114  ·  layout quality W117–W120 (NEW, on by default)
    │                       ·  localisation W116 (NEW)  ·  scale W115
    ▼
 preview / --preset publication  ──►  qa.json: counts, lint, image, language,
@@ -161,7 +161,7 @@ Items carry the review's section (E §x) they trace to.
 
 | # | Action | Trace | Acceptance criterion |
 |---|--------|-------|----------------------|
-| P1.5 | **Layout-quality rules behind `edgy_lint.py --layout-quality`** (warnings; off by default so existing gates do not change): **W117** size spread — width or height of elements of one type varies by more than 25 % (max/min) within a page; **W118** alignment — group containers or top-level elements whose left edges or top edges differ by 1–12 px (near-aligned but not aligned) or whose gaps differ by more than 20 % in one row/column; **W119** balance — a group's area or the content's bounding box leaves one side with more than 35 % of the canvas empty while the other side is full (asymmetric empty space), or content utilisation of the page is below 45 %; **W120** aspect — content bounding-box ratio outside 0.5–2.0 unless the map type is a sequence. Each finding carries the numbers it measured. | E §P1 visuaalinen laadunvarmistus | The three-map series fixture (P1.8) → W117/W118 before P1.6, 0 after; shipped examples: counts recorded as a baseline, not enforced |
+| P1.5 | **Layout-quality rules** (warnings, **on by default**; `edgy_lint.py --no-layout-quality` switches them off for a run, and `qa.json` records whether they ran): **W117** size spread — width or height of elements of one type varies by more than 25 % (max/min) within a page; **W118** alignment — group containers or top-level elements whose left edges or top edges differ by 1–12 px (near-aligned but not aligned) or whose gaps differ by more than 20 % in one row/column; **W119** balance — a group's area or the content's bounding box leaves one side with more than 35 % of the canvas empty while the other side is full (asymmetric empty space), or content utilisation of the page is below 45 %; **W120** aspect — content bounding-box ratio outside 0.5–2.0 unless the map type is a sequence. Each finding carries the numbers it measured. | E §P1 visuaalinen laadunvarmistus | The three-map series fixture (P1.8) → W117/W118 before P1.6, 0 after. Shipped examples: counts recorded as a baseline; the `edgy-lint-strict` gate (triad, purpose, F1/F5) must stay clean with the rules on, so the thresholds are tuned on those files first |
 | P1.6 | **Layout options** at document level (and per page): `card_width: N` (every element of the page gets width N unless a size class says larger), `equal_cards: true\|false` (default **true**: elements of one type in one view take the width of the widest of them, capped at 280; heights follow), `group_columns: N` (containers laid out in N columns), `cards_per_row: N` (grid inside every container), `equal_group_width: true` (containers in one row share the widest width), `align_groups: grid` (containers snap to a common row/column grid; row height = tallest in the row). Applies to `group:` containers, the `capability` area layout and the triad panels. Options are validated with warnings. | E §P1 vakiomitoitus | A 2 × 2 capability map with `group_columns: 2, cards_per_row: 2, equal_group_width: true, align_groups: grid` places the four containers on exact rows and columns (`test_balanced_grid`) |
 | P1.7 | **Default equalisation** (`equal_cards: true`) regenerates every shipped example once; previews looked at; the eval table records H/W and W117 counts before and after. | E §P1 | Byte-identity holds for inputs that set `equal_cards: false`; AGENT_LOG carries the aggregates |
 | P1.8 | **Series fixture**: `examples/eval/series-acme-{capability,task,purpose}.txt`, three maps of one fictional delivery, and `edgy_lint.py --series a.drawio b.drawio c.drawio`: **W121** the files differ in legend placement, margins (content offset from the page edge), card width of a shared type or label font sizes. | E §Hyväksymistestit 1 | The series fixture generated with the same options → 0 W121; one file generated with `card_width: 300` → W121 |
@@ -174,7 +174,7 @@ Items carry the review's section (E §x) they trace to.
 | P2.2 | **Native presets** `--preset publication` and `--preset presentation` for `--engine native` / `--preview`: fixed margins (publication 24 px, presentation 48 px), optional title and footnote band (`title:` / `footnote:` document keys), legend placement (`strip` for publication, `box` for presentation), crop to content, and the W115 scale test at the preset's reference width (publication 160 mm at 300 dpi; presentation 1920 px). The draw.io CLI presets keep their names and semantics. | E §P2 julkaisuprofiili | Two outputs from one input differ only in margins, band and legend placement; `qa.json` records the preset and the W115 result |
 | P2.3 | **`qa.json` manifest** written by the generator next to the `.drawio` (`--qa`, on by default with `--preview`): per page — element and edge counts by type, structural lint (errors / warnings / rules), visual lint (W111–W114), layout quality (if run), language check (W116), image size and ratio, preset, preview paths, generator warnings, and three approval fields that the tooling never sets: `visual_approval`, `semantic_approval`, `delivery_notes`. `edgy-eval.py` reads it instead of re-parsing. | E §P2 manifesti, hyväksymistesti 6 | Schema `assets/qa.schema.json`, validated in `check.sh`; a manifest with `visual_approval: null` is reported as *not approved* by the assessment Phase 5 check |
 | P2.4 | **edgy-assessment 1.8.0**: Phase 2 semantic review (P0.4), Phase 3 `language:` and layout options passed from the model (`layout` block in `edgy-model.json`), Phase 4 series check across the four files, Phase 5 reads `qa.json` and requires both approval fields; templates section 9 states the provenance convention. | E §Hyväksymistestit 5–6 | Chain test: four files, `--series` clean, manifests present, approvals null → Phase 5 check fails until set |
-| P2.5 | Docs: SKILL.md 2.6.0 (map-type table row for `task`, layout options, `language:` effect, presets, `--layout-quality`, `--series`, semantic review), `references/map-types.md`, `references/export.md`, CHANGELOG **v2.2.0**, registry. | — | `check.sh` green |
+| P2.5 | Docs: SKILL.md 2.6.0 (map-type table row for `task`, layout options, `language:` effect, presets, `--no-layout-quality`, `--series`, semantic review), `references/map-types.md`, `references/export.md`, CHANGELOG **v2.2.0**, registry. | — | `check.sh` green |
 
 ## 5. Sequencing and estimate
 
@@ -227,7 +227,7 @@ needs a visual review of the regenerated previews.
 | E item | Plan item | Decision |
 |--------|-----------|----------|
 | Havaittu ongelma: inconsistent series, no balance measure, `contains` English, legend English | P1.5, P1.8, P1.1–P1.3 | In |
-| P1 visual QA (`--layout-quality`: balance, size spread, alignment, utilisation / aspect, scale text + legend) | P1.5 (W117–W120), W115 exists | In, opt-in flag |
+| P1 visual QA (balance, size spread, alignment, utilisation / aspect, scale text + legend) | P1.5 (W117–W120), W115 exists | In, on by default, `--no-layout-quality` opt-out |
 | P1 complete translation coverage + regression test | P1.1–P1.3 | In |
 | P1 standard-sized, aligned groups (`balanced-grid`, `group_columns`, `cards_per_row`, `card_width`, `equal_group_width`, `align_groups`) | P1.6, P1.7 | In; `layout: balanced-grid` expressed as the option set |
 | P2 task map stakeholder layout; inventory vs path; no invented links | P2.1 | In |

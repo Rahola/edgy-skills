@@ -157,7 +157,7 @@ rules, publication bounds and the planned `triad` layout — is
 localisation of verbs and legend, layout consistency and options, task map,
 native presets, QA manifest — is
 [`docs/development-plan-2026-10-semantics-and-layout.md`](docs/development-plan-2026-10-semantics-and-layout.md)
-(proposal, awaiting approval).
+(proposal; defaults decided, awaiting the go).
 
 ## Contributing
 
