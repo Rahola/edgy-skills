@@ -8,10 +8,11 @@
 # obstacle next to every endpoint. Exercises left, right, top and bottom.
 #
 # Grid (map_type: asset, 9 elements → 3 columns): 120 × 80 boxes (the id
-# line adds a row) at
-#   (80,80)  (260,80)  (440,80)
-#   (80,200) (260,200) (440,200)   ← "Hub" is the centre box, centre (320,240)
-#   (80,320) (260,320) (440,320)
+# line adds a row; equal_cards keeps them identical) at the uniform 60 px
+# content margin:
+#   (60,60)  (240,60)  (420,60)
+#   (60,180) (240,180) (420,180)   ← "Hub" is the centre box, centre (300,220)
+#   (60,300) (240,300) (420,300)
 map_type: asset
 
 elements:
@@ -26,17 +27,17 @@ elements:
   - asset: "South depot" {id: AST-09}
 
 relationships:
-  # three edges leave Hub's RIGHT side (ports at y = 212 / 240 / 268)
+  # three edges leave Hub's RIGHT side (ports at y = 192 / 220 / 248)
   - "Hub" -> "East store": "depends on"
-  - "Hub" -> "North depot": "depends on" {via: [(410, 240), (410, 120)], label: source}
-  - "Hub" -> "South depot": "depends on" {via: [(410, 240), (410, 360)]}
+  - "Hub" -> "North depot": "depends on" {via: [(390, 220), (390, 100)], label: source}
+  - "Hub" -> "South depot": "depends on" {via: [(390, 220), (390, 340)]}
   # three edges enter Hub's LEFT side
   - "West store" -> "Hub": "depends on"
-  - "North store" -> "Hub": "depends on" {via: [(230, 120), (230, 240)]}
-  - "South store" -> "Hub": "depends on" {via: [(230, 360), (230, 240)]}
+  - "North store" -> "Hub": "depends on" {via: [(210, 100), (210, 220)]}
+  - "South store" -> "Hub": "depends on" {via: [(210, 340), (210, 220)]}
   # two edges enter Hub's TOP side
   - "North hub" -> "Hub": "depends on" {to: top}
-  - "North depot" -> "Hub": "depends on" {from: bottom, to: top, via: [(500, 180), (320, 180)]}
+  - "North depot" -> "Hub": "depends on" {from: bottom, to: top, via: [(480, 160), (300, 160)]}
   # two edges leave Hub's BOTTOM side
   - "Hub" -> "South hub": "depends on" {from: bottom}
-  - "Hub" -> "South store": "depends on" {from: bottom, to: top, via: [(320, 300), (140, 300)]}
+  - "Hub" -> "South store": "depends on" {from: bottom, to: top, via: [(300, 280), (120, 280)]}

@@ -6,22 +6,22 @@
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
         <mxCell id="2" value="&lt;b&gt;Mobile app&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[AST-20]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#b26b00;strokeWidth=4;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="150" y="120" width="120" height="80" as="geometry"/>
+          <mxGeometry x="150" y="60" width="250" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="3" value="&lt;b&gt;Web shop&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[AST-21]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#6b778c;strokeWidth=4;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="510" y="120" width="120" height="80" as="geometry"/>
+          <mxGeometry x="510" y="60" width="250" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="4" value="&lt;b&gt;Legacy fare engine&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[AST-01]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#c25100;strokeWidth=4;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="150" y="360" width="150" height="80" as="geometry"/>
+          <mxGeometry x="150" y="300" width="250" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="5" value="&lt;b&gt;Identity provider&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[AST-11]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#6b778c;strokeWidth=4;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="150" y="600" width="130" height="80" as="geometry"/>
+          <mxGeometry x="150" y="540" width="250" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="6" value="&lt;b&gt;Account-based ticketing platform&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[AST-02]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#006644;strokeWidth=4;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="60" y="740" width="250" height="80" as="geometry"/>
+          <mxGeometry x="60" y="680" width="250" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="7" value="&lt;b&gt;Ticketing&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CAP-05]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="350" y="740" width="120" height="80" as="geometry"/>
+          <mxGeometry x="350" y="680" width="120" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="8" value="requires" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=classic;endFill=1;exitX=0.5;exitY=0.0;exitDx=0;exitDy=0;entryX=0.5;entryY=1.0;entryDx=0;entryDy=0;strokeColor=#c25100;fontColor=#c25100;strokeWidth=1.5;" edge="1" source="7" target="4" parent="1">
           <mxGeometry relative="1" as="geometry"/>

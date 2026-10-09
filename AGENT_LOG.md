@@ -20,6 +20,61 @@ perustelut.
 
 ---
 
+### 2026-10-09 — Claude Code (Sprint 15: layout-quality rules, layout options, equal cards)
+
+**Assignment:** development-plan-2026-10-semantics-and-layout P1.5–P1.8.
+Maps of one delivery came out with cards of many sizes, ragged group
+columns and content pushed into a corner of a large page, and nothing
+measured it.
+
+**Done:**
+- Lint **W117–W120**, on by default (`--no-layout-quality` switches them
+  off): size spread of one type under one parent (> 25 %), near-aligned
+  containers or same-type elements (1–12 px) and uneven gaps along a real
+  grid line (> 20 %), balance on pages the generator had to grow (margin
+  asymmetry > 35 % per grown axis, utilisation < 45 % when both axes grew)
+  and aspect of content larger than 1200 px (outside 1 : 4.5 … 4.5 : 1;
+  pentagon sequences exempt). Every message carries the numbers.
+  **W121** (`--series a b c`): legend placement, content margin, card
+  width of every shared type and label font sizes compared against the
+  first file.
+- Parser options `card_width`, `equal_cards` (default **true**: one size
+  per type and page), `group_columns`, `cards_per_row`,
+  `equal_group_width`, `align_groups: grid` (column width = widest, row
+  height = tallest, containers stretch to the row). Content origin is now
+  always (60, 60) in every layout (was 60 or 80), so a series shares its
+  margins. Triad panels in one row take the row height and single-facet
+  panels sit on the facet container's left edge (both were W118 hits).
+  Tidy trees centre a parent over its children's boxes, not over the
+  subtree widths.
+- Fixtures `examples/eval/series-acme-{capability,task,purpose}.txt`;
+  `check.sh` step `edgy-series` (generate, `--series --warnings-as-errors`);
+  `tools/regen-examples.sh` regenerates every shipped expected file;
+  eval table gains a **Layout** column. Tests: 5 structure, 5 lint.
+- Shipped examples regenerated once (P1.7) and their previews looked at.
+  Layout findings on the 28 expected files: before 24 × W117, 6 × W118,
+  7 × W119, 3 × W120 with the first thresholds; after regeneration and
+  tuning **0**. The strict gate (triad, purpose, F1, F5) is clean with the
+  rules on. Fixture F1's hand-computed waypoints moved with the margin
+  (−20 px).
+
+**Decisions:**
+- Thresholds were tuned on the strict set first, as the plan says: W120
+  allows 4.5 : 1 because the shipped purpose hierarchy (side columns +
+  tree) is 4.0 : 1; W119 judges only the axes the page grew in, because
+  the 1200 × 900 editor minimum is not a layout choice; W118 compares
+  containers with every other container but same-type elements only when
+  they share a row or column, so tidy trees do not trip it.
+- `align_groups: grid` stays opt-in: the default flow grid on the 60-
+  capability eval map still reports 3 × W118 (shorter containers leave
+  bigger vertical gaps); with `align_groups: grid` + `equal_group_width:
+  true` it reports 0 and looks like the balanced grid the feedback asked
+  for. Making it the default is a one-line change if the owner wants it.
+- `card_width` never touches the person shape and never shrinks a size
+  class; `equal_cards` is skipped in the triad (its ring is uniform).
+
+---
+
 ### 2026-10-09 — Claude Code (Sprint 14: verbs and legend in the map language, W116)
 
 **Assignment:** development-plan-2026-10-semantics-and-layout P1.1–P1.4.

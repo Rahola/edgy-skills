@@ -1,0 +1,15 @@
+# Series fixture 2/3 — task map of the same fictional delivery (Acme Transit).
+# Inventory variant: no relationships are drawn — a map is never given a link
+# just to look connected (the path variant would add task → journey / channel).
+map_type: task
+language: en
+legend: strip
+
+elements:
+  - task: "Plan a trip" {id: TSK-01}
+  - task: "Buy a ticket" {id: TSK-02}
+  - task: "Validate the ticket" {id: TSK-03}
+  - task: "Follow the vehicle" {id: TSK-04}
+  - channel: "Mobile app" {id: CHN-01}
+  - channel: "Ticket machine" {id: CHN-02}
+  - journey: "Daily commute" {id: JRN-01}

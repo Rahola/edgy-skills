@@ -6,25 +6,25 @@
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
         <mxCell id="2" value="Founded 1923 to connect rural villages" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="80" width="280" height="80" as="geometry"/>
+          <mxGeometry x="60" y="60" width="280" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="3" value="Electrified network 1965" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="400" y="80" width="210" height="60" as="geometry"/>
+          <mxGeometry x="380" y="60" width="280" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="4" value="First high-speed line 2001" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="200" width="220" height="60" as="geometry"/>
+          <mxGeometry x="60" y="180" width="280" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="5" value="Carbon-neutral operations 2024" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="400" y="200" width="260" height="60" as="geometry"/>
+          <mxGeometry x="380" y="180" width="280" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="6" value="Employees as customers" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="320" width="210" height="60" as="geometry"/>
+          <mxGeometry x="60" y="300" width="280" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="7" value="Reliability through hardship" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="400" y="320" width="230" height="60" as="geometry"/>
+          <mxGeometry x="380" y="300" width="280" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="8" value="From regional to European reach" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="440" width="270" height="60" as="geometry"/>
+          <mxGeometry x="60" y="420" width="280" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="9" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#cccccc;strokeWidth=1;" vertex="1" parent="1">
           <mxGeometry x="960" y="680" width="220" height="200" as="geometry"/>

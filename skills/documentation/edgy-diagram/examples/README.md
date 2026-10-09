@@ -2,7 +2,8 @@
 
 Every `.txt` here is an input for `scripts/edgy_generator.py`; the matching
 `expected-*.drawio` is what the current generator produces (regenerate after
-generator changes, never edit by hand). `check.sh` lints every expected file.
+generator changes with `bash tools/regen-examples.sh`, never edit by hand).
+`check.sh` lints every expected file.
 
 | Input | Expected output | Shows |
 | `identity-facet.txt` | `expected-identity.drawio` | single facet with container, intersection elements below |

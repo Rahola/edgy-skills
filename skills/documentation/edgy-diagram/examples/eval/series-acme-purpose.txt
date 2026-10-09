@@ -1,0 +1,17 @@
+# Series fixture 3/3 — purpose map of the same fictional delivery (Acme Transit).
+# Shares the organisation type with the capability map so the card width of a
+# shared type can be compared across the series (W121).
+map_type: purpose
+language: en
+legend: strip
+
+elements:
+  - purpose: "Effortless everyday travel" [confirmed] {id: PUR-01}
+  - purpose: "Seamless travel chains" [analytical] {id: PUR-11}
+  - outcome: "Door-to-door time −15 %" {id: OUT-01, status: proposed}
+  - organisation: "Acme Transit"
+
+relationships:
+  - "Effortless everyday travel" -> "Seamless travel chains": "contains"
+  - "Door-to-door time −15 %" -> "Seamless travel chains": "measures"
+  - "Acme Transit" -> "Effortless everyday travel": "pursues"

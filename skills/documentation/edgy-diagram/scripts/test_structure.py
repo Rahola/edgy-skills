@@ -163,7 +163,7 @@ relationships:
 
 def test_element_width_follows_measured_title():
     # 'Illinois' is narrow, 'WWW MMM' is wide — same character count, different measured widths
-    p, root, _ = gen("map_type: asset\nelements:\n  - asset: \"IIIIIIIIIIIIIIII\"\n  - asset: \"WWWWWWWWWWWWWWWW\"\n")
+    p, root, _ = gen("map_type: asset\nequal_cards: false\nelements:\n  - asset: \"IIIIIIIIIIIIIIII\"\n  - asset: \"WWWWWWWWWWWWWWWW\"\n")
     cells = cells_by_label(root)
     narrow = float(cells['IIIIIIIIIIIIIIII'].find('mxGeometry').get('width'))
     wide = float(cells['WWWWWWWWWWWWWWWW'].find('mxGeometry').get('width'))
@@ -613,6 +613,112 @@ elements:
     missing = EDGYParser(); missing.parse_input("facet: architecture\nlayout_from: /no/such.archimate#X\nelements:\n  - asset: \"A\"\n")
     missing.generate_xml()
     assert any('ei luettavissa' in w for w in missing.warnings), missing.warnings
+
+
+# ---- Sprint 15: layout options and equal cards ------------------------------
+def _widths(root, names):
+    cells = cells_by_label(root)
+    return {n: (float(cells[n].find('mxGeometry').get('width')), float(cells[n].find('mxGeometry').get('height'))) for n in names}
+
+
+def test_equal_cards_default():
+    """Same type → same width and height on the page (max of both, width ≤ 280); equal_cards: false restores measured widths."""
+    src = 'map_type: asset\nelements:\n  - asset: "Short"\n  - asset: "A considerably longer asset name here"\n  - asset: "Mid - with a description line"\n  - people: "Driver"\n'
+    p, root, _ = gen(src)
+    ws = _widths(root, ['Short', 'A considerably longer asset name here', 'Mid'])
+    assert len({w for w, _ in ws.values()}) == 1 and len({h for _, h in ws.values()}) == 1, ws
+    assert max(w for w, _ in ws.values()) <= 280
+    assert _widths(root, ['Driver'])['Driver'][0] < 120, 'a lone person keeps its own size'
+    p2, root2, _ = gen(src.replace('map_type: asset', 'map_type: asset\nequal_cards: false'))
+    ws2 = _widths(root2, ['Short', 'A considerably longer asset name here'])
+    assert ws2['Short'][0] < ws2['A considerably longer asset name here'][0], ws2
+
+
+def test_card_width_option():
+    src = 'map_type: asset\ncard_width: 200\nelements:\n  - asset: "Short"\n  - asset: "A considerably longer asset name that wraps"\n  - asset: "Big" {size: L}\n  - people: "Driver"\n'
+    p, root, _ = gen(src)
+    ws = _widths(root, ['Short', 'A considerably longer asset name that wraps', 'Big', 'Driver'])
+    assert ws['Big'][0] == 270, 'size class L stays wider than card_width'   # equalised with the others → all 270
+    assert ws['Short'][0] == ws['A considerably longer asset name that wraps'][0] == 270
+    assert ws['Driver'][0] < 120, 'person shape ignores card_width'
+    p2, root2, _ = gen(src.replace('  - asset: "Big" {size: L}\n', ''))
+    ws2 = _widths(root2, ['Short', 'A considerably longer asset name that wraps'])
+    assert {w for w, _ in ws2.values()} == {200.0}, ws2
+    bad = EDGYParser(); bad.parse_input('map_type: asset\ncard_width: 7\nelements:\n  - asset: "A"\n')
+    assert any('card_width' in w for w in bad.warnings), bad.warnings
+
+
+BALANCED = """map_type: capability
+group_columns: 2
+cards_per_row: 2
+equal_group_width: true
+align_groups: grid
+elements:
+  - group: "Area one"
+    - capability: "A1"
+    - capability: "A2 with a longer name"
+    - capability: "A3"
+  - group: "Area two"
+    - capability: "B1"
+  - group: "Area three with a long title"
+    - capability: "C1"
+    - capability: "C2"
+    - capability: "C3"
+    - capability: "C4"
+  - group: "Area four"
+    - capability: "D1"
+    - capability: "D2"
+"""
+
+
+def test_balanced_grid():
+    """2 × 2 containers on exact rows and columns: equal widths, two distinct x and two distinct y, row heights equal."""
+    import edgy_lint
+    p, root, xml = gen(BALANCED)
+    cells = cells_by_label(root)
+    boxes = {}
+    for n in ('Area one', 'Area two', 'Area three with a long title', 'Area four'):
+        g = cells[n].find('mxGeometry')
+        boxes[n] = tuple(float(g.get(k)) for k in ('x', 'y', 'width', 'height'))
+    assert len({b[2] for b in boxes.values()}) == 1, boxes
+    xs = sorted({b[0] for b in boxes.values()}); ys = sorted({b[1] for b in boxes.values()})
+    assert len(xs) == 2 and len(ys) == 2, (xs, ys)
+    assert xs[1] - xs[0] == boxes['Area one'][2] + 40, 'second column exactly one gap after the first'
+    assert boxes['Area one'][3] == boxes['Area two'][3] and boxes['Area three with a long title'][3] == boxes['Area four'][3]
+    # cards_per_row: 2 → C1..C4 on two rows inside their container
+    cx = {n: abs_pos(root, cells[n])[0] for n in ('C1', 'C2', 'C3', 'C4')}
+    assert cx['C1'] == cx['C3'] and cx['C2'] == cx['C4'] and cx['C1'] < cx['C2'], cx
+    import tempfile
+    d = tempfile.mkdtemp(); path = os.path.join(d, 'g.drawio')
+    open(path, 'w', encoding='utf-8').write(xml)
+    ns = edgy_lint.main.__globals__['argparse'].Namespace
+    f = edgy_lint.lint_file(path, ns(no_legend=False))
+    assert not [x for x in f if x.rule in ('W117', 'W118', 'W119', 'W120')], [str(x) for x in f]
+
+
+def test_equal_group_width():
+    p, root, _ = gen(BALANCED.replace('equal_group_width: true\n', '').replace('align_groups: grid\n', ''))
+    cells = cells_by_label(root)
+    ws = {n: float(cells[n].find('mxGeometry').get('width')) for n in ('Area one', 'Area two')}
+    assert ws['Area one'] != ws['Area two'], ws
+    p, root, _ = gen(BALANCED.replace('align_groups: grid\n', ''))
+    cells = cells_by_label(root)
+    ws = {n: float(cells[n].find('mxGeometry').get('width')) for n in ('Area one', 'Area two', 'Area four')}
+    assert len(set(ws.values())) == 1, ws
+
+
+def test_uniform_content_margin():
+    """Every layout puts the content's top-left corner at (60, 60) — the series check (W121) relies on it."""
+    for src in ('map_type: asset\nelements:\n  - asset: "A"\n  - asset: "B"\n',
+                'map_type: process\nelements:\n  - process: "A"\n  - process: "B"\n',
+                BALANCED):
+        p, root, _ = gen(src)
+        xs, ys = [], []
+        for c in root.iter('mxCell'):
+            st = c.get('style') or ''
+            if c.get('vertex') == '1' and c.get('parent') == '1' and ('fillColor=#a6c0ff' in st or 'container=1' in st):
+                x, y = abs_pos(root, c); xs.append(x); ys.append(y)
+        assert min(xs) == 60 and min(ys) == 60, (min(xs), min(ys), src[:20])
 
 
 def main():

@@ -15,6 +15,8 @@ Usage:
   python3 edgy_lint.py --warnings-as-errors FILE
   python3 edgy_lint.py --json FILE            # machine-readable findings
   python3 edgy_lint.py --no-legend FILE       # allow a diagram without a legend
+  python3 edgy_lint.py --no-layout-quality F  # skip W117–W120 (layout quality, on by default)
+  python3 edgy_lint.py --series A B C         # W121: the files of one delivery differ in layout
 
 Exit codes: 0 clean (warnings allowed), 1 findings at ERROR level, 2 usage /
 unreadable input.
@@ -49,6 +51,23 @@ draws (edgy_geometry.py): ports, orthogonal joins, waypoints, label boxes.
        (map language: --language, else the legend title the generator wrote)
   --visual prints only the visual findings (W111–W114), as JSON with page,
   cell ids and coordinates, for a machine to act on.
+
+Layout-quality rules — measured, on by default, --no-layout-quality switches
+them off for a run. Every finding carries the numbers it measured.
+  W117 size spread: width or height of elements of one type under one parent
+       varies by more than 25 % (max / min)
+  W118 alignment: two containers (or two top-level elements of one type that
+       share a row / column) are near-aligned — edges differ by 1–12 px — or
+       the gaps between containers in one row / column differ by more than 20 %
+  W119 balance: on a page the generator had to grow beyond its 1200 × 900
+       minimum, the content leaves one side more than 35 % of the page empty
+       while the opposite side is full (judged per axis the page grew in), or
+       the content covers less than 45 % of a page grown in both directions
+  W120 aspect: content larger than 1200 px on its long side whose bounding box
+       is wider than 4.5:1 or taller than 1:4.5 (a page made only of pentagons —
+       a sequence — is exempt)
+  W121 series (--series A B C): the files differ in legend placement, content
+       margin, card width of a shared type or label font sizes
 """
 
 import argparse
@@ -82,6 +101,16 @@ except Exception:  # pragma: no cover — lint must still run standalone
         return set()
 
 VISUAL_RULES = ('W111', 'W112', 'W113', 'W114')   # geometry findings with coordinates; W115 (--scale) is a size check
+LAYOUT_RULES = ('W117', 'W118', 'W119', 'W120')   # layout quality, on by default (--no-layout-quality); W121 needs --series
+W117_MAX_SPREAD = 1.25     # max / min of width or height within one type and parent
+W118_NEAR_MIN, W118_NEAR_MAX = 1.0, 12.0   # px: near-aligned but not aligned
+W118_GAP_SPREAD = 1.20     # max / min gap between containers in one row or column
+W119_MIN_PAGE = (1200, 900)   # the generator's minimum page: balance is judged only on pages it had to grow
+W119_ASYMMETRY = 0.35      # (far margin − near margin) / page side
+W119_MIN_UTILISATION = 0.45   # content bbox area / page area
+W120_MIN_RATIO, W120_MAX_RATIO = 1 / 4.5, 4.5   # content bbox width / height (the shipped purpose hierarchy is 4.0)
+W120_MIN_SIDE = 1200       # px: content that fits a slide at 1:1 is never 'too wide' or 'too tall'
+W121_MARGIN_TOL = 10.0     # px difference in content offset between files of one series
 W111_MIN_INSIDE = 8.0      # px of an edge inside a foreign element before it counts
 W112_MIN_OVERLAP = 0.20    # share of the label box over an element
 W113_MIN_OVERLAP = 0.20    # share of the smaller label box over another label
@@ -484,6 +513,10 @@ def lint_model(path, page, model, lines, opts):
     # W111–W114 visual rules — on the renderer's geometry (edgy_geometry)
     F.extend(visual_findings(path, page, lines, cells, elements, containers, page_w, page_h))
 
+    # W117–W120 layout quality — measured on element and container boxes
+    if not getattr(opts, 'no_layout_quality', False):
+        F.extend(layout_findings(path, page, lines, cells, elements, kinds, containers, page_w, page_h))
+
     # W115 minimum rendered text size at the report scale (--scale), px → pt × 0.75
     scale = getattr(opts, 'scale', None)
     if scale:
@@ -580,6 +613,223 @@ def visual_findings(path, page, lines, cells, elements, containers, page_w, page
     return F
 
 
+def _container_boxes(cells, containers):
+    """Top-level containers (parent is the layer) as {id: (x, y, w, h)}; nested ones are skipped."""
+    out = {}
+    for i in containers:
+        c = cells[i]
+        if c.get('parent') in cells and cells[c.get('parent')].get('vertex') == '1':
+            continue
+        g = c.find('mxGeometry')
+        if g is None:
+            continue
+        out[i] = tuple(float(g.get(k, 0) or 0) for k in ('x', 'y', 'width', 'height'))
+    return out
+
+
+def content_bbox(elements, cbox):
+    """Bounding box of EDGY elements and top-level containers (the legend is not content)."""
+    boxes = [box for (_c, _st, box) in elements.values() if box] + list(cbox.values())
+    if not boxes:
+        return None
+    x0 = min(b[0] for b in boxes)
+    y0 = min(b[1] for b in boxes)
+    x1 = max(b[0] + b[2] for b in boxes)
+    y1 = max(b[1] + b[3] for b in boxes)
+    return x0, y0, x1 - x0, y1 - y0
+
+
+def layout_findings(path, page, lines, cells, elements, kinds, containers, page_w, page_h):
+    """W117–W120: size spread, alignment, balance, aspect — numbers in every message."""
+    F = []
+
+    def add(rule, msg, cell=None):
+        F.append(Finding('WARNING', rule, msg, path, lines.get(cell) if cell else None, cell, page))
+
+    # W117 size spread per (type, parent)
+    groups = {}
+    for i, (c, _st, box) in elements.items():
+        if box:
+            groups.setdefault((kinds.get(i), c.get('parent')), []).append((i, box))
+    for (kind, parent), members in sorted(groups.items(), key=lambda kv: str(kv[0])):
+        if len(members) < 2:
+            continue
+        ws = sorted(b[2] for _i, b in members)
+        hs = sorted(b[3] for _i, b in members)
+        for what, vals in (('width', ws), ('height', hs)):
+            if vals[0] > 0 and vals[-1] / vals[0] > W117_MAX_SPREAD:
+                where = f'in container {parent}' if parent in containers else 'at top level'
+                add('W117', f'{len(members)} {kind} elements {where} vary in {what} from {vals[0]:.0f} to {vals[-1]:.0f} px '
+                            f'(×{vals[-1] / vals[0]:.2f}, limit ×{W117_MAX_SPREAD}) — set card_width or keep equal_cards on',
+                    members[0][0])
+
+    # W118 alignment: containers, and top-level elements of one type sharing a row / column
+    cbox = _container_boxes(cells, containers)
+
+    def near(a, b):
+        d = abs(a - b)
+        return W118_NEAR_MIN <= d <= W118_NEAR_MAX
+
+    def overlap(a0, a1, b0, b1):
+        return min(a1, b1) - max(a0, b0) > 0
+
+    candidates = [('container', i, box) for i, box in cbox.items()]
+    for i, (c, _st, box) in elements.items():
+        if box and c.get('parent') not in containers and (c.get('parent') not in cells or cells[c.get('parent')].get('vertex') != '1'):
+            candidates.append((kinds.get(i), i, box))
+    reported = set()
+    for a in range(len(candidates)):
+        ka, ia, (ax, ay, aw, ah) = candidates[a]
+        for b in range(a + 1, len(candidates)):
+            kb, ib, (bx, by, bw, bh) = candidates[b]
+            if ka != kb:
+                continue
+            same_col = overlap(ax, ax + aw, bx, bx + bw)   # stacked: left edges should match
+            same_row = overlap(ay, ay + ah, by, by + bh)   # side by side: top edges should match
+            if ka == 'container':
+                same_col = same_row = True                  # containers are judged against every other container
+            if same_col and near(ax, bx) and (ia, ib, 'x') not in reported:
+                reported.add((ia, ib, 'x'))
+                add('W118', f'{ka} {ia} (x={ax:.0f}) and {ib} (x={bx:.0f}) are nearly left-aligned: {abs(ax - bx):.0f} px apart — align them exactly (align_groups: grid)', ia)
+            if same_row and near(ay, by) and (ia, ib, 'y') not in reported:
+                reported.add((ia, ib, 'y'))
+                add('W118', f'{ka} {ia} (y={ay:.0f}) and {ib} (y={by:.0f}) are nearly top-aligned: {abs(ay - by):.0f} px apart — align them exactly (align_groups: grid)', ia)
+    # gap spread between containers in one row (same top) / column (same left)
+    for axis, key, size_idx in (('row', 1, 0), ('column', 0, 1)):
+        lanes = {}
+        for i, box in cbox.items():
+            lanes.setdefault(round(box[key]), []).append((i, box))
+        for lane, items in lanes.items():
+            # a real grid line: at least three containers of one size across the lane
+            if len(items) < 3 or len({round(box[3 - size_idx]) for _i, box in items}) != 1:
+                continue
+            items.sort(key=lambda ib: ib[1][size_idx])
+            gaps = [items[n + 1][1][size_idx] - (items[n][1][size_idx] + items[n][1][size_idx + 2]) for n in range(len(items) - 1)]
+            if min(gaps) > 0 and max(gaps) / min(gaps) > W118_GAP_SPREAD:
+                add('W118', f'gaps between the {len(items)} containers in one {axis} vary from {min(gaps):.0f} to {max(gaps):.0f} px '
+                            f'(×{max(gaps) / min(gaps):.2f}, limit ×{W118_GAP_SPREAD}) — equal_group_width: true or align_groups: grid', items[0][0])
+
+    # W119 balance and W120 aspect on the content bounding box
+    bbox = content_bbox(elements, cbox)
+    if bbox and page_w and page_h:
+        x0, y0, w, h = bbox
+        grown_w, grown_h = page_w > W119_MIN_PAGE[0], page_h > W119_MIN_PAGE[1]
+        if grown_w or grown_h:
+            left, right = x0, page_w - (x0 + w)
+            top, bottom = y0, page_h - (y0 + h)
+            for side_a, side_b, a, b, total, grown in (('left', 'right', left, right, page_w, grown_w),
+                                                       ('top', 'bottom', top, bottom, page_h, grown_h)):
+                if grown and abs(a - b) / total > W119_ASYMMETRY:
+                    wide, narrow = (side_a, side_b) if a > b else (side_b, side_a)
+                    add('W119', f'content sits against the {narrow} edge: {wide} margin {max(a, b):.0f} px vs {narrow} {min(a, b):.0f} px '
+                                f'on a {total:.0f} px page ({abs(a - b) / total:.0%} asymmetric, limit {W119_ASYMMETRY:.0%}) — centre the content or crop the page')
+            util = (w * h) / (page_w * page_h)
+            if grown_w and grown_h and util < W119_MIN_UTILISATION:
+                add('W119', f'content covers {util:.0%} of the {page_w:.0f}x{page_h:.0f} page (content {w:.0f}x{h:.0f}, minimum {W119_MIN_UTILISATION:.0%}) '
+                            f'— legend: strip, a tighter layout, or split the view')
+        all_pentagons = all(shape_of(st) == 'pentagon' for (_c, st, _b) in elements.values())
+        ratio = w / h if h else 0
+        if ratio and max(w, h) >= W120_MIN_SIDE and not all_pentagons and not (W120_MIN_RATIO <= ratio <= W120_MAX_RATIO):
+            shape = 'wide' if ratio > W120_MAX_RATIO else 'tall'
+            add('W120', f'content is {w:.0f}x{h:.0f} px (ratio {ratio:.2f}): too {shape} for a page or slide (allowed {W120_MIN_RATIO:.2f}–{W120_MAX_RATIO:.1f}) '
+                        f'— group_columns / cards_per_row to re-flow, or split the view')
+    return F
+
+
+def series_profile(path):
+    """Per-file layout profile for W121: legend placement, content margin,
+    median card width per type, element and edge font sizes (first page)."""
+    models = list(load_models(path))
+    if not models:
+        return None
+    _page, model = models[0]
+    root = model.find('root')
+    cells = {c.get('id'): c for c in root.findall('mxCell')} if root is not None else {}
+    cls = classify_cells(cells)
+    page_w = float(model.get('pageWidth', 0) or 0)
+
+    def geom(c):
+        g = c.find('mxGeometry')
+        return [float(g.get(k, 0) or 0) for k in ('x', 'y', 'width', 'height')] if g is not None else None
+
+    def abs_box(c):
+        g = geom(c)
+        if g is None:
+            return None
+        x, y, w, h = g
+        p = cells.get(c.get('parent'))
+        while p is not None and p.get('vertex') == '1':
+            pg = geom(p)
+            if pg:
+                x += pg[0]
+                y += pg[1]
+            p = cells.get(p.get('parent'))
+        return x, y, w, h
+
+    elements = {i: (c, st, abs_box(c)) for i, (c, st, _k) in cls['elements'].items()}
+    kinds = {i: k for i, (_c, _st, k) in cls['elements'].items()}
+    cbox = _container_boxes(cells, cls['containers'])
+    bbox = content_bbox(elements, cbox)
+    legend = None
+    for i, c in cells.items():
+        st = style_dict(c.get('style'))
+        label = strip_html(c.get('value') or '').strip().lower()
+        if c.get('vertex') == '1' and 'text' in st and any(w in label for w in LEGEND_WORDS):
+            g = geom(c)
+            if g and page_w:
+                legend = 'strip' if g[0] < page_w / 2 else 'box'
+            break
+    widths = {}
+    for i, (_c, _st, box) in elements.items():
+        if box:
+            widths.setdefault(kinds[i], []).append(box[2])
+    card_width = {k: sorted(v)[len(v) // 2] for k, v in widths.items()}
+    fonts = {'element': set(), 'edge': set()}
+    for i, c in cells.items():
+        st = style_dict(c.get('style'))
+        if i in elements:
+            fonts['element'].add(float(st.get('fontSize', 12) or 12))
+        elif c.get('edge') == '1' and c.get('source') in elements and c.get('target') in elements:
+            fonts['edge'].add(float(st.get('fontSize', 11) or 11))
+    return {'legend': legend, 'margin': (bbox[0], bbox[1]) if bbox else None, 'card_width': card_width,
+            'fonts': {k: tuple(sorted(v)) for k, v in fonts.items()}}
+
+
+def series_findings(paths):
+    """W121: the files of one delivery must share legend placement, content
+    margin, card width of every shared type and label font sizes. The first
+    file is the reference; every difference is reported on the file that differs."""
+    F = []
+    profiles = []
+    for p in paths:
+        try:
+            prof = series_profile(p)
+        except (ET.ParseError, ValueError, zlib.error, UnicodeDecodeError):
+            prof = None
+        if prof:
+            profiles.append((p, prof))
+    if len(profiles) < 2:
+        return F
+    ref_path, ref = profiles[0]
+    for p, prof in profiles[1:]:
+        def add(msg):
+            F.append(Finding('WARNING', 'W121', f'{msg} (reference: {os.path.basename(ref_path)})', p))
+        if ref['legend'] and prof['legend'] and ref['legend'] != prof['legend']:
+            add(f'legend is a {prof["legend"]} here but a {ref["legend"]} in the reference — use the same legend: setting in the series')
+        if ref['margin'] and prof['margin']:
+            dx, dy = prof['margin'][0] - ref['margin'][0], prof['margin'][1] - ref['margin'][1]
+            if abs(dx) > W121_MARGIN_TOL or abs(dy) > W121_MARGIN_TOL:
+                add(f'content margin is ({prof["margin"][0]:.0f},{prof["margin"][1]:.0f}) px here vs ({ref["margin"][0]:.0f},{ref["margin"][1]:.0f}) in the reference')
+        for kind in sorted(set(ref['card_width']) & set(prof['card_width'])):
+            if abs(ref['card_width'][kind] - prof['card_width'][kind]) > 0.5:
+                add(f'{kind} cards are {prof["card_width"][kind]:.0f} px wide here vs {ref["card_width"][kind]:.0f} px in the reference — set card_width for the series')
+        for what in ('element', 'edge'):
+            a, b = ref['fonts'][what], prof['fonts'][what]
+            if a and b and a != b:
+                add(f'{what} label font sizes {", ".join(f"{f:g}" for f in b)} px here vs {", ".join(f"{f:g}" for f in a)} px in the reference')
+    return F
+
+
 def lint_file(path, opts):
     lines = line_index(path)
     try:
@@ -601,6 +851,10 @@ def main(argv=None):
     ap.add_argument('files', nargs='+')
     ap.add_argument('--warnings-as-errors', action='store_true')
     ap.add_argument('--no-legend', action='store_true', help='do not require a legend')
+    ap.add_argument('--no-layout-quality', action='store_true',
+                    help='skip the layout-quality rules W117–W120 (on by default)')
+    ap.add_argument('--series', action='store_true',
+                    help='treat the files as one delivery: W121 when they differ in legend placement, margins, card widths or font sizes')
     ap.add_argument('--json', action='store_true', help='print findings as JSON')
     ap.add_argument('--visual', action='store_true',
                     help='print only the visual findings (W111–W114) as JSON with coordinates')
@@ -618,6 +872,8 @@ def main(argv=None):
             print(f"{f}: ERROR E001 file not found", file=sys.stderr)
             return 2
         all_findings.extend(lint_file(f, opts))
+    if opts.series:
+        all_findings.extend(series_findings(opts.files))
 
     errors = [x for x in all_findings if x.level == 'ERROR']
     warnings = [x for x in all_findings if x.level == 'WARNING']

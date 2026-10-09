@@ -8,6 +8,7 @@
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
 # edgy-tests, edgy-geometry-tests, edgy-lint-tests, edgy-render-tests,
 # edgy-structure-tests, edgy-tool-tests, edgy-model, edgy-eval, edgy-lint,
+# edgy-lint-strict, edgy-series,
 # privacy-scan.
 #
 # Käyttö:
@@ -264,6 +265,24 @@ edgy_lint_strict() {
     return $rc
 }
 run_step "edgy-lint-strict" edgy_lint_strict
+
+# --- Vaihe 3f: sarjan yhtenäisyys (W121) -------------------------------------
+# Kolme saman toimituksen karttaa (series-acme-*) samoilla asetuksilla: lint
+# --series ei saa löytää eroja legendan paikassa, marginaaleissa, korttien
+# leveydessä tai fonttikoossa; myös W117–W120 pysyvät nollassa.
+edgy_series() {
+    local ex="skills/documentation/edgy-diagram/examples/eval"
+    local tmp
+    tmp=$(mktemp -d)
+    for f in series-acme-capability series-acme-task series-acme-purpose; do
+        python3 "$EDGY_SCRIPTS/edgy_generator.py" "$ex/$f.txt" --output "$tmp/$f.drawio" >/dev/null 2>&1 || { rm -rf "$tmp"; return 1; }
+    done
+    python3 "$EDGY_SCRIPTS/edgy_lint.py" -q --series --warnings-as-errors "$tmp"/series-acme-*.drawio
+    local rc=$?
+    rm -rf "$tmp"
+    return $rc
+}
+run_step "edgy-series" edgy_series
 
 # --- Vaihe 4: privacy-scan (asiakasreferenssien vuototarkistus) --------------
 # Estää yksityisten asiakas-/toimeksiantonimien päätymisen julkiseen repoon.

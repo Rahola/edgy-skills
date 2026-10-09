@@ -290,6 +290,13 @@ class EDGYParser:
         self.language = 'en'       # generoitujen tekstien kieli (legenda, triadin paneelit, verbit): fi | en | fr | de
         self._language_explicit = False
         self.translate_verbs = True  # language: asetettu → sanaston verbit renderöidään kartan kielellä (translate_verbs: false kytkee pois)
+        # Asettelun vakiomitoitus (2.6.0): dokumenttitason avaimet
+        self.card_width = None       # card_width: N — jokaisen laatikon leveys (ei person-hahmolle); kokoluokka voi olla suurempi
+        self.equal_cards = True      # equal_cards: false — saman tyypin laatikot EIVÄT saa yhteistä leveyttä/korkeutta sivulla
+        self.group_columns = None    # group_columns: N — kontit N sarakkeeseen
+        self.cards_per_row = None    # cards_per_row: N — kontin sisäinen ruudukko N sarakkeeseen
+        self.equal_group_width = False  # equal_group_width: true — kontit saavat leveimmän kontin leveyden
+        self.align_groups = None     # align_groups: grid — kontit yhteiseen rivi/sarake-ruudukkoon (rivin korkeus = korkein)
         self._size_override = {}   # elem_id → (w, h): layoutin pakottama koko (triad: kehän laatikot, paneelien sirut)
         self._triad_detours = {}   # (src, tgt) → (exit_side, entry_side, [(x, y), …]) kehää kiertävät linkit
         self._triad_hidden = set() # paneeleihin jäävät (ei-ensisijaiset) elementit: niiden linkkejä ei piirretä
@@ -342,6 +349,9 @@ class EDGYParser:
                     self.translate_verbs = tv in ('true', 'yes', 'kyllä')
                 else:
                     self.warnings.append(f"Tuntematon translate_verbs-arvo '{tv}' (sallitut: true, false), käytetään 'true'")
+                continue
+            elif line.split(':')[0].strip() in self._LAYOUT_OPTION_KEYS:
+                self._parse_layout_option(line)
                 continue
             elif line.startswith('legend:'):
                 # legend: box (oletus) | strip — nauha alareunassa säästää kanvasta
@@ -477,6 +487,37 @@ class EDGYParser:
                         })
                         if options.get('change'):
                             self.uses_change_overlay = True
+
+    _LAYOUT_OPTION_KEYS = ('card_width', 'equal_cards', 'group_columns', 'cards_per_row', 'equal_group_width', 'align_groups')
+
+    def _parse_layout_option(self, line: str) -> None:
+        """Dokumenttitason asetteluvalinnat (2.6.0). Virheellinen arvo → varoitus ja oletus pysyy.
+
+        card_width: N          laatikon leveys px (60–600), ei person-hahmolle; kokoluokka S/M/L voi olla leveämpi
+        equal_cards: true|false  saman tyypin laatikot sivulla saavat leveimmän/korkeimman mitat (oletus true)
+        group_columns: N       kontit N sarakkeeseen (karttatyyppi- ja facet-asettelu)
+        cards_per_row: N       kontin sisäinen ruudukko N sarakkeeseen
+        equal_group_width: true|false  kontit saavat leveimmän kontin leveyden (oletus false)
+        align_groups: grid|none  kontit yhteiseen rivi/sarake-ruudukkoon; rivin kontit venyvät rivin korkeuteen
+        """
+        key, _, raw = line.partition(':')
+        key, value = key.strip(), raw.strip().lower()
+        if key in ('card_width', 'group_columns', 'cards_per_row'):
+            lo, hi = (60, 600) if key == 'card_width' else (1, 12)
+            if value.isdigit() and lo <= int(value) <= hi:
+                setattr(self, key, int(value))
+            else:
+                self.warnings.append(f"Virheellinen {key}-arvo '{raw.strip()}' (kokonaisluku {lo}–{hi}), ohitetaan")
+        elif key in ('equal_cards', 'equal_group_width'):
+            if value in ('true', 'false', 'yes', 'no', 'kyllä', 'ei'):
+                setattr(self, key, value in ('true', 'yes', 'kyllä'))
+            else:
+                self.warnings.append(f"Tuntematon {key}-arvo '{raw.strip()}' (sallitut: true, false), ohitetaan")
+        elif key == 'align_groups':
+            if value in ('grid', 'none'):
+                self.align_groups = None if value == 'none' else value
+            else:
+                self.warnings.append(f"Tuntematon align_groups-arvo '{raw.strip()}' (sallitut: grid, none), ohitetaan")
 
     def _parse_layout_from(self, spec: str):
         """Jäsennä `layout_from: file.archimate#View [scale=S dx=X dy=Y]`."""
@@ -800,8 +841,9 @@ class EDGYParser:
     _WIDTH_PADDING = 20  # sisämarginaali molemmin puolin
     _MAX_WIDTH = 280     # leveimmän elementin yläraja
 
-    def _get_element_size(self, element: dict) -> Tuple[int, int]:
-        """Palauta elementin (leveys, korkeus).
+    def _get_element_size(self, element: dict, force_w: int = None) -> Tuple[int, int]:
+        """Palauta elementin (leveys, korkeus). `force_w` ohittaa leveyden laskennan
+        (equal_cards: yhteinen leveys, korkeus lasketaan siitä).
 
         - Leveys lasketaan NIMEN pituudesta (ei kuvauksesta): min 120 (rect),
           140 (pentagon), 60 (person), max 280, pyöristys 10:een.
@@ -812,7 +854,7 @@ class EDGYParser:
         import math
         if element.get('type') in STRUCTURE_TYPES:
             return self._computed_sizes.get(element['id'], (300, 160))
-        if element['id'] in self._size_override:        # layoutin pakottama koko (triad)
+        if force_w is None and element['id'] in self._size_override:   # layoutin pakottama koko (triad, equal_cards)
             return self._size_override[element['id']]
         shape = EDGY_SHAPES.get(element['type'], 'rect')
 
@@ -834,7 +876,11 @@ class EDGYParser:
         tip = 20 if shape == 'pentagon' else 0
         text_w = _text.measure(name, self._TITLE_FONT, bold=True) + self._WIDTH_PADDING + tip
         w = max(min_w, min(text_w, self._MAX_WIDTH))
+        if self.card_width and shape != 'person':
+            w = max(self.card_width, cw if size_class in SIZE_CLASSES else 0)   # card_width: nimi rivittyy, kokoluokka voi olla leveämpi
         w = int(math.ceil(w / 10) * 10)
+        if force_w is not None:
+            w = int(force_w)
 
         # Nimi rivittyy jos se ei mahdu yhdelle riville — rivitys mitattuna, ei arvioituna
         name_lines = _text.lines_needed(name, max(w - 16 - tip, 40), self._TITLE_FONT, bold=True)
@@ -951,15 +997,16 @@ class EDGYParser:
     def _normalize_to_canvas(self, positions: Dict[str, Tuple[int, int]]) -> None:
         """Siirrä kaikki elementit positiiviseen canvas-tilaan.
 
-        Varmistaa että min_x >= MARGIN ja min_y >= MARGIN.
+        Sisällön vasen yläkulma on aina (MARGIN, MARGIN): sama marginaali
+        jokaisella sivulla ja jokaisessa sarjan kartassa (lint W121).
         """
-        MARGIN = 40
+        MARGIN = 60
         if not positions:
             return
         min_x = min(x for x, y in positions.values())
         min_y = min(y for x, y in positions.values())
-        shift_x = MARGIN - min_x if min_x < MARGIN else 0
-        shift_y = MARGIN - min_y if min_y < MARGIN else 0
+        shift_x = MARGIN - min_x
+        shift_y = MARGIN - min_y
         if shift_x or shift_y:
             for eid in positions:
                 x, y = positions[eid]
@@ -1494,10 +1541,18 @@ class EDGYParser:
                     rx, ry = self._child_positions.get(eid, (20, 40))
                     result[eid] = (gx + rx, gy + ry)
             return result
+        self._equalise_cards()
         self._prepare_facet_groups()
 
         for gid, group in self.groups.items():
             self._layout_group_members(gid, group)
+        if self.equal_group_width:
+            # Kontit (ei kaistat, ei synteettiset facet-kontit) saavat leveimmän leveyden
+            gids = [g for g, grp in self.groups.items() if grp['kind'] == 'group' and not grp.get('synthetic')]
+            if gids:
+                widest = max(self._computed_sizes[g][0] for g in gids)
+                for g in gids:
+                    self._computed_sizes[g] = (widest, self._computed_sizes[g][1])
 
         top_items = [eid for eid, e in self.elements.items() if e.get('group') is None]
         lanes = [gid for gid, g in self.groups.items() if g['kind'] == 'lane']
@@ -1543,6 +1598,26 @@ class EDGYParser:
                 rx, ry = self._child_positions.get(eid, (20, 40))
                 result[eid] = (gx + rx, gy + ry)
         return result
+
+    def _equalise_cards(self) -> None:
+        """equal_cards (oletus): saman tyypin laatikot sivulla saavat leveimmän
+        leveyden (max 280 ellei card_width/kokoluokka ole suurempi) ja siitä
+        lasketun korkeimman korkeuden → yhtenäinen mitoitus, W117 ei laukea.
+        Triad ohittaa tämän (kehän laatikot ovat jo yhtä kokoa)."""
+        if not self.equal_cards:
+            return
+        by_type: Dict[str, List[str]] = {}
+        for eid, e in self.elements.items():
+            if e['type'] not in STRUCTURE_TYPES:
+                by_type.setdefault(e['type'], []).append(eid)
+        for members in by_type.values():
+            if len(members) < 2:
+                continue
+            width = max(self._get_element_size(self.elements[m])[0] for m in members)
+            sizes = {m: self._get_element_size(self.elements[m], force_w=width) for m in members}
+            height = max(h for _, h in sizes.values())
+            for m in members:
+                self._size_override[m] = (width, height)
 
     # ---- ryhmät ------------------------------------------------------------
     def _prepare_facet_groups(self) -> None:
@@ -1641,7 +1716,9 @@ class EDGYParser:
             min_w = max(240, len(group['name']) * 7 + 40)
             self._computed_sizes[gid] = (max(width + PAD_X, min_w), max_y + PAD_BOTTOM)
             return
-        if group.get('layout') == 'column':
+        if self.cards_per_row:
+            cols = self.cards_per_row
+        elif group.get('layout') == 'column':
             cols = 1
         else:
             cols = 2 if n <= 4 else 3 if n <= 9 else 4
@@ -1757,8 +1834,29 @@ class EDGYParser:
 
     def _layout_flow_grid(self, items: List[str], cols: int, x0: int = 60, y0: int = 60,
                           gap_x: int = 40, gap_y: int = 40) -> Dict[str, Tuple[int, int]]:
-        """Ruudukko vaihtelevan kokoisille kohteille (ryhmät + elementit)."""
+        """Ruudukko vaihtelevan kokoisille kohteille (ryhmät + elementit).
+
+        align_groups: grid → sarakkeen leveys on sarakkeen levein kohde (kaikki rivit),
+        rivin kontit venytetään rivin korkeimman korkeuteen: tarkat rivit ja sarakkeet."""
+        import math
         positions: Dict[str, Tuple[int, int]] = {}
+        if self.align_groups == 'grid' and items:
+            rows = [items[i:i + cols] for i in range(0, len(items), cols)]
+            col_w = [0] * cols
+            for row in rows:
+                for c, item in enumerate(row):
+                    col_w[c] = max(col_w[c], int(math.ceil(self._size_of(item)[0] / 10) * 10))
+            y = y0
+            for row in rows:
+                row_h = int(math.ceil(max(self._size_of(item)[1] for item in row) / 10) * 10)
+                x = x0
+                for c, item in enumerate(row):
+                    positions[item] = (x, y)
+                    if item in self.groups:      # kontti venyy rivin korkeuteen
+                        self._computed_sizes[item] = (self._computed_sizes[item][0], row_h)
+                    x += col_w[c] + gap_x
+                y += row_h + gap_y
+            return positions
         x, y, row_h = x0, y0, 0
         for i, item in enumerate(items):
             if i and i % cols == 0:
@@ -1966,7 +2064,7 @@ class EDGYParser:
         ring_bottom = max([positions[g][1] + self._computed_sizes[g][1] for g in self.groups]
                           + [positions[e][1] + self._size_override[e][1] for e in primaries.values() if e in positions])
         page_w = self._TRIAD_PAGE_W if self.facet == 'all' else 1200
-        margin, gap = 50, 20
+        margin, gap = (50 if self.facet == 'all' else 60), 20   # paneelit samaan vasempaan reunaan kuin facet-kontti (W118)
         panels = []   # (tyyppi, jäsenet, sarakkeet, leveys)
         for t, members in by_type.items():
             rest = [m for m in members if m != primaries.get(t)]
@@ -1984,6 +2082,13 @@ class EDGYParser:
         x, row_h = margin, 0
         lang_key = self.language if self.language in self._TRIAD_FURTHER_TITLE else 'en'
         plural = self._TYPE_PLURAL[lang_key]
+        row_members: List[str] = []   # rivin paneelit venytetään rivin korkeimman korkeuteen (tasaiset rivit, W118)
+
+        def stretch_row():
+            for g in row_members:
+                self._computed_sizes[g] = (self._computed_sizes[g][0], row_h)
+            row_members.clear()
+
         for t, rest, cols, pw in panels:
             pad, top, cgap = 12, 30, 10
             cw = int((pw - 2 * pad - (cols - 1) * cgap) / cols)
@@ -1991,8 +2096,10 @@ class EDGYParser:
             heights = [max(self._triad_chip_size(m, cw) for m in rest[r * cols:(r + 1) * cols]) for r in range(rows)]
             ph = top + sum(heights) + (rows - 1) * cgap + pad
             if x > margin and x + pw > page_w - margin:
+                stretch_row()
                 x, y, row_h = margin, y + row_h + gap, 0
             gid = f"further_{t}"
+            row_members.append(gid)
             title = f"{self._TRIAD_FURTHER_TITLE[lang_key]} {plural.get(t, t)}"
             self.groups[gid] = {'id': gid, 'kind': 'group', 'name': title, 'members': list(rest), 'tags': [],
                                 'metrics': {}, 'synthetic': True, 'facet': 'further', 'layout': 'triad'}
@@ -2007,6 +2114,7 @@ class EDGYParser:
                 cy_rel += heights[r] + cgap
             x += pw + gap
             row_h = max(row_h, ph)
+        stretch_row()
         # Elementit, joilla ei ole slottia (peruselementit yms.): rivi paneelien alle
         placed = set(primaries.values()) | self._triad_hidden
         leftovers = [e for e in self.elements if e not in placed]
@@ -2024,7 +2132,7 @@ class EDGYParser:
         """Laske layout karttatyypin mukaan. Reititä strategiaan MAP_TYPE_LAYOUT-taulun kautta."""
         if containers:
             # Ryhmät (esim. kyvykkyysalueet) riveinä; irralliset elementit perään
-            cols = 2 if len(containers) <= 4 else 3
+            cols = self.group_columns or (2 if len(containers) <= 4 else 3)
             return self._layout_flow_grid(containers + items, cols)
         if self.map_type == 'purpose':
             return self._layout_purpose(items)
@@ -2188,6 +2296,11 @@ class EDGYParser:
                     place(c, cursor + cw / 2, top + h + V_GAP)
                     cursor += cw + gap
                 kids_bottom = max(subtree_bottom(c, top + h + V_GAP) for c in kids)
+                # Tidy tree: vanhempi lastensa LAATIKOIDEN keskipisteiden puoliväliin
+                # (ei alipuiden leveyksien), jotta eri levyiset alipuut eivät vedä sitä sivuun
+                first_c = positions[kids[0]][0] + sizes[kids[0]][0] / 2
+                last_c = positions[kids[-1]][0] + sizes[kids[-1]][0] / 2
+                positions[p] = ((first_c + last_c) / 2 - w / 2, top)
             outs = attach.get(p, [])
             if outs:
                 oy = kids_bottom + O_GAP
@@ -2383,9 +2496,13 @@ class EDGYParser:
         # Yksittäinen facet
         x0, y0 = 60, 60
         y = y0
-        for g in containers:
-            positions[g] = (x0, y)
-            y += gsize[g][1] + 40
+        if self.group_columns and containers:
+            positions.update(self._layout_flow_grid(containers, self.group_columns, x0, y0))
+            y = max(positions[g][1] + self._size_of(g)[1] for g in containers) + 40
+        else:
+            for g in containers:
+                positions[g] = (x0, y)
+                y += gsize[g][1] + 40
         inter = orgs + products + brands
         wrap = 3
         x, row_h = x0, 0

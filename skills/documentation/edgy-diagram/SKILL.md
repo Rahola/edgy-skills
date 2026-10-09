@@ -125,6 +125,8 @@ cannot run, and then only for diagrams under ~15 cells — still lint it later.
 python3 scripts/edgy_lint.py <name>.drawio                       # 0 errors required
 python3 scripts/edgy_lint.py --warnings-as-errors <name>.drawio  # strict (shipped examples)
 python3 scripts/edgy_lint.py --visual <name>.drawio              # W111–W114 only, JSON with coordinates
+python3 scripts/edgy_lint.py --series a.drawio b.drawio c.drawio   # one delivery: W121 when the files differ in layout
+python3 scripts/edgy_lint.py --no-layout-quality <name>.drawio   # switch W117–W120 off for a run
 ```
 
 The linter checks structure (flat `mxCell` tree, edge geometry, dangling
@@ -145,6 +147,25 @@ or edge end leaves the page. They are warnings: fix them by moving the
 element, adding `via:` waypoints, changing `from:`/`to:`, or using `label:
 source|target`; `--visual` gives the cell ids and coordinates for a script to
 act on. A delivery should have none; `--warnings-as-errors` enforces that.
+
+**Layout quality (W117–W120, on by default).** Measured, never a taste
+judgement, and every finding carries its numbers: W117 elements of one type
+under one parent differ in width or height by more than 25 %; W118 two
+containers (or two top-level elements of one type sharing a row or column)
+are near-aligned — 1–12 px apart — or the gaps between containers in one
+row or column differ by more than 20 %; W119 on a page the generator had to
+grow beyond 1200 × 900 the content leaves one side more than 35 % of the
+page empty while the other side is full, or covers less than 45 % of a page
+grown in both directions; W120 content larger than 1200 px whose bounding box
+is wider than 4.5 : 1 or taller than 1 : 4.5 (a sequence of pentagons is
+exempt). The generator's defaults keep its own output clean (`equal_cards`,
+the uniform 60 px content margin); the rules catch hand-edited files and
+layouts that the options below should fix: `card_width`, `equal_cards`,
+`group_columns`, `cards_per_row`, `equal_group_width`, `align_groups: grid`.
+`--no-layout-quality` switches them off for a run; a delivery records whether
+they ran. **W121 (`--series`)** checks the files of one delivery against the
+first: legend placement, content margin, card width of every shared type and
+label font sizes must agree — generate the series with the same options.
 
 **Language (W116).** With `language:` set, the generator renders the legend
 and every vocabulary verb in that language (`contains` → `sisältää`,
@@ -179,6 +200,7 @@ edgy_generator.py in.txt --format png|svg|pdf [--engine drawio|plantuml|native] 
 edgy_generator.py in.txt --format plantuml --output out.puml
 edgy_render.py out.drawio [--out DIR] [--no-png] [--publication]            # preview an existing file
 edgy_lint.py out.drawio [--warnings-as-errors] [--visual] [--scale 0.4]     # lint; W115 below 6 pt at that scale
+edgy_lint.py --series a.drawio b.drawio [--no-layout-quality]              # W121 across a delivery; W117–W120 off
 ```
 
 `--publication` crops the native SVG/PNG to the content (shapes, routes,
@@ -218,6 +240,12 @@ map_type: capability | organisation | journey | purpose   # optional, overrides 
 legend: box | strip                                       # optional; strip = one band along the bottom, page as tall as the content
 language: fi | en | fr | de                               # optional; legend, generated headings and vocabulary verbs render in this language
 translate_verbs: true | false                             # optional (default true): with language: set, a vocabulary verb written in another language is rendered translated ("contains" → "sisältää"); the model keeps the canonical verb
+equal_cards: true | false                                 # optional (default true): elements of one type on a page take the widest width (≤ 280) and the tallest height of their type
+card_width: N                                             # optional: every box is N px wide (60–600; a size class S/M/L may be wider; the person shape is exempt); long names wrap
+group_columns: N                                          # optional: containers in N columns (map-type and single-facet layouts)
+cards_per_row: N                                          # optional: N cards per row inside every container
+equal_group_width: true | false                           # optional (default false): containers share the widest container's width
+align_groups: grid | none                                 # optional: containers on exact rows and columns — column width = widest in the column, row height = tallest, containers stretch to the row
 
 elements:
   - <element_type>: "<name>"
@@ -237,6 +265,14 @@ relationships:
 
 Names are matched on the part before ` - ` / ` | ` (the *name*), so a
 relationship can say `"Ticketing"` for `"Ticketing - sell and validate fares"`.
+
+The layout options give a *standard-sized, aligned* map without hand
+editing: `equal_cards` is on by default (one size per element type and
+page), and a balanced capability map is `group_columns: 2`,
+`cards_per_row: 2`, `equal_group_width: true`, `align_groups: grid`. The
+content's top-left corner is always at (60, 60), so the maps of one series
+share their margins (lint `--series`). Invalid values warn and keep the
+default.
 
 ### Multi-page input (`pages:`) and ArchiMate positioning (`layout_from:`)
 
@@ -476,6 +512,7 @@ cut text, spaghetti routing and labels on boxes. Generate with `--preview`
 (or run `edgy_render.py`), open the PNG/SVG and check:
 
 - [ ] no edge passes through a box and no edge label lies on a box or another label — `edgy_lint.py --visual` must report nothing (W111–W114 = 0)
+- [ ] cards of one type are one size, groups sit on exact rows and columns, the content is balanced on the page — the layout rules W117–W120 report nothing (or each finding is answered); the files of one delivery pass `--series`
 - [ ] every edge visibly starts and ends at an element; no diagonal end segments on orthogonal routes
 - [ ] nothing cut off or overlapping; text fits its element
 - [ ] legend clear of content; page height ≤ 1.5 × width (otherwise pages or another map type)

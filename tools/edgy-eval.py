@@ -32,6 +32,9 @@ DEFAULT_INPUTS = [
     EXAMPLES / "eval" / "fixture-f2-labels.txt",
     EXAMPLES / "eval" / "fixture-f4-long-bold-title.txt",
     EXAMPLES / "eval" / "fixture-f5-purpose-tree.txt",
+    EXAMPLES / "eval" / "series-acme-capability.txt",
+    EXAMPLES / "eval" / "series-acme-task.txt",
+    EXAMPLES / "eval" / "series-acme-purpose.txt",
     EXAMPLES / "multipage-map.txt",
     EXAMPLES / "full-edgy-map.txt",
     EXAMPLES / "purpose-hierarchy-map.txt",
@@ -47,7 +50,7 @@ def run_one(txt: Path, out_dir: Path) -> dict:
     gen_warnings = gen.stderr.count("Warning:")
     row = {"input": txt.name, "gen_exit": gen.returncode, "gen_warnings": gen_warnings,
            "elements": 0, "edges": 0, "pages": 0, "ratio": 0.0,
-           "lint_errors": 0, "lint_warnings": 0, "visual": 0, "rules": {}}
+           "lint_errors": 0, "lint_warnings": 0, "visual": 0, "layout": 0, "rules": {}}
     if gen.returncode != 0:
         row["error"] = gen.stderr.strip()[-300:]
         return row
@@ -83,6 +86,8 @@ def run_one(txt: Path, out_dir: Path) -> dict:
     row["lint_warnings"] = sum(1 for f in findings if f["level"] == "WARNING")
     # visual rules (edge through a box, label on a box / label, outside the page) — the same set as --visual
     row["visual"] = sum(v for k, v in rules.items() if k in edgy_lint.VISUAL_RULES)
+    # layout-quality rules (size spread, alignment, balance, aspect) — on by default in the linter
+    row["layout"] = sum(v for k, v in rules.items() if k in edgy_lint.LAYOUT_RULES)
     return row
 
 
@@ -100,13 +105,13 @@ def main(argv=None) -> int:
     if args.json:
         print(json.dumps(rows, indent=2, ensure_ascii=False))
     else:
-        print("| Input | Pages | Elements | Edges | H/W | Generator warnings | Lint errors | Lint warnings | Visual | Rules |")
-        print("|-------|------:|---------:|------:|----:|-------------------:|------------:|--------------:|-------:|-------|")
+        print("| Input | Pages | Elements | Edges | H/W | Generator warnings | Lint errors | Lint warnings | Visual | Layout | Rules |")
+        print("|-------|------:|---------:|------:|----:|-------------------:|------------:|--------------:|-------:|-------:|-------|")
         for r in rows:
             rules = ", ".join(f"{k}×{v}" for k, v in sorted(r["rules"].items())) or "—"
             status = " **GEN FAILED**" if r["gen_exit"] else ""
             print(f"| {r['input']}{status} | {r['pages']} | {r['elements']} | {r['edges']} | {r['ratio']:.2f} | "
-                  f"{r['gen_warnings']} | {r['lint_errors']} | {r['lint_warnings']} | {r['visual']} | {rules} |")
+                  f"{r['gen_warnings']} | {r['lint_errors']} | {r['lint_warnings']} | {r['visual']} | {r['layout']} | {rules} |")
         print(f"\nedgy-eval: {len(rows)} inputs, {len(failed)} failing" + (f" (files kept in {out_dir})" if args.keep else ""))
         for r in failed:
             if r.get("error"):

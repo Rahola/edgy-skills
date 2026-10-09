@@ -406,6 +406,108 @@ def test_fixtures_reproduce_visual_findings():
         assert not f, (name, [str(x) for x in f])
 
 
+# ---- Sprint 15: layout quality W117–W121 ---------------------------------------
+CONT = 'rounded=1;whiteSpace=wrap;html=1;container=1;fillColor=#eef2f7;strokeColor=none;'
+
+
+def _head(w, h):
+    return HEAD.replace('pageWidth="800" pageHeight="600"', f'pageWidth="{w}" pageHeight="{h}"')
+
+
+def _run_opts(xml, **kw):
+    with tempfile.NamedTemporaryFile('w', suffix='.drawio', delete=False, encoding='utf-8') as f:
+        f.write(xml)
+        path = f.name
+    try:
+        ns = edgy_lint.main.__globals__['argparse'].Namespace
+        return edgy_lint.lint_file(path, ns(no_legend=True, **kw))
+    finally:
+        os.unlink(path)
+
+
+def test_w117_size_spread():
+    xml = HEAD + vertex(2, 'A', ASSET, 40, 40, 120) + vertex(3, 'B', ASSET, 300, 40, 200) + vertex(4, 'C', ORG, 40, 200, 300) + TAIL
+    f = _run_opts(xml)
+    msgs = [x.msg for x in f if x.rule == 'W117']
+    assert len(msgs) == 1 and '120 to 200' in msgs[0] and '×1.67' in msgs[0], msgs
+    assert not [x for x in _run_opts(xml, no_layout_quality=True) if x.rule in edgy_lint.LAYOUT_RULES]
+    xml2 = HEAD + vertex(2, 'A', ASSET, 40, 40, 120) + vertex(3, 'B', ASSET, 300, 40, 140) + TAIL   # ×1.17: within the limit
+    assert not [x for x in _run_opts(xml2) if x.rule == 'W117']
+
+
+def test_w118_alignment():
+    xml = HEAD + vertex(2, 'Area 1', CONT, 60, 60, 300, 200) + vertex(3, 'Area 2', CONT, 66, 300, 300, 200) + \
+        vertex(4, 'a', ASSET, 20, 40, parent='2') + vertex(5, 'b', ASSET, 20, 40, parent='3') + TAIL
+    msgs = [x.msg for x in _run_opts(xml) if x.rule == 'W118']
+    assert len(msgs) == 1 and 'nearly left-aligned: 6 px' in msgs[0], msgs
+    # elements of one type in one row, tops 5 px apart
+    xml2 = HEAD + vertex(2, 'A', ASSET, 40, 40) + vertex(3, 'B', ASSET, 300, 45) + TAIL
+    assert [x for x in _run_opts(xml2) if x.rule == 'W118']
+    # exact alignment and a different type: silent
+    xml3 = HEAD + vertex(2, 'A', ASSET, 40, 40) + vertex(3, 'B', ORG, 300, 45) + vertex(4, 'C', ASSET, 500, 40) + TAIL
+    assert not [x for x in _run_opts(xml3) if x.rule == 'W118']
+    # three containers in a row of one height with uneven gaps
+    xml4 = HEAD + ''.join(vertex(i, f'Area {i}', CONT, x, 60, 150, 200) + vertex(i + 10, 'c', ASSET, 20, 40, parent=str(i))
+                          for i, x in ((2, 60), (3, 250), (4, 500))) + TAIL
+    msgs = [x.msg for x in _run_opts(xml4) if x.rule == 'W118' and 'gaps' in x.msg]
+    assert len(msgs) == 1 and 'from 40 to 100 px' in msgs[0], msgs
+
+
+def test_w119_balance():
+    xml = _head(2400, 1600) + vertex(2, 'A', ASSET, 60, 60) + vertex(3, 'B', ASSET, 300, 60) + TAIL
+    msgs = [x.msg for x in _run_opts(xml) if x.rule == 'W119']
+    assert any('sits against the left edge' in m for m in msgs) and any('sits against the top edge' in m for m in msgs), msgs
+    assert any('covers 0%' in m or 'covers 1%' in m for m in msgs), msgs
+    # the editor's minimum page is never judged
+    xml2 = _head(1200, 900) + vertex(2, 'A', ASSET, 60, 60) + vertex(3, 'B', ASSET, 300, 60) + TAIL
+    assert not [x for x in _run_opts(xml2) if x.rule == 'W119']
+
+
+def test_w120_aspect():
+    row = ''.join(vertex(i, f'A{i}', ASSET, 60 + (i - 2) * 200, 60) for i in range(2, 10))   # 1520 × 60
+    f = _run_opts(_head(1700, 900) + row + TAIL)
+    msgs = [x.msg for x in f if x.rule == 'W120']
+    assert len(msgs) == 1 and 'too wide' in msgs[0] and 'ratio 25.33' in msgs[0], msgs
+    seq = ''.join(vertex(i, f'P{i}', STORY, 60 + (i - 2) * 200, 60, 140) for i in range(2, 10))
+    assert not [x for x in _run_opts(_head(1700, 900) + seq + TAIL) if x.rule == 'W120'], 'a sequence of pentagons is exempt'
+    short = ''.join(vertex(i, f'A{i}', ASSET, 60 + (i - 2) * 200, 60) for i in range(2, 6))   # 720 px: fits a slide
+    assert not [x for x in _run_opts(HEAD + short + TAIL) if x.rule == 'W120']
+
+
+def test_w121_series():
+    import subprocess
+    here = os.path.dirname(os.path.abspath(__file__))
+    gen = os.path.join(here, 'edgy_generator.py')
+    eval_dir = os.path.join(here, '..', 'examples', 'eval')
+    d = tempfile.mkdtemp()
+    outs = []
+    for name in ('series-acme-capability', 'series-acme-task', 'series-acme-purpose'):
+        out = os.path.join(d, name + '.drawio')
+        r = subprocess.run([sys.executable, gen, os.path.join(eval_dir, name + '.txt'), '--output', out], capture_output=True, text=True)
+        assert r.returncode == 0, r.stderr
+        outs.append(out)
+    assert not edgy_lint.series_findings(outs), [str(x) for x in edgy_lint.series_findings(outs)]
+    ns = edgy_lint.main.__globals__['argparse'].Namespace
+    for out in outs:
+        f = edgy_lint.lint_file(out, ns(no_legend=False))
+        assert not f, (out, [str(x) for x in f])
+    src = open(os.path.join(eval_dir, 'series-acme-capability.txt'), encoding='utf-8').read().replace('legend: strip', 'legend: strip\ncard_width: 300')
+    wide_txt = os.path.join(d, 'wide.txt'); open(wide_txt, 'w', encoding='utf-8').write(src)
+    wide = os.path.join(d, 'wide.drawio')
+    subprocess.run([sys.executable, gen, wide_txt, '--output', wide], capture_output=True, text=True)
+    msgs = [x.msg for x in edgy_lint.series_findings([outs[2], wide])]
+    assert len(msgs) == 1 and 'organisation cards are 300 px wide' in msgs[0], msgs
+    boxed = os.path.join(d, 'boxed.drawio')
+    open(os.path.join(d, 'boxed.txt'), 'w', encoding='utf-8').write(open(os.path.join(eval_dir, 'series-acme-task.txt'), encoding='utf-8').read().replace('legend: strip', 'legend: box'))
+    subprocess.run([sys.executable, gen, os.path.join(d, 'boxed.txt'), '--output', boxed], capture_output=True, text=True)
+    msgs = [x.msg for x in edgy_lint.series_findings([outs[1], boxed])]
+    assert len(msgs) == 1 and 'legend is a box here but a strip' in msgs[0], msgs
+    # CLI: --series adds W121 to the run
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_lint.py'), '--series', '--json', outs[2], wide], capture_output=True, text=True)
+    import json
+    assert [x for x in json.loads(r.stdout) if x['rule'] == 'W121']
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:
