@@ -489,6 +489,9 @@ def test_qa_manifest_schema_and_approvals_null():
     assert r.returncode == 2 and 'native preset' in r.stderr, r.stderr
     r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'x.drawio'), '--engine', 'native', '--preset', 'publication'], capture_output=True, text=True)
     assert r.returncode == 2 and 'native preset' in r.stderr, 'no native render runs for .drawio output without --preview'
+    # an explicit native engine always means the native preset: pdf is refused instead of being written as XML
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'out.pdf'), '--engine', 'native', '--format', 'pdf', '--preset', 'presentation'], capture_output=True, text=True)
+    assert r.returncode == 2 and 'native preset' in r.stderr and not os.path.exists(os.path.join(d, 'out.pdf')), r.stderr
     r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'slide.png'), '--preset', 'presentation'], capture_output=True, text=True)
     # the CLI preset path was taken (slide.drawio, not slide.png.drawio); without the CLI the export is not confirmed → exit 1
     assert r.returncode == 1 and not os.path.exists(os.path.join(d, 'slide.png.drawio')) and os.path.exists(os.path.join(d, 'slide.drawio')), r.stdout + r.stderr

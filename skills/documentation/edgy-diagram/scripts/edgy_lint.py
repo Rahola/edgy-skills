@@ -828,9 +828,13 @@ def series_findings(paths):
         return F
     ref_path, ref_page, ref = profiles[0]
     width_baseline = {}   # type → (width, file it was first seen in): a type absent from the first file still gets compared
+    font_baseline = {}    # 'element' / 'edge' → (sizes, file): a first page without edges does not silence the edge check
     for p, _page, prof in profiles:
         for kind, w in prof['card_width'].items():
             width_baseline.setdefault(kind, (w, p))
+        for what, sizes in prof['fonts'].items():
+            if sizes:
+                font_baseline.setdefault(what, (sizes, p))
     for p, page, prof in profiles[1:]:
         def add(msg, ref_path=ref_path, page=page):
             F.append(Finding('WARNING', 'W121', f'{msg} (reference: {os.path.basename(ref_path)})', p, page=page))
@@ -846,9 +850,13 @@ def series_findings(paths):
                 add(f'{kind} cards are {prof["card_width"][kind]:.0f} px wide here vs {base_w:.0f} px in the reference — set card_width for the series',
                     ref_path=base_file)
         for what in ('element', 'edge'):
-            a, b = ref['fonts'][what], prof['fonts'][what]
-            if a and b and a != b:
-                add(f'{what} label font sizes {", ".join(f"{f:g}" for f in b)} px here vs {", ".join(f"{f:g}" for f in a)} px in the reference')
+            b = prof['fonts'][what]
+            if what not in font_baseline or not b:
+                continue
+            a, base_file = font_baseline[what]
+            if a != b:
+                add(f'{what} label font sizes {", ".join(f"{f:g}" for f in b)} px here vs {", ".join(f"{f:g}" for f in a)} px in the reference',
+                    ref_path=base_file)
     return F
 
 

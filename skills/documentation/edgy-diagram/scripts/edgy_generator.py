@@ -292,7 +292,8 @@ def main():
     native_preset = None
     extra_export_args = None
     native_render = (args.engine == 'native' and args.format in ('png', 'svg')) or (args.preview and args.format == 'drawio')
-    if args.preset in edgy_render.NATIVE_PRESETS and (args.preset not in EXPORT_PRESETS or native_render):
+    native_requested = args.preset not in EXPORT_PRESETS or args.engine == 'native' or native_render
+    if args.preset in edgy_render.NATIVE_PRESETS and native_requested:
         native_preset = args.preset
         if not native_render or args.format == 'pdf':
             print(f"Error: --preset {args.preset} is a native preset: use --engine native with --format png|svg, "

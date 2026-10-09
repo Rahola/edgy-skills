@@ -346,13 +346,15 @@ with the reason and the question — it flags, it never decides.
 | 6 | **Presentation language.** Relationship labels and the legend appear in the map's `language:`; the model keeps the canonical verb codes. | `language: fi` → `sisältää`, not `contains`. |
 
 The review ends with an explicit sign-off that the assessment report (section
-9) and the delivery note carry verbatim:
+9) and the delivery note carry verbatim, in the report's language:
 
 ```
 Semantic review: approved by <role>, <date> — S-findings answered: <n>
 ```
 
-A run with zero findings is **not** an approval; only the line above is.
+The edgy-assessment templates (section 9) carry the Finnish, French and
+German equivalents of this line; those are valid sign-offs in a localised
+report. A run with zero findings is **not** an approval; only the line is.
 
 ## Output Templates
 

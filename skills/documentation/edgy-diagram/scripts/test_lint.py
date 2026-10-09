@@ -526,6 +526,14 @@ def test_w121_series():
     msgs = [(x.page, x.msg) for x in edgy_lint.series_findings([wp])]
     assert any(pg == 'Two' and 'task cards are 300 px wide' in m for pg, m in msgs), msgs
     assert not any(pg == 'One' and 'legend' in m for pg, m in msgs), msgs
+    # the edge-font baseline comes from the first page that has an edge: an edge-less first file does not silence it
+    def mk(name, fs):
+        xml = HEAD + vertex(2, 'A', ASSET, 60, 60) + vertex(3, 'B', ASSET, 300, 60) + \
+            (edge(10, 'depends on', INFL + f'fontSize={fs};', 2, 3) if fs else '') + TAIL
+        path = os.path.join(d, name); open(path, 'w', encoding='utf-8').write(xml); return path
+    files = [mk('noedge.drawio', None), mk('f11.drawio', 11), mk('f13.drawio', 13)]
+    msgs = [x.msg for x in edgy_lint.series_findings(files) if 'edge label font' in x.msg]
+    assert len(msgs) == 1 and '13 px here vs 11 px' in msgs[0] and 'f11.drawio' in msgs[0], msgs
     # CLI: --series adds W121 to the run
     r = subprocess.run([sys.executable, os.path.join(here, 'edgy_lint.py'), '--series', '--json', outs[2], wide], capture_output=True, text=True)
     import json

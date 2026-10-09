@@ -18,11 +18,13 @@ Rules (S = semantic; each finding carries the reason and the question to answer)
        build / deploy … in fi, en, fr, de) — purposes say why, not what to do
   S002 an Outcome in a purpose map measures no Purpose (no `measures`-type
        relationship to a Purpose)
-  S003 an Outcome in a purpose map has no provenance / metric status
-       ([confirmed] [analytical] [proposed] or {status: …})
+  S003 an Outcome in a purpose map has no metric status ({status: confirmed|proposed})
   S004 a Purpose in a purpose map has no provenance tag
-  S005 `contains` between two Purposes whose names share no word stem —
-       is it a part-of relationship or an influence? (info)
+       ([confirmed] [analytical] [proposed])
+  S005 `contains` between two Purposes whose names share no word stem, and
+       the child is already flagged by S001 or S006 — is it a part-of
+       relationship or an influence? (info; a plain sub-purpose with
+       different words is normal and is not reported)
   S006 a Purpose name carries a metric value (number + unit / %) — metrics
        belong to Outcomes
 

@@ -475,8 +475,10 @@ and before its diagram is generated:
    in a Purpose name. Fix the **model**, regenerate.
 3. Walk the checklist in edgy-framework *Purpose map semantic review* and
    write the sign-off line into the report (section 9) and the delivery
-   note: `Semantic review: approved by <role>, <date> — S-findings answered: <n>`.
-   The tool never approves; a person does. Zero findings is not a sign-off.
+   note: `Semantic review: approved by <role>, <date> — S-findings answered: <n>`
+   — in the report's language; the template of each language (section 9)
+   carries the equivalent line. The tool never approves; a person does.
+   Zero findings is not a sign-off.
 
 If Python is unavailable and the XML must be written by hand, follow the
 edgy-diagram inline example and lint it in the next environment that has
