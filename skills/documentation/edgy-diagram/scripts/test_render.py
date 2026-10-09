@@ -453,6 +453,12 @@ def test_qa_manifest_schema_and_approvals_null():
     assert qd['pages'][0]['elements'] != qd['pages'][1]['elements'] and qd['pages'][0]['image']['svg'] != qd['pages'][1]['image']['svg'], qd['pages']
     assert qd['pages'][0]['edges'] == 1 and qd['pages'][1]['edges'] == 0
     assert qa['visual_approval'] is None and qa['semantic_approval'] is None and qa['delivery_notes'] is None
+    # one semantic sign-off field: the review block of a purpose page only counts findings
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), os.path.join(here, '..', 'examples', 'purpose-map.txt'),
+                        '--output', os.path.join(d, 'pm.drawio'), '--qa'], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    qp = json.load(open(os.path.join(d, 'pm.qa.json'), encoding='utf-8'))
+    assert set(qp['semantic_review']) == {'findings'} and 'approved_by' not in json.dumps(qp)
     assert qa['pages'][0]['layout_quality'] == {'ran': False, 'findings': 0}
     assert qa['pages'][1]['elements'] == {'asset': 5} and qa['pages'][0]['edges'] == 1
     # edges are counted as drawn: the triad reports links into panels instead of drawing them

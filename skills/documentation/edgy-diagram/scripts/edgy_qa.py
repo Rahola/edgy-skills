@@ -131,8 +131,9 @@ def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=No
                    'lint_warnings': sum(pg['lint']['warnings'] for pg in per_page),
                    'visual': sum(pg['visual'] for pg in per_page),
                    'layout_quality': sum(pg['layout_quality']['findings'] for pg in per_page)},
-        'semantic_review': {'findings': semantic_total, 'approved_by': None} if any(pg['semantic_review'] for pg in per_page) else None,
-        # Set by a person, never by the tooling: a null value means *not approved*.
+        'semantic_review': {'findings': semantic_total} if any(pg['semantic_review'] for pg in per_page) else None,
+        # Set by a person, never by the tooling: a null value means *not approved*. `semantic_approval` is the
+        # one semantic sign-off field; `semantic_review` above only counts the questions the tool raised.
         'visual_approval': None,
         'semantic_approval': None,
         'delivery_notes': None,

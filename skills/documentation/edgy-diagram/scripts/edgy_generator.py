@@ -441,9 +441,10 @@ def main():
             print(f"Error: {output_path} was not produced{'; no qa.json written' if args.qa else ''}. "
                   f"The .drawio file is kept at {temp_drawio_path}.", file=sys.stderr)
             sys.exit(1)
-        manifest['output'] = os.path.basename(output_path)      # confirmed above
-        manifest['outputs'] = [os.path.basename(output_path)]
-        write_qa(None, manifest)            # only after the delivery file exists
+        if manifest is not None:            # --qa: name the delivery file confirmed above, then write
+            manifest['output'] = os.path.basename(output_path)
+            manifest['outputs'] = [os.path.basename(output_path)]
+            write_qa(None, manifest)
     else:
         print(f"EDGY diagram created: {output_path}")
         previews = None
