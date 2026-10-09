@@ -152,7 +152,12 @@ resulting prioritised roadmap (P0–P3), lives in
 [`docs/development-plan-2026-09.md`](docs/development-plan-2026-09.md); all
 of it shipped in v2.0.0. The follow-up plan — geometry fidelity, visual lint
 rules, publication bounds and the planned `triad` layout — is
-[`docs/development-plan-2026-10.md`](docs/development-plan-2026-10.md).
+[`docs/development-plan-2026-10.md`](docs/development-plan-2026-10.md)
+(shipped in v2.1.0). The next plan — semantic review of purpose maps,
+localisation of verbs and legend, layout consistency and options, task map,
+native presets, QA manifest — is
+[`docs/development-plan-2026-10-semantics-and-layout.md`](docs/development-plan-2026-10-semantics-and-layout.md)
+(proposal, awaiting approval).
 
 ## Contributing
 
