@@ -87,7 +87,8 @@ def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=No
         rules = Counter(f.rule for f in findings)
         counts = Counter(e['type'] for e in p.elements.values() if e['id'] not in getattr(p, '_hidden', set()))
         drawn_edges = facts[idx][3] if idx < len(facts) else 0
-        semantic = edgy_semantic_review.review_parser(p, name if len(pages) > 1 else None) if p.map_type == 'purpose' else []
+        # every page: S001 / S006 apply to any Purpose, the rest only to purpose maps (review_parser decides)
+        semantic = edgy_semantic_review.review_parser(p, name if len(pages) > 1 else None)
         semantic_total += len(semantic)
         page_w, page_h = (facts[idx][1], facts[idx][2]) if idx < len(facts) else (0, 0)
         per_page.append({
@@ -105,7 +106,7 @@ def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=No
             'image': ({'svg': rel(prev['svg']), 'png': rel(prev.get('png')), 'width': prev.get('width'), 'height': prev.get('height'),
                        'orientation': prev.get('orientation')} if prev else None),
             'semantic_review': ({'findings': len(semantic), 'questions': sum(1 for f in semantic if f['level'] == 'warning')}
-                                if p.map_type == 'purpose' else None),
+                                if (p.map_type == 'purpose' or semantic) else None),
         })
     # The files that actually exist: the requested delivery file when it does, else what the renderer
     # wrote (a multi-page native export is <stem>-<page>.svg/.png per page, never the requested single name).

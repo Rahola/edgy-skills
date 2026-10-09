@@ -16,7 +16,7 @@ changes with `language:`. Standard library only.
 
 import os
 import sys
-from typing import Dict, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from edgy_core_links import CORE_LINKS, CORE_LINK_ALIASES, INFLUENCE_VERBS, LANGUAGES  # noqa: E402
@@ -37,23 +37,35 @@ TREE_VERBS = [
     {'en': 'decomposes', 'fi': 'jakaantuu', 'fr': 'se décompose', 'de': 'zerlegt sich'},
 ]
 
-# verb (lower) → {lang: verb}: one row per vocabulary entry; a verb that is
-# spelled the same in several entries (e.g. 'requires' on three core pairs)
-# maps to the same translations, so merging rows is safe.
+# verb (lower) → {lang: verb}: the first row for a spelling; a verb spelled the
+# same in several entries with the same translations (e.g. 'requires' on three
+# core pairs) shares one row. A spelling whose translations differ by core-link
+# pair (de 'erscheint in' = brand → journey 'appears in' / product → journey
+# 'features in') keeps every candidate row in _CANDIDATES with the pairs it
+# belongs to, and translate() picks by the relationship's (source, target).
 _ROWS: Dict[str, Dict[str, str]] = {}
 _LANGS: Dict[str, Set[str]] = {}
+_CANDIDATES: Dict[str, List[Tuple[Dict[str, str], Optional[Set[Tuple[str, str]]]]]] = {}
 
 
-def _add(row: Dict[str, str]) -> None:
+def _add(row: Dict[str, str], pair: Optional[Tuple[str, str]] = None) -> None:
     clean = {l: row[l] for l in LANGUAGES if row.get(l)}
     for lang, verb in clean.items():
         key = verb.lower().strip()
         _ROWS.setdefault(key, {}).update({l: v for l, v in clean.items() if l not in _ROWS.get(key, {})})
         _LANGS.setdefault(key, set()).add(lang)
+        cands = _CANDIDATES.setdefault(key, [])
+        for crow, cpairs in cands:
+            if crow == clean:
+                if pair and cpairs is not None:
+                    cpairs.add(pair)
+                break
+        else:
+            cands.append((clean, {pair} if pair else None))
 
 
 for _s, _t, _verbs, _g in CORE_LINKS:
-    _add(_verbs)
+    _add(_verbs, (_s, _t))
 for _row in INFLUENCE_VERBS + FLOW_VERBS + TREE_VERBS:
     _add(_row)
 # accepted alternative spellings (e.g. fi 'osa' for 'on osa'): same row, same languages as the canonical spelling
@@ -62,6 +74,7 @@ for _alias, _canonical in CORE_LINK_ALIASES.items():
     if _row:
         _ROWS[_alias.lower().strip()] = _row
         _LANGS[_alias.lower().strip()] = {l for l, v in _row.items() if v.lower().strip() == _canonical.lower().strip()}
+        _CANDIDATES[_alias.lower().strip()] = _CANDIDATES.get(_canonical.lower().strip(), [(_row, None)])
 
 
 def languages_of(verb: str) -> Set[str]:
@@ -69,13 +82,24 @@ def languages_of(verb: str) -> Set[str]:
     return set(_LANGS.get((verb or '').lower().strip(), ()))
 
 
-def translate(verb: str, lang: str) -> Optional[str]:
+def translate(verb: str, lang: str, pair: Optional[Tuple[str, str]] = None) -> Optional[str]:
     """`verb` rendered in `lang`, or None when the verb is not in the vocabulary
-    or has no entry in that language. A verb already in `lang` returns itself."""
-    row = _ROWS.get((verb or '').lower().strip())
-    if not row:
+    or has no entry in that language. A verb already in `lang` returns itself.
+    `pair` = (source type, target type) of the relationship picks the right row
+    when one spelling belongs to several core links with different translations;
+    without a pair, or when no candidate matches it, the first row wins."""
+    key = (verb or '').lower().strip()
+    cands = _CANDIDATES.get(key)
+    if not cands:
         return None
-    return row.get(lang)
+    if pair and len(cands) > 1:
+        for crow, cpairs in cands:
+            if cpairs and pair in cpairs and crow.get(lang):
+                return crow[lang]
+    for crow, _cp in cands:
+        if crow.get(lang):
+            return crow[lang]
+    return None
 
 
 def is_vocabulary(verb: str) -> bool:

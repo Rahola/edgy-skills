@@ -1304,7 +1304,8 @@ class EDGYParser:
                 if dashed:
                     style += "dashed=1;dashPattern=8 4;"
             cell = ET.SubElement(mx_root, "mxCell", {
-                "id": str(next_id), "value": " / ".join(self._render_verb(v) for v in rel['labels']), "style": style,
+                "id": str(next_id), "value": " / ".join(self._render_verb(v, (self.elements[rel['source']]['type'], self.elements[rel['target']]['type']))
+                                                        for v in rel['labels']), "style": style,
                 "edge": "1", "source": element_mapping[rel['source']],
                 "target": element_mapping[rel['target']], "parent": "1",
             })
@@ -2107,14 +2108,15 @@ class EDGYParser:
         """Legendan ja generoitujen otsikoiden tekstit kartan kielellä (`language:`), oletus 'en'."""
         return LEGEND_TEXT.get(self.language, LEGEND_TEXT['en'])
 
-    def _render_verb(self, verb: str) -> str:
+    def _render_verb(self, verb: str, pair: Tuple[str, str] = None) -> str:
         """Sanaston verbi kartan kielellä kun `language:` on asetettu ja translate_verbs on päällä;
-        vapaa teksti ja jo oikeankieliset verbit palautetaan sellaisinaan. Kanoninen koodi pysyy mallissa."""
+        vapaa teksti ja jo oikeankieliset verbit palautetaan sellaisinaan. Kanoninen koodi pysyy mallissa.
+        `pair` (lähde-, kohdetyyppi) erottaa saman kirjoitusasun eri ydinlinkit (de 'erscheint in')."""
         if not (self._language_explicit and self.translate_verbs):
             return verb
         if self.language in _vocab.languages_of(verb):
             return verb
-        translated = _vocab.translate(verb, self.language)
+        translated = _vocab.translate(verb, self.language, pair)
         return translated if translated else verb
 
     def _effective_legend(self) -> str:

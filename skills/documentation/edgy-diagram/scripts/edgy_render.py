@@ -419,7 +419,12 @@ def render_file(path: str, out_dir: Optional[str] = None, png: bool = True, scal
             candidate = os.path.join(out_dir, stem + '.png')
             if svg_to_png(svg_path, candidate, w, h, chromium, scale):
                 png_path = candidate
-        results.append({'page': name, 'svg': svg_path, 'png': png_path, 'orientation': orientation_hint(page),
+        if preset:   # the delivered image includes the margin and the bands: judge what is delivered
+            ratio = w / h if h else 0
+            orientation = 'landscape' if ratio > 1.2 else 'portrait' if ratio < 0.83 else 'square'
+        else:
+            orientation = orientation_hint(page)
+        results.append({'page': name, 'svg': svg_path, 'png': png_path, 'orientation': orientation,
                         'width': w, 'height': h, 'preset': preset})
     return results
 

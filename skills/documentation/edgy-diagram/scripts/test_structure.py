@@ -327,6 +327,16 @@ def test_flow_verbs_sends_receives_translate():
     assert 'lähettää' in _edge_labels(root) and p.relationships[0]['kind'] == 'flow'
 
 
+def test_ambiguous_spelling_translates_by_pair():
+    from edgy_vocab import translate
+    assert translate('erscheint in', 'en', ('product', 'journey')) == 'features in'
+    assert translate('erscheint in', 'en', ('brand', 'journey')) == 'appears in'
+    assert translate('erscheint in', 'en') == 'appears in', 'without a pair the first row wins'
+    p, root, xml = gen('map_type: journey\nlanguage: en\nelements:\n  - product: "App"\n  - journey: "Commute"\nrelationships:\n  - "App" -> "Commute": "erscheint in"\n')
+    assert _edge_labels(root) == ['features in'], _edge_labels(root)
+    assert not any('Ydinlinkki' in w for w in p.warnings), p.warnings
+
+
 def test_core_link_alias_is_in_the_vocabulary_index():
     from edgy_vocab import translate, languages_of
     assert languages_of('osa') == {'fi'} and translate('osa', 'en') == 'is part of' and translate('osa', 'fi') == 'on osa'

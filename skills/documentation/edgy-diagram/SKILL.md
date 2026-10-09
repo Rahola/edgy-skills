@@ -300,7 +300,8 @@ The layout options give a *standard-sized, aligned* map without hand
 editing: `equal_cards` is on by default (one size per element type and
 page), and a balanced capability map is `group_columns: 2`,
 `cards_per_row: 2`, `equal_group_width: true`, `align_groups: grid`. The
-content's top-left corner is always at (60, 60), so the maps of one series
+content's top-left corner is at (60, 60) in every layout except the planned
+`triad` ring (whose slot table is fixed), so the maps of one series
 share their margins (lint `--series`). Invalid values warn and keep the
 default.
 

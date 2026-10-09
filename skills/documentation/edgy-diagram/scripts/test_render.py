@@ -411,7 +411,7 @@ def test_native_presets_differ_only_in_frame():
 
 
 def test_bands_per_page_and_wide_title_widens_frame():
-    import subprocess
+    import subprocess, json
     here = os.path.dirname(os.path.abspath(__file__))
     d = tempfile.mkdtemp()
     src = os.path.join(d, 'in.txt')
@@ -427,6 +427,10 @@ def test_bands_per_page_and_wide_title_widens_frame():
     assert 'Systems view' in second and long_title.strip()[:40] not in second, 'page-level title overrides the head'
     vb = [float(v) for v in re.search(r'viewBox="([^"]+)"', first).group(1).split()]
     assert vb[2] >= edgy_render.edgy_text.measure(long_title.strip(), edgy_render.TITLE_FS, bold=True), 'frame at least as wide as the title'
+    # the preset orientation is that of the delivered image (a wide title makes it landscape)
+    qa = json.load(open(os.path.join(d, 'm.qa.json'), encoding='utf-8'))
+    img = qa['pages'][0]['image']
+    assert img['orientation'] == 'landscape' and img['width'] / img['height'] > 1.2, img
 
 
 def page_w(page):
@@ -459,6 +463,11 @@ def test_qa_manifest_schema_and_approvals_null():
     assert r.returncode == 0, r.stderr
     qp = json.load(open(os.path.join(d, 'pm.qa.json'), encoding='utf-8'))
     assert set(qp['semantic_review']) == {'findings'} and 'approved_by' not in json.dumps(qp)
+    # a non-purpose page with an action-shaped Purpose still records its S001 finding
+    src3 = os.path.join(d, 'facet.txt'); open(src3, 'w', encoding='utf-8').write('facet: identity\nelements:\n  - purpose: "Implement a new ticketing platform"\n  - story: "From depot to platform"\n')
+    subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src3, '--output', os.path.join(d, 'facet.drawio'), '--qa'], capture_output=True, text=True)
+    qf = json.load(open(os.path.join(d, 'facet.qa.json'), encoding='utf-8'))
+    assert qf['pages'][0]['semantic_review']['findings'] >= 1 and qf['semantic_review']['findings'] >= 1, qf['pages'][0]['semantic_review']
     assert qa['pages'][0]['layout_quality'] == {'ran': False, 'findings': 0}
     assert qa['pages'][1]['elements'] == {'asset': 5} and qa['pages'][0]['edges'] == 1
     # edges are counted as drawn: the triad reports links into panels instead of drawing them
