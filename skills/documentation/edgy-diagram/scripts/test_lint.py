@@ -517,6 +517,14 @@ def test_w121_series():
     subprocess.run([sys.executable, gen, two_pages, '--output', two], capture_output=True, text=True)
     msgs = [(x.page, x.msg) for x in edgy_lint.series_findings([outs[1], two])]
     assert any(pg == 'Two' and 'legend is a box here' in m for pg, m in msgs), msgs
+    # card widths are compared between the pages of one file too
+    wide_pages = os.path.join(d, 'wide_pages.txt')
+    open(wide_pages, 'w', encoding='utf-8').write('language: en\nlegend: strip\npages:\n  - name: "One"\n    map_type: task\n    elements:\n      - task: "A"\n      - task: "B"\n'
+                                                  '  - name: "Two"\n    map_type: task\n    card_width: 300\n    elements:\n      - task: "C"\n      - task: "D"\n')
+    wp = os.path.join(d, 'wide_pages.drawio')
+    subprocess.run([sys.executable, gen, wide_pages, '--output', wp], capture_output=True, text=True)
+    msgs = [(x.page, x.msg) for x in edgy_lint.series_findings([wp])]
+    assert any(pg == 'Two' and 'task cards are 300 px wide' in m for pg, m in msgs), msgs
     assert not any(pg == 'One' and 'legend' in m for pg, m in msgs), msgs
     # CLI: --series adds W121 to the run
     r = subprocess.run([sys.executable, os.path.join(here, 'edgy_lint.py'), '--series', '--json', outs[2], wide], capture_output=True, text=True)

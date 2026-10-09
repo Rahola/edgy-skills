@@ -842,7 +842,7 @@ def series_findings(paths):
                 add(f'content margin is ({prof["margin"][0]:.0f},{prof["margin"][1]:.0f}) px here vs ({ref["margin"][0]:.0f},{ref["margin"][1]:.0f}) in the reference')
         for kind in sorted(prof['card_width']):
             base_w, base_file = width_baseline[kind]
-            if base_file != p and abs(base_w - prof['card_width'][kind]) > 0.5:
+            if abs(base_w - prof['card_width'][kind]) > 0.5:     # the baseline occurrence itself has a zero delta
                 add(f'{kind} cards are {prof["card_width"][kind]:.0f} px wide here vs {base_w:.0f} px in the reference — set card_width for the series',
                     ref_path=base_file)
         for what in ('element', 'edge'):

@@ -808,6 +808,25 @@ relationships:
     assert lanes2 == ['Driver (also: Validate the ticket)', 'Passenger'], lanes2
     assert not _edges(root2) and {p2.elements[h]['name'] for h in p2._hidden} == {'Passenger', 'Driver'}
     assert any('shares 1 task(s)' in w for w in p2.warnings), p2.warnings
+    # a stakeholder with a relationship to something that is not a task keeps its box and its edges
+    p3, root3, _ = gen("""
+map_type: task
+elements:
+  - organisation: "Acme Transit"
+  - people: "Passenger"
+  - purpose: "Effortless travel"
+  - task: "Plan a trip"
+  - task: "Buy a ticket"
+relationships:
+  - "Acme Transit" -> "Plan a trip": "performs"
+  - "Acme Transit" -> "Effortless travel": "pursues"
+  - "Passenger" -> "Buy a ticket": "performs"
+""")
+    lanes3 = [c.get('value') for c in root3.iter('mxCell') if c.get('vertex') == '1' and 'verticalAlign=top' in c.get('style', '') and 'strokeColor=none' in c.get('style', '')]
+    assert lanes3 == ['Passenger'], lanes3
+    labels3 = sorted(c.get('value') for c in _edges(root3))
+    assert labels3 == ['performs', 'pursues'], labels3
+    assert any("keeps its box" in w for w in p3.warnings), p3.warnings
 
 
 def test_task_path_variant():

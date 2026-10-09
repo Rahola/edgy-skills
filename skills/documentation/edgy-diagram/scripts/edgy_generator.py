@@ -429,8 +429,11 @@ def main():
         for r in results:
             label = f" [page {r['page']}]" if r['page'] else ""
             print(f"Successfully rendered: {r['png'] or r['svg']}{label}")
-        if fmt == 'png' and not any(r['png'] for r in results):
-            print("Warning: no Chromium/Chrome found — wrote SVG only (set EDGY_CHROMIUM=<binary>).", file=sys.stderr)
+        if fmt == 'png' and not all(r['png'] for r in results):
+            missing = [r['svg'] for r in results if not r['png']]
+            print(f"Error: PNG not produced for {len(missing)} page(s) (no Chromium/Chrome found — set EDGY_CHROMIUM=<binary>, "
+                  f"or use --format svg); the SVG files are kept{'; no qa.json written' if args.qa else ''}.", file=sys.stderr)
+            sys.exit(1)
         write_qa(results)
     elif fmt != 'drawio':
         manifest = build_qa(None) if args.qa else None      # lint reads the .drawio, which the export removes on success

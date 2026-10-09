@@ -1674,11 +1674,22 @@ class EDGYParser:
         holders = [eid for eid, e in self.elements.items() if e['type'] in ('people', 'organisation')]
         tasks = {eid for eid, e in self.elements.items() if e['type'] == 'task' and e.get('group') is None}
         related: Dict[str, List[str]] = {}      # holder → every task it relates to (input order)
+        other: Dict[str, int] = {}              # holder → relationships to something that is not a task
         for rel in self.relationships:
             s, t = rel['source'], rel['target']
             holder, task = (s, t) if s in holders and t in tasks else (t, s) if t in holders and s in tasks else (None, None)
-            if holder and task not in related.setdefault(holder, []):
-                related[holder].append(task)
+            if holder:
+                if task not in related.setdefault(holder, []):
+                    related[holder].append(task)
+            else:
+                for h in (s, t):
+                    if h in holders:
+                        other[h] = other.get(h, 0) + 1
+        # A stakeholder with a relationship to anything but a task stays a box: a lane cannot draw that edge
+        for h in [h for h in related if other.get(h)]:
+            self.warnings.append(f"task map: '{self.elements[h]['name']}' keeps its box — it has {other[h]} relationship(s) "
+                                 f"to elements that are not tasks, which a lane could not draw")
+            del related[h]
         if not related:
             return
         # A task sits in one lane (its first stakeholder); every other related stakeholder still becomes a
