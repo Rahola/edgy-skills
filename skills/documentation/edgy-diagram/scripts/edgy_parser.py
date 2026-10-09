@@ -219,7 +219,7 @@ LEGEND_TEXT = {
         'chips': ['Identity (Purpose, Story, Content)', 'Architecture (Capability, Asset, Process)',
                   'Experience (Task, Channel, Journey)', 'Brand', 'Product', 'Organisation'],
         'chips_short': ['Identity', 'Architecture', 'Experience', 'Brand', 'Product', 'Organisation'],
-        'lines': ['Link (core link)', 'Flow (tieto/arvo)', 'Tree (hierarkia)', 'Influence (ohjaa)'],
+        'lines': ['Link (core link)', 'Flow (data/value)', 'Tree (hierarchy)', 'Influence (guides)'],
         'lines_short': ['Link', 'Flow', 'Tree', 'Influence'],
         'overlay': 'Transition (extension, stroke only)', 'overlay_short': 'Transition (extension)',
         'change': CHANGE_LABELS,

@@ -486,6 +486,7 @@ def test_qa_manifest_schema_and_approvals_null():
     # approvals: only a reviewer name-and-date string counts
     assert not edgy_qa.is_approval(True) and not edgy_qa.is_approval(1) and not edgy_qa.is_approval({'automated': True}) and not edgy_qa.is_approval(' ')
     assert not edgy_qa.is_approval('approved') and not edgy_qa.is_approval('Reviewer') and not edgy_qa.is_approval('2026-10-09')
+    assert not edgy_qa.is_approval('Reviewer, 2026-99-99') and not edgy_qa.is_approval('Reviewer, 2026-02-30'), 'impossible dates are not approvals'
     assert edgy_qa.is_approval('Reviewer, 2026-10-09') and edgy_qa.is_approval('Lead architect (Acme Oy), 2026-10-09')
     qa['visual_approval'] = True; qa['semantic_approval'] = 1
     bad = os.path.join(d, 'bad.qa.json'); open(bad, 'w', encoding='utf-8').write(json.dumps(qa))
@@ -531,6 +532,12 @@ def test_qa_manifest_schema_and_approvals_null():
     r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'maps.svg'), '--format', 'svg', '--engine', 'native', '--qa'], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
     qm = json.load(open(os.path.join(d, 'maps.qa.json'), encoding='utf-8'))
+    # a native preset export writes the manifest by default (W115 at the reference width), --no-qa switches it off
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'np.svg'), '--format', 'svg', '--engine', 'native', '--preset', 'publication'], capture_output=True, text=True)
+    assert r.returncode == 0 and os.path.exists(os.path.join(d, 'np.qa.json')), r.stderr
+    assert json.load(open(os.path.join(d, 'np.qa.json'), encoding='utf-8'))['pages'][0]['text_size']['scale'] is not None
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'nq.svg'), '--format', 'svg', '--engine', 'native', '--preset', 'publication', '--no-qa'], capture_output=True, text=True)
+    assert r.returncode == 0 and not os.path.exists(os.path.join(d, 'nq.qa.json'))
     assert qm['outputs'] == ['maps-roles-actors.svg', 'maps-systems.svg'] and qm['output'] == 'maps-roles-actors.svg', qm['outputs']
     assert all(os.path.exists(os.path.join(d, f)) for f in qm['outputs'])
     # --no-qa: nothing written

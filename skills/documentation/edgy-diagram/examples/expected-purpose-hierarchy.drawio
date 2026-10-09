@@ -149,7 +149,7 @@
             <mxPoint x="1796" y="848" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
-        <mxCell id="44" value="Flow (tieto/arvo)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
+        <mxCell id="44" value="Flow (data/value)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
           <mxGeometry x="1800" y="840" width="172" height="16" as="geometry"/>
         </mxCell>
         <mxCell id="45" value="" style="edgeStyle=none;endArrow=none;strokeWidth=1;strokeColor=#333333;" edge="1" parent="1">
@@ -158,7 +158,7 @@
             <mxPoint x="1796" y="864" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
-        <mxCell id="46" value="Tree (hierarkia)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
+        <mxCell id="46" value="Tree (hierarchy)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
           <mxGeometry x="1800" y="856" width="172" height="16" as="geometry"/>
         </mxCell>
         <mxCell id="47" value="" style="edgeStyle=none;endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;" edge="1" parent="1">
@@ -167,7 +167,7 @@
             <mxPoint x="1796" y="880" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
-        <mxCell id="48" value="Influence (ohjaa)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
+        <mxCell id="48" value="Influence (guides)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
           <mxGeometry x="1800" y="872" width="172" height="16" as="geometry"/>
         </mxCell>
       </root>

@@ -359,7 +359,7 @@ def test_legend_follows_language():
         xml = _html.unescape(_html.unescape(xml))      # value="…&amp;#x27;…": html label escaped once, XML once
         L = LEGEND_TEXT[lang]
         assert L['title'] in xml and L['lines'][2] in xml and L['chips'][0] in xml, (lang, L['title'])
-        assert 'Tree (hierarkia)' not in xml, lang
+        assert 'Tree (hierarchy)' not in xml, lang
         with_overlay = FI_PURPOSE.replace('language: fi', f'language: {lang}\nlegend: strip') \
                                  .replace('  - organisation:', '  - capability: "K" {change: new}\n  - organisation:')
         p2, root2, xml2 = gen(with_overlay)
@@ -368,7 +368,7 @@ def test_legend_follows_language():
             assert s in xml2, (lang, s)
     # default: exactly the old English strings
     p, root, xml = gen(FI_PURPOSE.replace('language: fi\n', ''))
-    assert 'EDGY 23 — Legend' in xml and 'Tree (hierarkia)' in xml
+    assert 'EDGY 23 — Legend' in xml and 'Tree (hierarchy)' in xml and 'hierarkia' not in xml, 'the English legend is English'
 
 
 def test_purpose_tree_parent_centred_and_no_branch_through_children():

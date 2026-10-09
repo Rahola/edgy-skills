@@ -125,7 +125,7 @@
             <mxPoint x="996" y="716" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
-        <mxCell id="40" value="Flow (tieto/arvo)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
+        <mxCell id="40" value="Flow (data/value)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
           <mxGeometry x="1000" y="708" width="172" height="16" as="geometry"/>
         </mxCell>
         <mxCell id="41" value="" style="edgeStyle=none;endArrow=none;strokeWidth=1;strokeColor=#333333;" edge="1" parent="1">
@@ -134,7 +134,7 @@
             <mxPoint x="996" y="732" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
-        <mxCell id="42" value="Tree (hierarkia)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
+        <mxCell id="42" value="Tree (hierarchy)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
           <mxGeometry x="1000" y="724" width="172" height="16" as="geometry"/>
         </mxCell>
         <mxCell id="43" value="" style="edgeStyle=none;endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;" edge="1" parent="1">
@@ -143,7 +143,7 @@
             <mxPoint x="996" y="748" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
-        <mxCell id="44" value="Influence (ohjaa)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
+        <mxCell id="44" value="Influence (guides)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
           <mxGeometry x="1000" y="740" width="172" height="16" as="geometry"/>
         </mxCell>
         <mxCell id="45" value="" style="line;strokeColor=#cccccc;fillColor=none;" vertex="1" parent="1">

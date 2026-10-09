@@ -52,13 +52,22 @@ def _page_facts(drawio_path):
     return out
 
 
-APPROVAL_RE = re.compile(r'^\s*\S.*,\s*\d{4}-\d{2}-\d{2}\s*$')
+APPROVAL_RE = re.compile(r'^\s*\S.*,\s*(\d{4}-\d{2}-\d{2})\s*$')
 
 
 def is_approval(value) -> bool:
-    """An approval is a person's name and an ISO date: "<name or role>, YYYY-MM-DD".
-    Anything else (true, 1, an object, "approved", a name without a date) is not."""
-    return isinstance(value, str) and bool(APPROVAL_RE.match(value))
+    """An approval is a person's name and a real ISO date: "<name or role>, YYYY-MM-DD".
+    Anything else (true, 1, an object, "approved", a name without a date, 2026-99-99) is not."""
+    if not isinstance(value, str):
+        return False
+    m = APPROVAL_RE.match(value)
+    if not m:
+        return False
+    try:
+        _dt.date.fromisoformat(m.group(1))
+    except ValueError:
+        return False
+    return True
 
 
 def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=None, generator_warnings=None,

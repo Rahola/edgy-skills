@@ -302,7 +302,7 @@ def main():
     elif args.preset:
         args.format, extra_export_args = EXPORT_PRESETS[args.preset]   # draw.io CLI preset, e.g. --preset presentation --output slide.png
     if args.qa is None:
-        args.qa = bool(args.preview)
+        args.qa = bool(args.preview) or bool(native_preset)   # a native preset promises the W115 check and the manifest
 
     # Lue syöte
     if os.path.exists(args.input):

@@ -52,7 +52,7 @@ are drawn exactly as written in the input: the Finnish tree verb
 `sisältää` exists in `TREE_RELATIONSHIPS` (`edgy_parser.py:63`), but an
 agent that writes `contains` in a `language: fi` map gets an English label
 and no warning. The legend is fixed English with Finnish glosses
-(`edgy_parser.py:1351-1354`: "Flow (tieto/arvo)", "Tree (hierarkia)"), the
+(the English legend said "Flow (tieto/arvo)", "Tree (hierarkia)" until 2.6.0), the
 strip legend and the transition rows likewise.
 
 ### 1.3 Automatic content sizing makes a series look inconsistent (P1)
