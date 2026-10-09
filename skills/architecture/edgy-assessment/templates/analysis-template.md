@@ -189,6 +189,10 @@ Kaaviot noudattavat EDGY 23 -standardin virallista väripalettia ja elementtimuo
 
 Kun kartta käyttää suunniteltua kehää (`triad`), se näyttää yhden ensisijaisen elementin per tyyppi ydinlinkkeineen; muut elementit näkyvät "Muut …" -paneeleissa ilman linkkejä, ja lukujen 2–7 taulukot kantavat koko sisällön.
 
+Purpose-kartan alkuperä: *vahvistettu*-merkityt elementit perustuvat julkisiin lähteisiin, *analyyttinen* on tämän analyysin tulkinta, *ehdotettu* on ehdotus; *ehdotettu*-merkityt Outcome-mittarit eivät ole organisaation vahvistamia tavoitteita.
+
+Semanttinen katselmointi: hyväksynyt [rooli], [päivä] — S-löydöksiin vastattu: [n]
+
 ---
 
 *Analyysi perustuu [lähteisiin]. Yrityksen sisäinen tieto voi tuoda lisää syvyyttä erityisesti Architecture- ja Organisation-elementteihin.*

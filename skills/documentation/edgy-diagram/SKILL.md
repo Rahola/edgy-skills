@@ -146,6 +146,18 @@ element, adding `via:` waypoints, changing `from:`/`to:`, or using `label:
 source|target`; `--visual` gives the cell ids and coordinates for a script to
 act on. A delivery should have none; `--warnings-as-errors` enforces that.
 
+**Semantic review (purpose maps).** Notation and geometry say nothing about
+meaning: a purpose map can lint clean while its "purposes" are development
+actions. `python3 scripts/edgy_semantic_review.py <name>.txt` (or
+`edgy_generator.py … --semantic-review`) raises the questions a reviewer
+must answer — S001 action as a Purpose, S002 Outcome measures nothing,
+S003 / S004 missing provenance (`[confirmed]` / `[analytical]` /
+`[proposed]`, `{status: confirmed|proposed}` on Outcomes), S005 `contains`
+that may be an influence, S006 metric in a Purpose name — with the reason
+and the question for each. It flags; it never decides: exit 0 unless
+`--strict`, and zero findings is not an approval. The sign-off is a person's
+(edgy-framework, *Purpose map semantic review*).
+
 If the linter cannot run, check by hand that the file has more than the
 two structural cells, one `vertex` per element, one `edge` with geometry per
 relationship, and is larger than 1000 bytes.

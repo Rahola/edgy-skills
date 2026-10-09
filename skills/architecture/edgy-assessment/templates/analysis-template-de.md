@@ -189,6 +189,10 @@ Die Diagramme folgen der offiziellen EDGY 23 Farbpalette und Elementformen. Öff
 
 Verwendet eine Karte den geplanten Ring (`triad`), zeigt sie je Typ ein primäres Element mit seinen Kernverknüpfungen; die übrigen Elemente erscheinen in „Weitere …“-Feldern ohne Verknüpfungen, und die Tabellen der Abschnitte 2–7 tragen das vollständige Detail.
 
+Herkunft in der Zweck-Karte: als *bestätigt* markierte Elemente stammen aus öffentlichen Quellen, *analytisch* ist die Interpretation dieser Analyse, *vorgeschlagen* ist ein Vorschlag; als *vorgeschlagen* markierte Outcome-Kennzahlen sind keine Ziele der Organisation.
+
+Semantische Prüfung: freigegeben von [Rolle], [Datum] — S-Befunde beantwortet: [n]
+
 ---
 
 *Analyse basierend auf [Quellen]. Interne Unternehmensinformationen können insbesondere bei den Architektur- und Organisations-Elementen zusätzliche Tiefe bringen.*

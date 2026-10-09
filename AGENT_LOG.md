@@ -20,6 +20,48 @@ perustelut.
 
 ---
 
+### 2026-10-09 — Claude Code (Sprint 13: semantic review of purpose maps)
+
+**Assignment:** `docs/development-plan-2026-10-semantics-and-layout.md`
+P0.1–P0.4 — the P0 of the second field review: a purpose map that was
+structurally and visually clean modelled development actions as Purposes
+and nothing noticed.
+
+**Done:**
+- `scripts/edgy_semantic_review.py` (stdlib): reads the generator TXT
+  input and raises S001 action as a Purpose (task-verb *stems* in fi/en/
+  fr/de, so inflections match), S002 Outcome without `measures` to a
+  Purpose, S003 Outcome without metric status, S004 Purpose without a
+  provenance tag, S005 `contains` whose child is itself an action or a
+  metric and shares no word stem with the parent (info), S006 metric
+  value in a Purpose name. Each finding carries the reason and the
+  question to answer; `--json`; exit 0 unless `--strict`. S002–S005 apply
+  to `map_type: purpose` only, S001/S006 to any Purpose.
+  `edgy_generator.py --semantic-review` prints the same to stderr.
+- Provenance convention: tags `[confirmed]` / `[analytical]` /
+  `[proposed]` (fi/fr/de equivalents accepted) and `{status:
+  confirmed|proposed}` on Outcomes — both already render on the tag line,
+  so no generator change. `edgy_model_to_txt.py` writes the model's new
+  optional `provenance` field as the tag; schema updated.
+- edgy-framework 1.5.0: *Purpose map semantic review* checklist (six
+  checks, sign-off line). edgy-assessment 1.8.0-dev: Phase 2b runs the
+  review before Phase 3; templates section 9 (fi/en/fr/de) carry the
+  provenance sentence and the sign-off line.
+- Fixture `examples/eval/fixture-s1-purpose-semantics.txt` (two actions,
+  one metric-purpose, one unmeasured Outcome, missing tags) → S001 × 2,
+  S002, S003, S004, S006 each once; the shipped purpose examples and F5
+  were tagged with provenance and are silent. 6 tests; `check.sh` step
+  `edgy-semantic-tests`.
+
+**Decisions:** S005 was first raised on every `contains` whose names
+share no stem — three to four hints on a perfectly good map. It now
+fires only when the child already looks like an action or a metric, so
+a clean map gives zero hints and the hint means something. The tool is
+deliberately unable to approve: the only approval is the sign-off line
+in the report.
+
+---
+
 ### 2026-10-04 — Claude Code (PR #4 review fixes)
 
 Copilot review on PR #4: four findings, all reproduced and fixed.

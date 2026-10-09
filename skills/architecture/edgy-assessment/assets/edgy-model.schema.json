@@ -81,6 +81,7 @@
         "description": {"type": "string"},
         "id": {"type": "string"},
         "primary": {"type": "boolean", "description": "Carries the type's core links in a triad diagram; default: the first element of the type"},
+        "provenance": {"type": "string", "enum": ["confirmed", "analytical", "proposed"], "description": "confirmed = public source, analytical = this analysis's interpretation, proposed = suggestion; written as a tag into the TXT and read by edgy_semantic_review.py"},
         "tags": {"type": "array", "items": {"type": "string"}}
       }
     },
@@ -94,6 +95,7 @@
         "nature": {"type": "string", "enum": ["Core", "Enabling", "Management", "Differentiating", "Commodity"]},
         "level": {"type": "string", "enum": ["Strategic", "Operational", "Foundational"]},
         "primary": {"type": "boolean", "description": "Carries the type's core links in a triad diagram; default: the first capability"},
+        "provenance": {"type": "string", "enum": ["confirmed", "analytical", "proposed"]},
         "tags": {"type": "array", "items": {"type": "string"}}
       }
     },

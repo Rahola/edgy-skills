@@ -1,6 +1,6 @@
 ---
 name: edgy-assessment
-version: "1.7.0"
+version: "1.8.0"
 description: >
   Comprehensive EDGY 23 Enterprise Design assessment: analysis, diagrams, and recommendations.
   Orchestrating skill that chains edgy-framework and edgy-diagram skills into a unified workflow.
@@ -266,6 +266,29 @@ Rules:
 After completing sections 1–9, add a final section:
 
 ```markdown
+#### Phase 2b — Semantic review of the purpose map (MANDATORY when a purpose map is delivered)
+
+A purpose map that lints clean can still be wrong in meaning (actions as
+Purposes, proposed metrics shown as confirmed, influences drawn as
+`contains`). Before Phase 3:
+
+1. Tag every element of the purpose map with its provenance —
+   `[confirmed]` (public source), `[analytical]` (your interpretation) or
+   `[proposed]` — and every Outcome with `{status: confirmed|proposed}`.
+   `edgy_model_to_txt.py` writes them from the model's `provenance` and
+   `metric_status` fields.
+2. Run the review and read every question:
+   ```bash
+   python3 skills/documentation/edgy-diagram/scripts/edgy_semantic_review.py <company>-purpose.txt
+   ```
+   S001 action as a Purpose, S002 Outcome measures nothing, S003 / S004
+   missing provenance, S005 `contains` that may be an influence, S006 metric
+   in a Purpose name. Fix the **model**, regenerate.
+3. Walk the checklist in edgy-framework *Purpose map semantic review* and
+   write the sign-off line into the report (section 9) and the delivery
+   note: `Semantic review: approved by <role>, <date> — S-findings answered: <n>`.
+   The tool never approves; a person does. Zero findings is not a sign-off.
+
 ## Ehdotetut jatkoanalyysit
 
 Nämä jatkoanalyysit on priorisoitu löydettyjen kehitysalueiden ja

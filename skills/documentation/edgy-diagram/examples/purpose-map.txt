@@ -1,6 +1,6 @@
 map_type: purpose
 elements:
-  - purpose: "Reliable European mobility for all"
+  - purpose: "Reliable European mobility for all" [confirmed]
   - story: "From regional rail to international high-speed"
   - content: "On-time, on-promise, every day"
   - capability: "Train operations"

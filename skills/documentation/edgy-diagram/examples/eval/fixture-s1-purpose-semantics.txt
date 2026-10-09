@@ -1,0 +1,29 @@
+# Fixture S1 — purpose-map semantics (fictional, Acme Oy).
+#
+# Structurally and visually this map lints clean. Semantically it carries the
+# mistakes a reviewer must catch: two "purposes" that are development actions
+# (S001), a purpose that is really a metric (S006), an Outcome that measures
+# nothing (S002) and has no metric status (S003), and a purpose without a
+# provenance tag (S004). edgy_semantic_review.py must raise each as a question.
+map_type: purpose
+language: en
+
+elements:
+  - purpose: "Effortless everyday travel in the region | corporate purpose" [confirmed] {id: PUR-01}
+  - purpose: "Implement a new ticketing platform" {id: PUR-02}
+  - purpose: "Roll out contactless payment at all stations" [proposed] {id: PUR-03}
+  - purpose: "Fare satisfaction 4.5 / 5 by 2027" [analytical] {id: PUR-04}
+  - purpose: "Zero-emission fleet" [analytical] {id: PUR-05}
+  - outcome: "CO2 per passenger-km −40 %" {id: OUT-01, status: proposed}
+  - outcome: "Door-to-door time −15 %" {id: OUT-02}
+  - organisation: "Transit authority board" [confirmed]
+  - brand: "Acme Transit" [confirmed]
+
+relationships:
+  - "Effortless everyday travel in the region" -> "Implement a new ticketing platform": "contains"
+  - "Effortless everyday travel in the region" -> "Roll out contactless payment at all stations": "contains"
+  - "Effortless everyday travel in the region" -> "Fare satisfaction 4.5 / 5 by 2027": "contains"
+  - "Effortless everyday travel in the region" -> "Zero-emission fleet": "contains"
+  - "CO2 per passenger-km −40 %" -> "Zero-emission fleet": "measures"
+  - "Transit authority board" -> "Effortless everyday travel in the region": "pursues"
+  - "Acme Transit" -> "Effortless everyday travel in the region": "represents"

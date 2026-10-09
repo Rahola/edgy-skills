@@ -5,8 +5,8 @@
       <root>
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
-        <mxCell id="2" value="Reliable European mobility for all" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="370" y="60" width="250" height="60" as="geometry"/>
+        <mxCell id="2" value="&lt;b&gt;Reliable European mobility for all&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;font-weight:normal&quot;&gt;confirmed&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="370" y="60" width="250" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="3" value="From regional rail to international high-speed" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
           <mxGeometry x="680" y="150" width="280" height="80" as="geometry"/>

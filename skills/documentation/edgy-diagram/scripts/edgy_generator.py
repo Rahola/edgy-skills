@@ -263,6 +263,9 @@ def main():
     parser.add_argument('--publication', action='store_true',
                        help='Native SVG/PNG (--engine native, --preview) cropped to the content bounds '
                             'instead of the editor page; prints an orientation hint per page')
+    parser.add_argument('--semantic-review', action='store_true',
+                       help='Run edgy_semantic_review.py on the input and print its questions to stderr '
+                            '(never blocks generation; a reviewer signs off — see edgy-framework)')
 
     args = parser.parse_args()
 
@@ -283,6 +286,17 @@ def main():
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(2)
     report_parser_messages(pages, args.lenient)
+    if args.semantic_review:
+        # Kysymykset kartan merkityksestä (S001–S006); eivät koskaan estä generointia
+        import edgy_semantic_review
+        findings = []
+        for name, p in pages:
+            findings.extend(edgy_semantic_review.review_parser(p, name if len(pages) > 1 else None))
+        if findings:
+            print(edgy_semantic_review.format_findings(findings, args.input), file=sys.stderr)
+        n_q = sum(1 for f in findings if f['level'] == 'warning')
+        print(f"Semantic review: {n_q} question(s), {len(findings) - n_q} hint(s) — a clean run is not an approval; "
+              f"a reviewer signs off (edgy-framework, Purpose map semantic review).", file=sys.stderr)
     edgy_parser = pages[0][1]   # ensimmäinen sivu: oletusnimet ja PlantUML-engine
     if args.bare and len(pages) > 1:
         print("Error: --bare supports single-page input only", file=sys.stderr)

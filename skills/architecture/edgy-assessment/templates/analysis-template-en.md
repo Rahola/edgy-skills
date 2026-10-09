@@ -189,6 +189,10 @@ Diagrams follow the official EDGY 23 colour palette and element shapes. Open `.d
 
 Where a map uses the planned ring (`triad`), it shows one primary element per type with its core links; the remaining elements appear in "Further …" panels without links, and the tables in sections 2–7 carry the full detail.
 
+Provenance in the purpose map: elements tagged *confirmed* come from public sources, *analytical* are this analysis's interpretation, *proposed* are suggestions; Outcome metrics marked *proposed* are not the organisation's targets.
+
+Semantic review: approved by [role], [date] — S-findings answered: [n]
+
 ---
 
 *Analysis based on [sources]. Internal company information may add depth especially to Architecture and Organisation elements.*

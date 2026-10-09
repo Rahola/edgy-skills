@@ -82,6 +82,10 @@ def element_lines(model, types, with_ids=True):
             for key in ("nature", "level"):
                 if e.get(key):
                     tags.append(_clean(e[key]).lower())
+            # provenance: confirmed (public source) | analytical (this analysis) | proposed — read by
+            # edgy_semantic_review.py and shown on the element's tag line
+            if e.get("provenance") in ("confirmed", "analytical", "proposed") and e["provenance"] not in tags:
+                tags.append(e["provenance"])
             value = f"{name} - {desc}" if desc else name
             tag_part = f" [{', '.join(tags)}]" if tags else ""
             metrics = {}

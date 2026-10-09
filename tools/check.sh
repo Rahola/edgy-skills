@@ -206,6 +206,7 @@ run_step "edgy-render-tests" python3 "$EDGY_SCRIPTS/test_render.py"
 run_step "edgy-structure-tests" python3 "$EDGY_SCRIPTS/test_structure.py"
 run_step "edgy-tool-tests" python3 tools/test_edgy_tools.py
 run_step "edgy-model-tests" python3 skills/architecture/edgy-assessment/scripts/test_model_to_txt.py
+run_step "edgy-semantic-tests" python3 "$EDGY_SCRIPTS/test_semantic.py"
 
 # --- Vaihe 3c2: edgy-model.json-skeema + malli → TXT ------------------------
 # Jokaisen repoon kuuluvan *model*.json-esimerkin on vastattava skeemaa, ja

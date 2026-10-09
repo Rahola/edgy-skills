@@ -189,6 +189,10 @@ Les diagrammes suivent la palette de couleurs officielle et les formes d'éléme
 
 Lorsqu'une carte utilise l'anneau planifié (`triad`), elle montre un élément principal par type avec ses liens fondamentaux ; les autres éléments apparaissent dans des panneaux « Autres … » sans liens, et les tableaux des sections 2 à 7 portent le détail complet.
 
+Provenance dans la carte des raisons d'être : les éléments marqués *confirmé* proviennent de sources publiques, *analytique* est l'interprétation de cette analyse, *proposé* est une suggestion ; les métriques d'Outcome marquées *proposé* ne sont pas des objectifs de l'organisation.
+
+Revue sémantique : approuvée par [rôle], [date] — constats S traités : [n]
+
 ---
 
 *Analyse basée sur [sources]. Les informations internes de l'entreprise peuvent apporter plus de profondeur, en particulier aux éléments Architecture et Organisation.*

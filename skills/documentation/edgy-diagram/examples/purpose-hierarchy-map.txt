@@ -5,15 +5,15 @@
 map_type: purpose
 
 elements:
-  - purpose: "Sustainable everyday mobility | mission" {id: PUR-01}
-  - purpose: "Most trusted way to move in the region by 2030 | vision" {id: PUR-02}
-  - purpose: "Seamless travel chains" {id: PUR-11}
-  - purpose: "Affordable and fair fares" {id: PUR-12}
-  - purpose: "Zero-emission fleet" {id: PUR-13}
-  - outcome: "Door-to-door time −15 % | 2027 target" {id: OUT-01}
-  - outcome: "Single ticket covers 95 % of trips" {id: OUT-02}
-  - outcome: "Fare satisfaction ≥ 4.0 / 5" {id: OUT-03}
-  - outcome: "CO2 per passenger-km −40 %" {id: OUT-04}
+  - purpose: "Sustainable everyday mobility | mission" [confirmed] {id: PUR-01}
+  - purpose: "Most trusted way to move in the region by 2030 | vision" [confirmed] {id: PUR-02}
+  - purpose: "Seamless travel chains" [analytical] {id: PUR-11}
+  - purpose: "Affordable and fair fares" [analytical] {id: PUR-12}
+  - purpose: "Zero-emission fleet" [analytical] {id: PUR-13}
+  - outcome: "Door-to-door time −15 % | 2027 target" {id: OUT-01, status: proposed}
+  - outcome: "Single ticket covers 95 % of trips" {id: OUT-02, status: proposed}
+  - outcome: "Fare satisfaction ≥ 4.0 / 5" {id: OUT-03, status: proposed}
+  - outcome: "CO2 per passenger-km −40 %" {id: OUT-04, status: proposed}
   - content: "We keep the city moving - plain-language promise"
   - story: "From a single bus line to a regional mobility platform"
   - organisation: "Transit authority board"
