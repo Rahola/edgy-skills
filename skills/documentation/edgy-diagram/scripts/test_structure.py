@@ -327,6 +327,11 @@ def test_flow_verbs_sends_receives_translate():
     assert 'lähettää' in _edge_labels(root) and p.relationships[0]['kind'] == 'flow'
 
 
+def test_core_link_alias_is_in_the_vocabulary_index():
+    from edgy_vocab import translate, languages_of
+    assert languages_of('osa') == {'fi'} and translate('osa', 'en') == 'is part of' and translate('osa', 'fi') == 'on osa'
+
+
 def test_german_produces_data_is_a_flow_verb():
     p, root, xml = gen('map_type: asset\nlanguage: de\nelements:\n  - asset: "A"\n  - asset: "B"\nrelationships:\n  - "A" -> "B": "erzeugt Daten"\n')
     assert p.relationships[0]['kind'] == 'flow' and not any('tuntematon' in w.lower() for w in p.warnings), p.warnings

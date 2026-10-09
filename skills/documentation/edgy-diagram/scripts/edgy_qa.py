@@ -57,8 +57,9 @@ def is_approval(value) -> bool:
 
 
 def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=None, generator_warnings=None,
-                   layout_quality=True):
-    """`pages` is [(name, EDGYParser)], `previews` the result list of edgy_render.render_file (or None)."""
+                   layout_quality=True, output_path=None):
+    """`pages` is [(name, EDGYParser)], `previews` the result list of edgy_render.render_file (or None);
+    `output_path` is the delivery file the user asked for when it is not the .drawio itself (CLI image export)."""
     previews = previews or []
     base_dir = os.path.dirname(os.path.abspath(drawio_path))
 
@@ -104,7 +105,7 @@ def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=No
         'manifest_version': MANIFEST_VERSION,
         'generated_at': _dt.datetime.now(_dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
         'input': os.path.basename(input_path) if input_path else None,
-        'output': os.path.basename(drawio_path),
+        'output': os.path.basename(output_path or drawio_path),
         'preset': preset,
         'generator_warnings': list(generator_warnings or []),
         'pages': per_page,

@@ -93,10 +93,11 @@ def test_chain_per_language_has_no_language_mismatch():
 
 def test_layout_block_is_written_to_every_file():
     model = _model()
-    model['layout'] = {'legend': 'strip', 'card_width': 200, 'equal_group_width': True, 'title': 'Acme Oy — EDGY'}
+    model['layout'] = {'legend': 'strip', 'card_width': 200, 'equal_group_width': True, 'title': 'Acme Oy — EDGY\nmap_type: triad'}
     for facet in ('identity', 'architecture', 'experience', 'all'):
         head = m2t.build(model, facet, 'en').split('elements:')[0]
-        assert 'legend: strip' in head and 'card_width: 200' in head and 'equal_group_width: true' in head and 'title: Acme Oy — EDGY' in head, head
+        assert 'legend: strip' in head and 'card_width: 200' in head and 'equal_group_width: true' in head and 'title: Acme Oy — EDGY map_type: triad' in head, head
+        assert '\nmap_type: triad' not in head, 'a newline in free text never becomes a directive'
 
 
 def test_assessment_chain_requires_approvals():

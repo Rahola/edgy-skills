@@ -289,7 +289,7 @@ def main():
     #   never silently rendered without the preset's margins and bands.
     native_preset = None
     extra_export_args = None
-    native_render = args.engine == 'native' or (args.preview and args.format == 'drawio')
+    native_render = (args.engine == 'native' and args.format in ('png', 'svg')) or (args.preview and args.format == 'drawio')
     if args.preset in edgy_render.NATIVE_PRESETS and (args.preset not in EXPORT_PRESETS or native_render):
         native_preset = args.preset
         if not native_render or args.format == 'pdf':
@@ -406,7 +406,7 @@ def main():
         gen_warnings = [w for _, p in pages for w in p.warnings]
         manifest = edgy_qa.build_manifest(temp_drawio_path, pages, input_path=args.input if os.path.exists(args.input) else None,
                                           preset=native_preset, previews=previews, generator_warnings=gen_warnings,
-                                          layout_quality=not args.no_layout_quality)
+                                          layout_quality=not args.no_layout_quality, output_path=output_path)
         qa_path = edgy_qa.write_manifest(temp_drawio_path, manifest)
         t = manifest['totals']
         print(f"QA manifest: {qa_path} — lint {t['lint_errors']}/{t['lint_warnings']}, visual {t['visual']}, "

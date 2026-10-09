@@ -144,7 +144,7 @@ def build(model, facet, lang, layout="default"):
     for key in LAYOUT_KEYS:
         if key in opts and opts[key] is not None:
             value = opts[key]
-            value = str(value).lower() if isinstance(value, bool) else value
+            value = str(value).lower() if isinstance(value, bool) else _clean(value)   # free text on one line: a newline would start a new directive
             header.append(f"{key}: {value}")
     header += ["", "elements:"]
     el, names = element_lines(model, main_types)

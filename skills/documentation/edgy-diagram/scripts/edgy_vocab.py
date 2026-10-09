@@ -19,7 +19,7 @@ import sys
 from typing import Dict, Optional, Set
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from edgy_core_links import CORE_LINKS, INFLUENCE_VERBS, LANGUAGES  # noqa: E402
+from edgy_core_links import CORE_LINKS, CORE_LINK_ALIASES, INFLUENCE_VERBS, LANGUAGES  # noqa: E402
 
 # Flow and tree verbs are defined in the parser as flat sets; their
 # translations live here so they can be rendered per language.
@@ -56,6 +56,12 @@ for _s, _t, _verbs, _g in CORE_LINKS:
     _add(_verbs)
 for _row in INFLUENCE_VERBS + FLOW_VERBS + TREE_VERBS:
     _add(_row)
+# accepted alternative spellings (e.g. fi 'osa' for 'on osa'): same row, same languages as the canonical spelling
+for _alias, _canonical in CORE_LINK_ALIASES.items():
+    _row = _ROWS.get(_canonical.lower().strip())
+    if _row:
+        _ROWS[_alias.lower().strip()] = _row
+        _LANGS[_alias.lower().strip()] = {l for l, v in _row.items() if v.lower().strip() == _canonical.lower().strip()}
 
 
 def languages_of(verb: str) -> Set[str]:

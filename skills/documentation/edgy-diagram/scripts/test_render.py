@@ -472,6 +472,8 @@ def test_qa_manifest_schema_and_approvals_null():
     # publication without a native render is refused; presentation without --preview stays the draw.io CLI preset
     r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'plain.drawio'), '--preset', 'publication'], capture_output=True, text=True)
     assert r.returncode == 2 and 'native preset' in r.stderr, r.stderr
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'x.drawio'), '--engine', 'native', '--preset', 'publication'], capture_output=True, text=True)
+    assert r.returncode == 2 and 'native preset' in r.stderr, 'no native render runs for .drawio output without --preview'
     r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'slide.png'), '--preset', 'presentation'], capture_output=True, text=True)
     assert r.returncode == 0 and not os.path.exists(os.path.join(d, 'slide.png.drawio')) and os.path.exists(os.path.join(d, 'slide.drawio')), r.stdout + r.stderr
     # manifest image paths are relative to the manifest's directory
@@ -480,6 +482,7 @@ def test_qa_manifest_schema_and_approvals_null():
     out4 = os.path.join(d, 'cli.png')
     r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', out4, '--format', 'png', '--qa'], capture_output=True, text=True)
     assert r.returncode == 0 and os.path.exists(os.path.join(d, 'cli.qa.json')), r.stdout + r.stderr
+    assert json.load(open(os.path.join(d, 'cli.qa.json'), encoding='utf-8'))['output'] == 'cli.png', 'the manifest names the delivery file'
     # --no-qa: nothing written
     out2 = os.path.join(d, 'n.drawio')
     subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', out2, '--no-qa'], capture_output=True, text=True)

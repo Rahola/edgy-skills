@@ -457,9 +457,10 @@ Purposes, proposed metrics shown as confirmed, influences drawn as
 `contains`). After the purpose map TXT is written (structural maps above)
 and before its diagram is generated:
 
-1. Tag every element of the purpose map with its provenance —
-   `[confirmed]` (public source), `[analytical]` (your interpretation) or
-   `[proposed]` — and every Outcome with `{status: confirmed|proposed}`.
+1. Tag every **Purpose** with its provenance — `[confirmed]` (public
+   source), `[analytical]` (your interpretation) or `[proposed]` (S004) —
+   and every **Outcome** with `{status: confirmed|proposed}` (S003). Other
+   element types may carry a tag; the review does not require it.
    For the four facet files `edgy_model_to_txt.py` writes the tags from the
    model's `provenance` fields; the purpose map is a structural map written
    from the same model (Phase 4 table), so its Outcomes and their
