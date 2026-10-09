@@ -102,5 +102,14 @@ def translate(verb: str, lang: str, pair: Optional[Tuple[str, str]] = None) -> O
     return None
 
 
+def spellings(verb: str) -> Set[str]:
+    """Every accepted spelling of a vocabulary verb across the four languages (lower case),
+    e.g. spellings('measures') == {'measures', 'mittaa', 'mesure', 'misst'}; empty for free text."""
+    out: Set[str] = set()
+    for crow, _cp in _CANDIDATES.get((verb or '').lower().strip(), []):
+        out.update(v.lower().strip() for v in crow.values())
+    return out
+
+
 def is_vocabulary(verb: str) -> bool:
     return (verb or '').lower().strip() in _ROWS

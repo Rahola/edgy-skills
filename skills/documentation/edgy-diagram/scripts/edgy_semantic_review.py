@@ -39,6 +39,7 @@ import sys
 from typing import Dict, List
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import edgy_vocab as _vocab  # noqa: E402
 from edgy_parser import EDGYParser, TREE_RELATIONSHIPS  # noqa: E402
 from edgy_document import parse_document  # noqa: E402
 
@@ -61,7 +62,9 @@ PROVENANCE_TAGS = {
     'confirmé', 'analytique', 'proposé',
     'bestätigt', 'analytisch', 'vorgeschlagen',
 }
-MEASURES_VERBS = {'measures', 'mittaa', 'mesure', 'misst', 'measure'}
+# The measures verb in every language, from the shared vocabulary (skills/_shared/edgy-core-links.yaml via
+# edgy_vocab) — no hand-written spellings, so the review and the linter accept exactly the same labels.
+MEASURES_VERBS = _vocab.spellings('measures') or {'measures'}
 METRIC_RE = re.compile(r'(\d+([.,]\d+)?\s?(%|€|eur|kpl|pcs|h|min(?:utes?|uut(?:ti|tia))?|pv|d|days?|hours?|km|t|co2)(?!\w))'
                        r'|([≥≤<>]\s?\d)|(\d+\s?/\s?\d+)', re.I)
 STEM_MIN = 5

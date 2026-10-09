@@ -93,6 +93,16 @@ def test_s003_needs_status_and_s004_needs_tag():
     assert 'S003' in rules, 'a tag on an Outcome is not a metric status'
 
 
+def test_measures_verbs_come_from_the_vocabulary():
+    import edgy_semantic_review as sr
+    from edgy_parser import EDGYParser
+    assert sr.MEASURES_VERBS == {'measures', 'mittaa', 'mesure', 'misst'}, sr.MEASURES_VERBS
+    p = EDGYParser()
+    p.parse_input('map_type: purpose\nelements:\n  - purpose: "Effortless travel" [confirmed]\n'
+                  '  - outcome: "Door-to-door time −15 %" {status: proposed}\nrelationships:\n  - "Door-to-door time −15 %" -> "Effortless travel": "measure"\n')
+    assert 'S002' in [f['rule'] for f in sr.review_parser(p, None)], 'the singular is not a vocabulary verb'
+
+
 def test_s006_matches_values_ending_in_a_symbol():
     import edgy_semantic_review as sr
     for name in ('Cut churn 15%', 'Save 50 €', 'Reach 95 % on time', 'Cost 3 €/trip', 'Waiting time under 5 minutes', 'Odotus alle 5 minuuttia', 'Within 1 minute'):
