@@ -23,6 +23,7 @@ REPO = Path(__file__).resolve().parent.parent
 SCRIPTS = REPO / "skills" / "documentation" / "edgy-diagram" / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 import edgy_lint  # noqa: E402 — element classification shared with the linter
+import edgy_qa  # noqa: E402 — the approval rule of the manifest gate
 EXAMPLES = REPO / "skills" / "documentation" / "edgy-diagram" / "examples"
 DEFAULT_INPUTS = [
     EXAMPLES / "eval" / "large-capability-map.txt",
@@ -32,6 +33,9 @@ DEFAULT_INPUTS = [
     EXAMPLES / "eval" / "fixture-f2-labels.txt",
     EXAMPLES / "eval" / "fixture-f4-long-bold-title.txt",
     EXAMPLES / "eval" / "fixture-f5-purpose-tree.txt",
+    EXAMPLES / "eval" / "series-acme-capability.txt",
+    EXAMPLES / "eval" / "series-acme-task.txt",
+    EXAMPLES / "eval" / "series-acme-purpose.txt",
     EXAMPLES / "multipage-map.txt",
     EXAMPLES / "full-edgy-map.txt",
     EXAMPLES / "purpose-hierarchy-map.txt",
@@ -41,48 +45,37 @@ DEFAULT_INPUTS = [
 
 
 def run_one(txt: Path, out_dir: Path) -> dict:
+    """Generate with --qa and read the qa.json manifest the generator wrote — the
+    same numbers the assessment Phase 5 and a reviewer see; nothing is re-parsed here."""
     drawio = out_dir / (txt.stem + ".drawio")
-    gen = subprocess.run([sys.executable, str(SCRIPTS / "edgy_generator.py"), str(txt), "--output", str(drawio)],
+    gen = subprocess.run([sys.executable, str(SCRIPTS / "edgy_generator.py"), str(txt), "--output", str(drawio), "--qa"],
                          capture_output=True, text=True)
     gen_warnings = gen.stderr.count("Warning:")
     row = {"input": txt.name, "gen_exit": gen.returncode, "gen_warnings": gen_warnings,
            "elements": 0, "edges": 0, "pages": 0, "ratio": 0.0,
-           "lint_errors": 0, "lint_warnings": 0, "visual": 0, "rules": {}}
+           "lint_errors": 0, "lint_warnings": 0, "visual": 0, "layout": 0, "rules": {}}
     if gen.returncode != 0:
         row["error"] = gen.stderr.strip()[-300:]
         return row
-    import xml.etree.ElementTree as ET
-    root = ET.parse(drawio).getroot()
-    models = [root] if root.tag == "mxGraphModel" else [d.find("mxGraphModel") for d in root.findall("diagram")]
-    row["pages"] = len(models)
-    for m in models:
-        pw, ph = float(m.get("pageWidth", 0) or 0), float(m.get("pageHeight", 0) or 0)
-        if pw:
-            row["ratio"] = max(row["ratio"], round(ph / pw, 2))   # page height / width, worst page
-        cells = {c.get("id"): c for c in m.findall("./root/mxCell")}
-        # Same classification as the linter: EDGY + base elements only — no legend
-        # background, chips, containers, lanes or text cells.
-        cls = edgy_lint.classify_cells(cells)
-        row["elements"] += len(cls["elements"])
-        row["edges"] += sum(1 for c in cells.values()
-                            if c.get("edge") == "1" and c.get("source") in cls["elements"] and c.get("target") in cls["elements"])
-    lint = subprocess.run([sys.executable, str(SCRIPTS / "edgy_lint.py"), "--json", str(drawio)], capture_output=True, text=True)
+    qa_path = out_dir / (txt.stem + ".qa.json")
     try:
-        findings = json.loads(lint.stdout)          # --json writes only the JSON array to stdout
-    except json.JSONDecodeError as exc:
-        # An unreadable report must fail the eval, never count as "no findings"
-        row["error"] = f"edgy_lint --json output is not JSON ({exc}): {lint.stdout[:200]!r} {lint.stderr[-200:]!r}"
+        manifest = json.loads(qa_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        # A missing or unreadable manifest must fail the eval, never count as "no findings"
+        row["error"] = f"qa.json missing or not JSON ({exc})"
         row["lint_errors"] = 1
         return row
-    if lint.returncode not in (0, 1):
-        row["error"] = f"edgy_lint exited {lint.returncode}: {lint.stderr[-300:]}"
-        row["lint_errors"] = max(row["lint_errors"], 1)
-    rules = Counter(f["rule"] for f in findings)
-    row["rules"] = dict(rules)
-    row["lint_errors"] = sum(1 for f in findings if f["level"] == "ERROR")
-    row["lint_warnings"] = sum(1 for f in findings if f["level"] == "WARNING")
-    # visual rules (edge through a box, label on a box / label, outside the page) — the same set as --visual
-    row["visual"] = sum(v for k, v in rules.items() if k in edgy_lint.VISUAL_RULES)
+    pages = manifest["pages"]
+    row["pages"] = len(pages)
+    row["ratio"] = max((pg["page"]["ratio"] for pg in pages), default=0.0)   # page height / width, worst page
+    rules = Counter()
+    for pg in pages:
+        rules.update(pg["lint"]["rules"])
+    t = manifest["totals"]
+    row.update({"elements": t["elements"], "edges": t["edges"], "lint_errors": t["lint_errors"],
+                "lint_warnings": t["lint_warnings"], "visual": t["visual"], "layout": t["layout_quality"],
+                "rules": dict(rules),
+                "approved": edgy_qa.is_approval(manifest.get("visual_approval")) and edgy_qa.is_approval(manifest.get("semantic_approval"))})
     return row
 
 
@@ -100,13 +93,13 @@ def main(argv=None) -> int:
     if args.json:
         print(json.dumps(rows, indent=2, ensure_ascii=False))
     else:
-        print("| Input | Pages | Elements | Edges | H/W | Generator warnings | Lint errors | Lint warnings | Visual | Rules |")
-        print("|-------|------:|---------:|------:|----:|-------------------:|------------:|--------------:|-------:|-------|")
+        print("| Input | Pages | Elements | Edges | H/W | Generator warnings | Lint errors | Lint warnings | Visual | Layout | Rules |")
+        print("|-------|------:|---------:|------:|----:|-------------------:|------------:|--------------:|-------:|-------:|-------|")
         for r in rows:
             rules = ", ".join(f"{k}×{v}" for k, v in sorted(r["rules"].items())) or "—"
             status = " **GEN FAILED**" if r["gen_exit"] else ""
             print(f"| {r['input']}{status} | {r['pages']} | {r['elements']} | {r['edges']} | {r['ratio']:.2f} | "
-                  f"{r['gen_warnings']} | {r['lint_errors']} | {r['lint_warnings']} | {r['visual']} | {rules} |")
+                  f"{r['gen_warnings']} | {r['lint_errors']} | {r['lint_warnings']} | {r['visual']} | {r['layout']} | {rules} |")
         print(f"\nedgy-eval: {len(rows)} inputs, {len(failed)} failing" + (f" (files kept in {out_dir})" if args.keep else ""))
         for r in failed:
             if r.get("error"):

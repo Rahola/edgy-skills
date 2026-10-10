@@ -6,28 +6,28 @@
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
         <mxCell id="2" value="Smart booking platform" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="500" y="400" width="180" height="60" as="geometry"/>
+          <mxGeometry x="320" y="330" width="180" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="3" value="Real-time pricing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="500" y="130" width="140" height="60" as="geometry"/>
+          <mxGeometry x="320" y="60" width="160" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="4" value="Route optimisation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="710" y="230" width="150" height="60" as="geometry"/>
+          <mxGeometry x="530" y="160" width="160" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="5" value="Loyalty management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="760" y="460" width="160" height="60" as="geometry"/>
+          <mxGeometry x="580" y="390" width="160" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="6" value="Buy ticket" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="620" y="640" width="120" height="60" as="geometry"/>
+          <mxGeometry x="440" y="570" width="140" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="7" value="Plan connections" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="380" y="640" width="140" height="60" as="geometry"/>
+          <mxGeometry x="200" y="570" width="140" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="8" value="First-time traveller" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="240" y="460" width="170" height="60" as="geometry"/>
+          <mxGeometry x="60" y="390" width="170" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="9" value="Nordic Trains" style="whiteSpace=wrap;html=1;fillColor=#ffd580;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="290" y="230" width="120" height="60" as="geometry"/>
+          <mxGeometry x="110" y="160" width="120" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="10" value="requires" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=classic;endFill=1;exitX=0.5;exitY=0.0;exitDx=0;exitDy=0;entryX=0.5;entryY=1.0;entryDx=0;entryDy=0;" edge="1" source="2" target="3" parent="1">
           <mxGeometry relative="1" as="geometry"/>
@@ -104,7 +104,7 @@
             <mxPoint x="996" y="848" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
-        <mxCell id="33" value="Flow (tieto/arvo)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
+        <mxCell id="33" value="Flow (data/value)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
           <mxGeometry x="1000" y="840" width="172" height="16" as="geometry"/>
         </mxCell>
         <mxCell id="34" value="" style="edgeStyle=none;endArrow=none;strokeWidth=1;strokeColor=#333333;" edge="1" parent="1">
@@ -113,7 +113,7 @@
             <mxPoint x="996" y="864" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
-        <mxCell id="35" value="Tree (hierarkia)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
+        <mxCell id="35" value="Tree (hierarchy)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
           <mxGeometry x="1000" y="856" width="172" height="16" as="geometry"/>
         </mxCell>
         <mxCell id="36" value="" style="edgeStyle=none;endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;" edge="1" parent="1">
@@ -122,7 +122,7 @@
             <mxPoint x="996" y="880" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
-        <mxCell id="37" value="Influence (ohjaa)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
+        <mxCell id="37" value="Influence (guides)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
           <mxGeometry x="1000" y="872" width="172" height="16" as="geometry"/>
         </mxCell>
       </root>

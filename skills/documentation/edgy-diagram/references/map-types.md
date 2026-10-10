@@ -87,6 +87,52 @@ ASCII layout:
 └──────┘  └──────┘  └──────┘  └──────┘  └──────┘  └──────┘
 ```
 
+#### Task map — stakeholder inventory and path (task)
+
+Two variants of one input (`examples/task-stakeholder-map.txt`, two pages).
+
+**Inventory** — who does what at which journey stage. One `lane:` per
+stakeholder; `stages:` gives the columns and every task picks its column
+with `{stage: …}` (a task without a known stage goes to a trailing column
+with a warning). Without lanes, a People or Organisation element that has
+relationships to the tasks *becomes* the lane: it is not drawn as a box and
+its relationships are shown by membership, reported on stderr. The
+inventory has no edges because its input has no other relationships; a
+relationship written between two tasks is drawn like anywhere else — never
+add one to make a map look connected.
+
+```
+map_type: task
+stages: Plan, Buy, Ride
+elements:
+  - lane: "Passenger"
+    - task: "Plan a trip" {id: TSK-01, stage: Plan}
+    - task: "Buy a ticket" {id: TSK-02, stage: Buy}
+    - task: "Validate the ticket" {id: TSK-03, stage: Ride}
+  - lane: "Driver"
+    - task: "Check tickets" {id: TSK-05, stage: Ride}
+```
+
+```
+              Plan            Buy             Ride
+ Passenger  [Plan a trip]  [Buy a ticket]  [Validate the ticket]
+ Driver                                    [Check tickets]
+```
+
+**Path** — which journey and channels a task touches. No lanes; the tasks
+carry their core links `task → journey: is part of` and `task → channel:
+uses`. Journeys sit above the task row (input order, left to right),
+channels below; the ports are vertical by default so no link crosses a
+neighbouring task.
+
+```
+                 [Daily commute]
+     ↑ is part of    ↑          ↑
+ [Plan a trip] [Buy a ticket] [Validate the ticket]
+     ↓ uses          ↓ uses      ↓ uses
+          [Mobile app]   [Ticket machine]
+```
+
 #### Hub-and-spoke (purpose, brand, product, object)
 
 ```

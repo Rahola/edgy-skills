@@ -20,6 +20,189 @@ perustelut.
 
 ---
 
+### 2026-10-09 — Claude Code (Sprint 16: task stakeholder map, native presets, qa.json, assessment 1.8.0, v2.2.0)
+
+**Assignment:** development-plan-2026-10-semantics-and-layout P2.1–P2.5.
+
+**Done:**
+- `map_type: task` **inventory**: one `lane:` per stakeholder; without
+  lanes a People / Organisation element with relationships to the tasks
+  becomes the lane (not drawn as a box, its relationships shown by
+  membership and reported on stderr); `stages:` + `{stage: …}` make a
+  matrix with header cells (`edgyRole=header`, which the linter counts as
+  content). No edge is ever added. **Path**: tasks with `is part of` /
+  `uses` links get journeys above and channels below with vertical ports
+  by default. Example `task-stakeholder-map.txt` (two pages), both pages
+  strict-clean.
+- Native presets `--preset publication | presentation` (`edgy_render.py`
+  `NATIVE_PRESETS`): margin 24 / 48 px, legend strip / box unless the
+  input sets one, `title:` / `footnote:` bands, crop to content, W115 at
+  the preset's reference width. The CLI presets keep their names;
+  `presentation` resolves to the native preset with `--engine native` or
+  `--preview` and to the CLI preset with `--engine drawio` and an image
+  format.
+- `qa.json` (`scripts/edgy_qa.py`, `assets/qa.schema.json`): per page
+  counts, lint, visual / layout / language / text-size checks, image size,
+  semantic-review count for purpose pages; `visual_approval`,
+  `semantic_approval`, `delivery_notes` are null until a person sets them.
+  `edgy_qa.py --require-approvals` prints lint and approvals on separate
+  lines and exits 1 on a null approval. `tools/edgy-eval.py` reads the
+  manifest instead of re-parsing; `check.sh` step `edgy-qa` validates a
+  fresh manifest against the schema and asserts it is *not* approved.
+- edgy-assessment 1.8.0: `layout` block in the model schema → document
+  keys in every TXT; Phase 4 `--preset publication` and `--series`; Phase
+  5 approvals from `qa.json`; chain test (model → 4 TXT → 4 drawio, no
+  W121, manifests present, `--require-approvals` fails until both fields
+  are set).
+- Docs: SKILL.md 2.6.0, `references/map-types.md` (task), `references/
+  export.md` (native presets), CHANGELOG v2.2.0, README, plan revision 3.
+
+**Decisions and deviations from the proposal:**
+- The W115 reference for `publication` is **605 px** (160 mm at 96 dpi),
+  not "160 mm at 300 dpi": the point size of printed text depends on the
+  printed width, not on the printer's pixel density; a 2000 px map printed
+  160 mm wide gives 2.7 pt titles, and the check now says so.
+- The assessment series check runs on the default layout: the triad ring
+  uses type-specific slot sizes and a 12 px chip font by design, so
+  `--series` over four triad files reports W121 on purpose; the Phase 4
+  text tells the agent to compare the default-layout files.
+- Stakeholder → task verbs: EDGY has no core link for People → Task, so
+  the shipped example uses explicit lanes; the derived form (any verb,
+  `performs` in the test) is covered by a structure test and warns like
+  any non-core verb.
+- `edgy-framework` did not change in this sprint; its 1.5.0 (Sprint 13) is
+  part of v2.2.0.
+
+---
+
+### 2026-10-09 — Claude Code (Sprint 15: layout-quality rules, layout options, equal cards)
+
+**Assignment:** development-plan-2026-10-semantics-and-layout P1.5–P1.8.
+Maps of one delivery came out with cards of many sizes, ragged group
+columns and content pushed into a corner of a large page, and nothing
+measured it.
+
+**Done:**
+- Lint **W117–W120**, on by default (`--no-layout-quality` switches them
+  off): size spread of one type under one parent (> 25 %), near-aligned
+  containers or same-type elements (1–12 px) and uneven gaps along a real
+  grid line (> 20 %), balance on pages the generator had to grow (margin
+  asymmetry > 35 % per grown axis, utilisation < 45 % when both axes grew)
+  and aspect of content larger than 1200 px (outside 1 : 4.5 … 4.5 : 1;
+  pentagon sequences exempt). Every message carries the numbers.
+  **W121** (`--series a b c`): legend placement, content margin, card
+  width of every shared type and label font sizes compared against the
+  first file.
+- Parser options `card_width`, `equal_cards` (default **true**: one size
+  per type and page), `group_columns`, `cards_per_row`,
+  `equal_group_width`, `align_groups: grid` (column width = widest, row
+  height = tallest, containers stretch to the row). Content origin is now
+  always (60, 60) in every layout (was 60 or 80), so a series shares its
+  margins. Triad panels in one row take the row height and single-facet
+  panels sit on the facet container's left edge (both were W118 hits).
+  Tidy trees centre a parent over its children's boxes, not over the
+  subtree widths.
+- Fixtures `examples/eval/series-acme-{capability,task,purpose}.txt`;
+  `check.sh` step `edgy-series` (generate, `--series --warnings-as-errors`);
+  `tools/regen-examples.sh` regenerates every shipped expected file;
+  eval table gains a **Layout** column. Tests: 5 structure, 5 lint.
+- Shipped examples regenerated once (P1.7) and their previews looked at.
+  Layout findings on the 28 expected files: before 24 × W117, 6 × W118,
+  7 × W119, 3 × W120 with the first thresholds; after regeneration and
+  tuning **0**. The strict gate (triad, purpose, F1, F5) is clean with the
+  rules on. Fixture F1's hand-computed waypoints moved with the margin
+  (−20 px).
+
+**Decisions:**
+- Thresholds were tuned on the strict set first, as the plan says: W120
+  allows 4.5 : 1 because the shipped purpose hierarchy (side columns +
+  tree) is 4.0 : 1; W119 judges only the axes the page grew in, because
+  the 1200 × 900 editor minimum is not a layout choice; W118 compares
+  containers with every other container but same-type elements only when
+  they share a row or column, so tidy trees do not trip it.
+- `align_groups: grid` stays opt-in: the default flow grid on the 60-
+  capability eval map still reports 3 × W118 (shorter containers leave
+  bigger vertical gaps); with `align_groups: grid` + `equal_group_width:
+  true` it reports 0 and looks like the balanced grid the feedback asked
+  for. Making it the default is a one-line change if the owner wants it.
+- `card_width` never touches the person shape and never shrinks a size
+  class; `equal_cards` is skipped in the triad (its ring is uniform).
+
+---
+
+### 2026-10-09 — Claude Code (Sprint 14: verbs and legend in the map language, W116)
+
+**Assignment:** development-plan-2026-10-semantics-and-layout P1.1–P1.4.
+A `language: fi` map left `contains` and the whole legend in English
+without a warning.
+
+**Done:**
+- `scripts/edgy_vocab.py`: `languages_of(verb)` and `translate(verb,
+  lang)` built from the generated vocabulary (24 core links, influence
+  verbs) plus the flow and tree verbs in four languages. The model keeps
+  the canonical verb; only the rendered label changes.
+- Parser: with `language:` set, every vocabulary verb is rendered in that
+  language (`translate_verbs: false` keeps the input spelling); free text
+  and already-correct verbs stay as written; merged `a / b` labels
+  translate per part. `LEGEND_TEXT[lang]` drives the box and strip
+  legends, the transition rows and the triad panel titles; `'en'` is
+  byte-for-byte the previous strings, so inputs without `language:` are
+  unchanged (every shipped example regenerates identically).
+- Lint **W116**: an edge label that is a vocabulary verb of another
+  language than the map's. The map language comes from `--language` or
+  from the legend title the generator wrote (`LEGEND_TITLES`); without
+  either the rule is silent.
+- Tests: 2 structure, 1 lint, and the model → TXT → drawio → lint chain
+  for fi / fr / de asserts no W116 and no errors.
+
+**Decision:** EDGY facet names (Identity, Architecture, Experience) stay
+untranslated in every legend — they are the notation's proper nouns; the
+element type names inside the parentheses are translated.
+
+---
+
+### 2026-10-09 — Claude Code (Sprint 13: semantic review of purpose maps)
+
+**Assignment:** `docs/development-plan-2026-10-semantics-and-layout.md`
+P0.1–P0.4 — the P0 of the second field review: a purpose map that was
+structurally and visually clean modelled development actions as Purposes
+and nothing noticed.
+
+**Done:**
+- `scripts/edgy_semantic_review.py` (stdlib): reads the generator TXT
+  input and raises S001 action as a Purpose (task-verb *stems* in fi/en/
+  fr/de, so inflections match), S002 Outcome without `measures` to a
+  Purpose, S003 Outcome without metric status, S004 Purpose without a
+  provenance tag, S005 `contains` whose child is itself an action or a
+  metric and shares no word stem with the parent (info), S006 metric
+  value in a Purpose name. Each finding carries the reason and the
+  question to answer; `--json`; exit 0 unless `--strict`. S002–S005 apply
+  to `map_type: purpose` only, S001/S006 to any Purpose.
+  `edgy_generator.py --semantic-review` prints the same to stderr.
+- Provenance convention: tags `[confirmed]` / `[analytical]` /
+  `[proposed]` (fi/fr/de equivalents accepted) and `{status:
+  confirmed|proposed}` on Outcomes — both already render on the tag line,
+  so no generator change. `edgy_model_to_txt.py` writes the model's new
+  optional `provenance` field as the tag; schema updated.
+- edgy-framework 1.5.0: *Purpose map semantic review* checklist (six
+  checks, sign-off line). edgy-assessment 1.8.0-dev: Phase 2b runs the
+  review before Phase 3; templates section 9 (fi/en/fr/de) carry the
+  provenance sentence and the sign-off line.
+- Fixture `examples/eval/fixture-s1-purpose-semantics.txt` (two actions,
+  one metric-purpose, one unmeasured Outcome, missing tags) → S001 × 2,
+  S002, S003, S004, S006 each once; the shipped purpose examples and F5
+  were tagged with provenance and are silent. 6 tests; `check.sh` step
+  `edgy-semantic-tests`.
+
+**Decisions:** S005 was first raised on every `contains` whose names
+share no stem — three to four hints on a perfectly good map. It now
+fires only when the child already looks like an action or a metric, so
+a clean map gives zero hints and the hint means something. The tool is
+deliberately unable to approve: the only approval is the sign-off line
+in the report.
+
+---
+
 ### 2026-10-04 — Claude Code (PR #4 review fixes)
 
 Copilot review on PR #4: four findings, all reproduced and fixed.

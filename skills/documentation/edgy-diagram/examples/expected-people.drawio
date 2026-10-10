@@ -6,34 +6,34 @@
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
         <mxCell id="2" value="Daily commuter" style="shape=mxgraph.basic.person;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="80" y="80" width="130" height="80" as="geometry"/>
+          <mxGeometry x="60" y="60" width="180" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="3" value="Business traveller" style="shape=mxgraph.basic.person;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="300" y="80" width="150" height="80" as="geometry"/>
+          <mxGeometry x="280" y="60" width="180" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="4" value="Tourist" style="shape=mxgraph.basic.person;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="520" y="80" width="70" height="80" as="geometry"/>
+          <mxGeometry x="500" y="60" width="180" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="5" value="Family with children" style="shape=mxgraph.basic.person;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="80" y="200" width="160" height="80" as="geometry"/>
+          <mxGeometry x="60" y="180" width="180" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="6" value="Elderly passenger" style="shape=mxgraph.basic.person;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="300" y="200" width="150" height="80" as="geometry"/>
+          <mxGeometry x="280" y="180" width="180" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="7" value="Wheelchair user" style="shape=mxgraph.basic.person;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="520" y="200" width="130" height="80" as="geometry"/>
+          <mxGeometry x="500" y="180" width="180" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="8" value="On-board crew" style="shape=mxgraph.basic.person;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="80" y="320" width="120" height="80" as="geometry"/>
+          <mxGeometry x="60" y="300" width="180" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="9" value="Station staff" style="shape=mxgraph.basic.person;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="300" y="320" width="110" height="80" as="geometry"/>
+          <mxGeometry x="280" y="300" width="180" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="10" value="Maintenance technician" style="shape=mxgraph.basic.person;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="520" y="320" width="180" height="80" as="geometry"/>
+          <mxGeometry x="500" y="300" width="180" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="11" value="Operations controller" style="shape=mxgraph.basic.person;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="80" y="440" width="170" height="80" as="geometry"/>
+          <mxGeometry x="60" y="420" width="180" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="12" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#cccccc;strokeWidth=1;" vertex="1" parent="1">
           <mxGeometry x="960" y="680" width="220" height="200" as="geometry"/>
@@ -95,7 +95,7 @@
             <mxPoint x="996" y="848" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
-        <mxCell id="30" value="Flow (tieto/arvo)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
+        <mxCell id="30" value="Flow (data/value)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
           <mxGeometry x="1000" y="840" width="172" height="16" as="geometry"/>
         </mxCell>
         <mxCell id="31" value="" style="edgeStyle=none;endArrow=none;strokeWidth=1;strokeColor=#333333;" edge="1" parent="1">
@@ -104,7 +104,7 @@
             <mxPoint x="996" y="864" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
-        <mxCell id="32" value="Tree (hierarkia)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
+        <mxCell id="32" value="Tree (hierarchy)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
           <mxGeometry x="1000" y="856" width="172" height="16" as="geometry"/>
         </mxCell>
         <mxCell id="33" value="" style="edgeStyle=none;endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;" edge="1" parent="1">
@@ -113,7 +113,7 @@
             <mxPoint x="996" y="880" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
-        <mxCell id="34" value="Influence (ohjaa)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
+        <mxCell id="34" value="Influence (guides)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
           <mxGeometry x="1000" y="872" width="172" height="16" as="geometry"/>
         </mxCell>
       </root>

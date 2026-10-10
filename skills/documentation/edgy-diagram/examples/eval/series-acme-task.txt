@@ -1,0 +1,17 @@
+# Series fixture 2/3 — task map of the same fictional delivery (Acme Transit).
+# A plain task grid without relationships (no lanes, no stakeholder links, so
+# neither the inventory nor the path variant applies) — a map is never given a
+# link just to look connected. The stakeholder inventory and path variants are
+# in examples/task-stakeholder-map.txt.
+map_type: task
+language: en
+legend: strip
+
+elements:
+  - task: "Plan a trip" {id: TSK-01}
+  - task: "Buy a ticket" {id: TSK-02}
+  - task: "Validate the ticket" {id: TSK-03}
+  - task: "Follow the vehicle" {id: TSK-04}
+  - channel: "Mobile app" {id: CHN-01}
+  - channel: "Ticket machine" {id: CHN-02}
+  - journey: "Daily commute" {id: JRN-01}

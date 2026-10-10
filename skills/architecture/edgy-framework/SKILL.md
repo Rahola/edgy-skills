@@ -1,6 +1,6 @@
 ---
 name: edgy-framework
-version: "1.4.1"
+version: "1.5.0"
 description: >
   EDGY 23 enterprise design analysis: challenge reframing, facet intersection analysis,
   element identification from natural language, and modelling guidance for strategy
@@ -324,6 +324,37 @@ and decisions at level 1 or building-block level. Render with `edgy-diagram`
 **Anti-patterns:** naming capabilities after products or systems; one card
 per level-2 leaf; a map that changes every time a system changes; mixing
 processes ("we do X") into the capability list.
+
+### Purpose map semantic review
+
+A purpose map can be structurally and visually clean and still wrong: a
+delivery in the field modelled development *measures* as Purposes, mixed
+confirmed metrics with proposed ones and asserted `contains` hierarchies
+that were really influences — and no linter noticed, because none of that is
+notation. Before a purpose map is delivered, a reviewer (not a tool) answers
+these questions; `edgy-diagram/scripts/edgy_semantic_review.py` (or
+`edgy_generator.py --semantic-review`) raises the likely ones as S001–S006,
+with the reason and the question — it flags, it never decides.
+
+| # | Check | Rule of thumb |
+|---|-------|---------------|
+| 1 | **Purpose = why / what value is sought.** A lasting target state or reason to exist. | A name that starts with a task verb (develop, implement, build, deploy, introduce, roll out; kehittää, toteuttaa, rakentaa, ottaa käyttöön …) is an action, not a purpose. Ask what value the action serves and name *that*; the action goes to a Capability, Process or a roadmap item. (S001) |
+| 2 | **Outcome = verifiable result.** Separate the result from its metric and say whether the metric is **confirmed** by the organisation or **proposed** by the analysis. Never invent target values. | `{status: confirmed}` / `{status: proposed}` on every Outcome; every Outcome `measures` a named Purpose. (S002, S003) |
+| 3 | **Capability / Process / Task = with what / how.** Development measures belong here or in a separate roadmap, not in the purpose tree. | A purpose whose children are projects is a roadmap in disguise. |
+| 4 | **Hierarchy is a claim.** Each `contains` asserts a part-of relationship; if the child merely *supports* or *influences* the parent, use an influence verb (dashed). | S005 hints where a contained element is itself an action or a metric. |
+| 5 | **Provenance.** Say separately what is confirmed from public sources, what is an analytical interpretation and what is a proposal. | Tag every Purpose `[confirmed]`, `[analytical]` or `[proposed]` (fi: vahvistettu / analyyttinen / ehdotettu; fr/de equivalents); Outcomes carry `{status: …}` (row 2); other elements may be tagged, the review does not require it. (S004) |
+| 6 | **Presentation language.** Relationship labels and the legend appear in the map's `language:`; the model keeps the canonical verb codes. | `language: fi` → `sisältää`, not `contains`. |
+
+The review ends with an explicit sign-off that the assessment report (section
+9) and the delivery note carry verbatim, in the report's language:
+
+```
+Semantic review: approved by <role>, <date> — S-findings answered: <n>
+```
+
+The edgy-assessment templates (section 9) carry the Finnish, French and
+German equivalents of this line; those are valid sign-offs in a localised
+report. A run with zero findings is **not** an approval; only the line is.
 
 ## Output Templates
 

@@ -1,6 +1,6 @@
 ---
 name: edgy-diagram
-version: "2.5.0"
+version: "2.6.0"
 description: >
   Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML
   source and export them to PNG/SVG/PDF. Generator-first workflow
@@ -125,6 +125,9 @@ cannot run, and then only for diagrams under ~15 cells — still lint it later.
 python3 scripts/edgy_lint.py <name>.drawio                       # 0 errors required
 python3 scripts/edgy_lint.py --warnings-as-errors <name>.drawio  # strict (shipped examples)
 python3 scripts/edgy_lint.py --visual <name>.drawio              # W111–W114 only, JSON with coordinates
+python3 scripts/edgy_lint.py --series a.drawio b.drawio c.drawio   # one delivery: W121 when the files differ in layout
+python3 scripts/edgy_lint.py --no-layout-quality <name>.drawio   # switch W117–W120 off for a run
+python3 scripts/edgy_qa.py --require-approvals <name>.qa.json     # the manifest: lint and approvals on separate lines
 ```
 
 The linter checks structure (flat `mxCell` tree, edge geometry, dangling
@@ -146,6 +149,60 @@ element, adding `via:` waypoints, changing `from:`/`to:`, or using `label:
 source|target`; `--visual` gives the cell ids and coordinates for a script to
 act on. A delivery should have none; `--warnings-as-errors` enforces that.
 
+**Layout quality (W117–W120, on by default).** Measured, never a taste
+judgement, and every finding carries its numbers: W117 elements of one type
+under one parent differ in width or height by more than 25 %; W118 two
+containers (or two top-level elements of one type sharing a row or column)
+are near-aligned — 1–12 px apart — or the gaps between containers in one
+row or column differ by more than 20 %; W119 on a page the generator had to
+grow beyond 1200 × 900 the content leaves one side more than 35 % of the
+page empty while the other side is full, or covers less than 45 % of a page
+grown in both directions; W120 content larger than 1200 px whose bounding box
+is wider than 4.5 : 1 or taller than 1 : 4.5 (a sequence of pentagons is
+exempt). The generator's defaults keep its own output clean (`equal_cards`,
+the uniform 60 px content margin); the rules catch hand-edited files and
+layouts that the options below should fix: `card_width`, `equal_cards`,
+`group_columns`, `cards_per_row`, `equal_group_width`, `align_groups: grid`.
+`--no-layout-quality` switches them off for a run; a delivery records whether
+they ran. **W121 (`--series`)** checks the files of one delivery against the
+first: legend placement, content margin, card width of every shared type and
+label font sizes must agree on every page of every file — generate the
+series with the same options.
+
+**Language (W116).** With `language:` set, the generator renders the legend
+and every vocabulary verb in that language (`contains` → `sisältää`,
+`requires` → `vaatii`; the model keeps the canonical verb) and the linter
+reads the map language from the legend title (`--language` overrides).
+W116 fires when an edge label is a vocabulary verb of another language — an
+English `contains` left in a Finnish map, for example. Free text is never
+flagged.
+
+**QA manifest (`qa.json`).** `edgy_generator.py --qa` (on by default with
+`--preview`, `--no-qa` to skip) writes `<name>.qa.json` next to the
+`.drawio`: per page the element and edge counts, the structural lint
+(errors, warnings, rules), the visual rules W111–W114, the layout rules
+W117–W120 and whether they ran, the language check W116, the text-size check
+W115 at the preset's reference width, the preview image size and
+orientation, and the generator warnings. Three fields are never set by the
+tooling: `visual_approval`, `semantic_approval`, `delivery_notes` — a
+person fills them in after looking at the preview, as `"<name or role>,
+YYYY-MM-DD"`, and `null` (or anything else) means *not approved*. `edgy_qa.py --require-approvals` reports lint and the approvals
+on separate lines and exits 1 while either approval is null; `edgy-eval.py`
+and the edgy-assessment Phase 5 read the manifest instead of re-linting.
+Schema: `assets/qa.schema.json`.
+
+**Semantic review (purpose maps).** Notation and geometry say nothing about
+meaning: a purpose map can lint clean while its "purposes" are development
+actions. `python3 scripts/edgy_semantic_review.py <name>.txt` (or
+`edgy_generator.py … --semantic-review`) raises the questions a reviewer
+must answer — S001 action as a Purpose, S002 Outcome measures nothing,
+S003 / S004 missing provenance (`[confirmed]` / `[analytical]` /
+`[proposed]`, `{status: confirmed|proposed}` on Outcomes), S005 `contains`
+that may be an influence, S006 metric in a Purpose name — with the reason
+and the question for each. It flags; it never decides: exit 0 unless
+`--strict`, and zero findings is not an approval. The sign-off is a person's
+(edgy-framework, *Purpose map semantic review*).
+
 If the linter cannot run, check by hand that the file has more than the
 two structural cells, one `vertex` per element, one `edge` with geometry per
 relationship, and is larger than 1000 bytes.
@@ -153,18 +210,31 @@ relationship, and is larger than 1000 bytes.
 ### Generator reference
 
 ```bash
-edgy_generator.py in.txt --output out.drawio [--preview] [--bare] [--lenient] [--publication]
+edgy_generator.py in.txt --output out.drawio [--preview] [--bare] [--lenient] [--publication] [--qa|--no-qa]
 edgy_generator.py in.txt --format svg|png --engine native --output out      # CLI-free render
+edgy_generator.py in.txt --output out.drawio --preview --preset publication|presentation   # native preset (below)
 edgy_generator.py in.txt --format png|svg|pdf [--engine drawio|plantuml|native] [--preset presentation|print|web]
 edgy_generator.py in.txt --format plantuml --output out.puml
 edgy_render.py out.drawio [--out DIR] [--no-png] [--publication]            # preview an existing file
 edgy_lint.py out.drawio [--warnings-as-errors] [--visual] [--scale 0.4]     # lint; W115 below 6 pt at that scale
+edgy_lint.py --series a.drawio b.drawio [--no-layout-quality]              # W121 across a delivery; W117–W120 off
 ```
 
 `--publication` crops the native SVG/PNG to the content (shapes, routes,
 arrowheads, labels, legend) instead of the editor page and prints an
 orientation hint (`landscape` / `portrait` / `square`) per page — use it for
-the image that goes into a report, the plain preview for editing. Text is
+the image that goes into a report, the plain preview for editing. The
+**native presets** go one step further for `--preview` and `--engine native`:
+`--preset publication` (24 px margin, `legend: strip` unless the input says
+otherwise, W115 tested at a 160 mm report column = 605 px at 96 dpi) and
+`--preset presentation` (48 px margin, `legend: box`, W115 at a 1920 px
+slide); both crop to the content and draw the `title:` band above and the
+`footnote:` band below when the input sets them. With `legend:` fixed in the
+input, the same input rendered with the two presets differs only in that
+frame; otherwise the legend placement follows the preset too. The draw.io CLI presets
+(`presentation`, `print`, `web`) keep their names and semantics; with
+`--engine drawio` and a PNG/PDF/SVG format `presentation` is the CLI preset.
+Text is
 measured with glyph tables (`scripts/edgy_text.py`, Helvetica/Arial metrics)
 in the generator, the preview and the linter alike, so box widths, wrapping
 and W101 agree; a long name widens the box up to 280 px and then wraps —
@@ -196,7 +266,17 @@ and Product, `all` all three. Full tables: `references/vocabulary.md`.
 facet: identity | architecture | experience | all
 map_type: capability | organisation | journey | purpose   # optional, overrides facet layout
 legend: box | strip                                       # optional; strip = one band along the bottom, page as tall as the content
-language: fi | en | fr | de                               # optional; language of generated headings (triad "Further <type>" panels)
+language: fi | en | fr | de                               # optional; legend, generated headings and vocabulary verbs render in this language
+translate_verbs: true | false                             # optional (default true): with language: set, a vocabulary verb written in another language is rendered translated ("contains" → "sisältää"); the model keeps the canonical verb
+title: <text>                                             # optional: title band above the content in native presets (--preset publication|presentation)
+footnote: <text>                                          # optional: footnote band below the content in native presets
+stages: Plan, Buy, Ride                                   # optional, map_type: task with lanes — journey stages as columns; a task picks its column with {stage: Buy}
+equal_cards: true | false                                 # optional (default true): elements of one type on a page take the widest width (≤ 280) and the tallest height of their type
+card_width: N                                             # optional: every box is N px wide (60–600; a size class S/M/L may be wider; the person shape is exempt); long names wrap
+group_columns: N                                          # optional: containers in N columns (map-type and single-facet layouts)
+cards_per_row: N                                          # optional: N cards per row inside every container
+equal_group_width: true | false                           # optional (default false): containers share the widest container's width
+align_groups: grid | none                                 # optional: containers on exact rows and columns — column width = widest in the column, row height = tallest, containers stretch to the row
 
 elements:
   - <element_type>: "<name>"
@@ -204,7 +284,7 @@ elements:
   - <element_type>: "<name> | <subtext>"
   - group: "<area name>"              # container; the indented elements below are its children
     - <element_type>: "<name>"
-  - lane: "<layer name>"              # borderless band; the indented elements sit on it
+  - lane: "<layer name>"              # borderless band; the indented elements sit on it (task map: one lane per stakeholder)
     - <element_type>: "<name>"
 
 relationships:
@@ -216,6 +296,15 @@ relationships:
 
 Names are matched on the part before ` - ` / ` | ` (the *name*), so a
 relationship can say `"Ticketing"` for `"Ticketing - sell and validate fares"`.
+
+The layout options give a *standard-sized, aligned* map without hand
+editing: `equal_cards` is on by default (one size per element type and
+page), and a balanced capability map is `group_columns: 2`,
+`cards_per_row: 2`, `equal_group_width: true`, `align_groups: grid`. The
+content's top-left corner is at (60, 60) in every layout except the planned
+`triad` ring (whose slot table is fixed), so the maps of one series
+share their margins (lint `--series`). Invalid values warn and keep the
+default.
 
 ### Multi-page input (`pages:`) and ArchiMate positioning (`layout_from:`)
 
@@ -416,12 +505,17 @@ the parser warns.
 | `outcome` | grid + tree | 5 | 7–10 |
 | `journey`, `activity`, `process` | sequence (pentagon row, left → right) | 4 | 6–8 |
 | `brand`, `product`, `object` | hub-and-spoke | 5–6 | 7–15 |
-| `asset`, `channel`, `content`, `people`, `story`, `task` | grid (`cols ≈ √N`) | 5–8 | 7–30 |
+| `asset`, `channel`, `content`, `people`, `story` | grid (`cols ≈ √N`) | 5–8 | 7–30 |
+| `task` | **stakeholder inventory** when lanes exist or a People / Organisation element has relationships to the tasks: one lane per stakeholder (a related stakeholder becomes the lane and is not drawn as a box), `stages:` as columns with `{stage: …}`; it has no edges because its input has no other relationships (one written between two tasks is drawn); **path** when tasks link to a journey (`is part of`) or channels (`uses`): journeys above, tasks in input order, channels below; grid otherwise | 5–8 | 7–30 |
 | `reference` *(extension)* | lanes top-down, Organisation/People left, `[external]` right, overlay strokes, one integration bus | 8 | 10–25 |
 | `summary` *(extension)* | who / does what / what results; warns above 4 boxes per row | 3 | 6–10 |
 | `triad` *(extension)* | **planned ring** for `facet: all` or one facet: one *primary* element per type carries the core links (`{primary: true}`, else the first of its type), straight border-to-border lines, two links detour along the page edge; the other elements sit in **"Further <type>" panels** without lines and their links are reported, not drawn; strip legend by default | 6 | 12 primaries + any number of further |
 
-Never model focus areas as Story in a purpose map; formulate capabilities as
+The two task-map variants are documented pages of one input
+(`examples/task-stakeholder-map.txt`): the inventory answers *who does what
+at which stage* and carries no relationships in its input — a map is never
+given a link just to look connected; the path answers *which journey and
+channels a task touches*. Never model focus areas as Story in a purpose map; formulate capabilities as
 system-independent result nouns, 6–12 areas and 40–80 leaves (edgy-framework,
 *Formulating capabilities*). Input/layout sketches per strategy and the
 **pairwise map** spec used by `edgy-deep-dive`: `references/map-types.md`.
@@ -455,6 +549,7 @@ cut text, spaghetti routing and labels on boxes. Generate with `--preview`
 (or run `edgy_render.py`), open the PNG/SVG and check:
 
 - [ ] no edge passes through a box and no edge label lies on a box or another label — `edgy_lint.py --visual` must report nothing (W111–W114 = 0)
+- [ ] cards of one type are one size, groups sit on exact rows and columns, the content is balanced on the page — the layout rules W117–W120 report nothing (or each finding is answered); the files of one delivery pass `--series`
 - [ ] every edge visibly starts and ends at an element; no diagonal end segments on orthogonal routes
 - [ ] nothing cut off or overlapping; text fits its element
 - [ ] legend clear of content; page height ≤ 1.5 × width (otherwise pages or another map type)

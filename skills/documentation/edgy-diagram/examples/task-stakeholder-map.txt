@@ -1,0 +1,44 @@
+# Task map in two variants (fictional Acme Transit). Page 1 — stakeholder
+# INVENTORY: one `lane:` per stakeholder (without lanes, a People or
+# Organisation element that has a relationship to the tasks becomes the lane
+# and is not drawn as a box), journey stages as columns (`stages:` +
+# `{stage: …}`), no edges — a map is never given a relationship just to look
+# connected. Page 2 — PATH: the
+# same tasks with their core links to the journey (`is part of`) and the
+# channels (`uses`), journeys above, channels below.
+language: en
+legend: strip
+
+pages:
+  - name: "Inventory"
+    map_type: task
+    stages: Plan, Buy, Ride
+    elements:
+      - lane: "Passenger"
+        - task: "Plan a trip" {id: TSK-01, stage: Plan}
+        - task: "Buy a ticket" {id: TSK-02, stage: Buy}
+        - task: "Validate the ticket" {id: TSK-03, stage: Ride}
+        - task: "Follow the vehicle" {id: TSK-04, stage: Ride}
+      - lane: "Driver"
+        - task: "Check tickets" {id: TSK-05, stage: Ride}
+      - lane: "Customer service"
+        - task: "Answer a refund claim" {id: TSK-06, stage: Buy}
+  - name: "Path"
+    map_type: task
+    elements:
+      - journey: "Daily commute" {id: JRN-01}
+      - task: "Plan a trip" {id: TSK-01}
+      - task: "Buy a ticket" {id: TSK-02}
+      - task: "Validate the ticket" {id: TSK-03}
+      - task: "Follow the vehicle" {id: TSK-04}
+      - channel: "Mobile app" {id: CHN-01}
+      - channel: "Ticket machine" {id: CHN-02}
+    relationships:
+      - "Plan a trip" -> "Daily commute": "is part of"
+      - "Buy a ticket" -> "Daily commute": "is part of"
+      - "Validate the ticket" -> "Daily commute": "is part of"
+      - "Follow the vehicle" -> "Daily commute": "is part of"
+      - "Plan a trip" -> "Mobile app": "uses"
+      - "Buy a ticket" -> "Mobile app": "uses"
+      - "Buy a ticket" -> "Ticket machine": "uses"
+      - "Validate the ticket" -> "Ticket machine": "uses"

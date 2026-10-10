@@ -237,7 +237,7 @@ def test_preview_failure_exits_non_zero():
     original = edgy_render.render_file
     edgy_render.render_file = lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom"))
     try:
-        assert edgy_generator.render_preview('whatever.drawio') is False
+        assert edgy_generator.render_preview('whatever.drawio') is None   # None = no preview written (caller exits 3)
     finally:
         edgy_render.render_file = original
     d = tempfile.mkdtemp()
@@ -371,6 +371,180 @@ relationships:
     # publication crop via the CLI
     r = _run_generator(src, '--output', os.path.join(d, 'p.drawio'), '--preview', '--publication')
     assert r.returncode == 0 and 'Orientation: landscape' in r.stdout, (r.stdout, r.stderr)
+
+
+def test_native_presets_differ_only_in_frame():
+    """publication vs presentation from one input: same content bounds, different margin, bands and legend placement."""
+    import subprocess, json
+    here = os.path.dirname(os.path.abspath(__file__))
+    d = tempfile.mkdtemp()
+    src = os.path.join(d, 'in.txt')
+    open(src, 'w', encoding='utf-8').write('title: Acme Transit — purpose\nfootnote: fictional example\n' + SINGLE)
+    svgs = {}
+    for preset in ('publication', 'presentation'):
+        out = os.path.join(d, preset + '.drawio')
+        r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', out, '--preview', '--preset', preset],
+                           capture_output=True, text=True)
+        assert r.returncode == 0, r.stderr
+        svg = open(os.path.join(d, preset + '.svg'), encoding='utf-8').read()
+        svgs[preset] = svg
+        assert 'Acme Transit — purpose' in svg and 'fictional example' in svg, preset
+        qa = json.load(open(os.path.join(d, preset + '.qa.json'), encoding='utf-8'))
+        assert qa['preset'] == preset and qa['pages'][0]['text_size']['reference_width'] == edgy_render.NATIVE_PRESETS[preset]['ref_width']
+        assert qa['pages'][0]['image']['svg'] == preset + '.svg' and not os.path.isabs(qa['pages'][0]['image']['png'] or ''), qa['pages'][0]['image']
+        assert qa['pages'][0]['text_size']['scale'] is not None
+    pages = {p: edgy_render.Page(edgy_document.load_pages_from_file(os.path.join(d, p + '.drawio'))[0][1]) for p in svgs}
+    # the content (elements + edges) is identical; only the legend placement differs between the presets
+    def element_boxes(page):
+        return sorted(b for cid in page.order if page.cells[cid].get('vertex') == '1' and 'fillColor=#80ffb7' in (page.cells[cid].get('style') or '')
+                      for b in [page.abs_box(cid)] if b[2] > 20)   # legend chips (14 × 12) are not elements
+    assert element_boxes(pages['publication']) == element_boxes(pages['presentation'])
+    # strip legend for publication (title cell left), box legend for presentation (right)
+    def legend_x(page):
+        for cid in page.order:
+            c = page.cells[cid]
+            if c.get('vertex') == '1' and 'Legend' in (c.get('value') or ''):
+                return page.abs_box(cid)[0]
+    assert legend_x(pages['publication']) < page_w(pages['publication']) / 2 < legend_x(pages['presentation'])
+    # a triad keeps the preset's box legend (its own strip default is not a choice)
+    tri = os.path.join(here, '..', 'examples', 'triad-architecture.txt')
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), tri, '--output', os.path.join(d, 'tri.drawio'), '--preview', '--preset', 'presentation'], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    tp = edgy_render.Page(edgy_document.load_pages_from_file(os.path.join(d, 'tri.drawio'))[0][1])
+    assert legend_x(tp) > tp.page_w / 2, 'box legend on the right'
+    vb = {p: [float(v) for v in re.search(r'viewBox="([^"]+)"', svgs[p]).group(1).split()] for p in svgs}
+    assert vb['presentation'][2] > vb['publication'][2] or vb['presentation'][3] > vb['publication'][3], 'presentation has the wider margin'
+
+
+def test_bands_per_page_and_wide_title_widens_frame():
+    import subprocess, json
+    here = os.path.dirname(os.path.abspath(__file__))
+    d = tempfile.mkdtemp()
+    src = os.path.join(d, 'in.txt')
+    long_title = 'A deliberately very long title band that is much wider than the two small boxes of this tiny page ' * 2
+    text = MULTI.replace('  - name: "Systems"\n', '  - name: "Systems"\n    title: "Systems view"\n').replace('facet: architecture', f'facet: architecture\ntitle: "{long_title.strip()}"')
+    open(src, 'w', encoding='utf-8').write(text)
+    out = os.path.join(d, 'm.drawio')
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', out, '--preview', '--preset', 'publication'], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    first = open(os.path.join(d, 'm-roles-actors.svg'), encoding='utf-8').read()
+    second = open(os.path.join(d, 'm-systems.svg'), encoding='utf-8').read()
+    assert long_title.strip()[:40] in first and 'Systems view' not in first
+    assert 'Systems view' in second and long_title.strip()[:40] not in second, 'page-level title overrides the head'
+    vb = [float(v) for v in re.search(r'viewBox="([^"]+)"', first).group(1).split()]
+    assert vb[2] >= edgy_render.edgy_text.measure(long_title.strip(), edgy_render.TITLE_FS, bold=True), 'frame at least as wide as the title'
+    # the preset orientation is that of the delivered image (a wide title makes it landscape)
+    qa = json.load(open(os.path.join(d, 'm.qa.json'), encoding='utf-8'))
+    img = qa['pages'][0]['image']
+    assert img['orientation'] == 'landscape' and img['width'] / img['height'] > 1.2, img
+
+
+def page_w(page):
+    return page.page_w
+
+
+def test_qa_manifest_schema_and_approvals_null():
+    import subprocess, json
+    here = os.path.dirname(os.path.abspath(__file__))
+    d = tempfile.mkdtemp()
+    src = os.path.join(d, 'in.txt'); open(src, 'w', encoding='utf-8').write(MULTI)
+    out = os.path.join(d, 'm.drawio')
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', out, '--qa', '--no-layout-quality'], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    qa = json.load(open(os.path.join(d, 'm.qa.json'), encoding='utf-8'))
+    assert len(qa['pages']) == 2 and qa['pages'][1]['name'] == 'Systems'
+    # pages are matched by ordinal: two pages with one name keep their own counts and images
+    dup = MULTI.replace('- name: "Systems"', '- name: "Roles & actors"')
+    src2 = os.path.join(d, 'dup.txt'); open(src2, 'w', encoding='utf-8').write(dup)
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src2, '--output', os.path.join(d, 'dup.drawio'), '--preview', '--no-png'], capture_output=True, text=True) if False else \
+        subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src2, '--output', os.path.join(d, 'dup.drawio'), '--preview'], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    qd = json.load(open(os.path.join(d, 'dup.qa.json'), encoding='utf-8'))
+    assert qd['pages'][0]['elements'] != qd['pages'][1]['elements'] and qd['pages'][0]['image']['svg'] != qd['pages'][1]['image']['svg'], qd['pages']
+    assert qd['pages'][0]['edges'] == 1 and qd['pages'][1]['edges'] == 0
+    assert qa['visual_approval'] is None and qa['semantic_approval'] is None and qa['delivery_notes'] is None
+    # one semantic sign-off field: the review block of a purpose page only counts findings
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), os.path.join(here, '..', 'examples', 'purpose-map.txt'),
+                        '--output', os.path.join(d, 'pm.drawio'), '--qa'], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    qp = json.load(open(os.path.join(d, 'pm.qa.json'), encoding='utf-8'))
+    assert set(qp['semantic_review']) == {'findings'} and 'approved_by' not in json.dumps(qp)
+    # a non-purpose page with an action-shaped Purpose still records its S001 finding
+    src3 = os.path.join(d, 'facet.txt'); open(src3, 'w', encoding='utf-8').write('facet: identity\nelements:\n  - purpose: "Implement a new ticketing platform"\n  - story: "From depot to platform"\n')
+    subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src3, '--output', os.path.join(d, 'facet.drawio'), '--qa'], capture_output=True, text=True)
+    qf = json.load(open(os.path.join(d, 'facet.qa.json'), encoding='utf-8'))
+    assert qf['pages'][0]['semantic_review']['findings'] >= 1 and qf['semantic_review']['findings'] >= 1, qf['pages'][0]['semantic_review']
+    assert qa['pages'][0]['layout_quality'] == {'ran': False, 'findings': 0}
+    assert qa['pages'][1]['elements'] == {'asset': 5} and qa['pages'][0]['edges'] == 1
+    assert qa['pages'][0]['facet'] == 'architecture' and qa['pages'][1]['facet'] is None, 'a map-type page has no facet'
+    # edges are counted as drawn: the triad reports links into panels instead of drawing them
+    import edgy_qa
+    tri = os.path.join(here, '..', 'examples', 'triad-all-facets.txt')
+    out3 = os.path.join(d, 't.drawio')
+    subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), tri, '--output', out3, '--qa'], capture_output=True, text=True)
+    qa3 = json.load(open(os.path.join(d, 't.qa.json'), encoding='utf-8'))
+    assert qa3['pages'][0]['edges'] == 24, qa3['pages'][0]['edges']
+    # approvals: only a reviewer name-and-date string counts
+    assert not edgy_qa.is_approval(True) and not edgy_qa.is_approval(1) and not edgy_qa.is_approval({'automated': True}) and not edgy_qa.is_approval(' ')
+    assert not edgy_qa.is_approval('approved') and not edgy_qa.is_approval('Reviewer') and not edgy_qa.is_approval('2026-10-09')
+    assert not edgy_qa.is_approval('Reviewer, 2026-99-99') and not edgy_qa.is_approval('Reviewer, 2026-02-30'), 'impossible dates are not approvals'
+    assert edgy_qa.is_approval('Reviewer, 2026-10-09') and edgy_qa.is_approval('Lead architect (Acme Oy), 2026-10-09')
+    qa['visual_approval'] = True; qa['semantic_approval'] = 1
+    bad = os.path.join(d, 'bad.qa.json'); open(bad, 'w', encoding='utf-8').write(json.dumps(qa))
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_qa.py'), '--require-approvals', bad], capture_output=True, text=True)
+    assert r.returncode == 1 and 'YYYY-MM-DD' in r.stdout, r.stdout
+    assert qa['pages'][0]['image'] is None, 'no preview requested'
+    repo = os.path.abspath(os.path.join(here, '..', '..', '..', '..'))
+    v = subprocess.run([sys.executable, os.path.join(repo, 'tools', 'validate-edgy-model.py'), '--schema',
+                        os.path.join(here, '..', 'assets', 'qa.schema.json'), os.path.join(d, 'm.qa.json')], capture_output=True, text=True)
+    assert v.returncode == 0, v.stdout + v.stderr
+    # a native preset with an unsupported engine / format is refused, never silently exported without its frame
+    for extra in (['--format', 'pdf', '--preset', 'publication'], ['--format', 'png', '--engine', 'drawio', '--preset', 'publication']):
+        r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'x.png')] + extra, capture_output=True, text=True)
+        assert r.returncode == 2 and 'native preset' in r.stderr, (extra, r.stderr)
+    # publication without a native render is refused; presentation without --preview stays the draw.io CLI preset
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'plain.drawio'), '--preset', 'publication'], capture_output=True, text=True)
+    assert r.returncode == 2 and 'native preset' in r.stderr, r.stderr
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'x.drawio'), '--engine', 'native', '--preset', 'publication'], capture_output=True, text=True)
+    assert r.returncode == 2 and 'native preset' in r.stderr, 'no native render runs for .drawio output without --preview'
+    # an explicit native engine always means the native preset: pdf is refused instead of being written as XML
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'out.pdf'), '--engine', 'native', '--format', 'pdf', '--preset', 'presentation'], capture_output=True, text=True)
+    assert r.returncode == 2 and 'native preset' in r.stderr and not os.path.exists(os.path.join(d, 'out.pdf')), r.stderr
+    no_cli = dict(os.environ, EDGY_DRAWIO='/nonexistent/drawio')   # deterministic: the optional CLI is absent
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'slide.png'), '--preset', 'presentation'], capture_output=True, text=True, env=no_cli)
+    # the CLI preset path was taken (slide.drawio, not slide.png.drawio); without the CLI the export is not confirmed → exit 1
+    assert r.returncode == 1 and not os.path.exists(os.path.join(d, 'slide.png.drawio')) and os.path.exists(os.path.join(d, 'slide.drawio')), r.stdout + r.stderr
+    # manifest image paths are relative to the manifest's directory
+    qa_prev = json.load(open(os.path.join(d, 'publication.qa.json'), encoding='utf-8')) if os.path.exists(os.path.join(d, 'publication.qa.json')) else None
+    # --qa with a draw.io CLI export: without the CLI the export is not confirmed → exit 1, no manifest, .drawio kept
+    out4 = os.path.join(d, 'cli.png')
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', out4, '--format', 'png', '--qa'], capture_output=True, text=True,
+                       env=dict(os.environ, EDGY_DRAWIO='/nonexistent/drawio'))
+    assert r.returncode == 1 and 'no qa.json written' in r.stderr and not os.path.exists(os.path.join(d, 'cli.qa.json')), r.stdout + r.stderr
+    assert os.path.exists(os.path.join(d, 'cli.drawio'))
+    # with a confirmed export the manifest names the delivery file
+    import edgy_qa, edgy_document
+    pages = edgy_document.parse_document(MULTI)
+    for _n, pp in pages:
+        pp.generate_xml()
+    m = edgy_qa.build_manifest(out, pages, output_path=out4)
+    assert m['output'] == os.path.basename(out) and m['outputs'] == [os.path.basename(out)], 'cli.png does not exist: the manifest names the file that does'
+    # a multi-page native export: the manifest lists the per-page files the renderer wrote, not the requested single name
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'maps.svg'), '--format', 'svg', '--engine', 'native', '--qa'], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    qm = json.load(open(os.path.join(d, 'maps.qa.json'), encoding='utf-8'))
+    # a native preset export writes the manifest by default (W115 at the reference width), --no-qa switches it off
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'np.svg'), '--format', 'svg', '--engine', 'native', '--preset', 'publication'], capture_output=True, text=True)
+    assert r.returncode == 0 and os.path.exists(os.path.join(d, 'np.qa.json')), r.stderr
+    assert json.load(open(os.path.join(d, 'np.qa.json'), encoding='utf-8'))['pages'][0]['text_size']['scale'] is not None
+    r = subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', os.path.join(d, 'nq.svg'), '--format', 'svg', '--engine', 'native', '--preset', 'publication', '--no-qa'], capture_output=True, text=True)
+    assert r.returncode == 0 and not os.path.exists(os.path.join(d, 'nq.qa.json'))
+    assert qm['outputs'] == ['maps-roles-actors.svg', 'maps-systems.svg'] and qm['output'] == 'maps-roles-actors.svg', qm['outputs']
+    assert all(os.path.exists(os.path.join(d, f)) for f in qm['outputs'])
+    # --no-qa: nothing written
+    out2 = os.path.join(d, 'n.drawio')
+    subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src, '--output', out2, '--no-qa'], capture_output=True, text=True)
+    assert not os.path.exists(os.path.join(d, 'n.qa.json'))
 
 
 def main():

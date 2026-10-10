@@ -10,17 +10,17 @@
 map_type: purpose
 
 elements:
-  - purpose: "Make everyday travel in the region effortless | corporate purpose" {id: PUR-01, size: L}
-  - purpose: "Seamless travel chains" {id: PUR-11}
-  - purpose: "Affordable and fair fares for every traveller group" {id: PUR-12}
-  - purpose: "Zero-emission fleet" {id: PUR-13, size: S}
-  - purpose: "Trusted real-time information" {id: PUR-14}
-  - purpose: "Door-to-door planning" {id: PUR-111}
-  - purpose: "One ticket, every operator" {id: PUR-112}
-  - outcome: "Door-to-door time −15 % | 2027 target" {id: OUT-01}
-  - outcome: "Fare satisfaction ≥ 4.0 / 5" {id: OUT-02}
-  - outcome: "CO2 per passenger-km −40 %" {id: OUT-03}
-  - outcome: "Disruption notice within 2 minutes in 95 % of cases" {id: OUT-04}
+  - purpose: "Make everyday travel in the region effortless | corporate purpose" [confirmed] {id: PUR-01, size: L}
+  - purpose: "Seamless travel chains" [analytical] {id: PUR-11}
+  - purpose: "Affordable and fair fares for every traveller group" [analytical] {id: PUR-12}
+  - purpose: "Zero-emission fleet" [analytical] {id: PUR-13, size: S}
+  - purpose: "Trusted real-time information" [analytical] {id: PUR-14}
+  - purpose: "Door-to-door planning" [analytical] {id: PUR-111}
+  - purpose: "One ticket, every operator" [analytical] {id: PUR-112}
+  - outcome: "Door-to-door time −15 % | 2027 target" {id: OUT-01, status: proposed}
+  - outcome: "Fare satisfaction ≥ 4.0 / 5" {id: OUT-02, status: proposed}
+  - outcome: "CO2 per passenger-km −40 %" {id: OUT-03, status: proposed}
+  - outcome: "Disruption notice within 2 minutes in 95 % of cases" {id: OUT-04, status: proposed}
   - content: "We keep the region moving - plain-language promise"
   - story: "From a single bus line to a regional mobility platform"
   - organisation: "Transit authority board"

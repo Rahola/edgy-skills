@@ -2,7 +2,8 @@
 
 Every `.txt` here is an input for `scripts/edgy_generator.py`; the matching
 `expected-*.drawio` is what the current generator produces (regenerate after
-generator changes, never edit by hand). `check.sh` lints every expected file.
+generator changes with `bash tools/regen-examples.sh`, never edit by hand).
+`check.sh` lints every expected file.
 
 | Input | Expected output | Shows |
 | `identity-facet.txt` | `expected-identity.drawio` | single facet with container, intersection elements below |
@@ -31,6 +32,7 @@ generator changes, never edit by hand). `check.sh` lints every expected file.
 | `triad-all-facets.txt` | `expected-triad-all-facets.drawio` | `map_type: triad` (extension) for `facet: all`: planned ring of 12 primaries with all 24 core links, "Further" panels, strip legend — 0 visual findings |
 | `triad-architecture.txt` | `expected-triad-architecture.drawio` | `map_type: triad` for one facet: intersection A on top, three primaries as a triangle, intersection B below, panels for 19 further elements |
 | `lanes-map.txt` | `expected-lanes.drawio` | `lane:` bands |
+| `task-stakeholder-map.txt` | `expected-task-stakeholder.drawio` | `map_type: task` in two pages: stakeholder **inventory** (lanes × `stages:` columns, no edges) and **path** (tasks → journey / channels) |
 | `reference-architecture-map.txt` | `expected-reference-architecture.drawio` | `reference` layout (extension) |
 | `summary-map.txt` | `expected-summary.drawio` | `summary` layout (extension) |
 | `archimate-positioned.txt` | `expected-archimate-positioned.drawio` | `layout_from:` positions from an ArchiMate view (`current-state.archimate`) |

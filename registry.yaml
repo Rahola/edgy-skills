@@ -1,10 +1,10 @@
 version: "2026-10"
-updated: "2026-10-04"
+updated: "2026-10-09"
 
 skills:
   - id: edgy-assessment
     path: skills/architecture/edgy-assessment
-    version: 1.7.0
+    version: 1.8.0
     category: architecture
     tags: [edgy, enterprise-design, architecture, analysis, assessment, diagram, fi, en, fr, de]
     agents: [claude-code, cursor, vibe, generic]
@@ -22,7 +22,7 @@ skills:
 
   - id: edgy-framework
     path: skills/architecture/edgy-framework
-    version: 1.4.1
+    version: 1.5.0
     category: architecture
     tags: [edgy, enterprise-design, architecture, analysis, reframing, fi, en, fr, de]
     agents: [claude-code, cursor, generic]
@@ -40,7 +40,7 @@ skills:
 
   - id: edgy-diagram
     path: skills/documentation/edgy-diagram
-    version: 2.5.0
+    version: 2.6.0
     category: documentation
     tags: [diagram, drawio, visualization, documentation, edgy, enterprise-design, fi, en, fr, de]
     agents: [claude-code, cursor, generic]

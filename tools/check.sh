@@ -8,6 +8,7 @@
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
 # edgy-tests, edgy-geometry-tests, edgy-lint-tests, edgy-render-tests,
 # edgy-structure-tests, edgy-tool-tests, edgy-model, edgy-eval, edgy-lint,
+# edgy-lint-strict, edgy-series, edgy-qa,
 # privacy-scan.
 #
 # Käyttö:
@@ -206,6 +207,7 @@ run_step "edgy-render-tests" python3 "$EDGY_SCRIPTS/test_render.py"
 run_step "edgy-structure-tests" python3 "$EDGY_SCRIPTS/test_structure.py"
 run_step "edgy-tool-tests" python3 tools/test_edgy_tools.py
 run_step "edgy-model-tests" python3 skills/architecture/edgy-assessment/scripts/test_model_to_txt.py
+run_step "edgy-semantic-tests" python3 "$EDGY_SCRIPTS/test_semantic.py"
 
 # --- Vaihe 3c2: edgy-model.json-skeema + malli → TXT ------------------------
 # Jokaisen repoon kuuluvan *model*.json-esimerkin on vastattava skeemaa, ja
@@ -263,6 +265,43 @@ edgy_lint_strict() {
     return $rc
 }
 run_step "edgy-lint-strict" edgy_lint_strict
+
+# --- Vaihe 3f: sarjan yhtenäisyys (W121) -------------------------------------
+# Kolme saman toimituksen karttaa (series-acme-*) samoilla asetuksilla: lint
+# --series ei saa löytää eroja legendan paikassa, marginaaleissa, korttien
+# leveydessä tai fonttikoossa; myös W117–W120 pysyvät nollassa.
+edgy_series() {
+    local ex="skills/documentation/edgy-diagram/examples/eval"
+    local tmp
+    tmp=$(mktemp -d)
+    for f in series-acme-capability series-acme-task series-acme-purpose; do
+        python3 "$EDGY_SCRIPTS/edgy_generator.py" "$ex/$f.txt" --output "$tmp/$f.drawio" >/dev/null 2>&1 || { rm -rf "$tmp"; return 1; }
+    done
+    python3 "$EDGY_SCRIPTS/edgy_lint.py" -q --series --warnings-as-errors "$tmp"/series-acme-*.drawio
+    local rc=$?
+    rm -rf "$tmp"
+    return $rc
+}
+run_step "edgy-series" edgy_series
+
+# --- Vaihe 3g: qa.json-manifesti -----------------------------------------------
+# Generaattorin --qa kirjoittaa manifestin; sen on validoiduttava skeemaa vasten
+# ja hyväksyntäkenttien on oltava null (työkalu ei koskaan hyväksy itse):
+# edgy_qa.py --require-approvals palauttaa 1.
+edgy_qa_manifest() {
+    local ex="skills/documentation/edgy-diagram/examples"
+    local tmp
+    tmp=$(mktemp -d)
+    python3 "$EDGY_SCRIPTS/edgy_generator.py" "$ex/task-stakeholder-map.txt" --output "$tmp/t.drawio" --qa >/dev/null 2>&1 || { rm -rf "$tmp"; return 1; }
+    python3 tools/validate-edgy-model.py --schema skills/documentation/edgy-diagram/assets/qa.schema.json "$tmp/t.qa.json" >/dev/null || { rm -rf "$tmp"; return 1; }
+    if python3 "$EDGY_SCRIPTS/edgy_qa.py" --require-approvals "$tmp/t.qa.json" >/dev/null; then
+        echo "edgy-qa: a fresh manifest must not count as approved" >&2
+        rm -rf "$tmp"; return 1
+    fi
+    rm -rf "$tmp"
+    return 0
+}
+run_step "edgy-qa" edgy_qa_manifest
 
 # --- Vaihe 4: privacy-scan (asiakasreferenssien vuototarkistus) --------------
 # Estää yksityisten asiakas-/toimeksiantonimien päätymisen julkiseen repoon.

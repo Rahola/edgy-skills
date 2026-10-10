@@ -1,6 +1,6 @@
 ---
 name: edgy-assessment
-version: "1.7.0"
+version: "1.8.0"
 description: >
   Comprehensive EDGY 23 Enterprise Design assessment: analysis, diagrams, and recommendations.
   Orchestrating skill that chains edgy-framework and edgy-diagram skills into a unified workflow.
@@ -319,6 +319,14 @@ diagrams with four). Edit the model, regenerate; never patch a TXT. The
 format below documents what the script produces, and is the fallback when
 Python is unavailable.
 
+**Layout block.** An optional `layout` object in the model (`legend`,
+`card_width`, `equal_cards`, `group_columns`, `cards_per_row`,
+`equal_group_width`, `align_groups`, `title`, `footnote`) is written as
+document keys into every TXT, so the four files share one legend placement,
+card sizing and grid — `edgy_lint.py --series` (Phase 4) then reports
+nothing. Set `language` in the model: the verbs and the legend render in
+that language (W116 otherwise).
+
 **Primary element.** A core link between two element *types* is drawn once,
 between the primary element of each type: the one with `"primary": true` in
 the model, otherwise the first of its type. Set the flag in the model when
@@ -374,11 +382,21 @@ Generate a drawio diagram for each TXT file **with the edgy-diagram generator** 
 
 ```bash
 G=skills/documentation/edgy-diagram/scripts
-python3 $G/edgy_generator.py <company>-identity.txt --output <company>-identity.drawio --preview
+python3 $G/edgy_generator.py <company>-identity.txt --output <company>-identity.drawio --preview --preset publication
 python3 $G/edgy_lint.py <company>-identity.drawio      # 0 errors required
-# --preview wrote <company>-identity.svg (+ .png when Chromium is available): open it and check
-# the preview checklist (edgy-diagram SKILL.md, "Preview loop") before moving on
+# --preview wrote <company>-identity.svg (+ .png when Chromium is available) and <company>-identity.qa.json:
+# open the image and check the preview checklist (edgy-diagram SKILL.md, "Preview loop") before moving on
+# series check across the four files of this delivery (legend placement, margins, card widths, fonts):
+python3 $G/edgy_lint.py --series <company>-identity.drawio <company>-architecture.drawio <company>-experience.drawio <company>-all-facets.drawio
 ```
+
+`--preset publication` (native preset: 24 px margin, strip legend, W115 at a
+160 mm column, `title:` / `footnote:` bands from the model's layout block) is
+the image for the report; `--preset presentation` for slides. The
+`qa.json` written next to each `.drawio` carries the counts, the lint, the
+visual / layout / language checks and the preview size; its
+`visual_approval` and `semantic_approval` stay `null` until a person sets
+them in Phase 5 (the semantic one after Phase 4b).
 
 Read every generator warning: a core-link verb on a wrong pair or a verb
 outside the vocabulary means the TXT file (and usually the analysis) is
@@ -413,6 +431,9 @@ here**. Before moving on, every one of the four files must pass:
   they bridge
 - relationships use only the active core links from the model (a core-link
   verb on a wrong pair is a model error — fix the model, regenerate)
+- `edgy_lint.py --series` over the four files reports no W121: one legend
+  placement, one content margin, one card width per type, one font size
+  across the delivery (set the model's `layout` block, never patch a file)
 
 #### Structural maps (recommended, optional)
 
@@ -428,6 +449,36 @@ with the same ids** (one disconnected second model is worse than none):
 
 Add a map only when it answers a useful question for this company; do not
 generate every map for every scope.
+
+#### Phase 4b — Semantic review of the purpose map (MANDATORY when a purpose map is delivered)
+
+A purpose map that lints clean can still be wrong in meaning (actions as
+Purposes, proposed metrics shown as confirmed, influences drawn as
+`contains`). After the purpose map TXT is written (structural maps above)
+and before its diagram is generated:
+
+1. Tag every **Purpose** with its provenance — `[confirmed]` (public
+   source), `[analytical]` (your interpretation) or `[proposed]` (S004) —
+   and every **Outcome** with `{status: confirmed|proposed}` (S003). Other
+   element types may carry a tag; the review does not require it.
+   For the four facet files `edgy_model_to_txt.py` writes the tags from the
+   model's `provenance` fields; the purpose map is a structural map written
+   from the same model (Phase 4 table), so its Outcomes and their
+   `{status: …}` are written by the analyst — the model has no Outcome
+   type.
+2. Run the review and read every question:
+   ```bash
+   python3 skills/documentation/edgy-diagram/scripts/edgy_semantic_review.py <company>-purpose.txt
+   ```
+   S001 action as a Purpose, S002 Outcome measures nothing, S003 / S004
+   missing provenance, S005 `contains` that may be an influence, S006 metric
+   in a Purpose name. Fix the **model**, regenerate.
+3. Walk the checklist in edgy-framework *Purpose map semantic review* and
+   write the sign-off line into the report (section 9) and the delivery
+   note: `Semantic review: approved by <role>, <date> — S-findings answered: <n>`
+   — in the report's language; the template of each language (section 9)
+   carries the equivalent line. The tool never approves; a person does.
+   Zero findings is not a sign-off.
 
 If Python is unavailable and the XML must be written by hand, follow the
 edgy-diagram inline example and lint it in the next environment that has
@@ -461,8 +512,18 @@ Before completion, check ALL:
 - [ ] Relationships use official 24 core links
 - [ ] Output language matches `language` parameter
 
+#### Approvals (`qa.json`, one per diagram):
+- [ ] `python3 $G/edgy_qa.py --require-approvals <company>-*.qa.json` exits 0 — it lists the lint result and
+      the two approvals on **separate lines**: zero lint findings is never an approval
+- [ ] `visual_approval` set by the person who looked at every preview, as `"<name or role>, YYYY-MM-DD"`
+- [ ] `semantic_approval` set by the person who answered the semantic review (Phase 4b) — for a delivery
+      with a purpose map, after every S-finding has an answer in the report
+- [ ] `delivery_notes` carries anything the reader must know (a layout option that was switched off, a
+      warning that was accepted and why)
+
 #### Layout quality:
 - [ ] `edgy_lint.py --warnings-as-errors --visual` passes for all four drawio files (0 errors, no W111–W114)
+- [ ] `edgy_lint.py --series` over the four files reports no W121; the layout rules W117–W120 report nothing or each finding is answered in `delivery_notes`
 - [ ] Every diagram was previewed (`--preview` / `edgy_render.py`) and looked at; the preview checklist passed
 - [ ] No elements at negative coordinates in any drawio file
 - [ ] No overlapping elements in any drawio file (min 10px gap)

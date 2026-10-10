@@ -163,7 +163,7 @@ relationships:
 
 def test_element_width_follows_measured_title():
     # 'Illinois' is narrow, 'WWW MMM' is wide — same character count, different measured widths
-    p, root, _ = gen("map_type: asset\nelements:\n  - asset: \"IIIIIIIIIIIIIIII\"\n  - asset: \"WWWWWWWWWWWWWWWW\"\n")
+    p, root, _ = gen("map_type: asset\nequal_cards: false\nelements:\n  - asset: \"IIIIIIIIIIIIIIII\"\n  - asset: \"WWWWWWWWWWWWWWWW\"\n")
     cells = cells_by_label(root)
     narrow = float(cells['IIIIIIIIIIIIIIII'].find('mxGeometry').get('width'))
     wide = float(cells['WWWWWWWWWWWWWWWW'].find('mxGeometry').get('width'))
@@ -279,6 +279,96 @@ def test_triad_panel_titles_follow_language():
     q = EDGYParser()
     q.parse_input("language: sv\nelements:\n  - asset: \"A\"\n")
     assert q.language == 'en' and any('language' in w for w in q.warnings)
+
+
+FI_PURPOSE = """
+map_type: purpose
+language: fi
+elements:
+  - purpose: "Sujuva arki" [vahvistettu]
+  - purpose: "Saumattomat matkaketjut" [analyyttinen]
+  - outcome: "Ovelta ovelle −15 %" {status: proposed}
+  - organisation: "Joukkoliikennelautakunta"
+relationships:
+  - "Sujuva arki" -> "Saumattomat matkaketjut": "contains"
+  - "Ovelta ovelle −15 %" -> "Saumattomat matkaketjut": "measures"
+  - "Joukkoliikennelautakunta" -> "Sujuva arki": "pursues"
+"""
+
+
+def _edge_labels(root):
+    return [c.get('value') for c in root.iter('mxCell') if c.get('edge') == '1' and c.get('source')]
+
+
+def test_verbs_render_in_map_language():
+    p, root, xml = gen(FI_PURPOSE)
+    labels = _edge_labels(root)
+    assert sorted(labels) == ['mittaa', 'sisältää', 'tavoittelee'], labels     # contains / measures / pursues → fi
+    assert p.relationships[0]['label'] == 'contains', 'the model keeps the canonical verb'
+    # already Finnish and free text stay as written; translate_verbs: false keeps English
+    p2, root2, _ = gen(FI_PURPOSE.replace('"contains"', '"sisältää"').replace('"pursues"', '"ajaa eteenpäin"'))
+    assert sorted(_edge_labels(root2)) == ['ajaa eteenpäin', 'mittaa', 'sisältää']
+    p3, root3, _ = gen(FI_PURPOSE.replace('language: fi', 'language: fi\ntranslate_verbs: false'))
+    assert 'contains' in _edge_labels(root3)
+    # merged duplicate labels translate per part
+    p4, root4, _ = gen("facet: architecture\nlanguage: de\nelements:\n  - capability: \"A\"\n  - asset: \"B\"\n"
+                       "relationships:\n  - \"A\" -> \"B\": \"requires\"\n  - \"A\" -> \"B\": \"depends on\"\n")
+    assert _edge_labels(root4) == ['erfordert / hängt ab von'], _edge_labels(root4)
+    # no language: → verbs untouched (byte-identity of the existing examples)
+    p5, root5, _ = gen(FI_PURPOSE.replace('language: fi\n', ''))
+    assert 'contains' in _edge_labels(root5)
+
+
+def test_flow_verbs_sends_receives_translate():
+    from edgy_vocab import translate, languages_of
+    assert translate('sends', 'fi') == 'lähettää' and translate('receives', 'de') == 'empfängt' and translate('envoie', 'en') == 'sends'
+    assert languages_of('vastaanottaa') == {'fi'}
+    p, root, _ = gen('map_type: asset\nlanguage: fi\nelements:\n  - asset: "A"\n  - asset: "B"\nrelationships:\n  - "A" -> "B": "sends"\n')
+    assert 'lähettää' in _edge_labels(root) and p.relationships[0]['kind'] == 'flow'
+
+
+def test_ambiguous_spelling_translates_by_pair():
+    from edgy_vocab import translate
+    assert translate('erscheint in', 'en', ('product', 'journey')) == 'features in'
+    assert translate('erscheint in', 'en', ('brand', 'journey')) == 'appears in'
+    assert translate('erscheint in', 'en') == 'appears in', 'without a pair the first row wins'
+    p, root, xml = gen('map_type: journey\nlanguage: en\nelements:\n  - product: "App"\n  - journey: "Commute"\nrelationships:\n  - "App" -> "Commute": "erscheint in"\n')
+    assert _edge_labels(root) == ['features in'], _edge_labels(root)
+    assert not any('Ydinlinkki' in w for w in p.warnings), p.warnings
+
+
+def test_core_link_alias_is_in_the_vocabulary_index():
+    from edgy_vocab import translate, languages_of
+    assert languages_of('osa') == {'fi'} and translate('osa', 'en') == 'is part of' and translate('osa', 'fi') == 'on osa'
+
+
+def test_german_produces_data_is_a_flow_verb():
+    p, root, xml = gen('map_type: asset\nlanguage: de\nelements:\n  - asset: "A"\n  - asset: "B"\nrelationships:\n  - "A" -> "B": "erzeugt Daten"\n')
+    assert p.relationships[0]['kind'] == 'flow' and not any('tuntematon' in w.lower() for w in p.warnings), p.warnings
+    import edgy_lint, tempfile
+    d = tempfile.mkdtemp(); path = os.path.join(d, 'de.drawio'); open(path, 'w', encoding='utf-8').write(xml)
+    f = edgy_lint.lint_file(path, edgy_lint.main.__globals__['argparse'].Namespace(no_legend=False))
+    assert not [x for x in f if x.rule in ('W105', 'W116')], [str(x) for x in f]
+
+
+def test_legend_follows_language():
+    import html as _html
+    from edgy_parser import LEGEND_TEXT
+    for lang in ('fi', 'fr', 'de'):
+        p, root, xml = gen(FI_PURPOSE.replace('language: fi', f'language: {lang}'))
+        xml = _html.unescape(_html.unescape(xml))      # value="…&amp;#x27;…": html label escaped once, XML once
+        L = LEGEND_TEXT[lang]
+        assert L['title'] in xml and L['lines'][2] in xml and L['chips'][0] in xml, (lang, L['title'])
+        assert 'Tree (hierarchy)' not in xml, lang
+        with_overlay = FI_PURPOSE.replace('language: fi', f'language: {lang}\nlegend: strip') \
+                                 .replace('  - organisation:', '  - capability: "K" {change: new}\n  - organisation:')
+        p2, root2, xml2 = gen(with_overlay)
+        xml2 = _html.unescape(_html.unescape(xml2))
+        for s in (L['title'], L['lines_short'][0], L['overlay_short'], L['change']['new']):
+            assert s in xml2, (lang, s)
+    # default: exactly the old English strings
+    p, root, xml = gen(FI_PURPOSE.replace('language: fi\n', ''))
+    assert 'EDGY 23 — Legend' in xml and 'Tree (hierarchy)' in xml and 'hierarkia' not in xml, 'the English legend is English'
 
 
 def test_purpose_tree_parent_centred_and_no_branch_through_children():
@@ -555,6 +645,218 @@ elements:
     missing = EDGYParser(); missing.parse_input("facet: architecture\nlayout_from: /no/such.archimate#X\nelements:\n  - asset: \"A\"\n")
     missing.generate_xml()
     assert any('ei luettavissa' in w for w in missing.warnings), missing.warnings
+
+
+# ---- Sprint 15: layout options and equal cards ------------------------------
+def _widths(root, names):
+    cells = cells_by_label(root)
+    return {n: (float(cells[n].find('mxGeometry').get('width')), float(cells[n].find('mxGeometry').get('height'))) for n in names}
+
+
+def test_equal_cards_default():
+    """Same type → same width and height on the page (max of both, width ≤ 280); equal_cards: false restores measured widths."""
+    src = 'map_type: asset\nelements:\n  - asset: "Short"\n  - asset: "A considerably longer asset name here"\n  - asset: "Mid - with a description line"\n  - people: "Driver"\n'
+    p, root, _ = gen(src)
+    ws = _widths(root, ['Short', 'A considerably longer asset name here', 'Mid'])
+    assert len({w for w, _ in ws.values()}) == 1 and len({h for _, h in ws.values()}) == 1, ws
+    assert max(w for w, _ in ws.values()) <= 280
+    assert _widths(root, ['Driver'])['Driver'][0] < 120, 'a lone person keeps its own size'
+    p2, root2, _ = gen(src.replace('map_type: asset', 'map_type: asset\nequal_cards: false'))
+    ws2 = _widths(root2, ['Short', 'A considerably longer asset name here'])
+    assert ws2['Short'][0] < ws2['A considerably longer asset name here'][0], ws2
+
+
+def test_card_width_option():
+    src = 'map_type: asset\ncard_width: 200\nelements:\n  - asset: "Short"\n  - asset: "A considerably longer asset name that wraps"\n  - asset: "Big" {size: L}\n  - people: "Driver"\n'
+    p, root, _ = gen(src)
+    ws = _widths(root, ['Short', 'A considerably longer asset name that wraps', 'Big', 'Driver'])
+    assert ws['Big'][0] == 270, 'size class L stays wider than card_width'   # equalised with the others → all 270
+    assert ws['Short'][0] == ws['A considerably longer asset name that wraps'][0] == 270
+    assert ws['Driver'][0] < 120, 'person shape ignores card_width'
+    p2, root2, _ = gen(src.replace('  - asset: "Big" {size: L}\n', ''))
+    ws2 = _widths(root2, ['Short', 'A considerably longer asset name that wraps'])
+    assert {w for w, _ in ws2.values()} == {200.0}, ws2
+    bad = EDGYParser(); bad.parse_input('map_type: asset\ncard_width: 7\nelements:\n  - asset: "A"\n')
+    assert any('card_width' in w for w in bad.warnings), bad.warnings
+
+
+BALANCED = """map_type: capability
+group_columns: 2
+cards_per_row: 2
+equal_group_width: true
+align_groups: grid
+elements:
+  - group: "Area one"
+    - capability: "A1"
+    - capability: "A2 with a longer name"
+    - capability: "A3"
+  - group: "Area two"
+    - capability: "B1"
+  - group: "Area three with a long title"
+    - capability: "C1"
+    - capability: "C2"
+    - capability: "C3"
+    - capability: "C4"
+  - group: "Area four"
+    - capability: "D1"
+    - capability: "D2"
+"""
+
+
+def test_balanced_grid():
+    """2 × 2 containers on exact rows and columns: equal widths, two distinct x and two distinct y, row heights equal."""
+    import edgy_lint
+    p, root, xml = gen(BALANCED)
+    cells = cells_by_label(root)
+    boxes = {}
+    for n in ('Area one', 'Area two', 'Area three with a long title', 'Area four'):
+        g = cells[n].find('mxGeometry')
+        boxes[n] = tuple(float(g.get(k)) for k in ('x', 'y', 'width', 'height'))
+    assert len({b[2] for b in boxes.values()}) == 1, boxes
+    xs = sorted({b[0] for b in boxes.values()}); ys = sorted({b[1] for b in boxes.values()})
+    assert len(xs) == 2 and len(ys) == 2, (xs, ys)
+    assert xs[1] - xs[0] == boxes['Area one'][2] + 40, 'second column exactly one gap after the first'
+    assert boxes['Area one'][3] == boxes['Area two'][3] and boxes['Area three with a long title'][3] == boxes['Area four'][3]
+    # cards_per_row: 2 → C1..C4 on two rows inside their container
+    cx = {n: abs_pos(root, cells[n])[0] for n in ('C1', 'C2', 'C3', 'C4')}
+    assert cx['C1'] == cx['C3'] and cx['C2'] == cx['C4'] and cx['C1'] < cx['C2'], cx
+    import tempfile
+    d = tempfile.mkdtemp(); path = os.path.join(d, 'g.drawio')
+    open(path, 'w', encoding='utf-8').write(xml)
+    ns = edgy_lint.main.__globals__['argparse'].Namespace
+    f = edgy_lint.lint_file(path, ns(no_legend=False))
+    assert not [x for x in f if x.rule in ('W117', 'W118', 'W119', 'W120')], [str(x) for x in f]
+
+
+def test_equal_group_width():
+    p, root, _ = gen(BALANCED.replace('equal_group_width: true\n', '').replace('align_groups: grid\n', ''))
+    cells = cells_by_label(root)
+    ws = {n: float(cells[n].find('mxGeometry').get('width')) for n in ('Area one', 'Area two')}
+    assert ws['Area one'] != ws['Area two'], ws
+    p, root, _ = gen(BALANCED.replace('align_groups: grid\n', ''))
+    cells = cells_by_label(root)
+    ws = {n: float(cells[n].find('mxGeometry').get('width')) for n in ('Area one', 'Area two', 'Area four')}
+    assert len(set(ws.values())) == 1, ws
+
+
+def test_uniform_content_margin():
+    """Every layout puts the content's top-left corner at (60, 60) — the series check (W121) relies on it."""
+    for src in ('map_type: asset\nelements:\n  - asset: "A"\n  - asset: "B"\n',
+                'map_type: process\nelements:\n  - process: "A"\n  - process: "B"\n',
+                BALANCED):
+        p, root, _ = gen(src)
+        xs, ys = [], []
+        for c in root.iter('mxCell'):
+            st = c.get('style') or ''
+            if c.get('vertex') == '1' and c.get('parent') == '1' and ('fillColor=#a6c0ff' in st or 'container=1' in st):
+                x, y = abs_pos(root, c); xs.append(x); ys.append(y)
+        assert min(xs) == 60 and min(ys) == 60, (min(xs), min(ys), src[:20])
+
+
+# ---- Sprint 16: task stakeholder map ---------------------------------------------
+def _edges(root):
+    return [c for c in root.iter('mxCell') if c.get('edge') == '1' and c.get('source') and c.get('target')]
+
+
+def test_task_inventory_has_no_edges():
+    """Explicit lanes + stages: a matrix with header cells, lane members at root, 0 edges, strict lint clean."""
+    import edgy_lint, tempfile
+    with open(os.path.join(EXAMPLES, 'task-stakeholder-map.txt'), encoding='utf-8') as f:
+        text = f.read()
+    import edgy_document
+    pages = edgy_document.parse_document(text)
+    inv = dict(pages)['Inventory']
+    xml = inv.generate_xml(); root = ET.fromstring(xml)
+    assert not _edges(root), 'inventory variant draws no relationship'
+    headers = [c for c in root.iter('mxCell') if 'edgyRole=header' in (c.get('style') or '')]
+    assert [c.get('value') for c in headers] == ['Plan', 'Buy', 'Ride']
+    cells = cells_by_label(root)
+    hx = {c.get('value'): float(c.find('mxGeometry').get('x')) for c in headers}
+    assert abs(abs_pos(root, cells['Buy a ticket'])[0] - hx['Buy']) < 1 and abs(abs_pos(root, cells['Check tickets'])[0] - hx['Ride']) < 1
+    assert abs_pos(root, cells['Validate the ticket'])[0] == abs_pos(root, cells['Follow the vehicle'])[0], 'two tasks of one stage stack'
+    assert 'stage: Ride' not in xml, 'the stage is shown by the column, not in the subtext'
+    assert float(headers[0].find('mxGeometry').get('y')) >= 20, 'headers stay on the page'
+    d = tempfile.mkdtemp(); path = os.path.join(d, 'i.drawio'); open(path, 'w', encoding='utf-8').write(xml)
+    f = edgy_lint.lint_file(path, edgy_lint.main.__globals__['argparse'].Namespace(no_legend=False))
+    assert not f, [str(x) for x in f]
+
+
+def test_task_lanes_derived_from_stakeholder_relationships():
+    p, root, xml = gen("""
+map_type: task
+elements:
+  - people: "Passenger"
+  - organisation: "Customer service"
+  - task: "Plan a trip"
+  - task: "Buy a ticket"
+  - task: "Answer a refund claim"
+  - task: "Loose task"
+relationships:
+  - "Passenger" -> "Plan a trip": "performs"
+  - "Passenger" -> "Buy a ticket": "performs"
+  - "Customer service" -> "Answer a refund claim": "performs"
+""")
+    lanes = [c for c in root.iter('mxCell') if c.get('vertex') == '1' and 'verticalAlign=top' in c.get('style', '') and 'strokeColor=none' in c.get('style', '')]
+    assert sorted(c.get('value') for c in lanes) == ['Customer service', 'Passenger'], [c.get('value') for c in lanes]
+    cells = cells_by_label(root)
+    assert 'Passenger' in cells and cells['Passenger'] in lanes, 'the stakeholder is the lane, not a box'
+    assert not _edges(root), 'stakeholder relationships become lane membership'
+    assert any('stakeholder(s) drawn as lanes' in w for w in p.warnings), p.warnings
+    assert abs_pos(root, cells['Loose task'])[1] > abs_pos(root, cells['Answer a refund claim'])[1], 'unassigned task below the lanes'
+    # a task related to two stakeholders: one lane holds it, the other lane names it — no box, no edge
+    p2, root2, _ = gen("""
+map_type: task
+elements:
+  - people: "Passenger"
+  - people: "Driver"
+  - task: "Validate the ticket"
+relationships:
+  - "Passenger" -> "Validate the ticket": "performs"
+  - "Driver" -> "Validate the ticket": "performs"
+""")
+    lanes2 = sorted(c.get('value') for c in root2.iter('mxCell') if c.get('vertex') == '1' and 'verticalAlign=top' in c.get('style', '') and 'strokeColor=none' in c.get('style', ''))
+    assert lanes2 == ['Driver (also: Validate the ticket)', 'Passenger'], lanes2
+    assert not _edges(root2) and {p2.elements[h]['name'] for h in p2._hidden} == {'Passenger', 'Driver'}
+    assert any('shares 1 task(s)' in w for w in p2.warnings), p2.warnings
+    # a stakeholder with a relationship to something that is not a task keeps its box and its edges
+    p3, root3, _ = gen("""
+map_type: task
+elements:
+  - organisation: "Acme Transit"
+  - people: "Passenger"
+  - purpose: "Effortless travel"
+  - task: "Plan a trip"
+  - task: "Buy a ticket"
+relationships:
+  - "Acme Transit" -> "Plan a trip": "performs"
+  - "Acme Transit" -> "Effortless travel": "pursues"
+  - "Passenger" -> "Buy a ticket": "performs"
+""")
+    lanes3 = [c.get('value') for c in root3.iter('mxCell') if c.get('vertex') == '1' and 'verticalAlign=top' in c.get('style', '') and 'strokeColor=none' in c.get('style', '')]
+    assert lanes3 == ['Passenger'], lanes3
+    labels3 = sorted(c.get('value') for c in _edges(root3))
+    assert labels3 == ['performs', 'pursues'], labels3
+    assert any("keeps its box" in w for w in p3.warnings), p3.warnings
+
+
+def test_task_path_variant():
+    """task → journey / channel without lanes: journeys above, tasks in input order, channels below; vertical ports."""
+    import edgy_lint, tempfile, edgy_document
+    with open(os.path.join(EXAMPLES, 'task-stakeholder-map.txt'), encoding='utf-8') as f:
+        pages = edgy_document.parse_document(f.read())
+    path_page = dict(pages)['Path']
+    xml = path_page.generate_xml(); root = ET.fromstring(xml)
+    cells = cells_by_label(root)
+    jy = abs_pos(root, cells['Daily commute'])[1]
+    ty = {n: abs_pos(root, cells[n])[1] for n in ('Plan a trip', 'Buy a ticket', 'Validate the ticket', 'Follow the vehicle')}
+    cy = abs_pos(root, cells['Mobile app'])[1]
+    assert jy < min(ty.values()) and len(set(ty.values())) == 1 and max(ty.values()) < cy
+    xs = [abs_pos(root, cells[n])[0] for n in ('Plan a trip', 'Buy a ticket', 'Validate the ticket', 'Follow the vehicle')]
+    assert xs == sorted(xs), 'input order left to right'
+    assert len(_edges(root)) == 8
+    d = tempfile.mkdtemp(); path = os.path.join(d, 'p.drawio'); open(path, 'w', encoding='utf-8').write(xml)
+    f = edgy_lint.lint_file(path, edgy_lint.main.__globals__['argparse'].Namespace(no_legend=False))
+    assert not f, [str(x) for x in f]
 
 
 def main():

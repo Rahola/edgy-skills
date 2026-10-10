@@ -47,14 +47,15 @@ from edgy_core_links import (  # noqa: E402
 )
 import edgy_geometry as _geo  # noqa: E402 — portit ja sivut samasta paikasta kuin renderöijä ja lintti
 import edgy_text as _text     # noqa: E402 — tekstin mittaus glyyfitaulukoilla, sama kuin renderöijä ja lintti
+import edgy_vocab as _vocab   # noqa: E402 — verbien kielet ja käännökset (ydinlinkit, influence, flow, tree)
 
 # Flow relationships → open arrowhead (data/value flows concretely)
 # Supported in FI, EN, FR, DE
 FLOW_RELATIONSHIPS = {
-    'virtaa', 'siirtyy', 'tuottaa dataa', 'palauttaa',           # FI
-    'flows', 'transfers', 'sends', 'receives', 'produces data', 'returns',  # EN
-    'circule', 'transfère', 'produit des données', 'retourne',   # FR
-    'fließt', 'überträgt', 'erzeugt Daten', 'gibt zurück',       # DE
+    'virtaa', 'siirtyy', 'lähettää', 'vastaanottaa', 'tuottaa dataa', 'palauttaa',   # FI
+    'flows', 'transfers', 'sends', 'receives', 'produces data', 'returns',          # EN
+    'circule', 'transfère', 'envoie', 'reçoit', 'produit des données', 'retourne',  # FR
+    'fließt', 'überträgt', 'sendet', 'empfängt', 'erzeugt daten', 'gibt zurück',    # DE (lower case: labels are lowered before the check)
 }
 
 # Tree hierarchy relationships → solid line, no arrowhead
@@ -208,7 +209,57 @@ CHANGE_LABELS = {
     'keep': 'keep / säilyy', 'new': 'new, strengthen / uusi', 'change': 'change, merge / muuttuu',
     'replace': 'replace / korvautuu', 'remove': 'remove / poistuu', 'decide': 'decide (open, see ADR) / päätettävä',
 }
-RESERVED_METRIC_KEYS = {'id', 'change', 'size', 'highlight', 'primary'}
+
+# ─── Legenda ja generoidut otsikot kielen mukaan (`language:`) ─────────────
+# 'en' on nykyinen oletus (merkkijonot täsmälleen kuten ennen); EDGY-fasettien
+# nimet (Identity/Architecture/Experience) ovat erisnimiä eikä niitä käännetä.
+LEGEND_TEXT = {
+    'en': {
+        'title': 'EDGY 23 — Legend',
+        'chips': ['Identity (Purpose, Story, Content)', 'Architecture (Capability, Asset, Process)',
+                  'Experience (Task, Channel, Journey)', 'Brand', 'Product', 'Organisation'],
+        'chips_short': ['Identity', 'Architecture', 'Experience', 'Brand', 'Product', 'Organisation'],
+        'lines': ['Link (core link)', 'Flow (data/value)', 'Tree (hierarchy)', 'Influence (guides)'],
+        'lines_short': ['Link', 'Flow', 'Tree', 'Influence'],
+        'overlay': 'Transition (extension, stroke only)', 'overlay_short': 'Transition (extension)',
+        'change': CHANGE_LABELS,
+    },
+    'fi': {
+        'title': 'EDGY 23 — Selite',
+        'chips': ['Identity (Tarkoitus, Tarina, Sisältö)', 'Architecture (Kyvykkyys, Resurssi, Prosessi)',
+                  'Experience (Tehtävä, Kanava, Matka)', 'Brändi', 'Tuote', 'Organisaatio'],
+        'chips_short': ['Identity', 'Architecture', 'Experience', 'Brändi', 'Tuote', 'Organisaatio'],
+        'lines': ['Linkki (ydinlinkki)', 'Virta (tieto/arvo)', 'Puu (hierarkia)', 'Vaikutus (ohjaa)'],
+        'lines_short': ['Linkki', 'Virta', 'Puu', 'Vaikutus'],
+        'overlay': 'Siirtymä (laajennus, vain reunaviiva)', 'overlay_short': 'Siirtymä (laajennus)',
+        'change': {'keep': 'säilyy', 'new': 'uusi, vahvistuu', 'change': 'muuttuu, yhdistyy',
+                   'replace': 'korvautuu', 'remove': 'poistuu', 'decide': 'päätettävä (avoin, ks. ADR)'},
+    },
+    'fr': {
+        'title': 'EDGY 23 — Légende',
+        'chips': ["Identity (Raison d'être, Récit, Contenu)", 'Architecture (Capacité, Actif, Processus)',
+                  'Experience (Tâche, Canal, Parcours)', 'Marque', 'Produit', 'Organisation'],
+        'chips_short': ['Identity', 'Architecture', 'Experience', 'Marque', 'Produit', 'Organisation'],
+        'lines': ['Lien (lien fondamental)', 'Flux (données/valeur)', 'Arbre (hiérarchie)', 'Influence (guide)'],
+        'lines_short': ['Lien', 'Flux', 'Arbre', 'Influence'],
+        'overlay': 'Transition (extension, contour seul)', 'overlay_short': 'Transition (extension)',
+        'change': {'keep': 'conserver', 'new': 'nouveau, renforcer', 'change': 'modifier, fusionner',
+                   'replace': 'remplacer', 'remove': 'supprimer', 'decide': 'à décider (ouvert, voir ADR)'},
+    },
+    'de': {
+        'title': 'EDGY 23 — Legende',
+        'chips': ['Identity (Zweck, Geschichte, Inhalt)', 'Architecture (Fähigkeit, Ressource, Prozess)',
+                  'Experience (Aufgabe, Kanal, Reise)', 'Marke', 'Produkt', 'Organisation'],
+        'chips_short': ['Identity', 'Architecture', 'Experience', 'Marke', 'Produkt', 'Organisation'],
+        'lines': ['Verknüpfung (Kernverknüpfung)', 'Fluss (Daten/Wert)', 'Baum (Hierarchie)', 'Einfluss (steuert)'],
+        'lines_short': ['Verknüpfung', 'Fluss', 'Baum', 'Einfluss'],
+        'overlay': 'Übergang (Erweiterung, nur Kontur)', 'overlay_short': 'Übergang (Erweiterung)',
+        'change': {'keep': 'bleibt', 'new': 'neu, gestärkt', 'change': 'ändert sich, zusammengeführt',
+                   'replace': 'ersetzt', 'remove': 'entfällt', 'decide': 'zu entscheiden (offen, siehe ADR)'},
+    },
+}
+LEGEND_TITLES = {lang: t['title'] for lang, t in LEGEND_TEXT.items()}   # lint päättelee kartan kielen otsikosta
+RESERVED_METRIC_KEYS = {'id', 'change', 'size', 'highlight', 'primary', 'stage'}
 
 # Ydinlinkkien parivalidointi: verbi → {(lähdetyyppi, kohdetyyppi), ...}
 # Sama verbi voi olla sallittu usealle parille (esim. requires/vaatii:
@@ -236,7 +287,21 @@ class EDGYParser:
         self.layout_from = None    # (archimate file, view name, scale, dx, dy) tai None
         self.legend = 'box'        # 'box' = laatikko oikeassa alakulmassa, 'strip' = kapea nauha alareunassa
         self._legend_explicit = False
-        self.language = 'en'       # generoitujen otsikoiden kieli (triadin "Further <type>" -paneelit): fi | en | fr | de
+        self.language = 'en'       # generoitujen tekstien kieli (legenda, triadin paneelit, verbit): fi | en | fr | de
+        self._language_explicit = False
+        self.translate_verbs = True  # language: asetettu → sanaston verbit renderöidään kartan kielellä (translate_verbs: false kytkee pois)
+        # Asettelun vakiomitoitus (2.6.0): dokumenttitason avaimet
+        self.card_width = None       # card_width: N — jokaisen laatikon leveys (ei person-hahmolle); kokoluokka voi olla suurempi
+        self.equal_cards = True      # equal_cards: false — saman tyypin laatikot EIVÄT saa yhteistä leveyttä/korkeutta sivulla
+        self.group_columns = None    # group_columns: N — kontit N sarakkeeseen
+        self.cards_per_row = None    # cards_per_row: N — kontin sisäinen ruudukko N sarakkeeseen
+        self.equal_group_width = False  # equal_group_width: true — kontit saavat leveimmän kontin leveyden
+        self.align_groups = None     # align_groups: grid — kontit yhteiseen rivi/sarake-ruudukkoon (rivin korkeus = korkein)
+        self.stages = []             # stages: A, B, C — tehtäväkartan sarakkeet (kaistat = sidosryhmät)
+        self.title = None            # title: — natiivipresettien otsikkonauha
+        self.footnote = None         # footnote: — natiivipresettien alaviitenauha
+        self._hidden = set()         # elementit, joita ei piirretä (tehtäväkartta: kaistaksi muuttunut sidosryhmä)
+        self._stage_headers = []     # [(teksti, x, y, w)] sarakeotsikot kaistojen yläpuolelle
         self._size_override = {}   # elem_id → (w, h): layoutin pakottama koko (triad: kehän laatikot, paneelien sirut)
         self._triad_detours = {}   # (src, tgt) → (exit_side, entry_side, [(x, y), …]) kehää kiertävät linkit
         self._triad_hidden = set() # paneeleihin jäävät (ei-ensisijaiset) elementit: niiden linkkejä ei piirretä
@@ -278,8 +343,29 @@ class EDGYParser:
                 lang_value = line.split(':', 1)[1].strip().lower()
                 if lang_value in ('fi', 'en', 'fr', 'de'):
                     self.language = lang_value
+                    self._language_explicit = True
                 else:
                     self.warnings.append(f"Tuntematon language-arvo '{lang_value}' (sallitut: fi, en, fr, de), käytetään 'en'")
+                continue
+            elif line.startswith('translate_verbs:'):
+                # translate_verbs: true | false — renderöidäänkö sanaston verbit kartan kielellä
+                tv = line.split(':', 1)[1].strip().lower()
+                if tv in ('true', 'false', 'yes', 'no', 'kyllä', 'ei'):
+                    self.translate_verbs = tv in ('true', 'yes', 'kyllä')
+                else:
+                    self.warnings.append(f"Tuntematon translate_verbs-arvo '{tv}' (sallitut: true, false), käytetään 'true'")
+                continue
+            elif line.split(':')[0].strip() in self._LAYOUT_OPTION_KEYS:
+                self._parse_layout_option(line)
+                continue
+            elif line.startswith('stages:'):
+                # stages: Plan, Buy, Ride — tehtäväkartan sarakkeet; tehtävä kiinnittyy {stage: Buy}; "none" tyhjentää
+                raw = line.split(':', 1)[1].strip()
+                self.stages = [] if raw.lower() in ('', 'none') else [x.strip() for x in raw.split(',') if x.strip()]
+                continue
+            elif line.startswith('title:') or line.startswith('footnote:'):
+                key, _, raw = line.partition(':')
+                setattr(self, key.strip(), raw.strip().strip('"') or None)
                 continue
             elif line.startswith('legend:'):
                 # legend: box (oletus) | strip — nauha alareunassa säästää kanvasta
@@ -373,6 +459,7 @@ class EDGYParser:
                         'primary': metrics.get('primary', '').lower() in ('1', 'true', 'yes', 'kyllä'),   # triad: kantaa tyypin linkit
                         'tags': [t for t in tags if t.lower() != 'focus'],
                         'metrics': {k: v for k, v in metrics.items() if k not in RESERVED_METRIC_KEYS},
+                        'stage': metrics.get('stage'),       # tehtäväkartan sarake (stages:)
                         'group': current_group,
                     }
                     if current_group is not None:
@@ -415,6 +502,37 @@ class EDGYParser:
                         })
                         if options.get('change'):
                             self.uses_change_overlay = True
+
+    _LAYOUT_OPTION_KEYS = ('card_width', 'equal_cards', 'group_columns', 'cards_per_row', 'equal_group_width', 'align_groups')
+
+    def _parse_layout_option(self, line: str) -> None:
+        """Dokumenttitason asetteluvalinnat (2.6.0). Virheellinen arvo → varoitus ja oletus pysyy.
+
+        card_width: N          laatikon leveys px (60–600), ei person-hahmolle; kokoluokka S/M/L voi olla leveämpi
+        equal_cards: true|false  saman tyypin laatikot sivulla saavat leveimmän/korkeimman mitat (oletus true)
+        group_columns: N       kontit N sarakkeeseen (karttatyyppi- ja facet-asettelu)
+        cards_per_row: N       kontin sisäinen ruudukko N sarakkeeseen
+        equal_group_width: true|false  kontit saavat leveimmän kontin leveyden (oletus false)
+        align_groups: grid|none  kontit yhteiseen rivi/sarake-ruudukkoon; rivin kontit venyvät rivin korkeuteen
+        """
+        key, _, raw = line.partition(':')
+        key, value = key.strip(), raw.strip().lower()
+        if key in ('card_width', 'group_columns', 'cards_per_row'):
+            lo, hi = (60, 600) if key == 'card_width' else (1, 12)
+            if value.isdigit() and lo <= int(value) <= hi:
+                setattr(self, key, int(value))
+            else:
+                self.warnings.append(f"Virheellinen {key}-arvo '{raw.strip()}' (kokonaisluku {lo}–{hi}), ohitetaan")
+        elif key in ('equal_cards', 'equal_group_width'):
+            if value in ('true', 'false', 'yes', 'no', 'kyllä', 'ei'):
+                setattr(self, key, value in ('true', 'yes', 'kyllä'))
+            else:
+                self.warnings.append(f"Tuntematon {key}-arvo '{raw.strip()}' (sallitut: true, false), ohitetaan")
+        elif key == 'align_groups':
+            if value in ('grid', 'none'):
+                self.align_groups = None if value == 'none' else value
+            else:
+                self.warnings.append(f"Tuntematon align_groups-arvo '{raw.strip()}' (sallitut: grid, none), ohitetaan")
 
     def _parse_layout_from(self, spec: str):
         """Jäsennä `layout_from: file.archimate#View [scale=S dx=X dy=Y]`."""
@@ -738,8 +856,9 @@ class EDGYParser:
     _WIDTH_PADDING = 20  # sisämarginaali molemmin puolin
     _MAX_WIDTH = 280     # leveimmän elementin yläraja
 
-    def _get_element_size(self, element: dict) -> Tuple[int, int]:
-        """Palauta elementin (leveys, korkeus).
+    def _get_element_size(self, element: dict, force_w: int = None) -> Tuple[int, int]:
+        """Palauta elementin (leveys, korkeus). `force_w` ohittaa leveyden laskennan
+        (equal_cards: yhteinen leveys, korkeus lasketaan siitä).
 
         - Leveys lasketaan NIMEN pituudesta (ei kuvauksesta): min 120 (rect),
           140 (pentagon), 60 (person), max 280, pyöristys 10:een.
@@ -750,7 +869,7 @@ class EDGYParser:
         import math
         if element.get('type') in STRUCTURE_TYPES:
             return self._computed_sizes.get(element['id'], (300, 160))
-        if element['id'] in self._size_override:        # layoutin pakottama koko (triad)
+        if force_w is None and element['id'] in self._size_override:   # layoutin pakottama koko (triad, equal_cards)
             return self._size_override[element['id']]
         shape = EDGY_SHAPES.get(element['type'], 'rect')
 
@@ -772,7 +891,11 @@ class EDGYParser:
         tip = 20 if shape == 'pentagon' else 0
         text_w = _text.measure(name, self._TITLE_FONT, bold=True) + self._WIDTH_PADDING + tip
         w = max(min_w, min(text_w, self._MAX_WIDTH))
+        if self.card_width and shape != 'person':
+            w = max(self.card_width, cw if size_class in SIZE_CLASSES else 0)   # card_width: nimi rivittyy, kokoluokka voi olla leveämpi
         w = int(math.ceil(w / 10) * 10)
+        if force_w is not None:
+            w = int(force_w)
 
         # Nimi rivittyy jos se ei mahdu yhdelle riville — rivitys mitattuna, ei arvioituna
         name_lines = _text.lines_needed(name, max(w - 16 - tip, 40), self._TITLE_FONT, bold=True)
@@ -889,15 +1012,16 @@ class EDGYParser:
     def _normalize_to_canvas(self, positions: Dict[str, Tuple[int, int]]) -> None:
         """Siirrä kaikki elementit positiiviseen canvas-tilaan.
 
-        Varmistaa että min_x >= MARGIN ja min_y >= MARGIN.
+        Sisällön vasen yläkulma on aina (MARGIN, MARGIN): sama marginaali
+        jokaisella sivulla ja jokaisessa sarjan kartassa (lint W121).
         """
-        MARGIN = 40
+        MARGIN = 60
         if not positions:
             return
         min_x = min(x for x, y in positions.values())
         min_y = min(y for x, y in positions.values())
-        shift_x = MARGIN - min_x if min_x < MARGIN else 0
-        shift_y = MARGIN - min_y if min_y < MARGIN else 0
+        shift_x = MARGIN - min_x
+        shift_y = MARGIN + getattr(self, '_top_reserve', 0) - min_y
         if shift_x or shift_y:
             for eid in positions:
                 x, y = positions[eid]
@@ -1031,8 +1155,26 @@ class EDGYParser:
             element_mapping[gid] = str(next_id)
             next_id += 1
 
+        # 1b) Vaiheotsikot kaistojen yläpuolelle (edgyRole=header: lint lukee ne sisällöksi)
+        lanes = [g for g in self.groups.values() if g['kind'] == 'lane' and g['id'] in group_pos]
+        if self.stages and self.map_type == 'task' and lanes:
+            first = min(lanes, key=lambda g: group_pos[g['id']][1])
+            lx, ly = group_pos[first['id']]
+            col_w = max([self._get_element_size(self.elements[m])[0] for g in lanes for m in g['members']] + [120])
+            for i, stage in enumerate(self.stages):
+                cell = ET.SubElement(mx_root, "mxCell", {
+                    "id": str(next_id), "value": html.escape(stage),
+                    "style": "text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#333333;edgyRole=header;",
+                    "vertex": "1", "parent": "1",
+                })
+                ET.SubElement(cell, "mxGeometry", {"x": str(int(round(lx + 20 + i * (col_w + 20)))), "y": str(int(round(ly - 30))),
+                                                   "width": str(int(col_w)), "height": "24", "as": "geometry"})
+                next_id += 1
+
         # 2) Elementit
         for idx, (elem_id, element) in enumerate(self.elements.items()):
+            if elem_id in self._hidden:
+                continue
             style = self._get_element_style(element)
             if elem_id in self._triad_hidden:
                 style = style.replace('fontSize=14;', 'fontSize=12;')   # paneelisirut: pienempi otsikko
@@ -1162,7 +1304,8 @@ class EDGYParser:
                 if dashed:
                     style += "dashed=1;dashPattern=8 4;"
             cell = ET.SubElement(mx_root, "mxCell", {
-                "id": str(next_id), "value": " / ".join(rel['labels']), "style": style,
+                "id": str(next_id), "value": " / ".join(self._render_verb(v, (self.elements[rel['source']]['type'], self.elements[rel['target']]['type']))
+                                                        for v in rel['labels']), "style": style,
                 "edge": "1", "source": element_mapping[rel['source']],
                 "target": element_mapping[rel['target']], "parent": "1",
             })
@@ -1190,19 +1333,19 @@ class EDGYParser:
             self._append_legend_cells(mx_root, next_id, page_width, page_height)
         return self._prettify_xml(root)
 
-    # Nauhalegendan sisältö: lyhyet nimet, jotta kuusi palaa ja neljä viivamallia mahtuvat yhdelle riville
-    _STRIP_CHIPS = [("#80ffb7", "Identity"), ("#a6c0ff", "Architecture"), ("#ff99bd", "Experience"),
-                    ("#ffd580", "Brand"), ("#e599ff", "Product"), ("#80eaff", "Organisation")]
-    _STRIP_LINES = [("endArrow=classic;endFill=1;strokeWidth=1;strokeColor=#333333;", "Link"),
-                    ("endArrow=open;endFill=0;strokeWidth=1;strokeColor=#333333;", "Flow"),
-                    ("endArrow=none;strokeWidth=1;strokeColor=#333333;", "Tree"),
-                    ("endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;", "Influence")]
+    # Legendan värit ja viivatyylit; tekstit tulevat LEGEND_TEXT[language]-taulusta
+    _CHIP_COLOURS = ("#80ffb7", "#a6c0ff", "#ff99bd", "#ffd580", "#e599ff", "#80eaff")
+    _LINE_STYLES = ("endArrow=classic;endFill=1;strokeWidth=1;strokeColor=#333333;",
+                    "endArrow=open;endFill=0;strokeWidth=1;strokeColor=#333333;",
+                    "endArrow=none;strokeWidth=1;strokeColor=#333333;",
+                    "endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;")
     _STRIP_ROW = 24
 
     def _legend_strip_rows(self, page_width: int) -> int:
         """Rivimäärä: palat ja viivamallit yhdellä rivillä jos mahtuvat, muuten kahdella; muutoskerros omalla rivillään."""
-        chips_w = sum(18 + _text.measure(lbl, 9) + 6 + 14 for _, lbl in self._STRIP_CHIPS)
-        lines_w = sum(28 + 4 + _text.measure(lbl, 9) + 6 + 14 for _, lbl in self._STRIP_LINES)
+        L = self._legend_text()
+        chips_w = sum(18 + _text.measure(lbl, 9) + 6 + 14 for lbl in L['chips_short'])
+        lines_w = sum(28 + 4 + _text.measure(lbl, 9) + 6 + 14 for lbl in L['lines_short'])
         rows = 1 if 130 + chips_w + lines_w <= page_width - 40 else 2
         return rows + (1 if self.uses_change_overlay else 0)
 
@@ -1215,16 +1358,17 @@ class EDGYParser:
         Täyttää E009:n rakenteellisen tunnistuksen: otsikkotekstisolu, ≥ 3
         värillistä palaa ja ≥ 1 irrallinen viivamalli (edge ilman source/target).
         """
+        L = self._legend_text()
         rows = self._legend_strip_rows(page_width)
         row_h = self._STRIP_ROW
         band_h = rows * row_h
         y0 = page_height - 16 - band_h
         cid = start_id
 
-        def text_cell(value, x, y, w, h, bold=False, size=9):
+        def text_cell(value, x, y, w, h, bold=False, size=9, extra=''):
             nonlocal cid
             style = (f"text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;"
-                     f"fontSize={size};" + ("fontStyle=1;" if bold else ""))
+                     f"fontSize={size};" + ("fontStyle=1;" if bold else "") + extra)
             cell = ET.SubElement(mx_root, "mxCell", {"id": str(cid), "value": value, "style": style, "vertex": "1", "parent": "1"})
             ET.SubElement(cell, "mxGeometry", {"x": str(int(x)), "y": str(int(y)), "width": str(int(w)), "height": str(int(h)), "as": "geometry"})
             cid += 1
@@ -1237,9 +1381,9 @@ class EDGYParser:
         cid += 1
 
         x = 30
-        text_cell("<b>EDGY 23 — Legend</b>", x, y0, 120, row_h, bold=True, size=10)
+        text_cell(f"<b>{html.escape(L['title'])}</b>", x, y0, 120, row_h, bold=True, size=10, extra=self._lang_marker())
         x += 130
-        for color, label in self._STRIP_CHIPS:
+        for color, label in zip(self._CHIP_COLOURS, L['chips_short']):
             chip = ET.SubElement(mx_root, "mxCell", {
                 "id": str(cid), "value": "",
                 "style": f"rounded=1;whiteSpace=wrap;html=1;fillColor={color};strokeColor=#ffffff;strokeWidth=1;",
@@ -1253,7 +1397,7 @@ class EDGYParser:
             x, y_line = 160, y0 + row_h          # viivamallit toiselle riville
         else:
             y_line = y0
-        for edge_style, label in self._STRIP_LINES:
+        for edge_style, label in zip(self._LINE_STYLES, L['lines_short']):
             arrow = ET.SubElement(mx_root, "mxCell", {"id": str(cid), "value": "", "style": f"edgeStyle=none;{edge_style}", "edge": "1", "parent": "1"})
             geo = ET.SubElement(arrow, "mxGeometry", {"relative": "1", "as": "geometry"})
             ET.SubElement(geo, "mxPoint", {"x": str(x), "y": str(y_line + 12), "as": "sourcePoint"})
@@ -1264,7 +1408,7 @@ class EDGYParser:
             x += 28 + 4 + tw + 14
         if self.uses_change_overlay:
             x, y_ov = 30, y0 + (rows - 1) * row_h
-            text_cell("<b>Transition (extension)</b>", x, y_ov, 120, row_h, bold=True)
+            text_cell(f"<b>{html.escape(L['overlay_short'])}</b>", x, y_ov, 120, row_h, bold=True)
             x += 130
             for key, (color, dashed) in CHANGE_PALETTE.items():
                 swatch = ET.SubElement(mx_root, "mxCell", {
@@ -1274,7 +1418,7 @@ class EDGYParser:
                     "vertex": "1", "parent": "1"})
                 ET.SubElement(swatch, "mxGeometry", {"x": str(x), "y": str(y_ov + 6), "width": "22", "height": "11", "as": "geometry"})
                 cid += 1
-                label = CHANGE_LABELS[key].split(' / ')[0]
+                label = L['change'][key].split(' / ')[0]
                 tw = int(_text.measure(label, 9) + 6)
                 text_cell(html.escape(label), x + 26, y_ov, tw, row_h)
                 x += 26 + tw + 14
@@ -1300,24 +1444,18 @@ class EDGYParser:
         ET.SubElement(bg, "mxGeometry", {"x": str(lx), "y": str(ly), "width": str(lw), "height": str(lh), "as": "geometry"})
         cid += 1
 
+        L = self._legend_text()
         # Otsikkorivi
         title = ET.SubElement(mx_root, "mxCell", {
-            "id": str(cid), "value": "<b>EDGY 23 — Legend</b>",
-            "style": "text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontStyle=1;",
+            "id": str(cid), "value": f"<b>{html.escape(L['title'])}</b>",
+            "style": "text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontStyle=1;" + self._lang_marker(),
             "vertex": "1", "parent": "1"
         })
         ET.SubElement(title, "mxGeometry", {"x": str(lx + 8), "y": str(ly + 4), "width": str(lw - 16), "height": "18", "as": "geometry"})
         cid += 1
 
         # Elementtivärit
-        elem_items = [
-            ("#80ffb7", "Identity (Purpose, Story, Content)"),
-            ("#a6c0ff", "Architecture (Capability, Asset, Process)"),
-            ("#ff99bd", "Experience (Task, Channel, Journey)"),
-            ("#ffd580", "Brand"),
-            ("#e599ff", "Product"),
-            ("#80eaff", "Organisation"),
-        ]
+        elem_items = list(zip(("#80ffb7", "#a6c0ff", "#ff99bd", "#ffd580", "#e599ff", "#80eaff"), L['chips']))
         for i, (color, label) in enumerate(elem_items):
             row_y = ly + 26 + i * 18
             dot = ET.SubElement(mx_root, "mxCell", {
@@ -1347,12 +1485,7 @@ class EDGYParser:
         cid += 1
 
         # Relaatiotyypit
-        rel_items = [
-            ("endArrow=classic;endFill=1;strokeWidth=1;strokeColor=#333333;", "Link (core link)"),
-            ("endArrow=open;endFill=0;strokeWidth=1;strokeColor=#333333;", "Flow (tieto/arvo)"),
-            ("endArrow=none;strokeWidth=1;strokeColor=#333333;", "Tree (hierarkia)"),
-            ("endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;", "Influence (ohjaa)"),
-        ]
+        rel_items = list(zip(self._LINE_STYLES, L['lines']))
         rel_y_start = sep_y + 8
         for i, (edge_style, label) in enumerate(rel_items):
             row_y = rel_y_start + i * 16
@@ -1384,7 +1517,7 @@ class EDGYParser:
             ET.SubElement(sep2, "mxGeometry", {"x": str(lx + 8), "y": str(oy), "width": str(lw - 16), "height": "6", "as": "geometry"})
             cid += 1
             title2 = ET.SubElement(mx_root, "mxCell", {
-                "id": str(cid), "value": "<b>Transition (extension, stroke only)</b>",
+                "id": str(cid), "value": f"<b>{html.escape(L['overlay'])}</b>",
                 "style": "text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;fontStyle=1;",
                 "vertex": "1", "parent": "1"})
             ET.SubElement(title2, "mxGeometry", {"x": str(lx + 8), "y": str(oy + 8), "width": str(lw - 16), "height": "16", "as": "geometry"})
@@ -1399,7 +1532,7 @@ class EDGYParser:
                 ET.SubElement(swatch, "mxGeometry", {"x": str(lx + 8), "y": str(row_y + 2), "width": "22", "height": "11", "as": "geometry"})
                 cid += 1
                 txt = ET.SubElement(mx_root, "mxCell", {
-                    "id": str(cid), "value": html.escape(CHANGE_LABELS[key]),
+                    "id": str(cid), "value": html.escape(L['change'][key]),
                     "style": "text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;",
                     "vertex": "1", "parent": "1"})
                 ET.SubElement(txt, "mxGeometry", {"x": str(lx + 36), "y": str(row_y), "width": str(lw - 44), "height": "16", "as": "geometry"})
@@ -1442,12 +1575,24 @@ class EDGYParser:
                     rx, ry = self._child_positions.get(eid, (20, 40))
                     result[eid] = (gx + rx, gy + ry)
             return result
+        self._hidden = set()
+        self._stage_headers = []
+        self._top_reserve = 0
+        self._equalise_cards()
         self._prepare_facet_groups()
+        self._prepare_task_lanes()
 
         for gid, group in self.groups.items():
             self._layout_group_members(gid, group)
+        if self.equal_group_width:
+            # Kontit (ei kaistat, ei synteettiset facet-kontit) saavat leveimmän leveyden
+            gids = [g for g, grp in self.groups.items() if grp['kind'] == 'group' and not grp.get('synthetic')]
+            if gids:
+                widest = max(self._computed_sizes[g][0] for g in gids)
+                for g in gids:
+                    self._computed_sizes[g] = (widest, self._computed_sizes[g][1])
 
-        top_items = [eid for eid, e in self.elements.items() if e.get('group') is None]
+        top_items = [eid for eid, e in self.elements.items() if e.get('group') is None and eid not in self._hidden]
         lanes = [gid for gid, g in self.groups.items() if g['kind'] == 'lane']
         containers = [gid for gid, g in self.groups.items() if g['kind'] == 'group']
 
@@ -1455,6 +1600,8 @@ class EDGYParser:
             positions = self._layout_reference(lanes, containers + top_items)
         elif lanes:
             positions = self._layout_lanes(lanes, containers + top_items)
+        elif self.map_type == 'task' and self._task_path_targets(top_items):
+            positions = self._layout_task_path(top_items)
         elif self.map_type:
             positions = self._calculate_map_type_layout(top_items, containers)
         else:
@@ -1491,6 +1638,137 @@ class EDGYParser:
                 rx, ry = self._child_positions.get(eid, (20, 40))
                 result[eid] = (gx + rx, gy + ry)
         return result
+
+    def _equalise_cards(self) -> None:
+        """equal_cards (oletus): saman tyypin laatikot sivulla saavat leveimmän
+        leveyden (max 280 ellei card_width/kokoluokka ole suurempi) ja siitä
+        lasketun korkeimman korkeuden → yhtenäinen mitoitus, W117 ei laukea.
+        Triad ohittaa tämän (kehän laatikot ovat jo yhtä kokoa)."""
+        if not self.equal_cards:
+            return
+        by_type: Dict[str, List[str]] = {}
+        for eid, e in self.elements.items():
+            if e['type'] not in STRUCTURE_TYPES:
+                by_type.setdefault(e['type'], []).append(eid)
+        for members in by_type.values():
+            if len(members) < 2:
+                continue
+            width = max(self._get_element_size(self.elements[m])[0] for m in members)
+            sizes = {m: self._get_element_size(self.elements[m], force_w=width) for m in members}
+            height = max(h for _, h in sizes.values())
+            for m in members:
+                self._size_override[m] = (width, height)
+
+    # ---- tehtäväkartta: sidosryhmäinventaario ja polku ----------------------
+    def _prepare_task_lanes(self) -> None:
+        """map_type: task ilman kaistoja: jos People/Organisation-elementillä on
+        relaatio tehtäviin, siitä tulee kaista (sidosryhmä) ja tehtävät sen
+        jäseniä. Sidosryhmäelementtiä ja sen relaatioita ei piirretä — kaista
+        kantaa ne (raportoidaan, ei pudoteta hiljaa). Kaistoja ei koskaan
+        keksitä: ilman relaatioita tehtävät jäävät ruudukkoon tai polkuun."""
+        for gid in [g for g, grp in self.groups.items() if grp.get('synthetic') == 'task']:
+            for m in self.groups[gid]['members']:
+                self.elements[m]['group'] = None
+            del self.groups[gid]
+        if self.map_type != 'task' or any(g['kind'] == 'lane' for g in self.groups.values()):
+            return
+        holders = [eid for eid, e in self.elements.items() if e['type'] in ('people', 'organisation')]
+        tasks = {eid for eid, e in self.elements.items() if e['type'] == 'task' and e.get('group') is None}
+        related: Dict[str, List[str]] = {}      # holder → every task it relates to (input order)
+        other: Dict[str, int] = {}              # holder → relationships to something that is not a task
+        for rel in self.relationships:
+            s, t = rel['source'], rel['target']
+            holder, task = (s, t) if s in holders and t in tasks else (t, s) if t in holders and s in tasks else (None, None)
+            if holder:
+                if task not in related.setdefault(holder, []):
+                    related[holder].append(task)
+            else:
+                for h in (s, t):
+                    if h in holders:
+                        other[h] = other.get(h, 0) + 1
+        # A stakeholder with a relationship to anything but a task stays a box: a lane cannot draw that edge
+        for h in [h for h in related if other.get(h)]:
+            self.warnings.append(f"task map: '{self.elements[h]['name']}' keeps its box — it has {other[h]} relationship(s) "
+                                 f"to elements that are not tasks, which a lane could not draw")
+            del related[h]
+        if not related:
+            return
+        # A task sits in one lane (its first stakeholder); every other related stakeholder still becomes a
+        # lane and names the shared task in its title, so no stakeholder stays a box with an edge.
+        placed: Dict[str, str] = {}
+        shared: Dict[str, List[str]] = {}
+        for holder in holders:
+            if holder not in related:
+                continue
+            own = [t for t in related[holder] if t not in placed]
+            for t in own:
+                placed[t] = holder
+            shared[holder] = [t for t in related[holder] if t not in own]
+            gid = f"lane_{holder}"
+            name = self.elements[holder]['name']
+            if shared[holder]:
+                name += " (also: " + ", ".join(self.elements[t]['name'] for t in shared[holder]) + ")"
+            self.groups[gid] = {'id': gid, 'kind': 'lane', 'name': name, 'members': own,
+                                'tags': [], 'metrics': {}, 'synthetic': 'task'}
+            for m in own:
+                self.elements[m]['group'] = gid
+            self._hidden.add(holder)
+        n_rel = sum(1 for r in self.relationships if r['source'] in self._hidden or r['target'] in self._hidden)
+        self.warnings.append(f"task map: {len(self._hidden)} stakeholder(s) drawn as lanes, {n_rel} stakeholder relationship(s) "
+                             f"shown by lane membership instead of edges")
+        for holder, extra in shared.items():
+            if extra:
+                self.warnings.append(f"task map: '{self.elements[holder]['name']}' shares {len(extra)} task(s) placed in another lane "
+                                     f"({', '.join(self.elements[t]['name'] for t in extra)}) — named in the lane title, not drawn twice")
+
+    def _task_path_targets(self, items: List[str]) -> bool:
+        """Polkuvariantti: tehtävistä on relaatioita journey- tai channel-elementteihin."""
+        types = {i: self.elements[i]['type'] for i in items}
+        return any(types.get(r['source']) == 'task' and types.get(r['target']) in ('journey', 'channel')
+                   for r in self.relationships)
+
+    def _layout_task_path(self, items: List[str]) -> Dict[str, Tuple[int, int]]:
+        """Tehtäväkartan polku: matkat ylärivillä, tehtävät keskirivillä syötejärjestyksessä,
+        kanavat alarivillä — task → journey (is part of) nousee, task → channel (uses) laskee,
+        kumpikaan ei kulje toisen tehtävän läpi. Muut elementit riviin alimmaksi."""
+        positions: Dict[str, Tuple[int, int]] = {}
+        sizes = {i: self._size_of(i) for i in items}
+        by_type = lambda t: [i for i in items if self.elements[i]['type'] == t]  # noqa: E731
+        journeys, tasks, channels = by_type('journey'), by_type('task'), by_type('channel')
+        rest = [i for i in items if i not in journeys and i not in tasks and i not in channels]
+        GAP_X, GAP_Y = 40, 110
+        x0, y = 60, 60
+
+        def row(ids: List[str], top: float, centre: float) -> float:
+            total = sum(sizes[i][0] for i in ids) + GAP_X * (len(ids) - 1)
+            x = max(x0, centre - total / 2)
+            h = 0
+            for i in ids:
+                positions[i] = (x, top)
+                x += sizes[i][0] + GAP_X
+                h = max(h, sizes[i][1])
+            return top + h
+
+        task_w = sum(sizes[i][0] for i in tasks) + GAP_X * (len(tasks) - 1)
+        centre = x0 + task_w / 2
+        # Pystyportit oletuksena: matkaan ylös (top → bottom), kanavaan alas (bottom → top);
+        # vaakasegmentti jää rivien väliin eikä kulje naapuritehtävän läpi. Syötteen from:/to: voittaa.
+        for rel in self.relationships:
+            if rel['source'] in tasks:
+                opts = rel.setdefault('options', {})
+                if rel['target'] in journeys:
+                    opts.setdefault('from', 'top'); opts.setdefault('to', 'bottom')
+                elif rel['target'] in channels:
+                    opts.setdefault('from', 'bottom'); opts.setdefault('to', 'top')
+        if journeys:
+            y = row(journeys, y, centre) + GAP_Y
+        if tasks:
+            y = row(tasks, y, centre) + GAP_Y
+        if channels:
+            y = row(channels, y, centre) + GAP_Y
+        if rest:
+            row(rest, y, centre)
+        return positions
 
     # ---- ryhmät ------------------------------------------------------------
     def _prepare_facet_groups(self) -> None:
@@ -1530,6 +1808,29 @@ class EDGYParser:
             self._computed_sizes[gid] = (240, 100)
             return
         sizes = {m: self._get_element_size(self.elements[m]) for m in members}
+        if group['kind'] == 'lane' and self.stages and self.map_type == 'task':
+            # Matriisi: sarake = vaihe ({stage: X}), sarakeleveys sama joka kaistassa; useat
+            # samaan vaiheeseen kuuluvat tehtävät pinotaan; vaiheeton tehtävä → viimeinen sarake + varoitus
+            col_w = max([self._get_element_size(self.elements[m])[0] for g in self.groups.values() if g['kind'] == 'lane'
+                         for m in g['members']] + [120])
+            cols = {st.lower(): i for i, st in enumerate(self.stages)}
+            stacks: Dict[int, List[str]] = {}
+            for m in members:
+                st = (self.elements[m].get('stage') or '').strip().lower()
+                if st not in cols:
+                    self.warnings.append(f"task map: '{self.elements[m]['name']}' has no known stage "
+                                         f"(stages: {', '.join(self.stages)}) — placed in the last column")
+                stacks.setdefault(cols.get(st, len(self.stages)), []).append(m)
+            height = PAD_TOP
+            for c, stack in stacks.items():
+                y = PAD_TOP
+                for m in stack:
+                    self._child_positions[m] = (PAD_X + c * (col_w + GAP), y)
+                    y += sizes[m][1] + GAP
+                height = max(height, y)
+            n_cols = len(self.stages) + (1 if len(self.stages) in stacks else 0)
+            self._computed_sizes[gid] = (PAD_X * 2 + n_cols * col_w + (n_cols - 1) * GAP, height - GAP + PAD_BOTTOM)
+            return
         if group['kind'] == 'lane':
             max_w = 1100
             x, y, row_h, width = PAD_X, PAD_TOP, 0, 0
@@ -1589,7 +1890,9 @@ class EDGYParser:
             min_w = max(240, len(group['name']) * 7 + 40)
             self._computed_sizes[gid] = (max(width + PAD_X, min_w), max_y + PAD_BOTTOM)
             return
-        if group.get('layout') == 'column':
+        if self.cards_per_row:
+            cols = self.cards_per_row
+        elif group.get('layout') == 'column':
             cols = 1
         else:
             cols = 2 if n <= 4 else 3 if n <= 9 else 4
@@ -1612,6 +1915,7 @@ class EDGYParser:
         """Kaistat päällekkäin ylhäältä alas; muut top-level-kohteet riviin kaistojen alle."""
         positions: Dict[str, Tuple[int, int]] = {}
         x0, y = 60, 60
+        self._top_reserve = 40 if (self.stages and self.map_type == 'task') else 0   # vaiheotsikot kaistojen yläpuolelle
         width = max(self._computed_sizes[l][0] for l in lanes)
         for l in lanes:
             self._computed_sizes[l] = (width, self._computed_sizes[l][1])
@@ -1705,8 +2009,29 @@ class EDGYParser:
 
     def _layout_flow_grid(self, items: List[str], cols: int, x0: int = 60, y0: int = 60,
                           gap_x: int = 40, gap_y: int = 40) -> Dict[str, Tuple[int, int]]:
-        """Ruudukko vaihtelevan kokoisille kohteille (ryhmät + elementit)."""
+        """Ruudukko vaihtelevan kokoisille kohteille (ryhmät + elementit).
+
+        align_groups: grid → sarakkeen leveys on sarakkeen levein kohde (kaikki rivit),
+        rivin kontit venytetään rivin korkeimman korkeuteen: tarkat rivit ja sarakkeet."""
+        import math
         positions: Dict[str, Tuple[int, int]] = {}
+        if self.align_groups == 'grid' and items:
+            rows = [items[i:i + cols] for i in range(0, len(items), cols)]
+            col_w = [0] * cols
+            for row in rows:
+                for c, item in enumerate(row):
+                    col_w[c] = max(col_w[c], int(math.ceil(self._size_of(item)[0] / 10) * 10))
+            y = y0
+            for row in rows:
+                row_h = int(math.ceil(max(self._size_of(item)[1] for item in row) / 10) * 10)
+                x = x0
+                for c, item in enumerate(row):
+                    positions[item] = (x, y)
+                    if item in self.groups:      # kontti venyy rivin korkeuteen
+                        self._computed_sizes[item] = (self._computed_sizes[item][0], row_h)
+                    x += col_w[c] + gap_x
+                y += row_h + gap_y
+            return positions
         x, y, row_h = x0, y0, 0
         for i, item in enumerate(items):
             if i and i % cols == 0:
@@ -1778,6 +2103,26 @@ class EDGYParser:
                'journey': 'Reisen', 'organisation': 'Organisationen', 'product': 'Produkte', 'brand': 'Marken',
                'people': 'Personen', 'activity': 'Aktivitäten', 'outcome': 'Ergebnisse', 'object': 'Objekte'},
     }
+
+    def _lang_marker(self) -> str:
+        """`edgyLang=<lang>;` legendan otsikkosoluun vain kun `language:` on asetettu —
+        lint W116 lukee kartan kielen tästä, ei otsikon tekstistä (oletuslegenda ei ole kielivalinta)."""
+        return f"edgyLang={self.language};" if self._language_explicit else ''
+
+    def _legend_text(self) -> dict:
+        """Legendan ja generoitujen otsikoiden tekstit kartan kielellä (`language:`), oletus 'en'."""
+        return LEGEND_TEXT.get(self.language, LEGEND_TEXT['en'])
+
+    def _render_verb(self, verb: str, pair: Tuple[str, str] = None) -> str:
+        """Sanaston verbi kartan kielellä kun `language:` on asetettu ja translate_verbs on päällä;
+        vapaa teksti ja jo oikeankieliset verbit palautetaan sellaisinaan. Kanoninen koodi pysyy mallissa.
+        `pair` (lähde-, kohdetyyppi) erottaa saman kirjoitusasun eri ydinlinkit (de 'erscheint in')."""
+        if not (self._language_explicit and self.translate_verbs):
+            return verb
+        if self.language in _vocab.languages_of(verb):
+            return verb
+        translated = _vocab.translate(verb, self.language, pair)
+        return translated if translated else verb
 
     def _effective_legend(self) -> str:
         """Triad käyttää nauhalegendaa, ellei käyttäjä ole valinnut toisin."""
@@ -1900,7 +2245,7 @@ class EDGYParser:
         ring_bottom = max([positions[g][1] + self._computed_sizes[g][1] for g in self.groups]
                           + [positions[e][1] + self._size_override[e][1] for e in primaries.values() if e in positions])
         page_w = self._TRIAD_PAGE_W if self.facet == 'all' else 1200
-        margin, gap = 50, 20
+        margin, gap = (50 if self.facet == 'all' else 60), 20   # paneelit samaan vasempaan reunaan kuin facet-kontti (W118)
         panels = []   # (tyyppi, jäsenet, sarakkeet, leveys)
         for t, members in by_type.items():
             rest = [m for m in members if m != primaries.get(t)]
@@ -1918,6 +2263,13 @@ class EDGYParser:
         x, row_h = margin, 0
         lang_key = self.language if self.language in self._TRIAD_FURTHER_TITLE else 'en'
         plural = self._TYPE_PLURAL[lang_key]
+        row_members: List[str] = []   # rivin paneelit venytetään rivin korkeimman korkeuteen (tasaiset rivit, W118)
+
+        def stretch_row():
+            for g in row_members:
+                self._computed_sizes[g] = (self._computed_sizes[g][0], row_h)
+            row_members.clear()
+
         for t, rest, cols, pw in panels:
             pad, top, cgap = 12, 30, 10
             cw = int((pw - 2 * pad - (cols - 1) * cgap) / cols)
@@ -1925,8 +2277,10 @@ class EDGYParser:
             heights = [max(self._triad_chip_size(m, cw) for m in rest[r * cols:(r + 1) * cols]) for r in range(rows)]
             ph = top + sum(heights) + (rows - 1) * cgap + pad
             if x > margin and x + pw > page_w - margin:
+                stretch_row()
                 x, y, row_h = margin, y + row_h + gap, 0
             gid = f"further_{t}"
+            row_members.append(gid)
             title = f"{self._TRIAD_FURTHER_TITLE[lang_key]} {plural.get(t, t)}"
             self.groups[gid] = {'id': gid, 'kind': 'group', 'name': title, 'members': list(rest), 'tags': [],
                                 'metrics': {}, 'synthetic': True, 'facet': 'further', 'layout': 'triad'}
@@ -1941,6 +2295,7 @@ class EDGYParser:
                 cy_rel += heights[r] + cgap
             x += pw + gap
             row_h = max(row_h, ph)
+        stretch_row()
         # Elementit, joilla ei ole slottia (peruselementit yms.): rivi paneelien alle
         placed = set(primaries.values()) | self._triad_hidden
         leftovers = [e for e in self.elements if e not in placed]
@@ -1958,7 +2313,7 @@ class EDGYParser:
         """Laske layout karttatyypin mukaan. Reititä strategiaan MAP_TYPE_LAYOUT-taulun kautta."""
         if containers:
             # Ryhmät (esim. kyvykkyysalueet) riveinä; irralliset elementit perään
-            cols = 2 if len(containers) <= 4 else 3
+            cols = self.group_columns or (2 if len(containers) <= 4 else 3)
             return self._layout_flow_grid(containers + items, cols)
         if self.map_type == 'purpose':
             return self._layout_purpose(items)
@@ -2122,6 +2477,11 @@ class EDGYParser:
                     place(c, cursor + cw / 2, top + h + V_GAP)
                     cursor += cw + gap
                 kids_bottom = max(subtree_bottom(c, top + h + V_GAP) for c in kids)
+                # Tidy tree: vanhempi lastensa LAATIKOIDEN keskipisteiden puoliväliin
+                # (ei alipuiden leveyksien), jotta eri levyiset alipuut eivät vedä sitä sivuun
+                first_c = positions[kids[0]][0] + sizes[kids[0]][0] / 2
+                last_c = positions[kids[-1]][0] + sizes[kids[-1]][0] / 2
+                positions[p] = ((first_c + last_c) / 2 - w / 2, top)
             outs = attach.get(p, [])
             if outs:
                 oy = kids_bottom + O_GAP
@@ -2317,9 +2677,13 @@ class EDGYParser:
         # Yksittäinen facet
         x0, y0 = 60, 60
         y = y0
-        for g in containers:
-            positions[g] = (x0, y)
-            y += gsize[g][1] + 40
+        if self.group_columns and containers:
+            positions.update(self._layout_flow_grid(containers, self.group_columns, x0, y0))
+            y = max(positions[g][1] + self._size_of(g)[1] for g in containers) + 40
+        else:
+            for g in containers:
+                positions[g] = (x0, y)
+                y += gsize[g][1] + 40
         inter = orgs + products + brands
         wrap = 3
         x, row_h = x0, 0
