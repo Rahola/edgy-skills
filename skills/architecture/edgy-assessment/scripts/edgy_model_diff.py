@@ -22,10 +22,14 @@ Matching, per element type, in this order:
      models to make the match exact.
   4. only in the target                      → new
   5. only in the current state               → remove
+Two elements whose ids are both given and differ are never paired by name
+(steps 2 and 3): they are a `remove` and a `new`.
 Core links are type-level in the model: a pair present only in the target is
-`new`, only in the current state `remove`, a different verb `change`; they
-are drawn between the primary elements of the two types, as in
-edgy_model_to_txt.py.
+`new`, only in the current state `remove`, a different verb `change`. Kept,
+changed and new links are drawn between the target's primary elements (the
+one flagged `primary`, else the first of its type — written into the TXT as
+`{primary: true}` so the triad layout draws the same endpoints); a removed
+link is drawn between the current state's primaries.
 
 `replace` and `decide` are judgements — "this asset replaces that one", "this
 is still open" — that no comparison can make. The tool never writes them;
@@ -75,6 +79,11 @@ def diff_type(current, target, t):
     cur, tgt = _elements(current, t), _elements(target, t)
     pairs, used_c, used_t = [], set(), set()
 
+    def ids_differ(ci, ti):
+        # explicit, different ids name two different elements: never pair them by name
+        a, b = cur[ci].get("id"), tgt[ti].get("id")
+        return bool(a and b and a != b)
+
     def take(ci, ti):
         used_c.add(ci)
         used_t.add(ti)
@@ -89,7 +98,7 @@ def diff_type(current, target, t):
         if ti in used_t:
             continue
         for ci, c in enumerate(cur):
-            if ci not in used_c and _norm(c["name"]) == _norm(e["name"]):
+            if ci not in used_c and _norm(c["name"]) == _norm(e["name"]) and not ids_differ(ci, ti):
                 take(ci, ti)
                 break
     for ti, e in enumerate(tgt):
@@ -97,7 +106,7 @@ def diff_type(current, target, t):
             continue
         best, score = None, RENAME_RATIO
         for ci, c in enumerate(cur):
-            if ci in used_c:
+            if ci in used_c or ids_differ(ci, ti):
                 continue
             r = difflib.SequenceMatcher(None, _norm(c["name"]), _norm(e["name"])).ratio()
             if r >= score:
@@ -152,12 +161,19 @@ def compare(current, target, facet="all", lang="en"):
     return {"facet": facet, "language": lang, "elements": elements, "links": links}
 
 
-def _line(t, change, e, index):
+def _line(t, change, e, index, primary=False):
     name = m2t._clean(e.get("name"))
     desc = m2t._clean(e.get("description"))
     value = f"{name} - {desc}" if desc else name
     ident = e.get("id") or f"{ID_PREFIX.get(t, t[:3].upper())}-{index + 1:02d}"
-    return f'  - {t}: "{value}" {{id: {ident}, change: {change}}}', name
+    flag = ", primary: true" if primary else ""
+    return f'  - {t}: "{value}" {{id: {ident}, change: {change}{flag}}}', name
+
+
+def _primary_of(model, t):
+    """The element that carries a type's core links in a model: flagged `primary`, else the first."""
+    elems = _elements(model, t)
+    return elems[m2t.primary_index(elems)] if elems else None
 
 
 def to_txt(result, current, target, layout="default"):
@@ -169,24 +185,28 @@ def to_txt(result, current, target, layout="default"):
     if layout == "triad":
         lines.append("map_type: triad")       # planned ring: no link crosses a box, further elements in panels
     lines += ["", "elements:"]
-    primary = {}
+    # Links of the target state run between the target's primaries; a removed link ran between the
+    # current state's primaries. The target primary is written as {primary: true}, so the triad layout
+    # (which otherwise takes the first element of a type) draws the same endpoints the links name.
+    primary, old_primary = {}, {}
     for t, pairs in result["elements"].items():
-        n = 0
-        flagged = None
-        for change, cur, tgt, _detail in pairs:
+        tp, cp = _primary_of(target, t), _primary_of(current, t)
+        for n, (change, cur, tgt, _detail) in enumerate(pairs):
             e = tgt if tgt is not None else cur
-            line, name = _line(t, change, e, n)
-            n += 1
+            is_primary = tp is not None and tgt is tp
+            line, name = _line(t, change, e, n, is_primary)
             lines.append(line)
-            primary.setdefault(t, name)                     # default: the first element of the type
-            if flagged is None and tgt is not None and tgt.get("primary") is True:
-                flagged = name                              # the target's flagged primary wins
-        if flagged:
-            primary[t] = flagged
+            if is_primary:
+                primary[t] = name
+            if cp is not None and cur is cp:
+                old_primary[t] = name                       # the same element, under its name in this map
+        if t not in primary and pairs:                      # no target element: first line carries the type
+            primary[t] = m2t._clean(((pairs[0][2] or pairs[0][1]) or {}).get("name"))
     lines += ["", "relationships:"]
     for change, (s, t), verb, _detail in result["links"]:
-        if s in primary and t in primary and verb:
-            lines.append(f'  - "{primary[s]}" -> "{primary[t]}": "{verb}" {{change: {change}}}')
+        ends = old_primary if change == "remove" else primary
+        if s in ends and t in ends and verb:
+            lines.append(f'  - "{ends[s]}" -> "{ends[t]}": "{verb}" {{change: {change}}}')
     return "\n".join(lines) + "\n"
 
 
