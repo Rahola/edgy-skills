@@ -66,6 +66,9 @@ sits below its parent leaves at the bottom (`expected-outcome.drawio`).
 - `scripts/edgy_model_to_archimate.py`: ArchiMate 3.1 Open Exchange XML,
   one view per facet map, `edgy:type` on every element.
 - Phase 4b runs the semantic review on every map input.
+- `edgy_model_to_txt.py`: a product without an `id` gets `PRD-xx`, no longer
+  `PRO-xx` like a process (two elements of the all-facets map could share an
+  id); the model diff uses the same scheme.
 
 **edgy-framework 1.6.0**
 - *Formulating tasks, outcomes and the Experience facet*: journey stages,

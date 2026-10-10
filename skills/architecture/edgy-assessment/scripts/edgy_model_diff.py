@@ -48,9 +48,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import edgy_model_to_txt as m2t  # noqa: E402
 
 ATTRS = ("description", "nature", "level")
-# generated ids when the model has none: process and product would both be "PRO"
-ID_PREFIX = {"product": "PRD", "process": "PRC", "organisation": "ORG", "capability": "CAP", "content": "CON",
-             "channel": "CHA"}
 RENAME_RATIO = 0.8
 
 
@@ -165,7 +162,7 @@ def _line(t, change, e, index, primary=False):
     name = m2t._clean(e.get("name"))
     desc = m2t._clean(e.get("description"))
     value = f"{name} - {desc}" if desc else name
-    ident = e.get("id") or f"{ID_PREFIX.get(t, t[:3].upper())}-{index + 1:02d}"
+    ident = e.get("id") or f"{m2t.id_prefix(t)}-{index + 1:02d}"   # same scheme as edgy_model_to_txt.py
     flag = ", primary: true" if primary else ""
     return f'  - {t}: "{value}" {{id: {ident}, change: {change}{flag}}}', name
 
