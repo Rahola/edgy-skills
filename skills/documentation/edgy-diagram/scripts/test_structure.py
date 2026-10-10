@@ -1022,6 +1022,159 @@ def test_box_legend_holds_its_last_line():
     assert last_box[1] + last_box[3] <= bg_box[1] + bg_box[3] - 4
 
 
+# ---- Sprint 18: matrix, product tree, outcome web, draw.io layout source ------------------
+
+EXAMPLES = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'examples')
+
+
+def _example(name):
+    return open(os.path.join(EXAMPLES, name), encoding='utf-8').read()
+
+
+def test_matrix_rows_by_columns():
+    p, root, _ = gen(_example('channel-matrix-map.txt'))
+    assert p.warnings == [], p.warnings
+    cells = cells_by_label(root)
+    phys, dig = cells['Physical'], cells['Digital']
+    assert _box(root, phys)[1] < _box(root, dig)[1], "rows in input order, top-down"
+    sync, asyn = cells['Synchronous'], cells['Asynchronous']
+    assert 'edgyRole=header' in sync.get('style') and _box(root, sync)[0] < _box(root, asyn)[0]
+    # one x per column across both rows; elements sit in their row band
+    assert _box(root, cells['Travel store'])[0] == _box(root, cells['Phone service'])[0]
+    assert _box(root, cells['Ticket machine'])[0] == _box(root, cells['Mobile app'])[0] > _box(root, cells['Travel store'])[0]
+    tb, db = _box(root, cells['Travel store']), _box(root, dig)
+    assert tb[1] < db[1] and _box(root, cells['Website'])[1] > db[1]
+
+
+def test_matrix_warnings():
+    p, _, _ = gen("""
+map_type: channel
+rows: Physical, Digital, Hybrid
+columns: Now
+elements:
+  - channel: "Store" {row: Physical, column: Now}
+  - channel: "App" {row: Online, column: Now}
+""")
+    assert any("'App' has no known row" in w for w in p.warnings), p.warnings
+    assert any("row 'Hybrid' has no elements" in w for w in p.warnings), p.warnings
+    p2, _, _ = gen("""
+map_type: capability
+rows: A
+elements:
+  - group: "Area"
+    - capability: "One" {row: A}
+""")
+    assert any("rows: ignored" in w for w in p2.warnings), p2.warnings
+
+
+def test_columns_without_rows_give_column_containers():
+    p, root, _ = gen("""
+map_type: capability
+columns: Wave 1, Wave 2
+elements:
+  - capability: "One" {column: Wave 1}
+  - capability: "Two" {column: Wave 2}
+  - capability: "Three" {column: Wave 2}
+""")
+    assert p.warnings == [], p.warnings
+    cells = cells_by_label(root)
+    assert cells['Three'].get('parent') == cells['Wave 2'].get('id')
+    assert _box(root, cells['Wave 1'])[1] == _box(root, cells['Wave 2'])[1]
+
+
+def test_product_tree_instead_of_hub():
+    import edgy_lint
+    p, root, xml = gen(_example('product-portfolio-map.txt'))
+    cells = cells_by_label(root)
+    top = _box(root, cells['Acme Transit portfolio'])
+    lines = _box(root, cells['Passenger transport']), _box(root, cells['Freight transport'])
+    leaves = [_box(root, cells[n]) for n in ('Local trains', 'Night trains', 'Family card', 'Senior card')]
+    assert all(b[1] > top[1] + top[3] for b in lines) and all(b[1] > lines[0][1] + lines[0][3] for b in leaves)
+    assert len({b[1] for b in leaves}) == 1, "one level, one row"
+    # tree edges leave the parent at the bottom and enter the child at the top
+    for e in root.iter('mxCell'):
+        if e.get('edge') == '1' and e.get('value') == 'contains':
+            st = _style(e)
+            assert st['exitY'] == '1.0' and st['entryY'] == '0.0', st
+    findings = _lint(xml)
+    assert not [f for f in findings if f.rule in ('W111', 'W112', 'W113')], [f.rule for f in findings]
+
+
+def _lint(xml):
+    import tempfile
+    import edgy_lint
+    with tempfile.NamedTemporaryFile('w', suffix='.drawio', delete=False, encoding='utf-8') as f:
+        f.write(xml)
+        path = f.name
+    try:
+        opts = edgy_lint.main.__globals__['argparse'].Namespace(no_legend=False)
+        return edgy_lint.lint_file(path, opts)
+    finally:
+        os.unlink(path)
+
+
+def test_hub_stays_without_tree_links():
+    p, root, _ = gen(_example('product-map.txt'))
+    cells = cells_by_label(root)
+    hub = _box(root, cells['Smart booking platform'])
+    others = [_box(root, cells[n]) for n in ('Real-time pricing', 'Buy ticket', 'Nordic Trains')]
+    assert any(b[1] < hub[1] for b in others) and any(b[1] > hub[1] for b in others), "spokes around the hub"
+
+
+def test_outcome_web_layers_left_to_right():
+    p, root, xml = gen(_example('outcome-web-map.txt'))
+    by_id = {c.get('id'): c for c in root.iter('mxCell')}
+    n = 0
+    for e in root.iter('mxCell'):
+        if e.get('edge') == '1' and e.get('source'):
+            s, t = _box(root, by_id[e.get('source')]), _box(root, by_id[e.get('target')])
+            assert s[0] + s[2] < t[0], (e.get('source'), e.get('target'))
+            n += 1
+    assert n == 8
+    findings = _lint(xml)
+    assert not [f for f in findings if f.rule in ('W111', 'W112', 'W113')], [f.rule for f in findings]
+
+
+def test_outcome_cycle_still_lays_out():
+    p, root, _ = gen("""
+map_type: outcome
+elements:
+  - outcome: "A"
+  - outcome: "B"
+  - outcome: "C"
+relationships:
+  - "A" -> "B": "enables"
+  - "B" -> "C": "enables"
+  - "C" -> "A": "enables"
+""")
+    cells = cells_by_label(root)
+    xs = [_box(root, cells[n])[0] for n in 'ABC']
+    assert xs[0] < xs[1] < xs[2], xs
+
+
+def test_layout_from_drawio_keeps_moved_area():
+    import re
+    import tempfile
+    src = _example('capability-areas-nested-map.txt')
+    _, _, xml = gen(src)
+    m = re.search(r'(value="Management"[^>]*>\s*<mxGeometry x=")(\d+)', xml)
+    moved = int(m.group(2)) + 400
+    edited = xml[:m.start(2)] + str(moved) + xml[m.end(2):]
+    with tempfile.NamedTemporaryFile('w', suffix='.drawio', delete=False, encoding='utf-8') as f:
+        f.write(edited)
+        path = f.name
+    try:
+        p, root, _ = gen(f"layout_from: {path}#\n" + src)          # bare mxGraphModel: unnamed page
+        assert not [w for w in p.warnings if 'layout_from' in w], p.warnings
+        assert _box(root, cells_by_label(root)['Management'])[0] == moved
+        p2, _, _ = gen(f"layout_from: {path}#No such page\n" + src)
+        assert any("page 'No such page' not found" in w for w in p2.warnings), p2.warnings
+    finally:
+        os.unlink(path)
+    p3, _, _ = gen("layout_from: positions.csv#View\n" + src)
+    assert any('unsupported layout source' in w for w in p3.warnings), p3.warnings
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

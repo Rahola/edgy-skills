@@ -260,7 +260,9 @@ edgy_lint_strict() {
     done
     python3 "$EDGY_SCRIPTS/edgy_lint.py" -q --warnings-as-errors \
         "$ex"/expected-triad-*.drawio "$ex"/expected-purpose.drawio "$ex"/expected-purpose-hierarchy.drawio \
-        "$ex"/expected-capability-areas-nested.drawio "$tmp"/*.drawio
+        "$ex"/expected-capability-areas-nested.drawio "$ex"/expected-channel-matrix.drawio \
+        "$ex"/expected-transition-roadmap.drawio "$ex"/expected-product-portfolio.drawio \
+        "$ex"/expected-outcome-web.drawio "$tmp"/*.drawio
     local rc=$?
     rm -rf "$tmp"
     return $rc

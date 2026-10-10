@@ -26,6 +26,10 @@ generator changes with `bash tools/regen-examples.sh`, never edit by hand).
 | `purpose-map.txt` | `expected-purpose.puml` | hub-and-spoke (PlantUML output too) |
 | `multipage-map.txt` | `expected-multipage.drawio` | `pages:` → two draw.io pages in one mxfile |
 | `capability-areas-map.txt` | `expected-capability-areas.drawio` | `group:` area containers with ids and highlight |
+| `channel-matrix-map.txt` | `expected-channel-matrix.drawio` | matrix `rows:` × `columns:` — official channel map 2 × 2 |
+| `transition-roadmap-map.txt` | `expected-transition-roadmap.drawio` | roadmap (extension): waves × areas with the transition overlay |
+| `product-portfolio-map.txt` | `expected-product-portfolio.drawio` | product map as a portfolio tree (`contains`) |
+| `outcome-web-map.txt` | `expected-outcome-web.drawio` | outcome web: layered left → right by link direction |
 | `capability-areas-nested-map.txt` | `expected-capability-areas-nested.drawio` | three tiers (area → sub-area → capability) with nested `group:`, `group_style: official`, 40 capabilities |
 | `purpose-hierarchy-map.txt` | `expected-purpose-hierarchy.drawio` | purpose hierarchy with Outcomes |
 | `organisation-roles-map.txt` | `expected-organisation-roles.drawio` | organisation role model |

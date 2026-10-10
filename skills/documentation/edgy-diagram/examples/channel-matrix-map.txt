@@ -1,0 +1,18 @@
+# Channel map as a 2 × 2 matrix, the shape of the official EDGY 23 channel map:
+# rows: and columns: name the axes, every channel picks its cell with {row: …, column: …}.
+# Fictional company: Acme Transit.
+map_type: channel
+rows: Physical, Digital
+columns: Synchronous, Asynchronous
+legend: strip
+
+elements:
+  - channel: "Travel store" {row: Physical, column: Synchronous}
+  - channel: "On board staff" {row: Physical, column: Synchronous}
+  - channel: "Ticket machine" {row: Physical, column: Asynchronous}
+  - channel: "Printed timetable" {row: Physical, column: Asynchronous}
+  - channel: "Phone service" {row: Digital, column: Synchronous}
+  - channel: "Live chat" {row: Digital, column: Synchronous}
+  - channel: "Mobile app" {row: Digital, column: Asynchronous}
+  - channel: "Website" {row: Digital, column: Asynchronous}
+  - channel: "E-mail" {row: Digital, column: Asynchronous}

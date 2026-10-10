@@ -188,6 +188,66 @@ elements:
 └───────────────┘ └───────────────┘ └───────────────┘
 ```
 
+#### Matrix — rows × columns (channel, journey, roadmap, any grid map)
+
+`rows:` names the bands, `columns:` (same as `stages:`) the columns; every
+element picks its cell with `{row: …, column: …}`. Column headers sit above
+the first band, row titles on the bands. Full examples:
+`examples/channel-matrix-map.txt` (official channel map 2 × 2),
+`examples/transition-roadmap-map.txt` (waves × areas with the transition
+overlay).
+
+```
+map_type: channel
+rows: Physical, Digital
+columns: Synchronous, Asynchronous
+elements:
+  - channel: "Travel store" {row: Physical, column: Synchronous}
+  - channel: "Ticket machine" {row: Physical, column: Asynchronous}
+  - channel: "Live chat" {row: Digital, column: Synchronous}
+  - channel: "Mobile app" {row: Digital, column: Asynchronous}
+```
+
+```
+             Synchronous      Asynchronous
+ Physical   [Travel store]   [Ticket machine]
+ Digital    [Live chat]      [Mobile app]
+```
+
+A journey touchpoint map is the same input with `map_type: journey`,
+`columns:` = journey stages, `rows:` = channels or people and the tasks or
+touchpoints in the cells.
+
+#### Product portfolio tree (product, brand, object)
+
+With tree relationships (`contains`, `comprises`, `decomposes`) a product,
+brand or object map is a top-down tree; without them it stays hub-and-spoke.
+Tree edges leave the parent at the bottom and enter the child at the top.
+Example: `examples/product-portfolio-map.txt`.
+
+```
+               [Acme Transit portfolio]
+          ┌──────────┴───────────┐
+ [Passenger transport]    [Freight transport]
+   ┌──────┬─────┬─────┐            │
+ [Local] [Night] [Family] [Senior] [Container shuttle]
+```
+
+#### Outcome web (outcome)
+
+Outcomes with directed links (`enables`, any influence verb) are laid out in
+layers left to right: a layer is the longest path from an outcome nothing
+leads to; within a layer, outcomes follow the average position of what leads
+to them, so links do not cross; a cycle is cut in input order. Up to 15
+outcomes; split a larger web into pages. Only `contains` links → grid + tree
+as before. Example: `examples/outcome-web-map.txt`.
+
+```
+ [Partner integration] → [Route optimisation] → [Capacity] ──┐
+                      ↘ [Passenger info] ──→ [Experience] → [More passengers]
+ [Sleeper wagons] ──→ [Comfort] ─────────↗
+```
+
 #### Hub-and-spoke (purpose, brand, product, object)
 
 ```

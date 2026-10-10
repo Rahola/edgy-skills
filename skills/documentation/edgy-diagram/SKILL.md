@@ -69,6 +69,10 @@ examples:  # representative subset — full list in examples/README.md
     output: examples/expected-multipage.drawio
   - input: examples/capability-areas-map.txt
     output: examples/expected-capability-areas.drawio
+  - input: examples/capability-areas-nested-map.txt
+    output: examples/expected-capability-areas-nested.drawio
+  - input: examples/channel-matrix-map.txt
+    output: examples/expected-channel-matrix.drawio
   - input: examples/reference-architecture-map.txt
     output: examples/expected-reference-architecture.drawio
   - input: examples/archimate-positioned.txt
@@ -273,6 +277,8 @@ translate_verbs: true | false                             # optional (default tr
 title: <text>                                             # optional: title band above the content in native presets (--preset publication|presentation)
 footnote: <text>                                          # optional: footnote band below the content in native presets
 stages: Plan, Buy, Ride                                   # optional, map_type: task — journey stages as columns; a task picks its column with {stage: Buy} (with lanes: lanes × stages; without: one column container per stage)
+columns: A, B, C                                          # optional, any grid-like map — same as stages:; an element picks its column with {column: B}
+rows: X, Y                                                # optional — matrix rows (bands); an element picks its row with {row: Y}; with columns: a rows × columns matrix
 equal_cards: true | false                                 # optional (default true): elements of one type on a page take the widest width (≤ 280) and the tallest height of their type
 card_width: N                                             # optional: every box is N px wide (60–600; a size class S/M/L may be wider; the person shape is exempt); long names wrap
 group_columns: N                                          # optional: containers in N columns (map-type and single-facet layouts)
@@ -311,7 +317,7 @@ content's top-left corner is at (60, 60) in every layout except the planned
 share their margins (lint `--series`). Invalid values warn and keep the
 default.
 
-### Multi-page input (`pages:`) and ArchiMate positioning (`layout_from:`)
+### Multi-page input (`pages:`) and positions from an earlier view (`layout_from:`)
 
 ```
 facet: architecture              # document-level default for every page
@@ -334,6 +340,16 @@ next to an existing ArchiMate current state. Unmatched elements go below;
 view elements missing from the input are reported (mark them `remove` or
 add them). Standard-library XML parsing, no Archi needed. Example:
 `examples/archimate-positioned.txt`.
+
+`layout_from: delivered.drawio#Page name [scale dx dy]` does the same from a
+draw.io page — typically the previous delivery after a reviewer moved boxes
+in draw.io. Top-level elements **and areas** (`group:` / `lane:`) are matched
+by name; an area keeps the generated arrangement inside it, so moving a whole
+area survives regeneration, moving a card inside an area does not. The file
+type decides the reader (`.archimate`, `.drawio`, `.xml`); any other type
+warns and the generator's own layout is used. This is how "edit in draw.io"
+and "regenerate from TXT" stay one loop: never patch the XML, move the
+areas, then regenerate with `layout_from:` pointing at the edited file.
 
 ### Grouping, Lanes and Nesting
 
@@ -520,14 +536,25 @@ the parser warns.
 | `capability` | **area containers** (`group:`) in rows, **three tiers** with nested `group:` (official style); grid + tree without groups | 8 | 15–30 |
 | `organisation` | **role model** when Process elements exist (roles as columns, actors under the role they `perform`); tree otherwise | 8 | 15–30 |
 | `purpose` | **hierarchy**: top purposes → sub-purposes (`contains`) → Outcomes (`measures`); Organisation and Brand in the top row, Content left, Story right | 6 | 10–15 |
-| `outcome` | grid + tree | 5 | 7–10 |
+| `outcome` | **web**: layered left → right by link direction (causes left, effects right) when outcomes have directed links, ≤ 15 elements; grid + tree otherwise | 5 | 7–10 |
 | `journey`, `activity`, `process` | sequence (pentagon row, left → right) | 4 | 6–8 |
-| `brand`, `product`, `object` | hub-and-spoke | 5–6 | 7–15 |
+| `brand`, `product`, `object` | **tree** (portfolio, brand architecture, object parts) when they have tree relationships (`contains`); hub-and-spoke otherwise | 5–6 | 7–15 |
 | `asset`, `channel`, `content`, `people`, `story` | grid (`cols ≈ √N`) | 5–8 | 7–30 |
 | `task` | **stakeholder inventory** when lanes exist or a People / Organisation element has relationships to the tasks: one lane per stakeholder (a related stakeholder becomes the lane and is not drawn as a box), `stages:` as columns with `{stage: …}`; it has no edges because its input has no other relationships (one written between two tasks is drawn); **path** when tasks link to a journey (`is part of`) or channels (`uses`): journeys above, tasks in input order, channels below; **stage columns** (official task map) when `stages:` is set without lanes or stakeholder relationships: one column container per stage, tasks stacked, a task without a known stage below with a warning; grid otherwise | 5–8 | 7–30 |
 | `reference` *(extension)* | lanes top-down, Organisation/People left, `[external]` right, overlay strokes, one integration bus | 8 | 10–25 |
 | `summary` *(extension)* | who / does what / what results; warns above 4 boxes per row | 3 | 6–10 |
 | `triad` *(extension)* | **planned ring** for `facet: all` or one facet: one *primary* element per type carries the core links (`{primary: true}`, else the first of its type), straight border-to-border lines, two links detour along the page edge; the other elements sit in **"Further <type>" panels** without lines and their links are reported, not drawn; strip legend by default | 6 | 12 primaries + any number of further |
+
+**Matrix (any grid-like map).** `rows:` and `columns:` (or `stages:`) with
+`{row: …, column: …}` per element give a rows × columns matrix: the channel
+map's *physical / digital × synchronous / asynchronous*, a journey touchpoint
+map (columns = journey stages, rows = channels or people), a transition
+roadmap (columns = waves, rows = areas, `change:` on every block). `columns:`
+alone gives one column container per value. An element without a known
+row or column is placed after the matrix with a warning; an empty row or
+column is not drawn. Not for `triad`, `purpose`, `reference`, `summary`.
+Examples: `examples/channel-matrix-map.txt`,
+`examples/transition-roadmap-map.txt`.
 
 The two task-map variants are documented pages of one input
 (`examples/task-stakeholder-map.txt`): the inventory answers *who does what
