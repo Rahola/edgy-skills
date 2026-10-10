@@ -158,7 +158,12 @@ rules, publication bounds and the planned `triad` layout — is
 localisation of verbs and legend, layout consistency and options, task map,
 native presets, QA manifest — is
 [`docs/development-plan-2026-10-semantics-and-layout.md`](docs/development-plan-2026-10-semantics-and-layout.md)
-(shipped in v2.2.0).
+(shipped in v2.2.0). The coverage review — maps and diagrams the
+skills cannot produce yet (nested groups, stage and matrix layouts, product
+trees, outcome webs, status overlay, wider semantic review, model diff,
+ArchiMate export) — is
+[`docs/development-plan-2026-10-coverage.md`](docs/development-plan-2026-10-coverage.md)
+(proposal).
 
 ## Contributing
 
