@@ -133,6 +133,61 @@ neighbouring task.
           [Mobile app]   [Ticket machine]
 ```
 
+#### Capability map in three tiers (capability)
+
+The official capability map nests: area → sub-area → capability. Indent a
+`group:` under another `group:`; nesting switches `group_style: official`
+on (area in the facet colour, white sub-groups). Full example:
+`examples/capability-areas-nested-map.txt`.
+
+```
+map_type: capability
+group_columns: 2
+elements:
+  - group: "Customer"
+    - group: "Customer relationship"
+      - capability: "Customer data"
+      - capability: "Consent management"
+    - group: "Sales and ticketing"
+      - capability: "Fare products"
+      - capability: "Refunds"
+  - group: "Operations"
+    - group: "Planning"
+      - capability: "Timetabling"
+```
+
+```
+┌ Customer (architecture blue) ──────────────┐ ┌ Operations ──────────┐
+│ ┌ Customer relationship ┐ ┌ Sales and … ┐ │ │ ┌ Planning ─────────┐ │
+│ │ [Customer data]       │ │ [Fare prod.]│ │ │ │ [Timetabling]     │ │
+│ │ [Consent management]  │ │ [Refunds]   │ │ │ └───────────────────┘ │
+│ └───────────────────────┘ └─────────────┘ │ └──────────────────────┘
+└────────────────────────────────────────────┘
+```
+
+#### Task map by journey stage (task, official shape)
+
+`stages:` without lanes and without stakeholder relationships gives the
+official task map: one column container per stage, the tasks of a stage
+stacked in it, all columns one height. A task without a known stage goes
+below the columns with a warning; a stage without tasks is not drawn.
+
+```
+map_type: task
+stages: Inspiration, Plan, Book
+elements:
+  - task: "Get trip ideas" {stage: Inspiration}
+  - task: "Check prices" {stage: Plan}
+  - task: "Buy a ticket" {stage: Book}
+```
+
+```
+┌ Inspiration ──┐ ┌ Plan ─────────┐ ┌ Book ─────────┐
+│ [Get trip     │ │ [Check prices]│ │ [Buy a ticket]│
+│  ideas]       │ │               │ │               │
+└───────────────┘ └───────────────┘ └───────────────┘
+```
+
 #### Hub-and-spoke (purpose, brand, product, object)
 
 ```

@@ -164,7 +164,9 @@ the uniform 60 px content margin); the rules catch hand-edited files and
 layouts that the options below should fix: `card_width`, `equal_cards`,
 `group_columns`, `cards_per_row`, `equal_group_width`, `align_groups: grid`.
 `--no-layout-quality` switches them off for a run; a delivery records whether
-they ran. **W121 (`--series`)** checks the files of one delivery against the
+they ran. **W122** (always on) flags a container coloured with a facet colour
+that none of the elements inside it carries — an area is coloured by what it
+holds. **W121 (`--series`)** checks the files of one delivery against the
 first: legend placement, content margin, card width of every shared type and
 label font sizes must agree on every page of every file — generate the
 series with the same options.
@@ -270,13 +272,14 @@ language: fi | en | fr | de                               # optional; legend, ge
 translate_verbs: true | false                             # optional (default true): with language: set, a vocabulary verb written in another language is rendered translated ("contains" → "sisältää"); the model keeps the canonical verb
 title: <text>                                             # optional: title band above the content in native presets (--preset publication|presentation)
 footnote: <text>                                          # optional: footnote band below the content in native presets
-stages: Plan, Buy, Ride                                   # optional, map_type: task with lanes — journey stages as columns; a task picks its column with {stage: Buy}
+stages: Plan, Buy, Ride                                   # optional, map_type: task — journey stages as columns; a task picks its column with {stage: Buy} (with lanes: lanes × stages; without: one column container per stage)
 equal_cards: true | false                                 # optional (default true): elements of one type on a page take the widest width (≤ 280) and the tallest height of their type
 card_width: N                                             # optional: every box is N px wide (60–600; a size class S/M/L may be wider; the person shape is exempt); long names wrap
 group_columns: N                                          # optional: containers in N columns (map-type and single-facet layouts)
 cards_per_row: N                                          # optional: N cards per row inside every container
 equal_group_width: true | false                           # optional (default false): containers share the widest container's width
 align_groups: grid | none                                 # optional: containers on exact rows and columns — column width = widest in the column, row height = tallest, containers stretch to the row
+group_style: official | light                             # optional: official = official EDGY 23 areas (area in the facet colour, white sub-groups); light = grey structure tint. Default official when groups are nested, light otherwise
 
 elements:
   - <element_type>: "<name>"
@@ -284,6 +287,8 @@ elements:
   - <element_type>: "<name> | <subtext>"
   - group: "<area name>"              # container; the indented elements below are its children
     - <element_type>: "<name>"
+    - group: "<sub-area name>"        # nested container (any depth); its elements sit inside it
+      - <element_type>: "<name>"
   - lane: "<layer name>"              # borderless band; the indented elements sit on it (task map: one lane per stakeholder)
     - <element_type>: "<name>"
 
@@ -338,7 +343,20 @@ the generator handles it:
 - **`group:`** → container (`container=1`): capability areas, blocks with
   nested capabilities, any Tree with more than three children. Members in a
   2–4-column grid or as a tidy tree when they have tree relationships; groups
-  are placed in rows.
+  are placed in rows with one fixed gap between rows.
+- **Nested `group:`** (indented under another `group:`, any depth) → a
+  container inside the container: the three tiers of the official capability
+  map (area → sub-area → capability). Direct elements of an area come first,
+  its sub-groups below in rows (`group_columns`, else 1–3 in one row, 4 in
+  two, more in three); the sub-groups of one row share the row height.
+  Nesting switches `group_style: official` on: an area takes the facet colour
+  of everything inside it (a neutral tint when they mix facets), sub-groups
+  are white without a border, a top-level container without sub-groups is
+  white with a facet-coloured border. `group_style: light` keeps the grey
+  tint. A `lane:` inside a group becomes a nested group and a `group:` inside
+  a lane goes to the top level, both with a warning. Example:
+  `examples/capability-areas-nested-map.txt` (40 capabilities in 8
+  sub-areas).
 - **`lane:`** → borderless band with a title; members sit **on** it at root
   level so edges may cross lane borders. Lanes stack top-down; edges between
   non-adjacent members of a row are routed over the top.
@@ -499,14 +517,14 @@ the parser warns.
 
 | Map type | Layout | Min | Recommended |
 |----------|--------|----:|------------:|
-| `capability` | **area containers** (`group:`) in rows; grid + tree without groups | 8 | 15–30 |
+| `capability` | **area containers** (`group:`) in rows, **three tiers** with nested `group:` (official style); grid + tree without groups | 8 | 15–30 |
 | `organisation` | **role model** when Process elements exist (roles as columns, actors under the role they `perform`); tree otherwise | 8 | 15–30 |
 | `purpose` | **hierarchy**: top purposes → sub-purposes (`contains`) → Outcomes (`measures`); Organisation and Brand in the top row, Content left, Story right | 6 | 10–15 |
 | `outcome` | grid + tree | 5 | 7–10 |
 | `journey`, `activity`, `process` | sequence (pentagon row, left → right) | 4 | 6–8 |
 | `brand`, `product`, `object` | hub-and-spoke | 5–6 | 7–15 |
 | `asset`, `channel`, `content`, `people`, `story` | grid (`cols ≈ √N`) | 5–8 | 7–30 |
-| `task` | **stakeholder inventory** when lanes exist or a People / Organisation element has relationships to the tasks: one lane per stakeholder (a related stakeholder becomes the lane and is not drawn as a box), `stages:` as columns with `{stage: …}`; it has no edges because its input has no other relationships (one written between two tasks is drawn); **path** when tasks link to a journey (`is part of`) or channels (`uses`): journeys above, tasks in input order, channels below; grid otherwise | 5–8 | 7–30 |
+| `task` | **stakeholder inventory** when lanes exist or a People / Organisation element has relationships to the tasks: one lane per stakeholder (a related stakeholder becomes the lane and is not drawn as a box), `stages:` as columns with `{stage: …}`; it has no edges because its input has no other relationships (one written between two tasks is drawn); **path** when tasks link to a journey (`is part of`) or channels (`uses`): journeys above, tasks in input order, channels below; **stage columns** (official task map) when `stages:` is set without lanes or stakeholder relationships: one column container per stage, tasks stacked, a task without a known stage below with a warning; grid otherwise | 5–8 | 7–30 |
 | `reference` *(extension)* | lanes top-down, Organisation/People left, `[external]` right, overlay strokes, one integration bus | 8 | 10–25 |
 | `summary` *(extension)* | who / does what / what results; warns above 4 boxes per row | 3 | 6–10 |
 | `triad` *(extension)* | **planned ring** for `facet: all` or one facet: one *primary* element per type carries the core links (`{primary: true}`, else the first of its type), straight border-to-border lines, two links detour along the page edge; the other elements sit in **"Further <type>" panels** without lines and their links are reported, not drawn; strip legend by default | 6 | 12 primaries + any number of further |

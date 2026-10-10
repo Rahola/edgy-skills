@@ -259,7 +259,8 @@ edgy_lint_strict() {
         python3 "$EDGY_SCRIPTS/edgy_generator.py" "$ex/eval/$f.txt" --output "$tmp/$f.drawio" >/dev/null 2>&1 || { rm -rf "$tmp"; return 1; }
     done
     python3 "$EDGY_SCRIPTS/edgy_lint.py" -q --warnings-as-errors \
-        "$ex"/expected-triad-*.drawio "$ex"/expected-purpose.drawio "$ex"/expected-purpose-hierarchy.drawio "$tmp"/*.drawio
+        "$ex"/expected-triad-*.drawio "$ex"/expected-purpose.drawio "$ex"/expected-purpose-hierarchy.drawio \
+        "$ex"/expected-capability-areas-nested.drawio "$tmp"/*.drawio
     local rc=$?
     rm -rf "$tmp"
     return $rc

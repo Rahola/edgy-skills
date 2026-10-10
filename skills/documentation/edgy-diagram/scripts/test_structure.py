@@ -859,6 +859,169 @@ def test_task_path_variant():
     assert not f, [str(x) for x in f]
 
 
+# ---- Sprint 17: nested groups, official container style, stage columns --------------------
+
+NESTED = """
+map_type: capability
+elements:
+  - group: "Customer"
+    - group: "Sales"
+      - capability: "Lead handling"
+      - capability: "Quoting"
+    - group: "Service"
+      - capability: "Complaints"
+      - capability: "Refunds"
+      - capability: "Feedback"
+  - group: "Operations"
+    - capability: "Dispatch"
+"""
+
+
+def _style(cell):
+    return dict(kv.split('=', 1) for kv in cell.get('style').split(';') if '=' in kv)
+
+
+def _box(root, cell):
+    x, y = abs_pos(root, cell)
+    g = cell.find('mxGeometry')
+    return x, y, float(g.get('width')), float(g.get('height'))
+
+
+def test_nested_groups_keep_their_parent_chain():
+    p, root, _ = gen(NESTED)
+    assert p.warnings == [], p.warnings
+    assert p.groups['group2']['parent'] == 'group1' and p.groups['group1']['subgroups'] == ['group2', 'group3']
+    assert p.groups['group4']['parent'] is None, "a group back at the outer indent closes the nesting"
+    cells = cells_by_label(root)
+    outer, sales, service = cells['Customer'], cells['Sales'], cells['Service']
+    assert outer.get('parent') == '1'
+    assert sales.get('parent') == outer.get('id') and service.get('parent') == outer.get('id')
+    assert cells['Quoting'].get('parent') == sales.get('id')
+    assert cells['Dispatch'].get('parent') == cells['Operations'].get('id')
+    # every child lies inside its container, every sub-group inside the area
+    for child, parent in (('Quoting', 'Sales'), ('Refunds', 'Service'), ('Sales', 'Customer'), ('Service', 'Customer')):
+        cx, cy, cw, ch = _box(root, cells[child])
+        px, py, pw, ph = _box(root, cells[parent])
+        assert px <= cx and py <= cy and cx + cw <= px + pw and cy + ch <= py + ph, (child, parent)
+    # sub-groups of one row share the row height (official look)
+    assert _box(root, sales)[3] == _box(root, service)[3]
+
+
+def test_nested_groups_official_style_by_default():
+    _, root, _ = gen(NESTED)
+    cells = cells_by_label(root)
+    assert _style(cells['Customer'])['fillColor'] == '#a6c0ff', "area takes the facet colour of what it holds"
+    assert _style(cells['Sales'])['fillColor'] == '#ffffff' and _style(cells['Sales'])['strokeColor'] == 'none'
+    assert _style(cells['Operations'])['strokeColor'] == '#a6c0ff', "top-level leaf container: white with facet stroke"
+    _, root2, _ = gen("group_style: light\n" + NESTED)
+    assert _style(cells_by_label(root2)['Customer'])['fillColor'] == '#eef2f7'
+    # flat groups keep the light style unless official is asked for
+    _, flat, _ = gen('map_type: capability\nelements:\n  - group: "A"\n    - capability: "One"\n')
+    assert _style(cells_by_label(flat)['A'])['fillColor'] == '#eef2f7'
+    _, flat2, _ = gen('map_type: capability\ngroup_style: official\nelements:\n  - group: "A"\n    - capability: "One"\n')
+    assert _style(cells_by_label(flat2)['A'])['fillColor'] == '#ffffff'
+
+
+def test_mixed_facets_area_stays_neutral():
+    _, root, _ = gen("""
+map_type: capability
+elements:
+  - group: "Mixed"
+    - group: "Inner"
+      - capability: "Dispatch"
+      - task: "Plan a trip"
+""")
+    assert _style(cells_by_label(root)['Mixed'])['fillColor'] == '#eef2f7'
+
+
+def test_lane_inside_group_warns_and_nests_as_group():
+    p, root, _ = gen("""
+map_type: capability
+elements:
+  - group: "Area"
+    - lane: "Band"
+      - capability: "One"
+""")
+    assert any("lane 'Band' inside group" in w for w in p.warnings), p.warnings
+    assert p.groups['lane2']['kind'] == 'group' and p.groups['lane2']['parent'] == 'group1'
+    p2, _, _ = gen("""
+elements:
+  - lane: "Band"
+    - group: "Area"
+      - capability: "One"
+""")
+    assert any("inside lane 'Band' is not supported" in w for w in p2.warnings), p2.warnings
+    assert p2.groups['group2']['parent'] is None
+
+
+def test_task_stages_without_lanes_become_columns():
+    p, root, _ = gen("""
+map_type: task
+stages: Inspire, Plan, Book, Travel
+elements:
+  - task: "Get ideas" {stage: Inspire}
+  - task: "Compare" {stage: Inspire}
+  - task: "Check prices" {stage: Plan}
+  - task: "Buy ticket" {stage: Book}
+  - task: "Wander" {stage: Elsewhere}
+""")
+    assert any("'Wander' has no known stage" in w for w in p.warnings), p.warnings
+    assert any("stage 'Travel' has no tasks" in w for w in p.warnings), p.warnings
+    cells = cells_by_label(root)
+    cols = [cells[n] for n in ('Inspire', 'Plan', 'Book')]
+    assert all('container=1' in c.get('style') for c in cols) and 'Travel' not in cells
+    boxes = [_box(root, c) for c in cols]
+    assert boxes[0][0] < boxes[1][0] < boxes[2][0] and len({b[1] for b in boxes}) == 1, "one row, input order"
+    assert len({b[3] for b in boxes}) == 1, "columns share one height"
+    assert cells['Compare'].get('parent') == cols[0].get('id')
+    ga, gc = _box(root, cells['Get ideas']), _box(root, cells['Compare'])
+    assert ga[0] == gc[0] and gc[1] > ga[1], "tasks of one stage stack in one column"
+    assert cells['Wander'].get('parent') == '1' and _box(root, cells['Wander'])[1] > boxes[0][1] + boxes[0][3]
+
+
+def test_task_stage_columns_yield_to_lanes_and_path():
+    p, _, _ = gen("""
+map_type: task
+stages: Plan, Buy
+elements:
+  - lane: "Passenger"
+    - task: "Plan a trip" {stage: Plan}
+""")
+    assert not any(g.get('synthetic') == 'stage' for g in p.groups.values())
+    p2, _, _ = gen("""
+map_type: task
+stages: Plan, Buy
+elements:
+  - task: "Plan a trip" {stage: Plan}
+  - journey: "Commute"
+relationships:
+  - "Plan a trip" -> "Commute": "is part of"
+""")
+    assert not p2.groups, "the path variant keeps its own layout"
+
+
+def test_container_rows_have_equal_gaps():
+    lines = ["map_type: capability", "elements:"]
+    for g in range(8):
+        lines.append(f'  - group: "Area {g + 1}"')
+        lines += [f'    - capability: "Item {g + 1}.{c + 1}"' for c in range(8)]
+    _, root, _ = gen("\n".join(lines))
+    cells = cells_by_label(root)
+    tops = sorted({_box(root, cells[f'Area {g + 1}'])[1] for g in range(8)})
+    h = _box(root, cells['Area 1'])[3]
+    gaps = [tops[i + 1] - (tops[i] + h) for i in range(len(tops) - 1)]
+    assert len(set(gaps)) == 1, gaps
+
+
+def test_box_legend_holds_its_last_line():
+    _, root, _ = gen('map_type: capability\nelements:\n  - capability: "One"\n  - capability: "Two"\n')
+    cells = list(root.iter('mxCell'))
+    bg = next(c for c in cells if 'fillColor=#f5f5f5' in (c.get('style') or ''))
+    last = next(c for c in cells if c.get('value') == 'Influence (guides)')
+    bg_box, last_box = _box(root, bg), _box(root, last)
+    assert last_box[1] + last_box[3] <= bg_box[1] + bg_box[3] - 4
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

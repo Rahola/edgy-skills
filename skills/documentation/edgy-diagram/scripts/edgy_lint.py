@@ -38,6 +38,8 @@ Rules
   W106 empty container                       W107 double-escaped HTML entity in a label
   W108 unlabelled edge between two elements  W109 label repeats the element type ("Capability X")
   W110 stroke colour outside EDGY white / base-element dark / transition overlay palette
+  W122 container coloured with a facet colour (fill, or stroke of an official
+       top-level container) that none of the elements inside it carries
 
 Visual rules — computed on the same resolved geometry the native renderer
 draws (edgy_geometry.py): ports, orthogonal joins, waypoints, label boxes.
@@ -439,7 +441,32 @@ def lint_model(path, page, model, lines, opts):
 
     for i in containers:
         if not any(c.get('parent') == i for c in cells.values()):
-            add('WARNING', 'W106', 'container has no children (parent="…" pointing to it)', i)
+            add('WARNING', 'W106', 'container has no children (parent="…" pointing to it) — remove it, or, if the '
+                                   'input nests group: under group:, regenerate with edgy-diagram 2.7.0 or later '
+                                   '(earlier versions flattened nested groups and left the outer one empty)', i)
+
+    # W122 container facet colour vs the facet of the elements inside it (any depth)
+    def _ancestors(c):
+        seen = set()
+        p = c.get('parent')
+        while p in cells and p not in seen:
+            seen.add(p)
+            yield p
+            p = cells[p].get('parent')
+    inside = {}
+    for i, (c, st, _box) in elements.items():
+        fill = st.get('fillColor', '').lower()
+        if fill in PALETTE:
+            for a in _ancestors(c):
+                inside.setdefault(a, set()).add(fill)
+    for i in containers:
+        st = style_dict(cells[i].get('style'))
+        colour = next((v for v in (st.get('fillColor', '').lower(), st.get('strokeColor', '').lower()) if v in PALETTE), None)
+        facets = inside.get(i)
+        if colour and facets and colour not in facets:
+            add('WARNING', 'W122', f'container is coloured {colour} ({PALETTE[colour]}) but its elements are '
+                                   f'{", ".join(sorted(PALETTE[f] for f in facets))} — colour an area by the facet of '
+                                   f'what it holds (group_style: official does this), or use a neutral tint', i)
 
     # E008 overlaps (same parent, > 30 % of the smaller area)
     items = [(i, c.get('parent'), box) for i, (c, st, box) in elements.items() if box]

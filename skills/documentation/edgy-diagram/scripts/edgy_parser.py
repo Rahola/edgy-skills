@@ -8,7 +8,7 @@ Käyttää virallista EDGY 23 -väripalettia ja elementtimuotoja.
 import html
 import re
 import xml.etree.ElementTree as ET
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 # ─── Relaatiotyypit: linkki / tietovirtanuoli / puu / vaikutusviiva ────────
 #
@@ -297,6 +297,7 @@ class EDGYParser:
         self.cards_per_row = None    # cards_per_row: N — kontin sisäinen ruudukko N sarakkeeseen
         self.equal_group_width = False  # equal_group_width: true — kontit saavat leveimmän kontin leveyden
         self.align_groups = None     # align_groups: grid — kontit yhteiseen rivi/sarake-ruudukkoon (rivin korkeus = korkein)
+        self.group_style = None      # group_style: official | light — None = official kun sisäkkäisiä ryhmiä on, muuten light
         self.stages = []             # stages: A, B, C — tehtäväkartan sarakkeet (kaistat = sidosryhmät)
         self.title = None            # title: — natiivipresettien otsikkonauha
         self.footnote = None         # footnote: — natiivipresettien alaviitenauha
@@ -311,16 +312,18 @@ class EDGYParser:
         lines = input_text.strip().split('\n')
 
         current_section = None
-        current_group = None      # avoin ryhmä/kaista (group_id)
-        group_indent = -1         # ryhmärivin sisennys
+        current_group = None      # avoin (sisin) ryhmä/kaista (group_id)
+        group_stack: List[Tuple[str, int]] = []   # avoimet ryhmät ulommasta sisimpään: (group_id, ryhmärivin sisennys)
         for raw_line in lines:
             indent = len(raw_line) - len(raw_line.lstrip())
             line = raw_line.strip()
             if not line or line.startswith('#'):
                 continue
-            # Ryhmä sulkeutuu kun sisennys palaa ryhmärivin tasolle tai alle
-            if current_group is not None and line.startswith('- ') and indent <= group_indent:
-                current_group = None
+            # Ryhmä sulkeutuu kun sisennys palaa ryhmärivin tasolle tai alle (sisäkkäiset ryhmät pinona)
+            if line.startswith('- '):
+                while group_stack and indent <= group_stack[-1][1]:
+                    group_stack.pop()
+                current_group = group_stack[-1][0] if group_stack else None
 
             # Tunnista osiot
             if line.startswith('facet:'):
@@ -420,12 +423,27 @@ class EDGYParser:
 
                     if element_type in STRUCTURE_TYPES:
                         group_id = f"{element_type}{len(self.groups) + 1}"
+                        parent = current_group
+                        kind = element_type
+                        if parent is not None and self.groups[parent]['kind'] == 'lane':
+                            # Kaistan sisällä ei ole kontteja: kaistan jäsenet ovat juuritasolla
+                            self.warnings.append(f"{element_type} '{element_value}' inside lane "
+                                                 f"'{self.groups[parent]['name']}' is not supported — placed at top level")
+                            parent = None
+                            group_stack.clear()
+                        elif parent is not None and kind == 'lane':
+                            self.warnings.append(f"lane '{element_value}' inside group '{self.groups[parent]['name']}' "
+                                                 f"is drawn as a nested group — lanes are top-level bands")
+                            kind = 'group'
                         self.groups[group_id] = {
-                            'id': group_id, 'kind': element_type, 'name': element_value,
+                            'id': group_id, 'kind': kind, 'name': element_value,
                             'members': [], 'tags': tags, 'metrics': metrics,
+                            'parent': parent, 'subgroups': [],
                         }
+                        if parent is not None:
+                            self.groups[parent]['subgroups'].append(group_id)
                         current_group = group_id
-                        group_indent = indent
+                        group_stack.append((group_id, indent))
                         continue
 
                     if element_type not in ALL_ELEMENT_TYPES:
@@ -503,7 +521,8 @@ class EDGYParser:
                         if options.get('change'):
                             self.uses_change_overlay = True
 
-    _LAYOUT_OPTION_KEYS = ('card_width', 'equal_cards', 'group_columns', 'cards_per_row', 'equal_group_width', 'align_groups')
+    _LAYOUT_OPTION_KEYS = ('card_width', 'equal_cards', 'group_columns', 'cards_per_row', 'equal_group_width', 'align_groups',
+                           'group_style')
 
     def _parse_layout_option(self, line: str) -> None:
         """Dokumenttitason asetteluvalinnat (2.6.0). Virheellinen arvo → varoitus ja oletus pysyy.
@@ -514,6 +533,8 @@ class EDGYParser:
         cards_per_row: N       kontin sisäinen ruudukko N sarakkeeseen
         equal_group_width: true|false  kontit saavat leveimmän kontin leveyden (oletus false)
         align_groups: grid|none  kontit yhteiseen rivi/sarake-ruudukkoon; rivin kontit venyvät rivin korkeuteen
+        group_style: official|light  official = virallisten karttojen kontit (ulompi fasetin värinen, sisempi
+                               valkoinen); light = vaaleanharmaa rakennekontti. Oletus official kun ryhmiä on sisäkkäin.
         """
         key, _, raw = line.partition(':')
         key, value = key.strip(), raw.strip().lower()
@@ -528,6 +549,11 @@ class EDGYParser:
                 setattr(self, key, value in ('true', 'yes', 'kyllä'))
             else:
                 self.warnings.append(f"Tuntematon {key}-arvo '{raw.strip()}' (sallitut: true, false), ohitetaan")
+        elif key == 'group_style':
+            if value in ('official', 'light'):
+                self.group_style = value
+            else:
+                self.warnings.append(f"Tuntematon group_style-arvo '{raw.strip()}' (sallitut: official, light), ohitetaan")
         elif key == 'align_groups':
             if value in ('grid', 'none'):
                 self.align_groups = None if value == 'none' else value
@@ -1068,11 +1094,48 @@ class EDGYParser:
         else:  # rect
             return f"{base}verticalAlign=middle;fontStyle=1;fontSize=14;"
 
+    def _effective_group_style(self) -> str:
+        """group_style: annettu arvo, muuten official kun ryhmiä on sisäkkäin, muuten light."""
+        if self.group_style:
+            return self.group_style
+        return 'official' if any(g.get('parent') is not None for g in self.groups.values()) else 'light'
+
+    def _group_facet_fill(self, gid: str) -> Optional[str]:
+        """Kontin kaikkien jälkeläiselementtien yhteinen fasettiväri (esim. #a6c0ff), muuten None
+        (sekalaiset fasetit tai valkoiset perustyypit)."""
+        fills, stack = set(), [gid]
+        while stack:
+            g = self.groups[stack.pop()]
+            fills.update(EDGY_COLORS.get(self.elements[m]['type'], {}).get('fill', '#ffffff')
+                         for m in g['members'] if m not in self._hidden)
+            stack.extend(g.get('subgroups') or [])
+        if len(fills) == 1:
+            fill = fills.pop()
+            return None if fill.lower() == '#ffffff' else fill
+        return None
+
     def _get_group_style(self, group: dict) -> str:
-        """Tyyli ryhmäkontille (container) tai kaistalle (lane)."""
+        """Tyyli ryhmäkontille (container) tai kaistalle (lane).
+
+        group_style official (virallinen EDGY 23 -kyvykkyyskartta): kontti jossa on aliryhmiä =
+        jäsenten fasettiväri, valkoinen reuna; lehtikontti sisällä = valkoinen ilman reunaa;
+        ylimmän tason lehtikontti = valkoinen, fasetin värinen reuna. Synteettiset facet- ja
+        triad-kontit pitävät oman tyylinsä."""
         if group['kind'] == 'lane':
             return ("whiteSpace=wrap;html=1;fillColor=#f4f4f4;strokeColor=none;align=left;verticalAlign=top;"
                     "spacingLeft=8;spacingTop=4;fontColor=#555555;fontSize=11;fontStyle=1;")
+        synthetic = group.get('synthetic')
+        if self._effective_group_style() == 'official' and synthetic in (None, 'stage'):
+            facet_fill = self._group_facet_fill(group['id'])
+            if group.get('subgroups'):
+                fill, stroke = facet_fill or FACET_CONTAINER_FILLS['group'], '#ffffff'
+            elif group.get('parent') is not None:
+                fill, stroke = '#ffffff', 'none'
+            else:
+                fill, stroke = '#ffffff', facet_fill or '#d0d4dc'
+            return (f"rounded=1;arcSize=8;container=1;collapsible=0;whiteSpace=wrap;html=1;"
+                    f"fillColor={fill};strokeColor={stroke};strokeWidth=2;align=left;verticalAlign=top;"
+                    f"spacingLeft=10;spacingTop=4;fontSize=13;fontStyle=1;fontColor=#333333;edgyGroup=official;")
         fill = FACET_CONTAINER_FILLS.get(group.get('facet', 'group'), FACET_CONTAINER_FILLS['group'])
         stroke = '#d0d4dc' if group.get('facet') == 'further' else '#ffffff'
         return (f"rounded=1;arcSize=6;container=1;collapsible=0;whiteSpace=wrap;html=1;"
@@ -1119,7 +1182,7 @@ class EDGYParser:
             page_height = max(300, int(_math.ceil((content_bottom + 30 + band_h + 16) / 10) * 10))
         else:
             # Legenda tarvitsee tilaa oikeasta alakulmasta: kasvata sivua jos sisältö ulottuu sinne
-            legend_h = 200 + (self._overlay_legend_height() if self.uses_change_overlay else 0)
+            legend_h = self._LEGEND_BOX_H + (self._overlay_legend_height() if self.uses_change_overlay else 0)
             legend_w = 220
             for i in positions:
                 x, y = positions[i]
@@ -1140,15 +1203,22 @@ class EDGYParser:
         next_id = 2
         element_mapping: Dict[str, str] = {}
 
-        # 1) Ryhmät ja kaistat (taustalle, ennen elementtejä)
-        for gid, group in self.groups.items():
+        # 1) Ryhmät ja kaistat (taustalle, ennen elementtejä); sisäkkäinen kontti vanhempansa lapseksi
+        for gid in sorted(self.groups, key=self._group_depth):
+            group = self.groups[gid]
             if gid not in group_pos:
                 continue
             gx, gy = group_pos[gid]
+            parent_gid = group.get('parent')
+            if parent_gid is not None and parent_gid in element_mapping:
+                parent_cell = element_mapping[parent_gid]
+                gx, gy = self._child_positions.get(gid, (20, 40))
+            else:
+                parent_cell = "1"
             gw, gh = self._size_of(gid)
             cell = ET.SubElement(mx_root, "mxCell", {
                 "id": str(next_id), "value": html.escape(group['name']),
-                "style": self._get_group_style(group), "vertex": "1", "parent": "1",
+                "style": self._get_group_style(group), "vertex": "1", "parent": parent_cell,
             })
             ET.SubElement(cell, "mxGeometry", {"x": str(int(round(gx))), "y": str(int(round(gy))),
                                                "width": str(int(gw)), "height": str(int(gh)), "as": "geometry"})
@@ -1423,10 +1493,14 @@ class EDGYParser:
                 text_cell(html.escape(label), x + 26, y_ov, tw, row_h)
                 x += 26 + tw + 14
 
+    # Laatikkolegendan korkeus: otsikko 26 + 6 väririviä × 18 + erotin 10 + 4 viivariviä × 16 + alamarginaali 12
+    # (2.6.0:n 200 px leikkasi viimeisen rivin, "Influence (guides)", laatikon reunan yli)
+    _LEGEND_BOX_H = 220
+
     def _append_legend_cells(self, mx_root, start_id: int, page_width: int, page_height: int) -> None:
         """Lisää EDGY-legend draw.io-kaavion oikeaan alakulmaan."""
         # Legend-alueen mitat (+ muutoskerroksen rivit, jos käytössä)
-        lw, lh = 220, 200
+        lw, lh = 220, self._LEGEND_BOX_H
         if self.uses_change_overlay:
             lh += self._overlay_legend_height()
         margin = 20
@@ -1581,12 +1655,15 @@ class EDGYParser:
         self._equalise_cards()
         self._prepare_facet_groups()
         self._prepare_task_lanes()
+        self._prepare_task_stages()
 
-        for gid, group in self.groups.items():
-            self._layout_group_members(gid, group)
+        # Sisimmät ensin: ylemmän ryhmän koko riippuu aliryhmien koosta
+        for gid in sorted(self.groups, key=lambda g: -self._group_depth(g)):
+            self._layout_group_members(gid, self.groups[gid])
         if self.equal_group_width:
-            # Kontit (ei kaistat, ei synteettiset facet-kontit) saavat leveimmän leveyden
-            gids = [g for g, grp in self.groups.items() if grp['kind'] == 'group' and not grp.get('synthetic')]
+            # Ylimmän tason kontit (ei kaistat, ei synteettiset facet-kontit) saavat leveimmän leveyden
+            gids = [g for g, grp in self.groups.items() if grp['kind'] == 'group' and not grp.get('synthetic')
+                    and grp.get('parent') is None]
             if gids:
                 widest = max(self._computed_sizes[g][0] for g in gids)
                 for g in gids:
@@ -1594,7 +1671,7 @@ class EDGYParser:
 
         top_items = [eid for eid, e in self.elements.items() if e.get('group') is None and eid not in self._hidden]
         lanes = [gid for gid, g in self.groups.items() if g['kind'] == 'lane']
-        containers = [gid for gid, g in self.groups.items() if g['kind'] == 'group']
+        containers = [gid for gid, g in self.groups.items() if g['kind'] == 'group' and g.get('parent') is None]
 
         if lanes and self.map_type == 'reference':
             positions = self._layout_reference(lanes, containers + top_items)
@@ -1626,8 +1703,24 @@ class EDGYParser:
         self._normalize_to_canvas(positions)
         self._snap_to_grid(positions)
 
-        # Palauta KAIKKIEN elementtien absoluuttiset sijainnit; ryhmät erikseen
-        self._group_positions = {gid: positions[gid] for gid in self.groups if gid in positions}
+        # Palauta KAIKKIEN elementtien absoluuttiset sijainnit; ryhmät erikseen (sisäkkäiset: vanhemman ketju)
+        self._group_positions = {}
+
+        def _abs_group(g):
+            if g in self._group_positions:
+                return self._group_positions[g]
+            parent = self.groups[g].get('parent')
+            if parent is None:
+                pos = positions.get(g)
+            else:
+                pp = _abs_group(parent)
+                rx, ry = self._child_positions.get(g, (20, 40))
+                pos = None if pp is None else (pp[0] + rx, pp[1] + ry)
+            if pos is not None:
+                self._group_positions[g] = pos
+            return pos
+        for gid in self.groups:
+            _abs_group(gid)
         result: Dict[str, Tuple[int, int]] = {}
         for eid, element in self.elements.items():
             gid = element.get('group')
@@ -1721,6 +1814,41 @@ class EDGYParser:
                 self.warnings.append(f"task map: '{self.elements[holder]['name']}' shares {len(extra)} task(s) placed in another lane "
                                      f"({', '.join(self.elements[t]['name'] for t in extra)}) — named in the lane title, not drawn twice")
 
+    def _prepare_task_stages(self) -> None:
+        """map_type: task + stages: ilman kaistoja (virallinen tehtäväkartta): yksi kontti
+        per vaihe syötteen järjestyksessä, tehtävät allekkain vaiheensa konttiin. Ei koske
+        kaistoja, omia ryhmiä eikä polkuvarianttia (tehtävä → journey/channel).
+        Vaiheeton tehtävä jää konttien perään varoituksen kera; tyhjää vaihetta ei piirretä."""
+        for gid in [g for g, grp in self.groups.items() if grp.get('synthetic') == 'stage']:
+            for m in self.groups[gid]['members']:
+                self.elements[m]['group'] = None
+            del self.groups[gid]
+        if self.map_type != 'task' or not self.stages or self.groups:
+            return
+        tasks = [eid for eid, e in self.elements.items() if e['type'] == 'task' and eid not in self._hidden]
+        if not tasks or self._task_path_targets(list(self.elements)):
+            return
+        cols = {st.lower(): st for st in self.stages}
+        by_stage: Dict[str, List[str]] = {st: [] for st in self.stages}
+        for t in tasks:
+            st = (self.elements[t].get('stage') or '').strip().lower()
+            if st in cols:
+                by_stage[cols[st]].append(t)
+            else:
+                self.warnings.append(f"task map: '{self.elements[t]['name']}' has no known stage "
+                                     f"(stages: {', '.join(self.stages)}) — placed after the stage columns")
+        for n, st in enumerate(self.stages):
+            members = by_stage[st]
+            if not members:
+                self.warnings.append(f"task map: stage '{st}' has no tasks — no column drawn")
+                continue
+            gid = f"stage_{n + 1}"
+            self.groups[gid] = {'id': gid, 'kind': 'group', 'name': st, 'members': members, 'tags': [],
+                                'metrics': {}, 'synthetic': 'stage', 'layout': 'column',
+                                'parent': None, 'subgroups': []}
+            for m in members:
+                self.elements[m]['group'] = gid
+
     def _task_path_targets(self, items: List[str]) -> bool:
         """Polkuvariantti: tehtävistä on relaatioita journey- tai channel-elementteihin."""
         types = {i: self.elements[i]['type'] for i in items}
@@ -1804,6 +1932,9 @@ class EDGYParser:
         """
         members = group['members']
         PAD_X, PAD_TOP, PAD_BOTTOM, GAP = 20, 36, 20, 20
+        if group.get('subgroups'):
+            self._layout_parent_group(gid, group)
+            return
         if not members:
             self._computed_sizes[gid] = (240, 100)
             return
@@ -1910,6 +2041,49 @@ class EDGYParser:
             height = y + row_h + PAD_BOTTOM
         min_w = max(240, len(group['name']) * 7 + 40)
         self._computed_sizes[gid] = (max(width, min_w), height)
+
+    def _group_depth(self, gid: str) -> int:
+        depth, g = 0, self.groups[gid].get('parent')
+        while g is not None:
+            depth, g = depth + 1, self.groups[g].get('parent')
+        return depth
+
+    def _layout_parent_group(self, gid: str, group: dict) -> None:
+        """Kontti, jossa on aliryhmiä (virallisen kyvykkyyskartan kolme tasoa: alue → aliryhmä → kyvykkyys).
+
+        Suorat jäsenelementit ensin tavallisena ruudukkona, aliryhmät niiden alle
+        riveinä: sarakemäärä group_columns tai 1–3 → yhdelle riville, 4 → 2, muuten 3.
+        Sarakkeen leveys = sarakkeen levein aliryhmä, rivin aliryhmät venyvät rivin
+        korkeuteen (viralliset kartat: tasakorkeat alueet riveittäin)."""
+        import math
+        PAD_X, PAD_TOP, PAD_BOTTOM, GAP = 20, 36, 20, 20
+        subs = group['subgroups']
+        right, y = PAD_X, PAD_TOP
+        if group['members']:
+            self._layout_group_members(gid, {**group, 'subgroups': []})
+            for m in group['members']:
+                mx, my = self._child_positions[m]
+                mw, mh = self._get_element_size(self.elements[m])
+                right = max(right, mx + mw)
+                y = max(y, my + mh + GAP)
+        n = len(subs)
+        cols = self.group_columns or (n if n <= 3 else 2 if n == 4 else 3)
+        rows = [subs[i:i + cols] for i in range(0, n, cols)]
+        col_w = [0] * cols
+        for row in rows:
+            for c, sg in enumerate(row):
+                col_w[c] = max(col_w[c], int(math.ceil(self._computed_sizes[sg][0] / 10) * 10))
+        for row in rows:
+            row_h = int(math.ceil(max(self._computed_sizes[sg][1] for sg in row) / 10) * 10)
+            x = PAD_X
+            for c, sg in enumerate(row):
+                self._child_positions[sg] = (x, y)
+                self._computed_sizes[sg] = (col_w[c], row_h)
+                x += col_w[c] + GAP
+            right = max(right, x - GAP)
+            y += row_h + GAP
+        min_w = max(240, len(group['name']) * 8 + 40)
+        self._computed_sizes[gid] = (max(right + PAD_X, min_w), y - GAP + PAD_BOTTOM)
 
     def _layout_lanes(self, lanes: List[str], others: List[str]) -> Dict[str, Tuple[int, int]]:
         """Kaistat päällekkäin ylhäältä alas; muut top-level-kohteet riviin kaistojen alle."""
@@ -2035,7 +2209,8 @@ class EDGYParser:
         x, y, row_h = x0, y0, 0
         for i, item in enumerate(items):
             if i and i % cols == 0:
-                x, y, row_h = x0, y + row_h + gap_y, 0
+                # rivin korkeus pyöristetään ylös 10 px:iin: grid snap ei saa tehdä riviväleistä epätasaisia (W118)
+                x, y, row_h = x0, y + int(math.ceil(row_h / 10) * 10) + gap_y, 0
             w, h = self._size_of(item)
             positions[item] = (x, y)
             x += w + gap_x
@@ -2311,6 +2486,14 @@ class EDGYParser:
     # ---- karttatyypit -----------------------------------------------------
     def _calculate_map_type_layout(self, items: List[str], containers: List[str]) -> Dict[str, Tuple[int, int]]:
         """Laske layout karttatyypin mukaan. Reititä strategiaan MAP_TYPE_LAYOUT-taulun kautta."""
+        if containers and all(self.groups[c].get('synthetic') == 'stage' for c in containers):
+            # Tehtäväkartan vaihesarakkeet: yksi rivi, tasakorkeat sarakkeet; vaiheettomat tehtävät alle
+            cols = self.group_columns or len(containers)
+            saved, self.align_groups = self.align_groups, 'grid'
+            try:
+                return self._layout_flow_grid(containers + items, cols)
+            finally:
+                self.align_groups = saved
         if containers:
             # Ryhmät (esim. kyvykkyysalueet) riveinä; irralliset elementit perään
             cols = self.group_columns or (2 if len(containers) <= 4 else 3)

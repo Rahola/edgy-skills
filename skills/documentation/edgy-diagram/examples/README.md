@@ -26,6 +26,7 @@ generator changes with `bash tools/regen-examples.sh`, never edit by hand).
 | `purpose-map.txt` | `expected-purpose.puml` | hub-and-spoke (PlantUML output too) |
 | `multipage-map.txt` | `expected-multipage.drawio` | `pages:` → two draw.io pages in one mxfile |
 | `capability-areas-map.txt` | `expected-capability-areas.drawio` | `group:` area containers with ids and highlight |
+| `capability-areas-nested-map.txt` | `expected-capability-areas-nested.drawio` | three tiers (area → sub-area → capability) with nested `group:`, `group_style: official`, 40 capabilities |
 | `purpose-hierarchy-map.txt` | `expected-purpose-hierarchy.drawio` | purpose hierarchy with Outcomes |
 | `organisation-roles-map.txt` | `expected-organisation-roles.drawio` | organisation role model |
 | `transition-overlay.txt` | `expected-transition-overlay.drawio` | transition overlay strokes, relationship options |

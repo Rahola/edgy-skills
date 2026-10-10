@@ -569,6 +569,33 @@ def test_w121_series():
     assert [x for x in json.loads(r.stdout) if x['rule'] == 'W121']
 
 
+def test_w122_container_facet_colour():
+    area = 'rounded=1;container=1;whiteSpace=wrap;html=1;fillColor={};strokeColor=#ffffff;verticalAlign=top;'
+    good = HEAD + LEGEND + vertex(2, 'Area', area.format('#a6c0ff'), 20, 20, 300, 200) \
+        + vertex(3, 'Dispatch', ASSET, 20, 40, parent='2') + TAIL
+    assert 'W122' not in rules(run(good))
+    bad = HEAD + LEGEND + vertex(2, 'Area', area.format('#ff99bd'), 20, 20, 300, 200) \
+        + vertex(3, 'Dispatch', ASSET, 20, 40, parent='2') + TAIL
+    assert 'W122' in rules(run(bad))
+    # official top-level leaf container: white fill, the facet colour on the stroke
+    leaf = ('rounded=1;container=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#80ffb7;verticalAlign=top;')
+    xml = HEAD + LEGEND + vertex(2, 'Area', leaf, 20, 20, 300, 200) + vertex(3, 'Dispatch', ASSET, 20, 40, parent='2') + TAIL
+    assert 'W122' in rules(run(xml))
+    # nested: the facet of grand-children counts
+    xml = HEAD + LEGEND + vertex(2, 'Area', area.format('#a6c0ff'), 20, 20, 400, 300) \
+        + vertex(4, 'Sub', 'rounded=1;container=1;fillColor=#ffffff;strokeColor=none;verticalAlign=top;', 10, 30, 300, 200, parent='2') \
+        + vertex(3, 'Dispatch', ASSET, 20, 40, parent='4') + TAIL
+    assert 'W122' not in rules(run(xml))
+
+
+def test_generated_nested_map_is_clean():
+    p = EDGYParser()
+    p.parse_input(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'examples',
+                                    'capability-areas-nested-map.txt'), encoding='utf-8').read())
+    found = run(p.generate_xml())
+    assert found == [], found
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:
