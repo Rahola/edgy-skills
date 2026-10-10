@@ -331,7 +331,10 @@ python3 skills/architecture/edgy-assessment/scripts/edgy_model_to_archimate.py <
 ```
 
 The diff matches elements by id, then name, then a similar name (renamed),
-and tags them `keep`, `change`, `new` or `remove`; core links are compared
+and tags them `keep`, `change`, `new` or `remove`. A similar-name match can
+pair two different short names ("Ticket sales" / "Ticket rules"): check every
+`renamed from …` row of the change table, and give elements an `id` in both
+models to avoid it; core links are compared
 per type pair. `replace` and `decide` are judgements: set them by hand in
 the transition TXT, never let the tool imply them. The ArchiMate export is
 one-way — the EDGY model stays the source — and keeps the EDGY type of every

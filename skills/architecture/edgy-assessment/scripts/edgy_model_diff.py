@@ -15,6 +15,11 @@ Matching, per element type, in this order:
                                                tags differ (a new name = renamed)
   2. same name (case-insensitive)            → keep / change as above
   3. similar name (difflib ratio ≥ 0.8)      → change (renamed)
+     Short names that differ in one word can pass this threshold ("Ticket
+     sales" vs "Ticket rules" ≈ 0.83) and be paired although they are two
+     different elements. Every such pairing is reported as `renamed from …`
+     in the change table — check those rows; give elements an `id` in both
+     models to make the match exact.
   4. only in the target                      → new
   5. only in the current state               → remove
 Core links are type-level in the model: a pair present only in the target is
