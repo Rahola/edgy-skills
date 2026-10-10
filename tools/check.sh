@@ -7,7 +7,8 @@
 #
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
 # edgy-tests, edgy-geometry-tests, edgy-lint-tests, edgy-render-tests,
-# edgy-structure-tests, edgy-tool-tests, edgy-model, edgy-eval, edgy-lint,
+# edgy-structure-tests, edgy-tool-tests, edgy-model, edgy-model-diff-tests, edgy-archimate-tests,
+# edgy-official-shapes, edgy-eval, edgy-lint,
 # edgy-lint-strict, edgy-series, edgy-qa,
 # privacy-scan.
 #
@@ -207,6 +208,8 @@ run_step "edgy-render-tests" python3 "$EDGY_SCRIPTS/test_render.py"
 run_step "edgy-structure-tests" python3 "$EDGY_SCRIPTS/test_structure.py"
 run_step "edgy-tool-tests" python3 tools/test_edgy_tools.py
 run_step "edgy-model-tests" python3 skills/architecture/edgy-assessment/scripts/test_model_to_txt.py
+run_step "edgy-model-diff-tests" python3 skills/architecture/edgy-assessment/scripts/test_model_diff.py
+run_step "edgy-archimate-tests" python3 skills/architecture/edgy-assessment/scripts/test_model_to_archimate.py
 run_step "edgy-semantic-tests" python3 "$EDGY_SCRIPTS/test_semantic.py"
 
 # --- Vaihe 3c2: edgy-model.json-skeema + malli → TXT ------------------------
@@ -286,6 +289,22 @@ edgy_series() {
     return $rc
 }
 run_step "edgy-series" edgy_series
+
+# --- Vaihe 3f2: viralliset karttamuodot -----------------------------------------
+# Yksi sivu per virallinen EDGY 23 -karttatyyppi virallisen esimerkin muodossa
+# (eval/official-shapes.txt): 0 lint-virhettä ja 0 visuaalista löydöstä (W111–W114).
+edgy_official_shapes() {
+    local tmp
+    tmp=$(mktemp -d)
+    python3 "$EDGY_SCRIPTS/edgy_generator.py" skills/documentation/edgy-diagram/examples/eval/official-shapes.txt \
+        --output "$tmp/shapes.drawio" >/dev/null 2>&1 || { rm -rf "$tmp"; return 1; }
+    python3 "$EDGY_SCRIPTS/edgy_lint.py" -q "$tmp/shapes.drawio" || { rm -rf "$tmp"; return 1; }
+    local visual
+    visual=$(python3 "$EDGY_SCRIPTS/edgy_lint.py" --visual "$tmp/shapes.drawio" 2>/dev/null | python3 -c 'import json,sys; print(len(json.load(sys.stdin)))')
+    rm -rf "$tmp"
+    [ "$visual" = "0" ] || { echo "official shapes: $visual visual finding(s)" >&2; return 1; }
+}
+run_step "edgy-official-shapes" edgy_official_shapes
 
 # --- Vaihe 3g: qa.json-manifesti -----------------------------------------------
 # Generaattorin --qa kirjoittaa manifestin; sen on validoiduttava skeemaa vasten

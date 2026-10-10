@@ -2778,8 +2778,15 @@ class EDGYParser:
             finally:
                 self.align_groups = saved
         if containers:
-            # Ryhmät (esim. kyvykkyysalueet) riveinä; irralliset elementit perään
-            cols = self.group_columns or (2 if len(containers) <= 4 else 3)
+            # Ryhmät (esim. kyvykkyysalueet) riveinä; irralliset elementit perään. Ilman group_columns:
+            # 2 / 3 saraketta, mutta vähemmän jos rivin levein kontti × sarakkeet ylittäisi 1800 px
+            # (sisäkkäiset alueet ovat leveitä; W120)
+            cols = self.group_columns
+            if not cols:
+                cols = 2 if len(containers) <= 4 else 3
+                widest = max(self._size_of(c)[0] for c in containers)
+                while cols > 1 and cols * widest + (cols - 1) * 40 > 1800:
+                    cols -= 1
             return self._layout_flow_grid(containers + items, cols)
         if self.map_type == 'purpose':
             return self._layout_purpose(items)
@@ -2902,6 +2909,17 @@ class EDGYParser:
                     if layer[b] < layer[a] + 1:
                         layer[b] = layer[a] + 1
                         changed = True
+        # Vedä solmut seuraajiensa viereen (lähde jää vasemmalle vain jos sillä ei ole seuraajia):
+        # linkki ylittää yhden kerroksen, ei kulje välikerroksen laatikon läpi
+        changed = True
+        while changed:
+            changed = False
+            for a in items:
+                if dag[a]:
+                    want = min(layer[b] for b in dag[a]) - 1
+                    if want > layer[a]:
+                        layer[a] = want
+                        changed = True
         linked = {a for a, _ in edges} | {b for _, b in edges}
         layers: Dict[int, List[str]] = {}
         for i in items:
@@ -2923,12 +2941,24 @@ class EDGYParser:
         row_h = max(sizes[i][1] for i in items)
         GAP_X, GAP_Y = 140, 80                # GAP_X: tila linkin tekstille kerrosten välissä
         tallest = max((len(v) for v in layers.values()), default=1)
+        n_layers = max(layers, default=0) + 1
         positions: Dict[str, Tuple[int, int]] = {}
-        for k, nodes in layers.items():
-            offset = (tallest - len(nodes)) * (row_h + GAP_Y) / 2
-            for idx, n in enumerate(nodes):
-                positions[n] = (60 + k * (col_w + GAP_X), 60 + offset + idx * (row_h + GAP_Y))
-        y = 60 + tallest * (row_h + GAP_Y) + 20
+        lr_w = n_layers * (col_w + GAP_X) - GAP_X
+        lr_h = tallest * (row_h + GAP_Y) - GAP_Y
+        if lr_w / max(lr_h, 1) <= 4.5 or lr_w < 1200:      # sama raja kuin lint W120 (pieni kartta ei ole liian leveä)
+            for k, nodes in layers.items():          # vasemmalta oikealle (oletus)
+                offset = (tallest - len(nodes)) * (row_h + GAP_Y) / 2
+                for idx, n in enumerate(nodes):
+                    positions[n] = (60 + k * (col_w + GAP_X), 60 + offset + idx * (row_h + GAP_Y))
+            y = 60 + tallest * (row_h + GAP_Y) + 20
+        else:
+            # Liian leveä (lint W120): kerrokset ylhäältä alas, rivin sisällä samassa järjestyksessä
+            TB_GAP_X, TB_GAP_Y = 40, 110
+            for k, nodes in layers.items():
+                offset = (tallest - len(nodes)) * (col_w + TB_GAP_X) / 2
+                for idx, n in enumerate(nodes):
+                    positions[n] = (60 + offset + idx * (col_w + TB_GAP_X), 60 + k * (row_h + TB_GAP_Y))
+            y = 60 + n_layers * (row_h + TB_GAP_Y) + 20
         x = 60
         for i in items:
             if i not in linked:

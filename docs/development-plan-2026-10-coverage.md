@@ -1,6 +1,6 @@
 # EDGY skills development plan (2026-10, part 3): coverage — maps and diagrams the skills cannot produce yet
 
-**Revision 1 (2026-10-10) — proposal, not yet implemented.** Follow-up to
+**Revision 2 (2026-10-10) — implemented: Sprints 17–20 ship as v2.3.0 (edgy-diagram 2.7.0, edgy-assessment 1.9.0, edgy-framework 1.6.0, edgy-target-state 1.1.0). Deviations from the proposal are listed in §10 and in `AGENT_LOG.md` (Sprints 17–20).** Follow-up to
 [`development-plan-2026-10-semantics-and-layout.md`](development-plan-2026-10-semantics-and-layout.md),
 whose Sprints 13–16 shipped as **v2.2.0** (edgy-diagram 2.6.0,
 edgy-assessment 1.8.0, edgy-framework 1.5.0).
@@ -403,3 +403,49 @@ Sprint 20 one day.
 | 2.9 | `edgy_semantic_review.py` on a capability map | no S-findings possible (`is_purpose_map` gate) |
 | 1 | `map_type: capability`, 8 groups × 8 capabilities, `--preview --preset publication` | 7.6 s, 0 errors, W109 (probe names) and W118 × 2 (§2.12) |
 | 2.12 | same probe; and one row with groups of 3 and 8 members | row gaps 44 px / 34 px; containers 196 px and 276 px high in one row |
+
+## 10. Implementation notes (revision 2)
+
+Deviations from the proposal, each for a reason found while building it:
+
+- **Badge keys (P1.7).** `{status: …}` already marks an Outcome's metric as
+  confirmed / proposed (S003), so the overlay uses `{maturity: 1–5}` and
+  `{rating: …}` instead; `status_palette:` became `rating_palette:`.
+- **W123 (P1.7).** A hand-coloured card fill is already W102 (not a palette
+  colour), whose message now points to the badges. W123 instead flags a
+  badge whose colour has no legend key — the extension must be explained.
+- **W118 (P1.3, §2.12).** The finding was right; the fix is in the layout
+  (row heights rounded before the grid snap, one fixed row gap), not in the
+  rule. Equal row heights already existed with `align_groups: grid`.
+- **`layout_from:` draw.io (P1.6).** Areas and top-level elements are placed
+  by name; the arrangement inside an area stays generated, so moving an
+  area survives regeneration and moving a card inside it does not.
+- **ArchiMate validation (P2.2).** The Open Group XSD is neither bundled nor
+  reachable from the build environment; the tests check the structure the
+  XSD prescribes (namespace, element types, unique identifiers, resolving
+  references, child order). Relationships are Associations named with the
+  verb — no Realization / Serving is inferred.
+- **Model diff (P2.1).** Derives `keep` / `change` / `new` / `remove`;
+  `replace` and `decide` stay human judgements. `--layout triad` was added
+  because the default facet layout of a nine-element transition map has
+  edges through boxes. The example pair lives in
+  `edgy-assessment/examples/model-diff/`.
+- **Fixtures (§7).** One 16-page input `examples/eval/official-shapes.txt`
+  (one page per official map type, `check.sh` step `edgy-official-shapes`)
+  replaced the separate fixtures f5–f7; the six new examples are in the
+  strict lint gate.
+- **Found on the way.** The box legend was 200 px high and its last line
+  spilled over the border on every box-legend map (now 220 px; every such
+  example regenerated, only legend cells moved). Tree edges whose child is
+  below the parent now leave at the bottom (`expected-outcome.drawio`).
+  Nested areas cap the number of areas per row at 1800 px; an outcome web
+  that would be wider than W120 allows is laid out top-down.
+
+Acceptance (§8): the 16 official shapes generate with 0 errors and 0 visual
+findings; a moved area survives regeneration through `layout_from:`; the
+heat map keeps facet fills and its legend rows (W123 silent); S007–S012 fire
+on the fi / en test cases and stay silent on every shipped example; the
+model diff reproduces every tag of the hand-tagged transition example that a
+comparison can know; the ArchiMate export passes the structural checks —
+opening it in Archi is left to the reviewer.
+

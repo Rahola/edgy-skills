@@ -1,6 +1,6 @@
 ---
 name: edgy-assessment
-version: "1.8.0"
+version: "1.9.0"
 description: >
   Comprehensive EDGY 23 Enterprise Design assessment: analysis, diagrams, and recommendations.
   Orchestrating skill that chains edgy-framework and edgy-diagram skills into a unified workflow.
@@ -318,6 +318,26 @@ the analysis (an earlier review found reports with five capabilities and
 diagrams with four). Edit the model, regenerate; never patch a TXT. The
 format below documents what the script produces, and is the fallback when
 Python is unavailable.
+
+**From the model to a transition map and to ArchiMate** (optional, when the
+assessment compares two states or hands the model to an architecture team):
+
+```bash
+# current vs target model → transition map input (overlay tags) and a change table
+python3 skills/architecture/edgy-assessment/scripts/edgy_model_diff.py current-model.json target-model.json \
+    --facet architecture --layout triad --out <company>-transition.txt --report <company>-changes.md
+# the model as ArchiMate 3.1 Open Exchange XML (one view per facet map) for Archi and other tools
+python3 skills/architecture/edgy-assessment/scripts/edgy_model_to_archimate.py <company>-edgy-model.json -o <company>.archimate.xml
+```
+
+The diff matches elements by id, then name, then a similar name (renamed),
+and tags them `keep`, `change`, `new` or `remove`; core links are compared
+per type pair. `replace` and `decide` are judgements: set them by hand in
+the transition TXT, never let the tool imply them. The ArchiMate export is
+one-way — the EDGY model stays the source — and keeps the EDGY type of every
+element in the property `edgy:type` (mapping table in the script's header
+and in edgy-diagram `references/export.md`). Example pair:
+`examples/model-diff/` (fictional).
 
 **Layout block.** An optional `layout` object in the model (`legend`,
 `card_width`, `equal_cards`, `group_columns`, `cards_per_row`,

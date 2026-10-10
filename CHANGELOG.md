@@ -4,6 +4,78 @@ Releases of the edgy-skills bundle are git tags. Each skill also carries its
 own semantic version in its `SKILL.md` front matter and in `registry.yaml`.
 Install a release with `EDGY_SKILLS_REF=<tag>` (see README → Versions).
 
+## v2.3.0 — 2026-10
+
+Coverage: the shapes of the official EDGY 23 maps that the generator could
+not draw, a status overlay for heat maps, semantic questions beyond purpose
+maps, a model diff and an ArchiMate export. Background:
+`docs/development-plan-2026-10-coverage.md` (a coverage review against the
+16 official example maps).
+
+| Skill | v2.2.0 | v2.3.0 |
+|-------|--------|--------|
+| edgy-diagram | 2.6.0 | **2.7.0** |
+| edgy-assessment | 1.8.0 | **1.9.0** |
+| edgy-framework | 1.5.0 | **1.6.0** |
+| edgy-target-state | 1.0.1 | **1.1.0** |
+| edgy-deep-dive | 1.1.0 | 1.1.0 |
+
+No breaking changes to the input format; every new key is opt-in or chosen
+from the input. Generated output changed in two places: the box legend is
+220 px high (the last line spilled over the 200 px box — every box-legend
+example regenerated, only legend cells moved), and a tree edge whose child
+sits below its parent leaves at the bottom (`expected-outcome.drawio`).
+
+**edgy-diagram 2.7.0**
+- **Nested `group:`** (any depth): the official three-tier capability map
+  (area → sub-area → capability); `group_style: official | light` —
+  official by default with nesting: area in the facet colour of what it
+  holds, white sub-groups. Container rows use one fixed gap; areas per row
+  drop when nested areas get too wide.
+- **Stage columns**: `map_type: task` with `stages:` and no lanes → one
+  column per stage (the official task map).
+- **Matrix**: `rows:` × `columns:` (alias of `stages:`) with
+  `{row: …, column: …}` for any grid-like map — the official channel map
+  2 × 2, a journey touchpoint map, a transition roadmap (waves × areas).
+- **Product / brand / object trees** when they have `contains` links
+  (portfolio), hub-and-spoke otherwise.
+- **Outcome web**: outcomes with directed links in layers, causes left,
+  effects right (top-down when that would be too wide).
+- **`layout_from: file.drawio#Page`**: areas and top-level elements moved in
+  draw.io keep their place when the map is regenerated.
+- **Status badges** (extension): `{maturity: 1–5}`, `{rating: …}`,
+  `rating_palette:` — a badge on the card and a legend row; the fill stays
+  the facet colour.
+- Lint **W122** container coloured with a facet colour its elements do not
+  carry; **W123** badge colour without a legend key; W106 and W102 explain
+  the new options.
+- Semantic review on every page: **S007–S012** (capability named after a
+  system or unit, phrased as a verb, shaped like a project; task in the
+  organisation's voice; outcome that is an action; outcome without a
+  measure while others have one). `qa.json` records the rule set.
+- Examples: capability-areas-nested, channel-matrix, transition-roadmap,
+  product-portfolio, outcome-web, capability-heatmap (all in the strict
+  lint gate); eval `official-shapes.txt` — one page per official map type,
+  `check.sh` step `edgy-official-shapes` (0 errors, 0 visual findings).
+
+**edgy-assessment 1.9.0**
+- `scripts/edgy_model_diff.py`: current + target `edgy-model.json` →
+  transition map TXT (`keep` / `change` / `new` / `remove`, core links per
+  type pair, `--layout triad`) and a change table; `replace` and `decide`
+  stay human judgements. Example pair `examples/model-diff/`.
+- `scripts/edgy_model_to_archimate.py`: ArchiMate 3.1 Open Exchange XML,
+  one view per facet map, `edgy:type` on every element.
+- Phase 4b runs the semantic review on every map input.
+
+**edgy-framework 1.6.0**
+- *Formulating tasks, outcomes and the Experience facet*: journey stages,
+  tasks in the person's words, channel axes, touchpoint matrix, outcomes.
+- Capability anti-patterns tied to S007–S009; heat maps as an extension.
+
+**edgy-target-state 1.1.0**
+- The transition overlay can be derived from two models with the diff; a
+  wave plan is a `columns:` × `rows:` matrix.
+
 ## v2.2.0 — 2026-10
 
 Semantic review of purpose maps, verbs and legend in the map language,

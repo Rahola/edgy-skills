@@ -57,6 +57,7 @@ EDGY_SKILLS_REF=v1.0.0 bash adapters/claude-code/install.sh --all   # previous g
 EDGY_SKILLS_REF=v2.0.0 bash adapters/claude-code/install.sh --all   # generator-first pipeline
 EDGY_SKILLS_REF=v2.1.0 bash adapters/claude-code/install.sh --all   # + visual lint, triad layout
 EDGY_SKILLS_REF=v2.2.0 bash adapters/claude-code/install.sh --all   # + semantic review, layout quality, qa.json
+EDGY_SKILLS_REF=v2.3.0 bash adapters/claude-code/install.sh --all   # + official map shapes, badges, model diff, ArchiMate export
 ```
 
 When an adapter runs from a local clone it installs that checkout, so use
@@ -163,7 +164,7 @@ skills cannot produce yet (nested groups, stage and matrix layouts, product
 trees, outcome webs, status overlay, wider semantic review, model diff,
 ArchiMate export) — is
 [`docs/development-plan-2026-10-coverage.md`](docs/development-plan-2026-10-coverage.md)
-(proposal).
+(shipped in v2.3.0).
 
 ## Contributing
 

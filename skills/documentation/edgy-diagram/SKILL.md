@@ -1,6 +1,6 @@
 ---
 name: edgy-diagram
-version: "2.6.0"
+version: "2.7.0"
 description: >
   Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML
   source and export them to PNG/SVG/PDF. Generator-first workflow

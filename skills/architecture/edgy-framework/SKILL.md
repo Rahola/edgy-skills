@@ -1,6 +1,6 @@
 ---
 name: edgy-framework
-version: "1.5.0"
+version: "1.6.0"
 description: >
   EDGY 23 enterprise design analysis: challenge reframing, facet intersection analysis,
   element identification from natural language, and modelling guidance for strategy
