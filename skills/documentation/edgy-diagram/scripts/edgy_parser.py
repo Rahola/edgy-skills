@@ -191,6 +191,21 @@ CHANGE_PALETTE = {
     'remove':  ('#bf2600', False),
     'decide':  ('#bf2600', True),    # katkoviiva: päätös auki (ADR)
 }
+# ─── Tilamerkki (status badge) — EDGY:n LAAJENNUS lämpökartoille ───────────────
+# Täyttö pysyy fasetin värinä; kypsyys / arvio näkyy kortin alareunan merkkinä ja omalla legendarivillään.
+MATURITY_PALETTE = {1: '#d73027', 2: '#fc8d59', 3: '#fee08b', 4: '#91cf60', 5: '#1a9850'}
+# rating: arvot saavat värin ensiesiintymisjärjestyksessä (värisokeille sopiva sarja); rating_palette: ohittaa
+RATING_COLOURS = ('#4477aa', '#ee6677', '#228833', '#ccbb44', '#66ccee', '#aa3377', '#bbbbbb')
+BADGE_H = 14          # merkin korkeus; kortti kasvaa BADGE_H + 4 px
+
+
+def _badge_text_colour(fill: str) -> str:
+    """Valkoinen teksti tummalle merkille, tumma vaalealle (suhteellinen luminanssi, WCAG)."""
+    r, g, b = (int(fill[i:i + 2], 16) / 255 for i in (1, 3, 5))
+    lin = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in (r, g, b)]
+    lum = 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+    return '#ffffff' if lum < 0.18 else '#1a1a1a'
+
 CHANGE_SYNONYMS = {
     # fi
     'säilyy': 'keep', 'uusi': 'new', 'vahvistuu': 'new', 'muuttuu': 'change', 'yhdistyy': 'change',
@@ -221,7 +236,7 @@ LEGEND_TEXT = {
         'chips_short': ['Identity', 'Architecture', 'Experience', 'Brand', 'Product', 'Organisation'],
         'lines': ['Link (core link)', 'Flow (data/value)', 'Tree (hierarchy)', 'Influence (guides)'],
         'lines_short': ['Link', 'Flow', 'Tree', 'Influence'],
-        'overlay': 'Transition (extension, stroke only)', 'overlay_short': 'Transition (extension)',
+        'overlay': 'Transition (extension, stroke only)', 'overlay_short': 'Transition (extension)', 'maturity': 'Maturity (extension)', 'rating': 'Rating (extension)',
         'change': CHANGE_LABELS,
     },
     'fi': {
@@ -231,7 +246,7 @@ LEGEND_TEXT = {
         'chips_short': ['Identity', 'Architecture', 'Experience', 'Brändi', 'Tuote', 'Organisaatio'],
         'lines': ['Linkki (ydinlinkki)', 'Virta (tieto/arvo)', 'Puu (hierarkia)', 'Vaikutus (ohjaa)'],
         'lines_short': ['Linkki', 'Virta', 'Puu', 'Vaikutus'],
-        'overlay': 'Siirtymä (laajennus, vain reunaviiva)', 'overlay_short': 'Siirtymä (laajennus)',
+        'overlay': 'Siirtymä (laajennus, vain reunaviiva)', 'overlay_short': 'Siirtymä (laajennus)', 'maturity': 'Kypsyys (laajennus)', 'rating': 'Arvio (laajennus)',
         'change': {'keep': 'säilyy', 'new': 'uusi, vahvistuu', 'change': 'muuttuu, yhdistyy',
                    'replace': 'korvautuu', 'remove': 'poistuu', 'decide': 'päätettävä (avoin, ks. ADR)'},
     },
@@ -242,7 +257,7 @@ LEGEND_TEXT = {
         'chips_short': ['Identity', 'Architecture', 'Experience', 'Marque', 'Produit', 'Organisation'],
         'lines': ['Lien (lien fondamental)', 'Flux (données/valeur)', 'Arbre (hiérarchie)', 'Influence (guide)'],
         'lines_short': ['Lien', 'Flux', 'Arbre', 'Influence'],
-        'overlay': 'Transition (extension, contour seul)', 'overlay_short': 'Transition (extension)',
+        'overlay': 'Transition (extension, contour seul)', 'overlay_short': 'Transition (extension)', 'maturity': 'Maturité (extension)', 'rating': 'Évaluation (extension)',
         'change': {'keep': 'conserver', 'new': 'nouveau, renforcer', 'change': 'modifier, fusionner',
                    'replace': 'remplacer', 'remove': 'supprimer', 'decide': 'à décider (ouvert, voir ADR)'},
     },
@@ -253,13 +268,13 @@ LEGEND_TEXT = {
         'chips_short': ['Identity', 'Architecture', 'Experience', 'Marke', 'Produkt', 'Organisation'],
         'lines': ['Verknüpfung (Kernverknüpfung)', 'Fluss (Daten/Wert)', 'Baum (Hierarchie)', 'Einfluss (steuert)'],
         'lines_short': ['Verknüpfung', 'Fluss', 'Baum', 'Einfluss'],
-        'overlay': 'Übergang (Erweiterung, nur Kontur)', 'overlay_short': 'Übergang (Erweiterung)',
+        'overlay': 'Übergang (Erweiterung, nur Kontur)', 'overlay_short': 'Übergang (Erweiterung)', 'maturity': 'Reifegrad (Erweiterung)', 'rating': 'Bewertung (Erweiterung)',
         'change': {'keep': 'bleibt', 'new': 'neu, gestärkt', 'change': 'ändert sich, zusammengeführt',
                    'replace': 'ersetzt', 'remove': 'entfällt', 'decide': 'zu entscheiden (offen, siehe ADR)'},
     },
 }
 LEGEND_TITLES = {lang: t['title'] for lang, t in LEGEND_TEXT.items()}   # lint päättelee kartan kielen otsikosta
-RESERVED_METRIC_KEYS = {'id', 'change', 'size', 'highlight', 'primary', 'stage', 'column', 'row'}
+RESERVED_METRIC_KEYS = {'id', 'change', 'size', 'highlight', 'primary', 'stage', 'column', 'row', 'maturity', 'rating'}
 
 # Ydinlinkkien parivalidointi: verbi → {(lähdetyyppi, kohdetyyppi), ...}
 # Sama verbi voi olla sallittu usealle parille (esim. requires/vaatii:
@@ -284,6 +299,7 @@ class EDGYParser:
         self._group_positions = {}  # ryhmien absoluuttiset sijainnit (viimeisin layout)
         self._layout_handles_tree = False
         self.uses_change_overlay = False
+        self.rating_palette: Dict[str, str] = {}   # rating_palette: label=#hex, … — tilamerkin värit (laajennus)
         self.layout_from = None    # (archimate file, view name, scale, dx, dy) tai None
         self.legend = 'box'        # 'box' = laatikko oikeassa alakulmassa, 'strip' = kapea nauha alareunassa
         self._legend_explicit = False
@@ -375,6 +391,17 @@ class EDGYParser:
             elif line.startswith('title:') or line.startswith('footnote:'):
                 key, _, raw = line.partition(':')
                 setattr(self, key.strip(), raw.strip().strip('"') or None)
+                continue
+            elif line.startswith('rating_palette:'):
+                # rating_palette: strategic=#228833, commodity=#bbbbbb — rating-merkin värit (EDGY-laajennus)
+                for pair in line.split(':', 1)[1].split(','):
+                    if '=' in pair:
+                        k, v = pair.split('=', 1)
+                        v = v.strip().lower()
+                        if re.fullmatch(r'#[0-9a-f]{6}', v):
+                            self.rating_palette[k.strip().lower()] = v
+                        else:
+                            self.warnings.append(f"rating_palette: '{v}' is not a #rrggbb colour — ignored")
                 continue
             elif line.startswith('legend:'):
                 # legend: box (oletus) | strip — nauha alareunassa säästää kanvasta
@@ -485,6 +512,8 @@ class EDGYParser:
                         'metrics': {k: v for k, v in metrics.items() if k not in RESERVED_METRIC_KEYS},
                         'stage': metrics.get('stage') or metrics.get('column'),   # matriisin sarake (stages:/columns:)
                         'row': metrics.get('row'),           # matriisin rivi (rows:)
+                        'maturity': self._parse_maturity(metrics.get('maturity'), element_value),
+                        'rating': (metrics.get('rating') or '').strip() or None,   # tilamerkki (laajennus)
                         'group': current_group,
                     }
                     if current_group is not None:
@@ -566,6 +595,54 @@ class EDGYParser:
                 self.align_groups = None if value == 'none' else value
             else:
                 self.warnings.append(f"Tuntematon align_groups-arvo '{raw.strip()}' (sallitut: grid, none), ohitetaan")
+
+    def _parse_maturity(self, raw, name: str):
+        """{maturity: 1–5} → int; muu arvo → varoitus ja ohitus."""
+        if raw is None:
+            return None
+        raw = str(raw).strip()
+        if raw.isdigit() and 1 <= int(raw) <= 5:
+            return int(raw)
+        self.warnings.append(f"maturity '{raw}' on '{name}' is not 1–5 — ignored")
+        return None
+
+    def _badge_of(self, element: dict):
+        """(teksti, väri) tilamerkille tai None. Kypsyys voittaa arvion, jos molemmat on annettu."""
+        if element.get('maturity'):
+            n = element['maturity']
+            return f"{n}/5", MATURITY_PALETTE[n]
+        r = element.get('rating')
+        if r:
+            return r, self._rating_colour(r)
+        return None
+
+    def _rating_colour(self, label: str) -> str:
+        key = label.lower()
+        if key in self.rating_palette:
+            return self.rating_palette[key]
+        seen = []
+        for e in self.elements.values():
+            v = (e.get('rating') or '').lower()
+            if v and v not in self.rating_palette and v not in seen:
+                seen.append(v)
+        idx = seen.index(key) if key in seen else len(seen)
+        return RATING_COLOURS[idx % len(RATING_COLOURS)]
+
+    def _badge_legend_sections(self) -> List[Tuple[str, List[Tuple[str, str]]]]:
+        """Legendan tilamerkkiosiot: [(otsikko, [(väri, teksti)])] vain käytetyille arvoille."""
+        L = self._legend_text()
+        out = []
+        mats = sorted({e['maturity'] for e in self.elements.values() if e.get('maturity') and e['id'] not in self._hidden})
+        if mats:
+            out.append((L['maturity'], [(MATURITY_PALETTE[m], f"{m}/5") for m in mats]))
+        ratings = []
+        for e in self.elements.values():
+            r = e.get('rating')
+            if r and not e.get('maturity') and e['id'] not in self._hidden and r.lower() not in [x.lower() for x in ratings]:
+                ratings.append(r)
+        if ratings:
+            out.append((L['rating'], [(self._rating_colour(r), r) for r in ratings]))
+        return out
 
     def _parse_layout_from(self, spec: str):
         """Jäsennä `layout_from: file.archimate#View [scale=S dx=X dy=Y]`."""
@@ -1010,6 +1087,8 @@ class EDGYParser:
         extra += self._subtext_lines(element, w) * 14
         if element.get('tags') or element.get('metrics'):
             extra += 16
+        if element.get('maturity') or element.get('rating'):
+            extra += BADGE_H + 4                 # tilamerkki kortin alareunassa (laajennus)
         if not size_class:
             h = h + extra if extra else h
         else:
@@ -1263,7 +1342,8 @@ class EDGYParser:
             page_height = max(300, int(_math.ceil((content_bottom + 30 + band_h + 16) / 10) * 10))
         else:
             # Legenda tarvitsee tilaa oikeasta alakulmasta: kasvata sivua jos sisältö ulottuu sinne
-            legend_h = self._LEGEND_BOX_H + (self._overlay_legend_height() if self.uses_change_overlay else 0)
+            legend_h = (self._LEGEND_BOX_H + (self._overlay_legend_height() if self.uses_change_overlay else 0)
+                        + self._badge_legend_height())
             legend_w = 220
             for i in positions:
                 x, y = positions[i]
@@ -1345,6 +1425,20 @@ class EDGYParser:
                                                "width": str(w), "height": str(h), "as": "geometry"})
             element_mapping[elem_id] = str(next_id)
             next_id += 1
+            badge = self._badge_of(element)
+            if badge:
+                # Kortin lapsisolu (suhteelliset koordinaatit): liikkuu kortin mukana draw.iossa;
+                # edgyRole=badge → lint ei pidä sitä elementtinä eikä vaadi sille paletin väriä
+                text, colour = badge
+                bw = min(w - 12, max(36, int(_text.measure(text, 9, bold=True)) + 14))
+                cell = ET.SubElement(mx_root, "mxCell", {
+                    "id": str(next_id), "value": html.escape(text),
+                    "style": (f"rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor={colour};strokeColor=#ffffff;"
+                              f"strokeWidth=1;fontSize=9;fontStyle=1;fontColor={_badge_text_colour(colour)};edgyRole=badge;"),
+                    "vertex": "1", "parent": element_mapping[elem_id]})
+                ET.SubElement(cell, "mxGeometry", {"x": str(int((w - bw) / 2)), "y": str(int(h - BADGE_H - 4)),
+                                                   "width": str(bw), "height": str(BADGE_H), "as": "geometry"})
+                next_id += 1
 
         # 3) Relaatiot — yhdistä saman parin useat relaatiot yhdeksi reunaksi ("a / b")
         merged: Dict[Tuple[str, str], dict] = {}
@@ -1503,7 +1597,13 @@ class EDGYParser:
         chips_w = sum(18 + _text.measure(lbl, 9) + 6 + 14 for lbl in L['chips_short'])
         lines_w = sum(28 + 4 + _text.measure(lbl, 9) + 6 + 14 for lbl in L['lines_short'])
         rows = 1 if 130 + chips_w + lines_w <= page_width - 40 else 2
-        return rows + (1 if self.uses_change_overlay else 0)
+        return rows + (1 if self.uses_change_overlay else 0) + len(self._badge_legend_sections())
+
+    def _legend_strip_base_rows(self, page_width: int) -> int:
+        return self._legend_strip_rows(page_width) - (1 if self.uses_change_overlay else 0) - len(self._badge_legend_sections())
+
+    def _badge_legend_height(self) -> int:
+        return sum(26 + len(items) * 16 + 10 for _t, items in self._badge_legend_sections())
 
     def _legend_strip_height(self, page_width: int) -> int:
         return self._legend_strip_rows(page_width) * self._STRIP_ROW
@@ -1549,7 +1649,8 @@ class EDGYParser:
             tw = int(_text.measure(label, 9) + 6)
             text_cell(html.escape(label), x + 18, y0, tw, row_h)
             x += 18 + tw + 14
-        if rows >= 2 and (not self.uses_change_overlay or rows == 3):
+        base_rows = self._legend_strip_base_rows(page_width)
+        if base_rows == 2:
             x, y_line = 160, y0 + row_h          # viivamallit toiselle riville
         else:
             y_line = y0
@@ -1562,8 +1663,22 @@ class EDGYParser:
             tw = int(_text.measure(label, 9) + 6)
             text_cell(html.escape(label), x + 32, y_line, tw, row_h)
             x += 28 + 4 + tw + 14
+        for n, (title, items) in enumerate(self._badge_legend_sections()):
+            x, y_b = 30, y0 + (base_rows + (1 if self.uses_change_overlay else 0) + n) * row_h
+            text_cell(f"<b>{html.escape(title)}</b>", x, y_b, 120, row_h, bold=True)
+            x += 130
+            for colour, label in items:
+                key = ET.SubElement(mx_root, "mxCell", {
+                    "id": str(cid), "value": "",
+                    "style": f"rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor={colour};strokeColor=#ffffff;edgyRole=badge-key;",
+                    "vertex": "1", "parent": "1"})
+                ET.SubElement(key, "mxGeometry", {"x": str(x), "y": str(y_b + 6), "width": "22", "height": "11", "as": "geometry"})
+                cid += 1
+                tw = int(_text.measure(label, 9) + 6)
+                text_cell(html.escape(label), x + 26, y_b, tw, row_h)
+                x += 26 + tw + 14
         if self.uses_change_overlay:
-            x, y_ov = 30, y0 + (rows - 1) * row_h
+            x, y_ov = 30, y0 + base_rows * row_h
             text_cell(f"<b>{html.escape(L['overlay_short'])}</b>", x, y_ov, 120, row_h, bold=True)
             x += 130
             for key, (color, dashed) in CHANGE_PALETTE.items():
@@ -1589,6 +1704,7 @@ class EDGYParser:
         lw, lh = 220, self._LEGEND_BOX_H
         if self.uses_change_overlay:
             lh += self._overlay_legend_height()
+        lh += self._badge_legend_height()
         margin = 20
         lx = page_width - lw - margin
         ly = page_height - lh - margin
@@ -1697,6 +1813,35 @@ class EDGYParser:
                     "vertex": "1", "parent": "1"})
                 ET.SubElement(txt, "mxGeometry", {"x": str(lx + 36), "y": str(row_y), "width": str(lw - 44), "height": "16", "as": "geometry"})
                 cid += 1
+
+        # Tilamerkit (EDGY-laajennus): kypsyys / arvio — vain käytetyt arvot
+        by = rel_y_start + len(rel_items) * 16 + 4 + (self._overlay_legend_height() if self.uses_change_overlay else 0)
+        for title, items in self._badge_legend_sections():
+            sep3 = ET.SubElement(mx_root, "mxCell", {
+                "id": str(cid), "value": "", "style": "line;strokeColor=#cccccc;fillColor=none;", "vertex": "1", "parent": "1"})
+            ET.SubElement(sep3, "mxGeometry", {"x": str(lx + 8), "y": str(by), "width": str(lw - 16), "height": "6", "as": "geometry"})
+            cid += 1
+            t3 = ET.SubElement(mx_root, "mxCell", {
+                "id": str(cid), "value": f"<b>{html.escape(title)}</b>",
+                "style": "text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;fontStyle=1;",
+                "vertex": "1", "parent": "1"})
+            ET.SubElement(t3, "mxGeometry", {"x": str(lx + 8), "y": str(by + 8), "width": str(lw - 16), "height": "16", "as": "geometry"})
+            cid += 1
+            for i, (colour, label) in enumerate(items):
+                row_y = by + 26 + i * 16
+                key = ET.SubElement(mx_root, "mxCell", {
+                    "id": str(cid), "value": "",
+                    "style": f"rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor={colour};strokeColor=#ffffff;edgyRole=badge-key;",
+                    "vertex": "1", "parent": "1"})
+                ET.SubElement(key, "mxGeometry", {"x": str(lx + 8), "y": str(row_y + 2), "width": "22", "height": "11", "as": "geometry"})
+                cid += 1
+                txt = ET.SubElement(mx_root, "mxCell", {
+                    "id": str(cid), "value": html.escape(label),
+                    "style": "text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;",
+                    "vertex": "1", "parent": "1"})
+                ET.SubElement(txt, "mxGeometry", {"x": str(lx + 36), "y": str(row_y), "width": str(lw - 44), "height": "16", "as": "geometry"})
+                cid += 1
+            by += 26 + len(items) * 16 + 10
 
     def _overlay_legend_height(self) -> int:
         return 26 + len(CHANGE_PALETTE) * 16 + 10

@@ -596,6 +596,28 @@ def test_generated_nested_map_is_clean():
     assert found == [], found
 
 
+def test_w123_badge_needs_legend_key():
+    badge = 'rounded=1;fillColor=#d73027;strokeColor=#ffffff;fontSize=9;edgyRole=badge;'
+    key = 'rounded=1;fillColor=#d73027;strokeColor=#ffffff;edgyRole=badge-key;'
+    card = vertex(2, 'Dispatch', ASSET, 20, 20, 160, 80)
+    xml = HEAD + LEGEND + card + vertex(3, '1/5', badge, 60, 60, 36, 14, parent='2') + TAIL
+    r = rules(run(xml))
+    assert 'W123' in r and 'W102' not in r and 'E008' not in r, r
+    xml = HEAD + LEGEND + card + vertex(3, '1/5', badge, 60, 60, 36, 14, parent='2') + vertex(4, '', key, 600, 300, 22, 11) + TAIL
+    assert 'W123' not in rules(run(xml))
+    # a hand-coloured card fill is W102, with the badge advice
+    bad = vertex(5, 'Fleet', 'whiteSpace=wrap;html=1;fillColor=#ff0000;strokeColor=#fff;', 300, 20)
+    found = edgy_lint.lint_file(_write(HEAD + LEGEND + bad + TAIL), edgy_lint.main.__globals__['argparse'].Namespace(no_legend=False))
+    assert any(f.rule == 'W102' and 'maturity' in f.msg for f in found)
+
+
+def _write(xml):
+    f = tempfile.NamedTemporaryFile('w', suffix='.drawio', delete=False, encoding='utf-8')
+    f.write(xml)
+    f.close()
+    return f.name
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

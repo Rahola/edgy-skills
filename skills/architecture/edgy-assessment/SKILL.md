@@ -450,7 +450,7 @@ with the same ids** (one disconnected second model is worse than none):
 Add a map only when it answers a useful question for this company; do not
 generate every map for every scope.
 
-#### Phase 4b — Semantic review of the purpose map (MANDATORY when a purpose map is delivered)
+#### Phase 4b — Semantic review (MANDATORY for the purpose map; run on every map)
 
 A purpose map that lints clean can still be wrong in meaning (actions as
 Purposes, proposed metrics shown as confirmed, influences drawn as
@@ -473,6 +473,16 @@ and before its diagram is generated:
    S001 action as a Purpose, S002 Outcome measures nothing, S003 / S004
    missing provenance, S005 `contains` that may be an influence, S006 metric
    in a Purpose name. Fix the **model**, regenerate.
+   Run it on the facet and structural map inputs too (one command, every
+   TXT file): S007–S009 ask about capabilities named after systems or units,
+   phrased as verbs or shaped like projects, S010 about tasks in the
+   organisation's voice, S011 / S012 about outcomes that are actions or carry
+   no measure (edgy-framework *Formulating tasks, outcomes and the Experience
+   facet*). The generator's `--qa` manifest records the rule set
+   (`semantic_review.rule_set`).
+   ```bash
+   python3 skills/documentation/edgy-diagram/scripts/edgy_semantic_review.py <company>-*.txt
+   ```
 3. Walk the checklist in edgy-framework *Purpose map semantic review* and
    write the sign-off line into the report (section 9) and the delivery
    note: `Semantic review: approved by <role>, <date> — S-findings answered: <n>`

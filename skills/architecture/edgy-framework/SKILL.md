@@ -323,7 +323,55 @@ and decisions at level 1 or building-block level. Render with `edgy-diagram`
 
 **Anti-patterns:** naming capabilities after products or systems; one card
 per level-2 leaf; a map that changes every time a system changes; mixing
-processes ("we do X") into the capability list.
+processes ("we do X") into the capability list. `edgy_semantic_review.py`
+asks about the first and the last of these on every map: S007 (system, tool
+or unit as a capability), S008 (verb phrase), S009 (project or dated change
+as a capability).
+
+**Maturity and heat maps.** Status is an extension, never a fill colour:
+`{maturity: 1–5}` or `{rating: differentiating}` on the capability draws a
+badge with its own legend row (edgy-diagram, *status badges*). Say where the
+rating comes from (interview, self-assessment, analysis) in the report.
+
+### Formulating tasks, outcomes and the Experience facet
+
+The Experience facet is the outside-in view: what people want to get done,
+where they do it and how their journey unfolds. It goes wrong in the same
+way every time — the organisation describes its own work and calls it the
+customer's.
+
+**Journey** — the stages a person goes through, in their order, named from
+their side ("Plan a trip", "Travel", "Get help"), 5–8 stages. Stages are the
+columns of a task map (`stages:`) and of a touchpoint matrix (`columns:`).
+
+**Task** — what one person wants to get done at a stage, in their words:
+"Get my money back", not "Process customer refund"; "Know when my bus
+comes", not "Publish real-time data". Helper questions:
+
+1. Who says this sentence — the person or an employee? (if an employee: it is a Process or Activity)
+2. Would the person recognise the task without knowing the organisation? (system independence)
+3. Is it one goal, not a sequence of steps? (steps are a journey or a process)
+4. Which stage does it belong to (`{stage: …}`)? A task without a stage often has no customer.
+
+**Channel** — where the interaction happens; classify every channel on two
+axes, *physical / digital* and *synchronous / asynchronous* (the official
+channel map, `rows:` × `columns:` in edgy-diagram), so gaps show as empty
+cells.
+
+**Touchpoint matrix** — journey stages as columns, channels or people as
+rows, tasks in the cells: it shows which stage is served by which channel
+and where a person is left alone.
+
+**Outcome** — a verifiable result or changed state ("Shorter waiting times",
+"More night-train passengers"), never an action ("Implement CRM"). Give it a
+measure when one exists (`{kpi: …}`) and say whether the target is confirmed
+or proposed (`{status: …}`); an outcome web links outcomes with influence
+verbs (`enables`) from cause to effect.
+
+`edgy_semantic_review.py` asks S010 when a task is phrased from the
+organisation's side, S011 when an outcome is an action and S012 (a hint)
+when an outcome has no measure while others on the page do. It flags; a
+reviewer decides.
 
 ### Purpose map semantic review
 

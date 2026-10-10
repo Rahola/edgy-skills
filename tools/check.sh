@@ -262,7 +262,7 @@ edgy_lint_strict() {
         "$ex"/expected-triad-*.drawio "$ex"/expected-purpose.drawio "$ex"/expected-purpose-hierarchy.drawio \
         "$ex"/expected-capability-areas-nested.drawio "$ex"/expected-channel-matrix.drawio \
         "$ex"/expected-transition-roadmap.drawio "$ex"/expected-product-portfolio.drawio \
-        "$ex"/expected-outcome-web.drawio "$tmp"/*.drawio
+        "$ex"/expected-outcome-web.drawio "$ex"/expected-capability-heatmap.drawio "$tmp"/*.drawio
     local rc=$?
     rm -rf "$tmp"
     return $rc

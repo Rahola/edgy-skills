@@ -170,7 +170,8 @@ layouts that the options below should fix: `card_width`, `equal_cards`,
 `--no-layout-quality` switches them off for a run; a delivery records whether
 they ran. **W122** (always on) flags a container coloured with a facet colour
 that none of the elements inside it carries — an area is coloured by what it
-holds. **W121 (`--series`)** checks the files of one delivery against the
+holds. **W123** flags a status badge (maturity / rating extension) whose
+colour has no key in the legend. **W121 (`--series`)** checks the files of one delivery against the
 first: legend placement, content margin, card width of every shared type and
 label font sizes must agree on every page of every file — generate the
 series with the same options.
@@ -197,7 +198,7 @@ on separate lines and exits 1 while either approval is null; `edgy-eval.py`
 and the edgy-assessment Phase 5 read the manifest instead of re-linting.
 Schema: `assets/qa.schema.json`.
 
-**Semantic review (purpose maps).** Notation and geometry say nothing about
+**Semantic review.** Notation and geometry say nothing about
 meaning: a purpose map can lint clean while its "purposes" are development
 actions. `python3 scripts/edgy_semantic_review.py <name>.txt` (or
 `edgy_generator.py … --semantic-review`) raises the questions a reviewer
@@ -207,7 +208,13 @@ S003 / S004 missing provenance (`[confirmed]` / `[analytical]` /
 that may be an influence, S006 metric in a Purpose name — with the reason
 and the question for each. It flags; it never decides: exit 0 unless
 `--strict`, and zero findings is not an approval. The sign-off is a person's
-(edgy-framework, *Purpose map semantic review*).
+(edgy-framework, *Purpose map semantic review*). On every page the same tool
+also asks about capabilities, tasks and outcomes: S007 a capability named
+after a system, tool or unit, S008 phrased as a verb, S009 shaped like a
+project or a dated change, S010 a task in the organisation's voice, S011 an
+outcome phrased as an action, S012 (hint) an outcome without a measure while
+others on the page have one (edgy-framework, *Formulating tasks, outcomes
+and the Experience facet*). `--qa` records the rule set in the manifest.
 
 If the linter cannot run, check by hand that the file has more than the
 two structural cells, one `vertex` per element, one `edge` with geometry per
@@ -274,6 +281,7 @@ map_type: capability | organisation | journey | purpose   # optional, overrides 
 legend: box | strip                                       # optional; strip = one band along the bottom, page as tall as the content
 language: fi | en | fr | de                               # optional; legend, generated headings and vocabulary verbs render in this language
 translate_verbs: true | false                             # optional (default true): with language: set, a vocabulary verb written in another language is rendered translated ("contains" → "sisältää"); the model keeps the canonical verb
+rating_palette: label=#rrggbb, …                          # optional: colours of {rating: label} badges (extension)
 title: <text>                                             # optional: title band above the content in native presets (--preset publication|presentation)
 footnote: <text>                                          # optional: footnote band below the content in native presets
 stages: Plan, Buy, Ride                                   # optional, map_type: task — journey stages as columns; a task picks its column with {stage: Buy} (with lanes: lanes × stages; without: one column container per stage)
@@ -290,6 +298,7 @@ group_style: official | light                             # optional: official =
 elements:
   - <element_type>: "<name>"
   - <element_type>: "<name> - <description>" [tags] {id: X, change: new, size: M, primary: true, metric: value}
+  - <element_type>: "<name>" {maturity: 3, rating: differentiating, row: Digital, column: Plan}   # badge (extension), matrix cell
   - <element_type>: "<name> | <subtext>"
   - group: "<area name>"              # container; the indented elements below are its children
     - <element_type>: "<name>"
@@ -340,6 +349,18 @@ next to an existing ArchiMate current state. Unmatched elements go below;
 view elements missing from the input are reported (mark them `remove` or
 add them). Standard-library XML parsing, no Archi needed. Example:
 `examples/archimate-positioned.txt`.
+
+### Status badges — maturity and rating (EDGY extension)
+
+A heat map keeps the facet fill. `{maturity: 1–5}` or `{rating: <label>}` on
+an element draws a small badge at the bottom of the card (a child cell, so
+it moves with the card in draw.io) and a legend row "Maturity (extension)" /
+"Rating (extension)" listing only the values used. Maturity uses a fixed
+five-step scale (red → green); ratings get colour-blind-safe colours in order
+of first use, or the colours of `rating_palette: label=#rrggbb, …`. The card
+grows to fit the badge. Lint W102 still flags a hand-coloured fill (with
+this advice) and W123 flags a badge whose colour has no legend key.
+Example: `examples/capability-heatmap-map.txt`.
 
 `layout_from: delivered.drawio#Page name [scale dx dy]` does the same from a
 draw.io page — typically the previous delivery after a reviewer moved boxes

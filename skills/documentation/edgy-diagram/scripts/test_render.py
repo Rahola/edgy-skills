@@ -468,7 +468,7 @@ def test_qa_manifest_schema_and_approvals_null():
                         '--output', os.path.join(d, 'pm.drawio'), '--qa'], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
     qp = json.load(open(os.path.join(d, 'pm.qa.json'), encoding='utf-8'))
-    assert set(qp['semantic_review']) == {'findings'} and 'approved_by' not in json.dumps(qp)
+    assert set(qp['semantic_review']) == {'findings', 'rule_set'} and qp['semantic_review']['rule_set'] == 'S001-S012' and 'approved_by' not in json.dumps(qp)
     # a non-purpose page with an action-shaped Purpose still records its S001 finding
     src3 = os.path.join(d, 'facet.txt'); open(src3, 'w', encoding='utf-8').write('facet: identity\nelements:\n  - purpose: "Implement a new ticketing platform"\n  - story: "From depot to platform"\n')
     subprocess.run([sys.executable, os.path.join(here, 'edgy_generator.py'), src3, '--output', os.path.join(d, 'facet.drawio'), '--qa'], capture_output=True, text=True)

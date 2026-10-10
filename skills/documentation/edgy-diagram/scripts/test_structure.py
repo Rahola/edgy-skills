@@ -1175,6 +1175,53 @@ def test_layout_from_drawio_keeps_moved_area():
     assert any('unsupported layout source' in w for w in p3.warnings), p3.warnings
 
 
+# ---- Sprint 19: status badges (maturity / rating extension) -------------------------------
+
+def test_badges_inside_cards_and_fill_untouched():
+    p, root, xml = gen(_example('capability-heatmap-map.txt'))
+    assert p.warnings == [], p.warnings
+    by_id = {c.get('id'): c for c in root.iter('mxCell')}
+    badges = [c for c in root.iter('mxCell') if 'edgyRole=badge;' in (c.get('style') or '')]
+    assert len(badges) == 12
+    for b in badges:
+        card = by_id[b.get('parent')]
+        assert _style(card)['fillColor'] == '#a6c0ff', "status never changes the facet fill"
+        bx, by, bw, bh = _box(root, b)
+        cx, cy, cw, ch = _box(root, card)
+        assert cx <= bx and bx + bw <= cx + cw and cy <= by and by + bh <= cy + ch
+    assert _style(next(b for b in badges if b.get('value') == '1/5'))['fillColor'] == '#d73027'
+    assert _style(next(b for b in badges if b.get('value') == 'commodity'))['fillColor'] == '#bbbbbb', "rating_palette wins"
+    keys = {_style(c)['fillColor'] for c in root.iter('mxCell') if 'edgyRole=badge-key' in (c.get('style') or '')}
+    assert {_style(b)['fillColor'] for b in badges} <= keys, "every badge colour has a legend key"
+    labels = {c.get('value') for c in root.iter('mxCell')}
+    assert any('Maturity (extension)' in (v or '') for v in labels) and any('Rating (extension)' in (v or '') for v in labels)
+    findings = _lint(xml)
+    assert findings == [], [(f.rule, f.msg) for f in findings]
+
+
+def test_badge_legend_only_when_used_and_box_legend_grows():
+    _, plain, _ = gen('map_type: capability\nelements:\n  - capability: "One"\n  - capability: "Two"\n')
+    assert not [c for c in plain.iter('mxCell') if 'edgyRole=badge' in (c.get('style') or '')]
+    _, root, xml = gen('map_type: capability\nlanguage: fi\nelements:\n  - capability: "Yksi" {maturity: 3}\n'
+                       '  - capability: "Kaksi" {rating: strateginen}\n')
+    labels = [c.get('value') or '' for c in root.iter('mxCell')]
+    assert any('Kypsyys (laajennus)' in v for v in labels) and any('Arvio (laajennus)' in v for v in labels)
+    bg = next(c for c in root.iter('mxCell') if 'fillColor=#f5f5f5' in (c.get('style') or ''))
+    keys = [c for c in root.iter('mxCell') if 'edgyRole=badge-key' in (c.get('style') or '')]
+    bgb = _box(root, bg)
+    assert all(_box(root, k)[1] + _box(root, k)[3] <= bgb[1] + bgb[3] for k in keys), "keys inside the legend box"
+    assert [f.rule for f in _lint(xml)] == []
+
+
+def test_badge_value_warnings_and_card_height():
+    p, root, _ = gen('map_type: capability\nequal_cards: false\nrating_palette: high=red\nelements:\n'
+                     '  - capability: "A" {maturity: 7}\n  - capability: "B" {maturity: 2}\n  - capability: "C"\n')
+    assert any("maturity '7'" in w for w in p.warnings) and any("'red' is not a #rrggbb" in w for w in p.warnings), p.warnings
+    cells = cells_by_label(root)
+    assert _box(root, cells['B'])[3] > _box(root, cells['C'])[3], "a card with a badge is taller"
+    assert _box(root, cells['A'])[3] == _box(root, cells['C'])[3], "an ignored maturity adds no badge"
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:
