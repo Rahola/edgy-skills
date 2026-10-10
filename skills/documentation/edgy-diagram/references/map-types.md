@@ -133,6 +133,121 @@ neighbouring task.
           [Mobile app]   [Ticket machine]
 ```
 
+#### Capability map in three tiers (capability)
+
+The official capability map nests: area → sub-area → capability. Indent a
+`group:` under another `group:`; nesting switches `group_style: official`
+on (area in the facet colour, white sub-groups). Full example:
+`examples/capability-areas-nested-map.txt`.
+
+```
+map_type: capability
+group_columns: 2
+elements:
+  - group: "Customer"
+    - group: "Customer relationship"
+      - capability: "Customer data"
+      - capability: "Consent management"
+    - group: "Sales and ticketing"
+      - capability: "Fare products"
+      - capability: "Refunds"
+  - group: "Operations"
+    - group: "Planning"
+      - capability: "Timetabling"
+```
+
+```
+┌ Customer (architecture blue) ──────────────┐ ┌ Operations ──────────┐
+│ ┌ Customer relationship ┐ ┌ Sales and … ┐ │ │ ┌ Planning ─────────┐ │
+│ │ [Customer data]       │ │ [Fare prod.]│ │ │ │ [Timetabling]     │ │
+│ │ [Consent management]  │ │ [Refunds]   │ │ │ └───────────────────┘ │
+│ └───────────────────────┘ └─────────────┘ │ └──────────────────────┘
+└────────────────────────────────────────────┘
+```
+
+#### Task map by journey stage (task, official shape)
+
+`stages:` without lanes and without stakeholder relationships gives the
+official task map: one column container per stage, the tasks of a stage
+stacked in it, all columns one height. A task without a known stage goes
+below the columns with a warning; a stage without tasks is not drawn.
+
+```
+map_type: task
+stages: Inspiration, Plan, Book
+elements:
+  - task: "Get trip ideas" {stage: Inspiration}
+  - task: "Check prices" {stage: Plan}
+  - task: "Buy a ticket" {stage: Book}
+```
+
+```
+┌ Inspiration ──┐ ┌ Plan ─────────┐ ┌ Book ─────────┐
+│ [Get trip     │ │ [Check prices]│ │ [Buy a ticket]│
+│  ideas]       │ │               │ │               │
+└───────────────┘ └───────────────┘ └───────────────┘
+```
+
+#### Matrix — rows × columns (channel, journey, roadmap, any grid map)
+
+`rows:` names the bands, `columns:` (same as `stages:`) the columns; every
+element picks its cell with `{row: …, column: …}`. Column headers sit above
+the first band, row titles on the bands. Full examples:
+`examples/channel-matrix-map.txt` (official channel map 2 × 2),
+`examples/transition-roadmap-map.txt` (waves × areas with the transition
+overlay).
+
+```
+map_type: channel
+rows: Physical, Digital
+columns: Synchronous, Asynchronous
+elements:
+  - channel: "Travel store" {row: Physical, column: Synchronous}
+  - channel: "Ticket machine" {row: Physical, column: Asynchronous}
+  - channel: "Live chat" {row: Digital, column: Synchronous}
+  - channel: "Mobile app" {row: Digital, column: Asynchronous}
+```
+
+```
+             Synchronous      Asynchronous
+ Physical   [Travel store]   [Ticket machine]
+ Digital    [Live chat]      [Mobile app]
+```
+
+A journey touchpoint map is the same input with `map_type: journey`,
+`columns:` = journey stages, `rows:` = channels or people and the tasks or
+touchpoints in the cells.
+
+#### Product portfolio tree (product, brand, object)
+
+With tree relationships (`contains`, `comprises`, `decomposes`) a product,
+brand or object map is a top-down tree; without them it stays hub-and-spoke.
+Tree edges leave the parent at the bottom and enter the child at the top.
+Example: `examples/product-portfolio-map.txt`.
+
+```
+               [Acme Transit portfolio]
+          ┌──────────┴───────────┐
+ [Passenger transport]    [Freight transport]
+   ┌──────┬─────┬─────┐            │
+ [Local] [Night] [Family] [Senior] [Container shuttle]
+```
+
+#### Outcome web (outcome)
+
+Outcomes with directed links (`enables`, any influence verb) are laid out in
+layers left to right: a layer is the longest path from an outcome nothing
+leads to; within a layer, outcomes follow the average position of what leads
+to them, so links do not cross; a cycle is cut in input order. Up to 15
+outcomes; split a larger web into pages. Only `contains` links → grid + tree
+as before. Example: `examples/outcome-web-map.txt`.
+
+```
+ [Partner integration] → [Route optimisation] → [Capacity] ──┐
+                      ↘ [Passenger info] ──→ [Experience] → [More passengers]
+ [Sleeper wagons] ──→ [Comfort] ─────────↗
+```
+
 #### Hub-and-spoke (purpose, brand, product, object)
 
 ```

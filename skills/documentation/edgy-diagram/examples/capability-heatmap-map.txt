@@ -1,0 +1,23 @@
+# Capability heat map (EDGY extension): the fill stays the facet colour, maturity
+# (1–5) and a free rating show as a badge at the bottom of the card, explained in
+# their own legend rows. Never colour the fill for status. Fictional: Acme Transit.
+map_type: capability
+legend: strip
+cards_per_row: 2
+rating_palette: differentiating=#4477aa, commodity=#bbbbbb
+
+elements:
+  - group: "Customer"
+    - capability: "Customer data" {maturity: 2}
+    - capability: "Consent management" {maturity: 3}
+    - capability: "Travel account" {maturity: 1}
+    - capability: "Feedback handling" {maturity: 4}
+    - capability: "Fare products" {maturity: 5}
+    - capability: "Refunds" {maturity: 3}
+  - group: "Operations"
+    - capability: "Timetabling" {rating: commodity}
+    - capability: "Real-time dispatch" {rating: differentiating}
+    - capability: "Passenger information" {rating: differentiating}
+    - capability: "Fleet maintenance" {rating: commodity}
+    - capability: "Depot management" {rating: commodity}
+    - capability: "Demand-responsive transport" {rating: differentiating}

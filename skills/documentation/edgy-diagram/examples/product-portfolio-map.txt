@@ -1,0 +1,25 @@
+# Product portfolio, the shape of the official EDGY 23 product map: a tree of
+# product lines and products. With tree relationships (contains) a product,
+# brand or object map is drawn as a tree instead of hub-and-spoke.
+# Fictional company: Acme Transit.
+map_type: product
+legend: strip
+
+elements:
+  - product: "Acme Transit portfolio"
+  - product: "Passenger transport"
+  - product: "Freight transport"
+  - product: "Local trains"
+  - product: "Night trains"
+  - product: "Family card"
+  - product: "Senior card"
+  - product: "Container shuttle"
+
+relationships:
+  - "Acme Transit portfolio" -> "Passenger transport": "contains"
+  - "Acme Transit portfolio" -> "Freight transport": "contains"
+  - "Passenger transport" -> "Local trains": "contains"
+  - "Passenger transport" -> "Night trains": "contains"
+  - "Passenger transport" -> "Family card": "contains"
+  - "Passenger transport" -> "Senior card": "contains"
+  - "Freight transport" -> "Container shuttle": "contains"

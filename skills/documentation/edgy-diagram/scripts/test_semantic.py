@@ -110,6 +110,56 @@ def test_s006_matches_values_ending_in_a_symbol():
     assert not sr.METRIC_RE.search('Platform 9 hub'), 'a bare number is no metric'
 
 
+
+def _review(body, map_type='capability', lang=None):
+    head = f"map_type: {map_type}\n" + (f"language: {lang}\n" if lang else '')
+    return _rules(sem.review_text(head + "elements:\n" + body))
+
+
+def test_s007_system_or_unit_as_capability():
+    r = _review('  - capability: "CRM"\n  - capability: "Sales team"\n  - capability: "Lippujärjestelmä"\n'
+                '  - capability: "Customer relationship management"\n  - capability: "Data platform"\n')
+    assert sorted(f['name'] for f in r['S007']) == ['CRM', 'Lippujärjestelmä', 'Sales team'], r.get('S007')
+
+
+def test_s008_verb_capability_fi_en():
+    r = _review('  - capability: "Manage fleet"\n  - capability: "Hallinnoida kalustoa"\n'
+                '  - capability: "Fleet management"\n  - capability: "Track access"\n  - capability: "Ticketing"\n')
+    assert sorted(f['name'] for f in r['S008']) == ['Hallinnoida kalustoa', 'Manage fleet'], r.get('S008')
+
+
+def test_s009_project_as_capability():
+    r = _review('  - capability: "CRM migration"\n  - capability: "Lippujärjestelmän käyttöönotto"\n'
+                '  - capability: "Ticketing 2027"\n  - capability: "Revenue allocation"\n')
+    assert sorted(f['name'] for f in r['S009']) == ['CRM migration', 'Lippujärjestelmän käyttöönotto', 'Ticketing 2027'], r.get('S009')
+
+
+def test_s010_task_in_organisation_voice():
+    r = _review('  - task: "Process customer refund"\n  - task: "Käsitellä asiakkaan palautus"\n'
+                '  - task: "Get my money back"\n  - task: "Register for an account"\n', map_type='task')
+    assert sorted(f['name'] for f in r['S010']) == ['Käsitellä asiakkaan palautus', 'Process customer refund'], r.get('S010')
+
+
+def test_s011_s012_outcomes():
+    r = _review('  - outcome: "Implement CRM"\n  - outcome: "Toteuttaa uusi lippujärjestelmä"\n'
+                '  - outcome: "Shorter waiting times" {kpi: -20 %}\n  - outcome: "Higher trust"\n'
+                '  - outcome: "Upgraded sleeper wagons"\n', map_type='outcome')
+    assert sorted(f['name'] for f in r['S011']) == ['Implement CRM', 'Toteuttaa uusi lippujärjestelmä'], r.get('S011')
+    assert sorted(f['name'] for f in r['S012']) == ['Higher trust', 'Upgraded sleeper wagons'], r.get('S012')
+    assert all(f['level'] == 'info' for f in r['S012'])
+    # without any measured outcome on the page, S012 stays silent (the official outcome map has no metrics)
+    r2 = _review('  - outcome: "Higher trust"\n  - outcome: "More passengers"\n', map_type='outcome')
+    assert 'S012' not in r2
+
+
+def test_new_rules_silent_on_shipped_examples():
+    import glob
+    for path in sorted(glob.glob(os.path.join(EXAMPLES, '*.txt')) + glob.glob(os.path.join(EXAMPLES, 'eval', '*.txt'))):
+        if 'fixture-s' in os.path.basename(path):
+            continue
+        found = [f for f in sem.review_text(open(path, encoding='utf-8').read()) if f['rule'] >= 'S007']
+        assert not found, (path, [(f['rule'], f['name']) for f in found])
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

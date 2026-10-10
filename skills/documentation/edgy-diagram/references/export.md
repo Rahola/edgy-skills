@@ -94,6 +94,36 @@ ulostulon kanssa.
 
 **Esimerkki:** `examples/expected-purpose.puml`
 
+## ArchiMate Open Exchange (from the model)
+
+`edgy-assessment/scripts/edgy_model_to_archimate.py <model>.json -o <out>.xml`
+writes the EDGY model (not a drawing) as ArchiMate 3.1 Open Exchange XML for
+Archi and other ArchiMate tools: elements with documentation and the
+properties `edgy:type`, `edgy:id`, `edgy:provenance`, `edgy:nature`,
+`edgy:level`; core links as directed, named Associations between the primary
+elements of two types; one view per facet map with the positions this
+generator computes. One-way: edit the EDGY model and export again.
+
+| EDGY 23 | ArchiMate 3.1 | Note |
+|---------|---------------|------|
+| Purpose | Goal | |
+| Story | Meaning | |
+| Content | Representation | |
+| Capability | Capability | |
+| Asset | Resource | |
+| Process | BusinessProcess | |
+| Task | BusinessProcess | the person's job, not the organisation's process — `edgy:type = task` |
+| Channel | BusinessInterface | |
+| Journey | ValueStream | |
+| Organisation | BusinessActor | |
+| Product | Product | |
+| Brand | Value | |
+| core link | Association (directed, named with the verb) | no Realization / Serving is inferred |
+
+`--no-views` writes elements and relationships only. The reverse direction
+— positions *from* an Archi view — is `layout_from: file.archimate#View`
+(SKILL.md).
+
 ## Viralliset EDGY 23 -resurssit
 
 Skillin mukana toimitetaan viralliset EDGY 23 -resurssit:

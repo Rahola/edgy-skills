@@ -1,0 +1,130 @@
+{
+  "company": "Acme Transit (fictional)",
+  "language": "en",
+  "schema_version": "1.8",
+  "elements": {
+    "purpose": {
+      "name": "Effortless everyday travel",
+      "description": "Public transport is the easy choice for every trip in the region.",
+      "provenance": "analytical"
+    },
+    "story": {
+      "name": "From timetable to travel account",
+      "description": "Travel without knowing fares or zones in advance."
+    },
+    "content": {
+      "name": "Clear fares",
+      "description": "Simple, published prices for every trip."
+    },
+    "capability": [
+      {
+        "name": "Ticketing",
+        "description": "sell and validate fares",
+        "id": "CAP-05",
+        "nature": "Core",
+        "level": "Operational"
+      }
+    ],
+    "asset": [
+      {
+        "name": "Legacy fare engine",
+        "description": "zone-based fare calculation",
+        "id": "AST-01"
+      },
+      {
+        "name": "Card personalisation service",
+        "description": "prints personal travel cards",
+        "id": "AST-03"
+      }
+    ],
+    "process": [
+      {
+        "name": "Fare change",
+        "description": "define and publish",
+        "id": "PRO-01"
+      }
+    ],
+    "task": [
+      {
+        "name": "Buy a ticket",
+        "description": "get a valid ticket before boarding",
+        "id": "TSK-01"
+      }
+    ],
+    "channel": [
+      {
+        "name": "Mobile app",
+        "description": "tickets and journey planning",
+        "id": "CHA-01"
+      }
+    ],
+    "journey": {
+      "name": "Daily commute",
+      "description": "home to work and back"
+    },
+    "organisation": {
+      "name": "Platform team",
+      "description": "owns the ticketing platform"
+    },
+    "product": [
+      {
+        "name": "Acme app",
+        "description": "ticket purchase in the app"
+      }
+    ],
+    "brand": {
+      "name": "Acme Transit",
+      "description": "regional public transport brand"
+    }
+  },
+  "core_links": [
+    {
+      "source": "capability",
+      "target": "asset",
+      "verb_en": "requires"
+    },
+    {
+      "source": "process",
+      "target": "capability",
+      "verb_en": "realises"
+    },
+    {
+      "source": "organisation",
+      "target": "capability",
+      "verb_en": "has"
+    },
+    {
+      "source": "task",
+      "target": "channel",
+      "verb_en": "uses"
+    },
+    {
+      "source": "task",
+      "target": "journey",
+      "verb_en": "is part of"
+    }
+  ],
+  "coherence": {
+    "organisation": {
+      "alignment": "Good"
+    },
+    "product": {
+      "alignment": "Good"
+    },
+    "brand": {
+      "alignment": "Good"
+    }
+  },
+  "suggested_deep_dives": [
+    {
+      "pair": [
+        "capability",
+        "asset"
+      ],
+      "lens": "dependency",
+      "rationale": "The fare engine is replaced.",
+      "priority": "High"
+    }
+  ],
+  "assessed_at": "2026-09-01"
+}

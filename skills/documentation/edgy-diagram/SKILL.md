@@ -1,6 +1,6 @@
 ---
 name: edgy-diagram
-version: "2.6.0"
+version: "2.7.0"
 description: >
   Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML
   source and export them to PNG/SVG/PDF. Generator-first workflow
@@ -69,6 +69,10 @@ examples:  # representative subset — full list in examples/README.md
     output: examples/expected-multipage.drawio
   - input: examples/capability-areas-map.txt
     output: examples/expected-capability-areas.drawio
+  - input: examples/capability-areas-nested-map.txt
+    output: examples/expected-capability-areas-nested.drawio
+  - input: examples/channel-matrix-map.txt
+    output: examples/expected-channel-matrix.drawio
   - input: examples/reference-architecture-map.txt
     output: examples/expected-reference-architecture.drawio
   - input: examples/archimate-positioned.txt
@@ -164,7 +168,10 @@ the uniform 60 px content margin); the rules catch hand-edited files and
 layouts that the options below should fix: `card_width`, `equal_cards`,
 `group_columns`, `cards_per_row`, `equal_group_width`, `align_groups: grid`.
 `--no-layout-quality` switches them off for a run; a delivery records whether
-they ran. **W121 (`--series`)** checks the files of one delivery against the
+they ran. **W122** (always on) flags a container coloured with a facet colour
+that none of the elements inside it carries — an area is coloured by what it
+holds. **W123** flags a status badge (maturity / rating extension) whose
+colour has no key in the legend. **W121 (`--series`)** checks the files of one delivery against the
 first: legend placement, content margin, card width of every shared type and
 label font sizes must agree on every page of every file — generate the
 series with the same options.
@@ -191,7 +198,7 @@ on separate lines and exits 1 while either approval is null; `edgy-eval.py`
 and the edgy-assessment Phase 5 read the manifest instead of re-linting.
 Schema: `assets/qa.schema.json`.
 
-**Semantic review (purpose maps).** Notation and geometry say nothing about
+**Semantic review.** Notation and geometry say nothing about
 meaning: a purpose map can lint clean while its "purposes" are development
 actions. `python3 scripts/edgy_semantic_review.py <name>.txt` (or
 `edgy_generator.py … --semantic-review`) raises the questions a reviewer
@@ -201,7 +208,13 @@ S003 / S004 missing provenance (`[confirmed]` / `[analytical]` /
 that may be an influence, S006 metric in a Purpose name — with the reason
 and the question for each. It flags; it never decides: exit 0 unless
 `--strict`, and zero findings is not an approval. The sign-off is a person's
-(edgy-framework, *Purpose map semantic review*).
+(edgy-framework, *Purpose map semantic review*). On every page the same tool
+also asks about capabilities, tasks and outcomes: S007 a capability named
+after a system, tool or unit, S008 phrased as a verb, S009 shaped like a
+project or a dated change, S010 a task in the organisation's voice, S011 an
+outcome phrased as an action, S012 (hint) an outcome without a measure while
+others on the page have one (edgy-framework, *Formulating tasks, outcomes
+and the Experience facet*). `--qa` records the rule set in the manifest.
 
 If the linter cannot run, check by hand that the file has more than the
 two structural cells, one `vertex` per element, one `edge` with geometry per
@@ -268,22 +281,29 @@ map_type: capability | organisation | journey | purpose   # optional, overrides 
 legend: box | strip                                       # optional; strip = one band along the bottom, page as tall as the content
 language: fi | en | fr | de                               # optional; legend, generated headings and vocabulary verbs render in this language
 translate_verbs: true | false                             # optional (default true): with language: set, a vocabulary verb written in another language is rendered translated ("contains" → "sisältää"); the model keeps the canonical verb
+rating_palette: label=#rrggbb, …                          # optional: colours of {rating: label} badges (extension)
 title: <text>                                             # optional: title band above the content in native presets (--preset publication|presentation)
 footnote: <text>                                          # optional: footnote band below the content in native presets
-stages: Plan, Buy, Ride                                   # optional, map_type: task with lanes — journey stages as columns; a task picks its column with {stage: Buy}
+stages: Plan, Buy, Ride                                   # optional, map_type: task — journey stages as columns; a task picks its column with {stage: Buy} (with lanes: lanes × stages; without: one column container per stage)
+columns: A, B, C                                          # optional, any grid-like map — same as stages:; an element picks its column with {column: B}
+rows: X, Y                                                # optional — matrix rows (bands); an element picks its row with {row: Y}; with columns: a rows × columns matrix
 equal_cards: true | false                                 # optional (default true): elements of one type on a page take the widest width (≤ 280) and the tallest height of their type
 card_width: N                                             # optional: every box is N px wide (60–600; a size class S/M/L may be wider; the person shape is exempt); long names wrap
 group_columns: N                                          # optional: containers in N columns (map-type and single-facet layouts)
 cards_per_row: N                                          # optional: N cards per row inside every container
 equal_group_width: true | false                           # optional (default false): containers share the widest container's width
 align_groups: grid | none                                 # optional: containers on exact rows and columns — column width = widest in the column, row height = tallest, containers stretch to the row
+group_style: official | light                             # optional: official = official EDGY 23 areas (area in the facet colour, white sub-groups); light = grey structure tint. Default official when groups are nested, light otherwise
 
 elements:
   - <element_type>: "<name>"
   - <element_type>: "<name> - <description>" [tags] {id: X, change: new, size: M, primary: true, metric: value}
+  - <element_type>: "<name>" {maturity: 3, rating: differentiating, row: Digital, column: Plan}   # badge (extension), matrix cell
   - <element_type>: "<name> | <subtext>"
   - group: "<area name>"              # container; the indented elements below are its children
     - <element_type>: "<name>"
+    - group: "<sub-area name>"        # nested container (any depth); its elements sit inside it
+      - <element_type>: "<name>"
   - lane: "<layer name>"              # borderless band; the indented elements sit on it (task map: one lane per stakeholder)
     - <element_type>: "<name>"
 
@@ -306,7 +326,7 @@ content's top-left corner is at (60, 60) in every layout except the planned
 share their margins (lint `--series`). Invalid values warn and keep the
 default.
 
-### Multi-page input (`pages:`) and ArchiMate positioning (`layout_from:`)
+### Multi-page input (`pages:`) and positions from an earlier view (`layout_from:`)
 
 ```
 facet: architecture              # document-level default for every page
@@ -330,6 +350,28 @@ view elements missing from the input are reported (mark them `remove` or
 add them). Standard-library XML parsing, no Archi needed. Example:
 `examples/archimate-positioned.txt`.
 
+### Status badges — maturity and rating (EDGY extension)
+
+A heat map keeps the facet fill. `{maturity: 1–5}` or `{rating: <label>}` on
+an element draws a small badge at the bottom of the card (a child cell, so
+it moves with the card in draw.io) and a legend row "Maturity (extension)" /
+"Rating (extension)" listing only the values used. Maturity uses a fixed
+five-step scale (red → green); ratings get colour-blind-safe colours in order
+of first use, or the colours of `rating_palette: label=#rrggbb, …`. The card
+grows to fit the badge. Lint W102 still flags a hand-coloured fill (with
+this advice) and W123 flags a badge whose colour has no legend key.
+Example: `examples/capability-heatmap-map.txt`.
+
+`layout_from: delivered.drawio#Page name [scale dx dy]` does the same from a
+draw.io page — typically the previous delivery after a reviewer moved boxes
+in draw.io. Top-level elements **and areas** (`group:` / `lane:`) are matched
+by name; an area keeps the generated arrangement inside it, so moving a whole
+area survives regeneration, moving a card inside an area does not. The file
+type decides the reader (`.archimate`, `.drawio`, `.xml`); any other type
+warns and the generator's own layout is used. This is how "edit in draw.io"
+and "regenerate from TXT" stay one loop: never patch the XML, move the
+areas, then regenerate with `layout_from:` pointing at the edited file.
+
 ### Grouping, Lanes and Nesting
 
 Containment is the `parent` attribute with geometry relative to the parent;
@@ -338,7 +380,20 @@ the generator handles it:
 - **`group:`** → container (`container=1`): capability areas, blocks with
   nested capabilities, any Tree with more than three children. Members in a
   2–4-column grid or as a tidy tree when they have tree relationships; groups
-  are placed in rows.
+  are placed in rows with one fixed gap between rows.
+- **Nested `group:`** (indented under another `group:`, any depth) → a
+  container inside the container: the three tiers of the official capability
+  map (area → sub-area → capability). Direct elements of an area come first,
+  its sub-groups below in rows (`group_columns`, else 1–3 in one row, 4 in
+  two, more in three); the sub-groups of one row share the row height.
+  Nesting switches `group_style: official` on: an area takes the facet colour
+  of everything inside it (a neutral tint when they mix facets), sub-groups
+  are white without a border, a top-level container without sub-groups is
+  white with a facet-coloured border. `group_style: light` keeps the grey
+  tint. A `lane:` inside a group becomes a nested group and a `group:` inside
+  a lane goes to the top level, both with a warning. Example:
+  `examples/capability-areas-nested-map.txt` (40 capabilities in 8
+  sub-areas).
 - **`lane:`** → borderless band with a title; members sit **on** it at root
   level so edges may cross lane borders. Lanes stack top-down; edges between
   non-adjacent members of a row are routed over the top.
@@ -499,17 +554,28 @@ the parser warns.
 
 | Map type | Layout | Min | Recommended |
 |----------|--------|----:|------------:|
-| `capability` | **area containers** (`group:`) in rows; grid + tree without groups | 8 | 15–30 |
+| `capability` | **area containers** (`group:`) in rows, **three tiers** with nested `group:` (official style); grid + tree without groups | 8 | 15–30 |
 | `organisation` | **role model** when Process elements exist (roles as columns, actors under the role they `perform`); tree otherwise | 8 | 15–30 |
 | `purpose` | **hierarchy**: top purposes → sub-purposes (`contains`) → Outcomes (`measures`); Organisation and Brand in the top row, Content left, Story right | 6 | 10–15 |
-| `outcome` | grid + tree | 5 | 7–10 |
+| `outcome` | **web**: layered left → right by link direction (causes left, effects right) when outcomes have directed links, ≤ 15 elements; grid + tree otherwise | 5 | 7–10 |
 | `journey`, `activity`, `process` | sequence (pentagon row, left → right) | 4 | 6–8 |
-| `brand`, `product`, `object` | hub-and-spoke | 5–6 | 7–15 |
+| `brand`, `product`, `object` | **tree** (portfolio, brand architecture, object parts) when they have tree relationships (`contains`); hub-and-spoke otherwise | 5–6 | 7–15 |
 | `asset`, `channel`, `content`, `people`, `story` | grid (`cols ≈ √N`) | 5–8 | 7–30 |
-| `task` | **stakeholder inventory** when lanes exist or a People / Organisation element has relationships to the tasks: one lane per stakeholder (a related stakeholder becomes the lane and is not drawn as a box), `stages:` as columns with `{stage: …}`; it has no edges because its input has no other relationships (one written between two tasks is drawn); **path** when tasks link to a journey (`is part of`) or channels (`uses`): journeys above, tasks in input order, channels below; grid otherwise | 5–8 | 7–30 |
+| `task` | **stakeholder inventory** when lanes exist or a People / Organisation element has relationships to the tasks: one lane per stakeholder (a related stakeholder becomes the lane and is not drawn as a box), `stages:` as columns with `{stage: …}`; it has no edges because its input has no other relationships (one written between two tasks is drawn); **path** when tasks link to a journey (`is part of`) or channels (`uses`): journeys above, tasks in input order, channels below; **stage columns** (official task map) when `stages:` is set without lanes or stakeholder relationships: one column container per stage, tasks stacked, a task without a known stage below with a warning; grid otherwise | 5–8 | 7–30 |
 | `reference` *(extension)* | lanes top-down, Organisation/People left, `[external]` right, overlay strokes, one integration bus | 8 | 10–25 |
 | `summary` *(extension)* | who / does what / what results; warns above 4 boxes per row | 3 | 6–10 |
 | `triad` *(extension)* | **planned ring** for `facet: all` or one facet: one *primary* element per type carries the core links (`{primary: true}`, else the first of its type), straight border-to-border lines, two links detour along the page edge; the other elements sit in **"Further <type>" panels** without lines and their links are reported, not drawn; strip legend by default | 6 | 12 primaries + any number of further |
+
+**Matrix (any grid-like map).** `rows:` and `columns:` (or `stages:`) with
+`{row: …, column: …}` per element give a rows × columns matrix: the channel
+map's *physical / digital × synchronous / asynchronous*, a journey touchpoint
+map (columns = journey stages, rows = channels or people), a transition
+roadmap (columns = waves, rows = areas, `change:` on every block). `columns:`
+alone gives one column container per value. An element without a known
+row or column is placed after the matrix with a warning; an empty row or
+column is not drawn. Not for `triad`, `purpose`, `reference`, `summary`.
+Examples: `examples/channel-matrix-map.txt`,
+`examples/transition-roadmap-map.txt`.
 
 The two task-map variants are documented pages of one input
 (`examples/task-stakeholder-map.txt`): the inventory answers *who does what

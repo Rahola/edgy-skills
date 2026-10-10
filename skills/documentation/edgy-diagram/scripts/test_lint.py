@@ -569,6 +569,55 @@ def test_w121_series():
     assert [x for x in json.loads(r.stdout) if x['rule'] == 'W121']
 
 
+def test_w122_container_facet_colour():
+    area = 'rounded=1;container=1;whiteSpace=wrap;html=1;fillColor={};strokeColor=#ffffff;verticalAlign=top;'
+    good = HEAD + LEGEND + vertex(2, 'Area', area.format('#a6c0ff'), 20, 20, 300, 200) \
+        + vertex(3, 'Dispatch', ASSET, 20, 40, parent='2') + TAIL
+    assert 'W122' not in rules(run(good))
+    bad = HEAD + LEGEND + vertex(2, 'Area', area.format('#ff99bd'), 20, 20, 300, 200) \
+        + vertex(3, 'Dispatch', ASSET, 20, 40, parent='2') + TAIL
+    assert 'W122' in rules(run(bad))
+    # official top-level leaf container: white fill, the facet colour on the stroke
+    leaf = ('rounded=1;container=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#80ffb7;verticalAlign=top;')
+    xml = HEAD + LEGEND + vertex(2, 'Area', leaf, 20, 20, 300, 200) + vertex(3, 'Dispatch', ASSET, 20, 40, parent='2') + TAIL
+    assert 'W122' in rules(run(xml))
+    # nested: the facet of grand-children counts
+    xml = HEAD + LEGEND + vertex(2, 'Area', area.format('#a6c0ff'), 20, 20, 400, 300) \
+        + vertex(4, 'Sub', 'rounded=1;container=1;fillColor=#ffffff;strokeColor=none;verticalAlign=top;', 10, 30, 300, 200, parent='2') \
+        + vertex(3, 'Dispatch', ASSET, 20, 40, parent='4') + TAIL
+    assert 'W122' not in rules(run(xml))
+
+
+def test_generated_nested_map_is_clean():
+    p = EDGYParser()
+    p.parse_input(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'examples',
+                                    'capability-areas-nested-map.txt'), encoding='utf-8').read())
+    found = run(p.generate_xml())
+    assert found == [], found
+
+
+def test_w123_badge_needs_legend_key():
+    badge = 'rounded=1;fillColor=#d73027;strokeColor=#ffffff;fontSize=9;edgyRole=badge;'
+    key = 'rounded=1;fillColor=#d73027;strokeColor=#ffffff;edgyRole=badge-key;'
+    card = vertex(2, 'Dispatch', ASSET, 20, 20, 160, 80)
+    xml = HEAD + LEGEND + card + vertex(3, '1/5', badge, 60, 60, 36, 14, parent='2') + TAIL
+    r = rules(run(xml))
+    assert 'W123' in r and 'W102' not in r and 'E008' not in r, r
+    xml = HEAD + LEGEND + card + vertex(3, '1/5', badge, 60, 60, 36, 14, parent='2') + vertex(4, '', key, 600, 300, 22, 11) + TAIL
+    assert 'W123' not in rules(run(xml))
+    # a hand-coloured card fill is W102, with the badge advice
+    bad = vertex(5, 'Fleet', 'whiteSpace=wrap;html=1;fillColor=#ff0000;strokeColor=#fff;', 300, 20)
+    found = edgy_lint.lint_file(_write(HEAD + LEGEND + bad + TAIL), edgy_lint.main.__globals__['argparse'].Namespace(no_legend=False))
+    assert any(f.rule == 'W102' and 'maturity' in f.msg for f in found)
+
+
+def _write(xml):
+    f = tempfile.NamedTemporaryFile('w', suffix='.drawio', delete=False, encoding='utf-8')
+    f.write(xml)
+    f.close()
+    return f.name
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:
