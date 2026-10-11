@@ -8,7 +8,7 @@ Käyttää virallista EDGY 23 -väripalettia ja elementtimuotoja.
 import html
 import re
 import xml.etree.ElementTree as ET
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 # ─── Relaatiotyypit: linkki / tietovirtanuoli / puu / vaikutusviiva ────────
 #
@@ -191,6 +191,21 @@ CHANGE_PALETTE = {
     'remove':  ('#bf2600', False),
     'decide':  ('#bf2600', True),    # katkoviiva: päätös auki (ADR)
 }
+# ─── Tilamerkki (status badge) — EDGY:n LAAJENNUS lämpökartoille ───────────────
+# Täyttö pysyy fasetin värinä; kypsyys / arvio näkyy kortin alareunan merkkinä ja omalla legendarivillään.
+MATURITY_PALETTE = {1: '#d73027', 2: '#fc8d59', 3: '#fee08b', 4: '#91cf60', 5: '#1a9850'}
+# rating: arvot saavat värin ensiesiintymisjärjestyksessä (värisokeille sopiva sarja); rating_palette: ohittaa
+RATING_COLOURS = ('#4477aa', '#ee6677', '#228833', '#ccbb44', '#66ccee', '#aa3377', '#bbbbbb')
+BADGE_H = 14          # merkin korkeus; kortti kasvaa BADGE_H + 4 px
+
+
+def _badge_text_colour(fill: str) -> str:
+    """Valkoinen teksti tummalle merkille, tumma vaalealle (suhteellinen luminanssi, WCAG)."""
+    r, g, b = (int(fill[i:i + 2], 16) / 255 for i in (1, 3, 5))
+    lin = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in (r, g, b)]
+    lum = 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+    return '#ffffff' if lum < 0.18 else '#1a1a1a'
+
 CHANGE_SYNONYMS = {
     # fi
     'säilyy': 'keep', 'uusi': 'new', 'vahvistuu': 'new', 'muuttuu': 'change', 'yhdistyy': 'change',
@@ -221,7 +236,7 @@ LEGEND_TEXT = {
         'chips_short': ['Identity', 'Architecture', 'Experience', 'Brand', 'Product', 'Organisation'],
         'lines': ['Link (core link)', 'Flow (data/value)', 'Tree (hierarchy)', 'Influence (guides)'],
         'lines_short': ['Link', 'Flow', 'Tree', 'Influence'],
-        'overlay': 'Transition (extension, stroke only)', 'overlay_short': 'Transition (extension)',
+        'overlay': 'Transition (extension, stroke only)', 'overlay_short': 'Transition (extension)', 'maturity': 'Maturity (extension)', 'rating': 'Rating (extension)',
         'change': CHANGE_LABELS,
     },
     'fi': {
@@ -231,7 +246,7 @@ LEGEND_TEXT = {
         'chips_short': ['Identity', 'Architecture', 'Experience', 'Brändi', 'Tuote', 'Organisaatio'],
         'lines': ['Linkki (ydinlinkki)', 'Virta (tieto/arvo)', 'Puu (hierarkia)', 'Vaikutus (ohjaa)'],
         'lines_short': ['Linkki', 'Virta', 'Puu', 'Vaikutus'],
-        'overlay': 'Siirtymä (laajennus, vain reunaviiva)', 'overlay_short': 'Siirtymä (laajennus)',
+        'overlay': 'Siirtymä (laajennus, vain reunaviiva)', 'overlay_short': 'Siirtymä (laajennus)', 'maturity': 'Kypsyys (laajennus)', 'rating': 'Arvio (laajennus)',
         'change': {'keep': 'säilyy', 'new': 'uusi, vahvistuu', 'change': 'muuttuu, yhdistyy',
                    'replace': 'korvautuu', 'remove': 'poistuu', 'decide': 'päätettävä (avoin, ks. ADR)'},
     },
@@ -242,7 +257,7 @@ LEGEND_TEXT = {
         'chips_short': ['Identity', 'Architecture', 'Experience', 'Marque', 'Produit', 'Organisation'],
         'lines': ['Lien (lien fondamental)', 'Flux (données/valeur)', 'Arbre (hiérarchie)', 'Influence (guide)'],
         'lines_short': ['Lien', 'Flux', 'Arbre', 'Influence'],
-        'overlay': 'Transition (extension, contour seul)', 'overlay_short': 'Transition (extension)',
+        'overlay': 'Transition (extension, contour seul)', 'overlay_short': 'Transition (extension)', 'maturity': 'Maturité (extension)', 'rating': 'Évaluation (extension)',
         'change': {'keep': 'conserver', 'new': 'nouveau, renforcer', 'change': 'modifier, fusionner',
                    'replace': 'remplacer', 'remove': 'supprimer', 'decide': 'à décider (ouvert, voir ADR)'},
     },
@@ -253,13 +268,13 @@ LEGEND_TEXT = {
         'chips_short': ['Identity', 'Architecture', 'Experience', 'Marke', 'Produkt', 'Organisation'],
         'lines': ['Verknüpfung (Kernverknüpfung)', 'Fluss (Daten/Wert)', 'Baum (Hierarchie)', 'Einfluss (steuert)'],
         'lines_short': ['Verknüpfung', 'Fluss', 'Baum', 'Einfluss'],
-        'overlay': 'Übergang (Erweiterung, nur Kontur)', 'overlay_short': 'Übergang (Erweiterung)',
+        'overlay': 'Übergang (Erweiterung, nur Kontur)', 'overlay_short': 'Übergang (Erweiterung)', 'maturity': 'Reifegrad (Erweiterung)', 'rating': 'Bewertung (Erweiterung)',
         'change': {'keep': 'bleibt', 'new': 'neu, gestärkt', 'change': 'ändert sich, zusammengeführt',
                    'replace': 'ersetzt', 'remove': 'entfällt', 'decide': 'zu entscheiden (offen, siehe ADR)'},
     },
 }
 LEGEND_TITLES = {lang: t['title'] for lang, t in LEGEND_TEXT.items()}   # lint päättelee kartan kielen otsikosta
-RESERVED_METRIC_KEYS = {'id', 'change', 'size', 'highlight', 'primary', 'stage'}
+RESERVED_METRIC_KEYS = {'id', 'change', 'size', 'highlight', 'primary', 'stage', 'column', 'row', 'maturity', 'rating'}
 
 # Ydinlinkkien parivalidointi: verbi → {(lähdetyyppi, kohdetyyppi), ...}
 # Sama verbi voi olla sallittu usealle parille (esim. requires/vaatii:
@@ -284,6 +299,7 @@ class EDGYParser:
         self._group_positions = {}  # ryhmien absoluuttiset sijainnit (viimeisin layout)
         self._layout_handles_tree = False
         self.uses_change_overlay = False
+        self.rating_palette: Dict[str, str] = {}   # rating_palette: label=#hex, … — tilamerkin värit (laajennus)
         self.layout_from = None    # (archimate file, view name, scale, dx, dy) tai None
         self.legend = 'box'        # 'box' = laatikko oikeassa alakulmassa, 'strip' = kapea nauha alareunassa
         self._legend_explicit = False
@@ -297,7 +313,9 @@ class EDGYParser:
         self.cards_per_row = None    # cards_per_row: N — kontin sisäinen ruudukko N sarakkeeseen
         self.equal_group_width = False  # equal_group_width: true — kontit saavat leveimmän kontin leveyden
         self.align_groups = None     # align_groups: grid — kontit yhteiseen rivi/sarake-ruudukkoon (rivin korkeus = korkein)
-        self.stages = []             # stages: A, B, C — tehtäväkartan sarakkeet (kaistat = sidosryhmät)
+        self.group_style = None      # group_style: official | light — None = official kun sisäkkäisiä ryhmiä on, muuten light
+        self.stages = []             # stages: / columns: A, B, C — matriisin sarakkeet (tehtäväkartta: vaiheet)
+        self.rows = []               # rows: X, Y — matriisin rivit (synteettiset kaistat), elementti {row: X}
         self.title = None            # title: — natiivipresettien otsikkonauha
         self.footnote = None         # footnote: — natiivipresettien alaviitenauha
         self._hidden = set()         # elementit, joita ei piirretä (tehtäväkartta: kaistaksi muuttunut sidosryhmä)
@@ -311,16 +329,18 @@ class EDGYParser:
         lines = input_text.strip().split('\n')
 
         current_section = None
-        current_group = None      # avoin ryhmä/kaista (group_id)
-        group_indent = -1         # ryhmärivin sisennys
+        current_group = None      # avoin (sisin) ryhmä/kaista (group_id)
+        group_stack: List[Tuple[str, int]] = []   # avoimet ryhmät ulommasta sisimpään: (group_id, ryhmärivin sisennys)
         for raw_line in lines:
             indent = len(raw_line) - len(raw_line.lstrip())
             line = raw_line.strip()
             if not line or line.startswith('#'):
                 continue
-            # Ryhmä sulkeutuu kun sisennys palaa ryhmärivin tasolle tai alle
-            if current_group is not None and line.startswith('- ') and indent <= group_indent:
-                current_group = None
+            # Ryhmä sulkeutuu kun sisennys palaa ryhmärivin tasolle tai alle (sisäkkäiset ryhmät pinona)
+            if line.startswith('- '):
+                while group_stack and indent <= group_stack[-1][1]:
+                    group_stack.pop()
+                current_group = group_stack[-1][0] if group_stack else None
 
             # Tunnista osiot
             if line.startswith('facet:'):
@@ -358,14 +378,30 @@ class EDGYParser:
             elif line.split(':')[0].strip() in self._LAYOUT_OPTION_KEYS:
                 self._parse_layout_option(line)
                 continue
-            elif line.startswith('stages:'):
-                # stages: Plan, Buy, Ride — tehtäväkartan sarakkeet; tehtävä kiinnittyy {stage: Buy}; "none" tyhjentää
-                raw = line.split(':', 1)[1].strip()
-                self.stages = [] if raw.lower() in ('', 'none') else [x.strip() for x in raw.split(',') if x.strip()]
+            elif line.startswith('stages:') or line.startswith('columns:') or line.startswith('rows:'):
+                # stages:/columns: Plan, Buy, Ride — matriisin sarakkeet; elementti kiinnittyy {stage: Buy} tai {column: Buy}
+                # rows: Physical, Digital — matriisin rivit; elementti {row: Digital}; "none" tyhjentää
+                key, _, raw = line.partition(':')
+                values = [] if raw.strip().lower() in ('', 'none') else [x.strip() for x in raw.split(',') if x.strip()]
+                if key.strip() == 'rows':
+                    self.rows = values
+                else:
+                    self.stages = values
                 continue
             elif line.startswith('title:') or line.startswith('footnote:'):
                 key, _, raw = line.partition(':')
                 setattr(self, key.strip(), raw.strip().strip('"') or None)
+                continue
+            elif line.startswith('rating_palette:'):
+                # rating_palette: strategic=#228833, commodity=#bbbbbb — rating-merkin värit (EDGY-laajennus)
+                for pair in line.split(':', 1)[1].split(','):
+                    if '=' in pair:
+                        k, v = pair.split('=', 1)
+                        v = v.strip().lower()
+                        if re.fullmatch(r'#[0-9a-f]{6}', v):
+                            self.rating_palette[k.strip().lower()] = v
+                        else:
+                            self.warnings.append(f"rating_palette: '{v}' is not a #rrggbb colour — ignored")
                 continue
             elif line.startswith('legend:'):
                 # legend: box (oletus) | strip — nauha alareunassa säästää kanvasta
@@ -420,12 +456,27 @@ class EDGYParser:
 
                     if element_type in STRUCTURE_TYPES:
                         group_id = f"{element_type}{len(self.groups) + 1}"
+                        parent = current_group
+                        kind = element_type
+                        if parent is not None and self.groups[parent]['kind'] == 'lane':
+                            # Kaistan sisällä ei ole kontteja: kaistan jäsenet ovat juuritasolla
+                            self.warnings.append(f"{element_type} '{element_value}' inside lane "
+                                                 f"'{self.groups[parent]['name']}' is not supported — placed at top level")
+                            parent = None
+                            group_stack.clear()
+                        elif parent is not None and kind == 'lane':
+                            self.warnings.append(f"lane '{element_value}' inside group '{self.groups[parent]['name']}' "
+                                                 f"is drawn as a nested group — lanes are top-level bands")
+                            kind = 'group'
                         self.groups[group_id] = {
-                            'id': group_id, 'kind': element_type, 'name': element_value,
+                            'id': group_id, 'kind': kind, 'name': element_value,
                             'members': [], 'tags': tags, 'metrics': metrics,
+                            'parent': parent, 'subgroups': [],
                         }
+                        if parent is not None:
+                            self.groups[parent]['subgroups'].append(group_id)
                         current_group = group_id
-                        group_indent = indent
+                        group_stack.append((group_id, indent))
                         continue
 
                     if element_type not in ALL_ELEMENT_TYPES:
@@ -459,7 +510,10 @@ class EDGYParser:
                         'primary': metrics.get('primary', '').lower() in ('1', 'true', 'yes', 'kyllä'),   # triad: kantaa tyypin linkit
                         'tags': [t for t in tags if t.lower() != 'focus'],
                         'metrics': {k: v for k, v in metrics.items() if k not in RESERVED_METRIC_KEYS},
-                        'stage': metrics.get('stage'),       # tehtäväkartan sarake (stages:)
+                        'stage': metrics.get('stage') or metrics.get('column'),   # matriisin sarake (stages:/columns:)
+                        'row': metrics.get('row'),           # matriisin rivi (rows:)
+                        'maturity': self._parse_maturity(metrics.get('maturity'), element_value),
+                        'rating': (metrics.get('rating') or '').strip() or None,   # tilamerkki (laajennus)
                         'group': current_group,
                     }
                     if current_group is not None:
@@ -503,7 +557,8 @@ class EDGYParser:
                         if options.get('change'):
                             self.uses_change_overlay = True
 
-    _LAYOUT_OPTION_KEYS = ('card_width', 'equal_cards', 'group_columns', 'cards_per_row', 'equal_group_width', 'align_groups')
+    _LAYOUT_OPTION_KEYS = ('card_width', 'equal_cards', 'group_columns', 'cards_per_row', 'equal_group_width', 'align_groups',
+                           'group_style')
 
     def _parse_layout_option(self, line: str) -> None:
         """Dokumenttitason asetteluvalinnat (2.6.0). Virheellinen arvo → varoitus ja oletus pysyy.
@@ -514,6 +569,8 @@ class EDGYParser:
         cards_per_row: N       kontin sisäinen ruudukko N sarakkeeseen
         equal_group_width: true|false  kontit saavat leveimmän kontin leveyden (oletus false)
         align_groups: grid|none  kontit yhteiseen rivi/sarake-ruudukkoon; rivin kontit venyvät rivin korkeuteen
+        group_style: official|light  official = virallisten karttojen kontit (ulompi fasetin värinen, sisempi
+                               valkoinen); light = vaaleanharmaa rakennekontti. Oletus official kun ryhmiä on sisäkkäin.
         """
         key, _, raw = line.partition(':')
         key, value = key.strip(), raw.strip().lower()
@@ -528,11 +585,64 @@ class EDGYParser:
                 setattr(self, key, value in ('true', 'yes', 'kyllä'))
             else:
                 self.warnings.append(f"Tuntematon {key}-arvo '{raw.strip()}' (sallitut: true, false), ohitetaan")
+        elif key == 'group_style':
+            if value in ('official', 'light'):
+                self.group_style = value
+            else:
+                self.warnings.append(f"Tuntematon group_style-arvo '{raw.strip()}' (sallitut: official, light), ohitetaan")
         elif key == 'align_groups':
             if value in ('grid', 'none'):
                 self.align_groups = None if value == 'none' else value
             else:
                 self.warnings.append(f"Tuntematon align_groups-arvo '{raw.strip()}' (sallitut: grid, none), ohitetaan")
+
+    def _parse_maturity(self, raw, name: str):
+        """{maturity: 1–5} → int; muu arvo → varoitus ja ohitus."""
+        if raw is None:
+            return None
+        raw = str(raw).strip()
+        if raw.isdigit() and 1 <= int(raw) <= 5:
+            return int(raw)
+        self.warnings.append(f"maturity '{raw}' on '{name}' is not 1–5 — ignored")
+        return None
+
+    def _badge_of(self, element: dict):
+        """(teksti, väri) tilamerkille tai None. Kypsyys voittaa arvion, jos molemmat on annettu."""
+        if element.get('maturity'):
+            n = element['maturity']
+            return f"{n}/5", MATURITY_PALETTE[n]
+        r = element.get('rating')
+        if r:
+            return r, self._rating_colour(r)
+        return None
+
+    def _rating_colour(self, label: str) -> str:
+        key = label.lower()
+        if key in self.rating_palette:
+            return self.rating_palette[key]
+        seen = []
+        for e in self.elements.values():
+            v = (e.get('rating') or '').lower()
+            if v and v not in self.rating_palette and v not in seen:
+                seen.append(v)
+        idx = seen.index(key) if key in seen else len(seen)
+        return RATING_COLOURS[idx % len(RATING_COLOURS)]
+
+    def _badge_legend_sections(self) -> List[Tuple[str, List[Tuple[str, str]]]]:
+        """Legendan tilamerkkiosiot: [(otsikko, [(väri, teksti)])] vain käytetyille arvoille."""
+        L = self._legend_text()
+        out = []
+        mats = sorted({e['maturity'] for e in self.elements.values() if e.get('maturity') and e['id'] not in self._hidden})
+        if mats:
+            out.append((L['maturity'], [(MATURITY_PALETTE[m], f"{m}/5") for m in mats]))
+        ratings = []
+        for e in self.elements.values():
+            r = e.get('rating')
+            if r and not e.get('maturity') and e['id'] not in self._hidden and r.lower() not in [x.lower() for x in ratings]:
+                ratings.append(r)
+        if ratings:
+            out.append((L['rating'], [(self._rating_colour(r), r) for r in ratings]))
+        return out
 
     def _parse_layout_from(self, spec: str):
         """Jäsennä `layout_from: file.archimate#View [scale=S dx=X dy=Y]`."""
@@ -542,7 +652,7 @@ class EDGYParser:
             opts.insert(0, parts.pop())
         target = ' '.join(parts)          # tiedosto#Näkymän nimi (välilyönnit sallittu)
         if '#' not in target:
-            self.warnings.append("layout_from: anna muodossa tiedosto.archimate#Näkymän nimi — ohitetaan")
+            self.warnings.append("layout_from: give file.archimate#View name or file.drawio#Page name — ignored")
             return None
         path, view = target.split('#', 1)
         scale, dx, dy = 1.0, 0.0, 0.0
@@ -559,6 +669,80 @@ class EDGYParser:
                 except ValueError:
                     self.warnings.append(f"layout_from: virheellinen arvo {o}, ohitetaan")
         return (path.strip(), view.strip(), scale, dx, dy)
+
+    def _positions_from_layout_source(self) -> Dict[str, Tuple[float, float]]:
+        """layout_from: lähde tiedostopäätteen mukaan: .archimate → Archi-näkymä,
+        .drawio / .xml → draw.io-sivu. Muu pääte → varoitus, oma asettelu."""
+        path = self.layout_from[0].lower()
+        if path.endswith('.archimate'):
+            return self._positions_from_archimate()
+        if path.endswith('.drawio') or path.endswith('.xml'):
+            return self._positions_from_drawio()
+        self.warnings.append(f"layout_from: {self.layout_from[0]} is neither .archimate nor .drawio / .xml — "
+                             f"unsupported layout source, own layout used")
+        return {}
+
+    def _positions_from_drawio(self) -> Dict[str, Tuple[float, float]]:
+        """Sijainnit olemassa olevalta draw.io-sivulta (esim. käsin säädetty edellinen toimitus):
+        ylimmän tason elementit ja kontit (group:/lane:) kohdistetaan nimellä (sama
+        nimisääntö kuin ArchiMate-lähteellä). Kontin sisäinen järjestys tulee generaattorista,
+        joten käsin siirretty alue säilyy, alueen sisäinen korttisiirto ei.
+        T(x, y) = ((x + dx) · S, (y + dy) · S)."""
+        import base64
+        import urllib.parse
+        import zlib
+        path, page_name, scale, dx, dy = self.layout_from
+        try:
+            root = ET.parse(path).getroot()
+        except (OSError, ET.ParseError) as e:
+            self.warnings.append(f"layout_from: {path} not readable ({e}) — own layout used")
+            return {}
+        models = []
+        if root.tag == 'mxGraphModel':
+            models.append(('', root))
+        for d in root.findall('diagram'):
+            m = d.find('mxGraphModel')
+            if m is None and (d.text or '').strip():
+                try:
+                    raw = zlib.decompress(base64.b64decode(d.text.strip()), -15).decode('utf-8')
+                    m = ET.fromstring(urllib.parse.unquote(raw))
+                except Exception:          # pragma: no cover — rikkinäinen sivu ohitetaan
+                    m = None
+            if m is not None:
+                models.append((d.get('name') or '', m))
+        model = next((m for n, m in models if n.lower() == page_name.lower()), None)
+        if model is None:
+            names = ', '.join(n or '(unnamed)' for n, _ in models)
+            self.warnings.append(f"layout_from: page '{page_name}' not found in {path} (pages: {names}) — own layout used")
+            return {}
+        cells = {c.get('id'): c for c in model.iter('mxCell')}
+        boxes: Dict[str, Tuple[float, float]] = {}
+        for cid, c in cells.items():
+            style = c.get('style') or ''
+            if c.get('vertex') != '1' or style.startswith('text;') or 'edgyRole=' in style \
+                    or 'fillColor=#f5f5f5' in style:      # legendan tausta, tekstit ja otsikot eivät ole kohteita
+                continue
+            label = html.unescape(re.sub(r'<br\s*/?>', '\n', c.get('value') or '', flags=re.I))
+            label = re.sub(r'<[^>]+>', '', label).strip().split('\n')[0].strip()
+            box = _geo.abs_box(cells, cid)
+            if label and box:
+                boxes.setdefault(label.lower(), (box[0], box[1]))
+        targets = {eid: {e['value'].lower(), (e.get('name') or '').lower()}
+                   for eid, e in self.elements.items() if e.get('group') is None}
+        targets.update({gid: {g['name'].lower()} for gid, g in self.groups.items()
+                        if g.get('parent') is None and not g.get('synthetic')})
+        positions: Dict[str, Tuple[float, float]] = {}
+        matched = set()
+        for key, cands in targets.items():
+            for c in cands:
+                if c in boxes:
+                    vx, vy = boxes[c]
+                    positions[key] = ((vx + dx) * scale, (vy + dy) * scale)
+                    matched.add(c)
+                    break
+        if not positions:
+            self.warnings.append(f"layout_from: no element or area matched page '{page_name}' — own layout used")
+        return positions
 
     def _positions_from_archimate(self) -> Dict[str, Tuple[float, float]]:
         """Lue ArchiMate-näkymän (Archi .archimate) elementtien sijainnit ja
@@ -903,6 +1087,8 @@ class EDGYParser:
         extra += self._subtext_lines(element, w) * 14
         if element.get('tags') or element.get('metrics'):
             extra += 16
+        if element.get('maturity') or element.get('rating'):
+            extra += BADGE_H + 4                 # tilamerkki kortin alareunassa (laajennus)
         if not size_class:
             h = h + extra if extra else h
         else:
@@ -1068,11 +1254,48 @@ class EDGYParser:
         else:  # rect
             return f"{base}verticalAlign=middle;fontStyle=1;fontSize=14;"
 
+    def _effective_group_style(self) -> str:
+        """group_style: annettu arvo, muuten official kun ryhmiä on sisäkkäin, muuten light."""
+        if self.group_style:
+            return self.group_style
+        return 'official' if any(g.get('parent') is not None for g in self.groups.values()) else 'light'
+
+    def _group_facet_fill(self, gid: str) -> Optional[str]:
+        """Kontin kaikkien jälkeläiselementtien yhteinen fasettiväri (esim. #a6c0ff), muuten None
+        (sekalaiset fasetit tai valkoiset perustyypit)."""
+        fills, stack = set(), [gid]
+        while stack:
+            g = self.groups[stack.pop()]
+            fills.update(EDGY_COLORS.get(self.elements[m]['type'], {}).get('fill', '#ffffff')
+                         for m in g['members'] if m not in self._hidden)
+            stack.extend(g.get('subgroups') or [])
+        if len(fills) == 1:
+            fill = fills.pop()
+            return None if fill.lower() == '#ffffff' else fill
+        return None
+
     def _get_group_style(self, group: dict) -> str:
-        """Tyyli ryhmäkontille (container) tai kaistalle (lane)."""
+        """Tyyli ryhmäkontille (container) tai kaistalle (lane).
+
+        group_style official (virallinen EDGY 23 -kyvykkyyskartta): kontti jossa on aliryhmiä =
+        jäsenten fasettiväri, valkoinen reuna; lehtikontti sisällä = valkoinen ilman reunaa;
+        ylimmän tason lehtikontti = valkoinen, fasetin värinen reuna. Synteettiset facet- ja
+        triad-kontit pitävät oman tyylinsä."""
         if group['kind'] == 'lane':
             return ("whiteSpace=wrap;html=1;fillColor=#f4f4f4;strokeColor=none;align=left;verticalAlign=top;"
                     "spacingLeft=8;spacingTop=4;fontColor=#555555;fontSize=11;fontStyle=1;")
+        synthetic = group.get('synthetic')
+        if self._effective_group_style() == 'official' and synthetic in (None, 'stage'):
+            facet_fill = self._group_facet_fill(group['id'])
+            if group.get('subgroups'):
+                fill, stroke = facet_fill or FACET_CONTAINER_FILLS['group'], '#ffffff'
+            elif group.get('parent') is not None:
+                fill, stroke = '#ffffff', 'none'
+            else:
+                fill, stroke = '#ffffff', facet_fill or '#d0d4dc'
+            return (f"rounded=1;arcSize=8;container=1;collapsible=0;whiteSpace=wrap;html=1;"
+                    f"fillColor={fill};strokeColor={stroke};strokeWidth=2;align=left;verticalAlign=top;"
+                    f"spacingLeft=10;spacingTop=4;fontSize=13;fontStyle=1;fontColor=#333333;edgyGroup=official;")
         fill = FACET_CONTAINER_FILLS.get(group.get('facet', 'group'), FACET_CONTAINER_FILLS['group'])
         stroke = '#d0d4dc' if group.get('facet') == 'further' else '#ffffff'
         return (f"rounded=1;arcSize=6;container=1;collapsible=0;whiteSpace=wrap;html=1;"
@@ -1119,7 +1342,8 @@ class EDGYParser:
             page_height = max(300, int(_math.ceil((content_bottom + 30 + band_h + 16) / 10) * 10))
         else:
             # Legenda tarvitsee tilaa oikeasta alakulmasta: kasvata sivua jos sisältö ulottuu sinne
-            legend_h = 200 + (self._overlay_legend_height() if self.uses_change_overlay else 0)
+            legend_h = (self._LEGEND_BOX_H + (self._overlay_legend_height() if self.uses_change_overlay else 0)
+                        + self._badge_legend_height())
             legend_w = 220
             for i in positions:
                 x, y = positions[i]
@@ -1140,15 +1364,22 @@ class EDGYParser:
         next_id = 2
         element_mapping: Dict[str, str] = {}
 
-        # 1) Ryhmät ja kaistat (taustalle, ennen elementtejä)
-        for gid, group in self.groups.items():
+        # 1) Ryhmät ja kaistat (taustalle, ennen elementtejä); sisäkkäinen kontti vanhempansa lapseksi
+        for gid in sorted(self.groups, key=self._group_depth):
+            group = self.groups[gid]
             if gid not in group_pos:
                 continue
             gx, gy = group_pos[gid]
+            parent_gid = group.get('parent')
+            if parent_gid is not None and parent_gid in element_mapping:
+                parent_cell = element_mapping[parent_gid]
+                gx, gy = self._child_positions.get(gid, (20, 40))
+            else:
+                parent_cell = "1"
             gw, gh = self._size_of(gid)
             cell = ET.SubElement(mx_root, "mxCell", {
                 "id": str(next_id), "value": html.escape(group['name']),
-                "style": self._get_group_style(group), "vertex": "1", "parent": "1",
+                "style": self._get_group_style(group), "vertex": "1", "parent": parent_cell,
             })
             ET.SubElement(cell, "mxGeometry", {"x": str(int(round(gx))), "y": str(int(round(gy))),
                                                "width": str(int(gw)), "height": str(int(gh)), "as": "geometry"})
@@ -1157,7 +1388,7 @@ class EDGYParser:
 
         # 1b) Vaiheotsikot kaistojen yläpuolelle (edgyRole=header: lint lukee ne sisällöksi)
         lanes = [g for g in self.groups.values() if g['kind'] == 'lane' and g['id'] in group_pos]
-        if self.stages and self.map_type == 'task' and lanes:
+        if self.stages and lanes:
             first = min(lanes, key=lambda g: group_pos[g['id']][1])
             lx, ly = group_pos[first['id']]
             col_w = max([self._get_element_size(self.elements[m])[0] for g in lanes for m in g['members']] + [120])
@@ -1194,6 +1425,20 @@ class EDGYParser:
                                                "width": str(w), "height": str(h), "as": "geometry"})
             element_mapping[elem_id] = str(next_id)
             next_id += 1
+            badge = self._badge_of(element)
+            if badge:
+                # Kortin lapsisolu (suhteelliset koordinaatit): liikkuu kortin mukana draw.iossa;
+                # edgyRole=badge → lint ei pidä sitä elementtinä eikä vaadi sille paletin väriä
+                text, colour = badge
+                bw = min(w - 12, max(36, int(_text.measure(text, 9, bold=True)) + 14))
+                cell = ET.SubElement(mx_root, "mxCell", {
+                    "id": str(next_id), "value": html.escape(text),
+                    "style": (f"rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor={colour};strokeColor=#ffffff;"
+                              f"strokeWidth=1;fontSize=9;fontStyle=1;fontColor={_badge_text_colour(colour)};edgyRole=badge;"),
+                    "vertex": "1", "parent": element_mapping[elem_id]})
+                ET.SubElement(cell, "mxGeometry", {"x": str(int((w - bw) / 2)), "y": str(int(h - BADGE_H - 4)),
+                                                   "width": str(bw), "height": str(BADGE_H), "as": "geometry"})
+                next_id += 1
 
         # 3) Relaatiot — yhdistä saman parin useat relaatiot yhdeksi reunaksi ("a / b")
         merged: Dict[Tuple[str, str], dict] = {}
@@ -1236,6 +1481,11 @@ class EDGYParser:
             tw, th = sizes[rel['target']]
             exit_side = _geo.choose_side((sx, sy, sw, sh), (tx, ty, tw, th))
             entry_side = _geo.opposite(exit_side)
+            if (rel.get('kind') == 'tree' and exit_side in ('left', 'right') and ty >= sy + sh + 20
+                    and not triad):
+                # Puun haara: lapsi kokonaan vanhemman alla → alareunasta yläreunaan (ei sivun kautta
+                # sisarusten läpi, kun leveät laatikot tekevät vaakaerosta pystyeroa suuremman)
+                exit_side, entry_side = 'bottom', 'top'
             # Samalla kaistalla samalla rivillä, ei vierekkäin → reititys yläkautta (U-muoto),
             # jotta reuna ei kulje välissä olevien elementtien läpi
             sg = self.elements[rel['source']].get('group')
@@ -1347,7 +1597,13 @@ class EDGYParser:
         chips_w = sum(18 + _text.measure(lbl, 9) + 6 + 14 for lbl in L['chips_short'])
         lines_w = sum(28 + 4 + _text.measure(lbl, 9) + 6 + 14 for lbl in L['lines_short'])
         rows = 1 if 130 + chips_w + lines_w <= page_width - 40 else 2
-        return rows + (1 if self.uses_change_overlay else 0)
+        return rows + (1 if self.uses_change_overlay else 0) + len(self._badge_legend_sections())
+
+    def _legend_strip_base_rows(self, page_width: int) -> int:
+        return self._legend_strip_rows(page_width) - (1 if self.uses_change_overlay else 0) - len(self._badge_legend_sections())
+
+    def _badge_legend_height(self) -> int:
+        return sum(26 + len(items) * 16 + 10 for _t, items in self._badge_legend_sections())
 
     def _legend_strip_height(self, page_width: int) -> int:
         return self._legend_strip_rows(page_width) * self._STRIP_ROW
@@ -1393,7 +1649,8 @@ class EDGYParser:
             tw = int(_text.measure(label, 9) + 6)
             text_cell(html.escape(label), x + 18, y0, tw, row_h)
             x += 18 + tw + 14
-        if rows >= 2 and (not self.uses_change_overlay or rows == 3):
+        base_rows = self._legend_strip_base_rows(page_width)
+        if base_rows == 2:
             x, y_line = 160, y0 + row_h          # viivamallit toiselle riville
         else:
             y_line = y0
@@ -1406,8 +1663,22 @@ class EDGYParser:
             tw = int(_text.measure(label, 9) + 6)
             text_cell(html.escape(label), x + 32, y_line, tw, row_h)
             x += 28 + 4 + tw + 14
+        for n, (title, items) in enumerate(self._badge_legend_sections()):
+            x, y_b = 30, y0 + (base_rows + (1 if self.uses_change_overlay else 0) + n) * row_h
+            text_cell(f"<b>{html.escape(title)}</b>", x, y_b, 120, row_h, bold=True)
+            x += 130
+            for colour, label in items:
+                key = ET.SubElement(mx_root, "mxCell", {
+                    "id": str(cid), "value": "",
+                    "style": f"rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor={colour};strokeColor=#ffffff;edgyRole=badge-key;",
+                    "vertex": "1", "parent": "1"})
+                ET.SubElement(key, "mxGeometry", {"x": str(x), "y": str(y_b + 6), "width": "22", "height": "11", "as": "geometry"})
+                cid += 1
+                tw = int(_text.measure(label, 9) + 6)
+                text_cell(html.escape(label), x + 26, y_b, tw, row_h)
+                x += 26 + tw + 14
         if self.uses_change_overlay:
-            x, y_ov = 30, y0 + (rows - 1) * row_h
+            x, y_ov = 30, y0 + base_rows * row_h
             text_cell(f"<b>{html.escape(L['overlay_short'])}</b>", x, y_ov, 120, row_h, bold=True)
             x += 130
             for key, (color, dashed) in CHANGE_PALETTE.items():
@@ -1423,12 +1694,17 @@ class EDGYParser:
                 text_cell(html.escape(label), x + 26, y_ov, tw, row_h)
                 x += 26 + tw + 14
 
+    # Laatikkolegendan korkeus: otsikko 26 + 6 väririviä × 18 + erotin 10 + 4 viivariviä × 16 + alamarginaali 12
+    # (2.6.0:n 200 px leikkasi viimeisen rivin, "Influence (guides)", laatikon reunan yli)
+    _LEGEND_BOX_H = 220
+
     def _append_legend_cells(self, mx_root, start_id: int, page_width: int, page_height: int) -> None:
         """Lisää EDGY-legend draw.io-kaavion oikeaan alakulmaan."""
         # Legend-alueen mitat (+ muutoskerroksen rivit, jos käytössä)
-        lw, lh = 220, 200
+        lw, lh = 220, self._LEGEND_BOX_H
         if self.uses_change_overlay:
             lh += self._overlay_legend_height()
+        lh += self._badge_legend_height()
         margin = 20
         lx = page_width - lw - margin
         ly = page_height - lh - margin
@@ -1538,6 +1814,35 @@ class EDGYParser:
                 ET.SubElement(txt, "mxGeometry", {"x": str(lx + 36), "y": str(row_y), "width": str(lw - 44), "height": "16", "as": "geometry"})
                 cid += 1
 
+        # Tilamerkit (EDGY-laajennus): kypsyys / arvio — vain käytetyt arvot
+        by = rel_y_start + len(rel_items) * 16 + 4 + (self._overlay_legend_height() if self.uses_change_overlay else 0)
+        for title, items in self._badge_legend_sections():
+            sep3 = ET.SubElement(mx_root, "mxCell", {
+                "id": str(cid), "value": "", "style": "line;strokeColor=#cccccc;fillColor=none;", "vertex": "1", "parent": "1"})
+            ET.SubElement(sep3, "mxGeometry", {"x": str(lx + 8), "y": str(by), "width": str(lw - 16), "height": "6", "as": "geometry"})
+            cid += 1
+            t3 = ET.SubElement(mx_root, "mxCell", {
+                "id": str(cid), "value": f"<b>{html.escape(title)}</b>",
+                "style": "text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;fontStyle=1;",
+                "vertex": "1", "parent": "1"})
+            ET.SubElement(t3, "mxGeometry", {"x": str(lx + 8), "y": str(by + 8), "width": str(lw - 16), "height": "16", "as": "geometry"})
+            cid += 1
+            for i, (colour, label) in enumerate(items):
+                row_y = by + 26 + i * 16
+                key = ET.SubElement(mx_root, "mxCell", {
+                    "id": str(cid), "value": "",
+                    "style": f"rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor={colour};strokeColor=#ffffff;edgyRole=badge-key;",
+                    "vertex": "1", "parent": "1"})
+                ET.SubElement(key, "mxGeometry", {"x": str(lx + 8), "y": str(row_y + 2), "width": "22", "height": "11", "as": "geometry"})
+                cid += 1
+                txt = ET.SubElement(mx_root, "mxCell", {
+                    "id": str(cid), "value": html.escape(label),
+                    "style": "text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;",
+                    "vertex": "1", "parent": "1"})
+                ET.SubElement(txt, "mxGeometry", {"x": str(lx + 36), "y": str(row_y), "width": str(lw - 44), "height": "16", "as": "geometry"})
+                cid += 1
+            by += 26 + len(items) * 16 + 10
+
     def _overlay_legend_height(self) -> int:
         return 26 + len(CHANGE_PALETTE) * 16 + 10
 
@@ -1581,12 +1886,16 @@ class EDGYParser:
         self._equalise_cards()
         self._prepare_facet_groups()
         self._prepare_task_lanes()
+        self._prepare_matrix_rows()
+        self._prepare_task_stages()
 
-        for gid, group in self.groups.items():
-            self._layout_group_members(gid, group)
+        # Sisimmät ensin: ylemmän ryhmän koko riippuu aliryhmien koosta
+        for gid in sorted(self.groups, key=lambda g: -self._group_depth(g)):
+            self._layout_group_members(gid, self.groups[gid])
         if self.equal_group_width:
-            # Kontit (ei kaistat, ei synteettiset facet-kontit) saavat leveimmän leveyden
-            gids = [g for g, grp in self.groups.items() if grp['kind'] == 'group' and not grp.get('synthetic')]
+            # Ylimmän tason kontit (ei kaistat, ei synteettiset facet-kontit) saavat leveimmän leveyden
+            gids = [g for g, grp in self.groups.items() if grp['kind'] == 'group' and not grp.get('synthetic')
+                    and grp.get('parent') is None]
             if gids:
                 widest = max(self._computed_sizes[g][0] for g in gids)
                 for g in gids:
@@ -1594,7 +1903,7 @@ class EDGYParser:
 
         top_items = [eid for eid, e in self.elements.items() if e.get('group') is None and eid not in self._hidden]
         lanes = [gid for gid, g in self.groups.items() if g['kind'] == 'lane']
-        containers = [gid for gid, g in self.groups.items() if g['kind'] == 'group']
+        containers = [gid for gid, g in self.groups.items() if g['kind'] == 'group' and g.get('parent') is None]
 
         if lanes and self.map_type == 'reference':
             positions = self._layout_reference(lanes, containers + top_items)
@@ -1610,7 +1919,7 @@ class EDGYParser:
         if not self._layout_handles_tree:
             self._apply_tree_layout(positions)
         # Asemointi olemassa olevan ArchiMate-näkymän mukaan ("sama paikka = sama vastuualue")
-        anchored = self._positions_from_archimate() if self.layout_from else {}
+        anchored = self._positions_from_layout_source() if self.layout_from else {}
         for eid, pos in anchored.items():
             if eid in positions:
                 positions[eid] = pos
@@ -1618,16 +1927,35 @@ class EDGYParser:
             # kohdistamattomat top-level-elementit siirretään kohdistettujen alle, riviin
             max_y = max(positions[e][1] + self._size_of(e)[1] for e in anchored if e in positions)
             x = 60
+            areas_anchored = any(e in self.groups for e in anchored)   # draw.io-lähde: myös alueet kohdistuvat
             for eid in list(positions):
-                if eid not in anchored and eid in self.elements and self.elements[eid].get('group') is None:
+                movable = (eid in self.elements and self.elements[eid].get('group') is None) or \
+                    (areas_anchored and eid in self.groups and self.groups[eid].get('parent') is None)
+                if eid not in anchored and movable:
                     positions[eid] = (x, max_y + 60)
                     x += self._size_of(eid)[0] + 40
         self._resolve_collisions(positions)
         self._normalize_to_canvas(positions)
         self._snap_to_grid(positions)
 
-        # Palauta KAIKKIEN elementtien absoluuttiset sijainnit; ryhmät erikseen
-        self._group_positions = {gid: positions[gid] for gid in self.groups if gid in positions}
+        # Palauta KAIKKIEN elementtien absoluuttiset sijainnit; ryhmät erikseen (sisäkkäiset: vanhemman ketju)
+        self._group_positions = {}
+
+        def _abs_group(g):
+            if g in self._group_positions:
+                return self._group_positions[g]
+            parent = self.groups[g].get('parent')
+            if parent is None:
+                pos = positions.get(g)
+            else:
+                pp = _abs_group(parent)
+                rx, ry = self._child_positions.get(g, (20, 40))
+                pos = None if pp is None else (pp[0] + rx, pp[1] + ry)
+            if pos is not None:
+                self._group_positions[g] = pos
+            return pos
+        for gid in self.groups:
+            _abs_group(gid)
         result: Dict[str, Tuple[int, int]] = {}
         for eid, element in self.elements.items():
             gid = element.get('group')
@@ -1721,6 +2049,89 @@ class EDGYParser:
                 self.warnings.append(f"task map: '{self.elements[holder]['name']}' shares {len(extra)} task(s) placed in another lane "
                                      f"({', '.join(self.elements[t]['name'] for t in extra)}) — named in the lane title, not drawn twice")
 
+    # Karttatyypit, joilla on oma rakenteensa: sarakkeet/rivit eivät koske niitä
+    _NO_MATRIX_MAP_TYPES = ('triad', 'purpose', 'reference', 'summary')
+
+    def _map_label(self) -> str:
+        return f"{self.map_type} map" if self.map_type else "map"
+
+    def _prepare_matrix_rows(self) -> None:
+        """rows: X, Y ilman kaistoja → yksi synteettinen kaista per rivi; elementti valitsee
+        rivinsä {row: X}. Yhdessä columns:/stages:-avaimen kanssa tuloksena on matriisi
+        (rivit × sarakkeet): kanavakartta 2 × 2, kosketuspistekartta, tiekartta.
+        Riviton elementti jää kaistojen alle varoituksen kera; tyhjää riviä ei piirretä."""
+        for gid in [g for g, grp in self.groups.items() if grp.get('synthetic') == 'row']:
+            for m in self.groups[gid]['members']:
+                self.elements[m]['group'] = None
+            del self.groups[gid]
+        if not self.rows or self.map_type in self._NO_MATRIX_MAP_TYPES:
+            return
+        if self.groups:
+            self.warnings.append(f"{self._map_label()}: rows: ignored — the input already has groups or lanes")
+            return
+        keys = {r.lower(): r for r in self.rows}
+        by_row: Dict[str, List[str]] = {r: [] for r in self.rows}
+        for eid, e in self.elements.items():
+            if eid in self._hidden or e.get('group') is not None:
+                continue
+            r = (e.get('row') or '').strip().lower()
+            if r in keys:
+                by_row[keys[r]].append(eid)
+            else:
+                self.warnings.append(f"{self._map_label()}: '{e['name']}' has no known row "
+                                     f"(rows: {', '.join(self.rows)}) — placed below the rows")
+        for n, r in enumerate(self.rows):
+            if not by_row[r]:
+                self.warnings.append(f"{self._map_label()}: row '{r}' has no elements — not drawn")
+                continue
+            gid = f"row_{n + 1}"
+            self.groups[gid] = {'id': gid, 'kind': 'lane', 'name': r, 'members': by_row[r], 'tags': [],
+                                'metrics': {}, 'synthetic': 'row', 'parent': None, 'subgroups': []}
+            for m in by_row[r]:
+                self.elements[m]['group'] = gid
+
+    def _prepare_task_stages(self) -> None:
+        """stages:/columns: ilman kaistoja ja ryhmiä: yksi kontti per sarake syötteen
+        järjestyksessä, elementit allekkain sarakkeensa konttiin (virallinen tehtäväkartta:
+        vaiheet). Tehtäväkartalla sarakkeisiin menevät tehtävät, eikä polkuvariantti
+        (tehtävä → journey/channel) käytä sarakkeita. Sarakkeeton elementti jää konttien
+        perään varoituksen kera; tyhjää saraketta ei piirretä."""
+        for gid in [g for g, grp in self.groups.items() if grp.get('synthetic') == 'stage']:
+            for m in self.groups[gid]['members']:
+                self.elements[m]['group'] = None
+            del self.groups[gid]
+        if not self.map_type or self.map_type in self._NO_MATRIX_MAP_TYPES or not self.stages or self.groups:
+            return
+        if self.map_type == 'task':
+            tasks = [eid for eid, e in self.elements.items() if e['type'] == 'task' and eid not in self._hidden]
+            if self._task_path_targets(list(self.elements)):
+                return
+        else:
+            tasks = [eid for eid in self.elements if eid not in self._hidden]
+        if not tasks:
+            return
+        cols = {st.lower(): st for st in self.stages}
+        by_stage: Dict[str, List[str]] = {st: [] for st in self.stages}
+        for t in tasks:
+            st = (self.elements[t].get('stage') or '').strip().lower()
+            if st in cols:
+                by_stage[cols[st]].append(t)
+            else:
+                self.warnings.append(f"{self._map_label()}: '{self.elements[t]['name']}' has no known stage "
+                                     f"(stages: {', '.join(self.stages)}) — placed after the stage columns")
+        for n, st in enumerate(self.stages):
+            members = by_stage[st]
+            if not members:
+                self.warnings.append(f"{self._map_label()}: stage '{st}' has no "
+                                     f"{'tasks' if self.map_type == 'task' else 'elements'} — no column drawn")
+                continue
+            gid = f"stage_{n + 1}"
+            self.groups[gid] = {'id': gid, 'kind': 'group', 'name': st, 'members': members, 'tags': [],
+                                'metrics': {}, 'synthetic': 'stage', 'layout': 'column',
+                                'parent': None, 'subgroups': []}
+            for m in members:
+                self.elements[m]['group'] = gid
+
     def _task_path_targets(self, items: List[str]) -> bool:
         """Polkuvariantti: tehtävistä on relaatioita journey- tai channel-elementteihin."""
         types = {i: self.elements[i]['type'] for i in items}
@@ -1804,11 +2215,14 @@ class EDGYParser:
         """
         members = group['members']
         PAD_X, PAD_TOP, PAD_BOTTOM, GAP = 20, 36, 20, 20
+        if group.get('subgroups'):
+            self._layout_parent_group(gid, group)
+            return
         if not members:
             self._computed_sizes[gid] = (240, 100)
             return
         sizes = {m: self._get_element_size(self.elements[m]) for m in members}
-        if group['kind'] == 'lane' and self.stages and self.map_type == 'task':
+        if group['kind'] == 'lane' and self.stages:
             # Matriisi: sarake = vaihe ({stage: X}), sarakeleveys sama joka kaistassa; useat
             # samaan vaiheeseen kuuluvat tehtävät pinotaan; vaiheeton tehtävä → viimeinen sarake + varoitus
             col_w = max([self._get_element_size(self.elements[m])[0] for g in self.groups.values() if g['kind'] == 'lane'
@@ -1818,7 +2232,7 @@ class EDGYParser:
             for m in members:
                 st = (self.elements[m].get('stage') or '').strip().lower()
                 if st not in cols:
-                    self.warnings.append(f"task map: '{self.elements[m]['name']}' has no known stage "
+                    self.warnings.append(f"{self._map_label()}: '{self.elements[m]['name']}' has no known stage "
                                          f"(stages: {', '.join(self.stages)}) — placed in the last column")
                 stacks.setdefault(cols.get(st, len(self.stages)), []).append(m)
             height = PAD_TOP
@@ -1911,11 +2325,54 @@ class EDGYParser:
         min_w = max(240, len(group['name']) * 7 + 40)
         self._computed_sizes[gid] = (max(width, min_w), height)
 
+    def _group_depth(self, gid: str) -> int:
+        depth, g = 0, self.groups[gid].get('parent')
+        while g is not None:
+            depth, g = depth + 1, self.groups[g].get('parent')
+        return depth
+
+    def _layout_parent_group(self, gid: str, group: dict) -> None:
+        """Kontti, jossa on aliryhmiä (virallisen kyvykkyyskartan kolme tasoa: alue → aliryhmä → kyvykkyys).
+
+        Suorat jäsenelementit ensin tavallisena ruudukkona, aliryhmät niiden alle
+        riveinä: sarakemäärä group_columns tai 1–3 → yhdelle riville, 4 → 2, muuten 3.
+        Sarakkeen leveys = sarakkeen levein aliryhmä, rivin aliryhmät venyvät rivin
+        korkeuteen (viralliset kartat: tasakorkeat alueet riveittäin)."""
+        import math
+        PAD_X, PAD_TOP, PAD_BOTTOM, GAP = 20, 36, 20, 20
+        subs = group['subgroups']
+        right, y = PAD_X, PAD_TOP
+        if group['members']:
+            self._layout_group_members(gid, {**group, 'subgroups': []})
+            for m in group['members']:
+                mx, my = self._child_positions[m]
+                mw, mh = self._get_element_size(self.elements[m])
+                right = max(right, mx + mw)
+                y = max(y, my + mh + GAP)
+        n = len(subs)
+        cols = self.group_columns or (n if n <= 3 else 2 if n == 4 else 3)
+        rows = [subs[i:i + cols] for i in range(0, n, cols)]
+        col_w = [0] * cols
+        for row in rows:
+            for c, sg in enumerate(row):
+                col_w[c] = max(col_w[c], int(math.ceil(self._computed_sizes[sg][0] / 10) * 10))
+        for row in rows:
+            row_h = int(math.ceil(max(self._computed_sizes[sg][1] for sg in row) / 10) * 10)
+            x = PAD_X
+            for c, sg in enumerate(row):
+                self._child_positions[sg] = (x, y)
+                self._computed_sizes[sg] = (col_w[c], row_h)
+                x += col_w[c] + GAP
+            right = max(right, x - GAP)
+            y += row_h + GAP
+        min_w = max(240, len(group['name']) * 8 + 40)
+        self._computed_sizes[gid] = (max(right + PAD_X, min_w), y - GAP + PAD_BOTTOM)
+
     def _layout_lanes(self, lanes: List[str], others: List[str]) -> Dict[str, Tuple[int, int]]:
         """Kaistat päällekkäin ylhäältä alas; muut top-level-kohteet riviin kaistojen alle."""
         positions: Dict[str, Tuple[int, int]] = {}
         x0, y = 60, 60
-        self._top_reserve = 40 if (self.stages and self.map_type == 'task') else 0   # vaiheotsikot kaistojen yläpuolelle
+        self._top_reserve = 40 if self.stages else 0   # sarakeotsikot kaistojen yläpuolelle
         width = max(self._computed_sizes[l][0] for l in lanes)
         for l in lanes:
             self._computed_sizes[l] = (width, self._computed_sizes[l][1])
@@ -2035,7 +2492,8 @@ class EDGYParser:
         x, y, row_h = x0, y0, 0
         for i, item in enumerate(items):
             if i and i % cols == 0:
-                x, y, row_h = x0, y + row_h + gap_y, 0
+                # rivin korkeus pyöristetään ylös 10 px:iin: grid snap ei saa tehdä riviväleistä epätasaisia (W118)
+                x, y, row_h = x0, y + int(math.ceil(row_h / 10) * 10) + gap_y, 0
             w, h = self._size_of(item)
             positions[item] = (x, y)
             x += w + gap_x
@@ -2311,9 +2769,24 @@ class EDGYParser:
     # ---- karttatyypit -----------------------------------------------------
     def _calculate_map_type_layout(self, items: List[str], containers: List[str]) -> Dict[str, Tuple[int, int]]:
         """Laske layout karttatyypin mukaan. Reititä strategiaan MAP_TYPE_LAYOUT-taulun kautta."""
+        if containers and all(self.groups[c].get('synthetic') == 'stage' for c in containers):
+            # Tehtäväkartan vaihesarakkeet: yksi rivi, tasakorkeat sarakkeet; vaiheettomat tehtävät alle
+            cols = self.group_columns or len(containers)
+            saved, self.align_groups = self.align_groups, 'grid'
+            try:
+                return self._layout_flow_grid(containers + items, cols)
+            finally:
+                self.align_groups = saved
         if containers:
-            # Ryhmät (esim. kyvykkyysalueet) riveinä; irralliset elementit perään
-            cols = self.group_columns or (2 if len(containers) <= 4 else 3)
+            # Ryhmät (esim. kyvykkyysalueet) riveinä; irralliset elementit perään. Ilman group_columns:
+            # 2 / 3 saraketta, mutta vähemmän jos rivin levein kontti × sarakkeet ylittäisi 1800 px
+            # (sisäkkäiset alueet ovat leveitä; W120)
+            cols = self.group_columns
+            if not cols:
+                cols = 2 if len(containers) <= 4 else 3
+                widest = max(self._size_of(c)[0] for c in containers)
+                while cols > 1 and cols * widest + (cols - 1) * 40 > 1800:
+                    cols -= 1
             return self._layout_flow_grid(containers + items, cols)
         if self.map_type == 'purpose':
             return self._layout_purpose(items)
@@ -2322,6 +2795,11 @@ class EDGYParser:
         if self.map_type == 'organisation' and any(self.elements[i]['type'] == 'process' for i in items):
             return self._layout_organisation_roles(items)
         strategy = MAP_TYPE_LAYOUT.get(self.map_type, 'grid')
+        if strategy == 'hub_spoke' and self.map_type != 'purpose' and self._tree_edges_among(items):
+            # Portfolio (product), brändiarkkitehtuuri, objektin osat: puu, ei tähti (virallinen tuotekartta)
+            return self._layout_forest(items)
+        if self.map_type == 'outcome' and len(items) <= self._WEB_MAX and self._web_edges(items):
+            return self._layout_layered(items)
         if strategy in ('grid', 'grid_tree'):
             return self._layout_grid(items)
         if strategy == 'tree':
@@ -2331,6 +2809,162 @@ class EDGYParser:
         if strategy == 'hub_spoke':
             return self._layout_hub_spoke(items)
         return self._layout_grid(items)
+
+    _WEB_MAX = 15        # tulosverkon kerrosasettelu enintään näin monelle elementille; isompi → sivuiksi
+
+    def _tree_edges_among(self, items: List[str]) -> List[Tuple[str, str]]:
+        member = set(items)
+        return [(r['source'], r['target']) for r in self.relationships
+                if r['label'].lower().strip() in TREE_RELATIONSHIPS and r['source'] in member and r['target'] in member]
+
+    def _web_edges(self, items: List[str]) -> List[Tuple[str, str]]:
+        """Suunnatut ei-puu-relaatiot elementtien välillä (tulosverkon linkit: enables, …)."""
+        member = set(items)
+        return [(r['source'], r['target']) for r in self.relationships
+                if r['source'] in member and r['target'] in member and r['source'] != r['target']
+                and r['label'].lower().strip() not in TREE_RELATIONSHIPS]
+
+    def _layout_forest(self, items: List[str]) -> Dict[str, Tuple[int, int]]:
+        """Puu(metsä) ylhäältä alas: jokainen juuri ja sen alipuu vierekkäin alipuun
+        leveyden mukaan; puuhun kuulumattomat elementit riviin puun alle. _apply_tree_layout
+        sijoittaa lapset juuren alle (tidy tree), joten tässä riittää juurten paikka."""
+        tree_children: Dict[str, List[str]] = {}
+        child_set = set()
+        for src, tgt in self._tree_edges_among(items):
+            if tgt not in tree_children.get(src, []):
+                tree_children.setdefault(src, []).append(tgt)
+            child_set.add(tgt)
+        sizes = {i: self._size_of(i) for i in items}
+        H_GAP, V_GAP = 40, 110
+        in_tree = set(tree_children) | child_set
+        roots = [i for i in items if i in tree_children and i not in child_set]
+
+        def depth(n, seen=()):
+            kids = [k for k in tree_children.get(n, []) if k not in seen]
+            return 1 + max((depth(k, seen + (n,)) for k in kids), default=0)
+
+        positions: Dict[str, Tuple[int, int]] = {}
+        x, levels = 60, 1
+        for r in roots:
+            sw = self._subtree_width(r, tree_children, sizes, H_GAP)
+            positions[r] = (x + sw / 2 - sizes[r][0] / 2, 60)
+            for n in self._subtree_nodes(r, tree_children):
+                positions.setdefault(n, (x, 60))      # _apply_tree_layout siirtää lapset juuren alle
+            x += sw + H_GAP * 2
+            levels = max(levels, depth(r))
+        rest = [i for i in items if i not in in_tree]
+        y = 60 + levels * V_GAP + 20
+        x = 60
+        for i in rest:
+            positions[i] = (x, y)
+            x += sizes[i][0] + H_GAP
+        return positions
+
+    @staticmethod
+    def _subtree_nodes(root: str, tree_children: Dict[str, List[str]]) -> List[str]:
+        out, stack, seen = [], [root], set()
+        while stack:
+            n = stack.pop()
+            if n in seen:
+                continue
+            seen.add(n)
+            out.append(n)
+            stack.extend(tree_children.get(n, []))
+        return out
+
+    def _layout_layered(self, items: List[str]) -> Dict[str, Tuple[int, int]]:
+        """Tulosverkko kerroksina vasemmalta oikealle: kerros = pisin polku lähteistä
+        (syyt vasemmalla, vaikutukset oikealla), sykli katkaistaan syötejärjestyksessä.
+        Kerroksen sisäinen järjestys edeltäjien keskiarvon mukaan (vähemmän risteyksiä);
+        kerrokset pystysuunnassa keskitetty. Linkittömät elementit riviin alle.
+        Kerrosväli jättää tilaa linkin tekstille."""
+        edges = self._web_edges(items)
+        succ: Dict[str, List[str]] = {i: [] for i in items}
+        for a, b in edges:
+            if b not in succ[a]:
+                succ[a].append(b)
+        # syklit: DFS syötejärjestyksessä, takaisinpäin osoittava linkki jätetään kerroksista pois
+        order = {i: n for n, i in enumerate(items)}
+        state: Dict[str, int] = {}
+        dag: Dict[str, List[str]] = {i: [] for i in items}
+
+        def dfs(n):
+            state[n] = 1
+            for m in succ[n]:
+                if state.get(m) == 1:
+                    continue                  # takaisinpäin: ei kerrosrajoitetta
+                dag[n].append(m)
+                if m not in state:
+                    dfs(m)
+            state[n] = 2
+        for i in items:
+            if i not in state:
+                dfs(i)
+        layer = {i: 0 for i in items}
+        changed = True
+        while changed:
+            changed = False
+            for a in items:
+                for b in dag[a]:
+                    if layer[b] < layer[a] + 1:
+                        layer[b] = layer[a] + 1
+                        changed = True
+        # Vedä solmut seuraajiensa viereen (lähde jää vasemmalle vain jos sillä ei ole seuraajia):
+        # linkki ylittää yhden kerroksen, ei kulje välikerroksen laatikon läpi
+        changed = True
+        while changed:
+            changed = False
+            for a in items:
+                if dag[a]:
+                    want = min(layer[b] for b in dag[a]) - 1
+                    if want > layer[a]:
+                        layer[a] = want
+                        changed = True
+        linked = {a for a, _ in edges} | {b for _, b in edges}
+        layers: Dict[int, List[str]] = {}
+        for i in items:
+            if i in linked:
+                layers.setdefault(layer[i], []).append(i)
+        preds: Dict[str, List[str]] = {i: [] for i in items}
+        for a in items:
+            for b in dag[a]:
+                preds[b].append(a)
+        rank: Dict[str, float] = {}
+        for k in sorted(layers):
+            if k > 0:
+                layers[k].sort(key=lambda n: (sum(rank[p] for p in preds[n] if p in rank) / max(1, len([p for p in preds[n] if p in rank]))
+                                              if any(p in rank for p in preds[n]) else order[n], order[n]))
+            for idx, n in enumerate(layers[k]):
+                rank[n] = idx
+        sizes = {i: self._size_of(i) for i in items}
+        col_w = max(sizes[i][0] for i in items)
+        row_h = max(sizes[i][1] for i in items)
+        GAP_X, GAP_Y = 140, 80                # GAP_X: tila linkin tekstille kerrosten välissä
+        tallest = max((len(v) for v in layers.values()), default=1)
+        n_layers = max(layers, default=0) + 1
+        positions: Dict[str, Tuple[int, int]] = {}
+        lr_w = n_layers * (col_w + GAP_X) - GAP_X
+        lr_h = tallest * (row_h + GAP_Y) - GAP_Y
+        if lr_w / max(lr_h, 1) <= 4.5 or lr_w < 1200:      # sama raja kuin lint W120 (pieni kartta ei ole liian leveä)
+            for k, nodes in layers.items():          # vasemmalta oikealle (oletus)
+                offset = (tallest - len(nodes)) * (row_h + GAP_Y) / 2
+                for idx, n in enumerate(nodes):
+                    positions[n] = (60 + k * (col_w + GAP_X), 60 + offset + idx * (row_h + GAP_Y))
+            y = 60 + tallest * (row_h + GAP_Y) + 20
+        else:
+            # Liian leveä (lint W120): kerrokset ylhäältä alas, rivin sisällä samassa järjestyksessä
+            TB_GAP_X, TB_GAP_Y = 40, 110
+            for k, nodes in layers.items():
+                offset = (tallest - len(nodes)) * (col_w + TB_GAP_X) / 2
+                for idx, n in enumerate(nodes):
+                    positions[n] = (60 + offset + idx * (col_w + TB_GAP_X), 60 + k * (row_h + TB_GAP_Y))
+            y = 60 + n_layers * (row_h + TB_GAP_Y) + 20
+        x = 60
+        for i in items:
+            if i not in linked:
+                positions[i] = (x, y)
+                x += sizes[i][0] + 40
+        return positions
 
     def _layout_grid(self, items: List[str] = None) -> Dict[str, Tuple[int, int]]:
         """Adaptiivinen ruudukko: sarakemäärä ≈ sqrt(N), välit elementtikoosta."""

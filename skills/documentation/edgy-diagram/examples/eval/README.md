@@ -13,6 +13,7 @@ Fictional inputs that exercise the generator at the sizes real work needs.
 | `fixture-f2-labels.txt` | `label: source / middle / target` on three long edges (F2: renderer placed every label at the midpoint) |
 | `fixture-f4-long-bold-title.txt` | long bold titles with descriptions, ids, tags and size classes in all three shapes (F4: constant-factor text metrics, bold inherited by descriptions) |
 | `fixture-f5-purpose-tree.txt` | parent + 4 sub-purposes + 4 measuring Outcomes, a second level, mixed sizes (F5: parent over the leftmost child, branches through sibling boxes) |
+| `official-shapes.txt` | 16 pages, one per official EDGY 23 map type in the shape of its official example (nested capability areas, stage columns, channel matrix, portfolio tree, outcome web …): `check.sh` step `edgy-official-shapes` requires 0 lint errors and 0 visual findings |
 | `series-acme-capability.txt`, `series-acme-task.txt`, `series-acme-purpose.txt` | three maps of one fictional delivery generated with the same options: `edgy_lint.py --series` must report no W121 (legend placement, content margin, card width of a shared type, font sizes); generate one with `card_width: 300` to see it fire. The task map is a plain grid without relationships (the inventory and path variants are in `../task-stakeholder-map.txt`). `check.sh` step `edgy-series` |
 
 The table printed by `edgy-eval.py` has three columns for these fixtures:

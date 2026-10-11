@@ -859,6 +859,369 @@ def test_task_path_variant():
     assert not f, [str(x) for x in f]
 
 
+# ---- Sprint 17: nested groups, official container style, stage columns --------------------
+
+NESTED = """
+map_type: capability
+elements:
+  - group: "Customer"
+    - group: "Sales"
+      - capability: "Lead handling"
+      - capability: "Quoting"
+    - group: "Service"
+      - capability: "Complaints"
+      - capability: "Refunds"
+      - capability: "Feedback"
+  - group: "Operations"
+    - capability: "Dispatch"
+"""
+
+
+def _style(cell):
+    return dict(kv.split('=', 1) for kv in cell.get('style').split(';') if '=' in kv)
+
+
+def _box(root, cell):
+    x, y = abs_pos(root, cell)
+    g = cell.find('mxGeometry')
+    return x, y, float(g.get('width')), float(g.get('height'))
+
+
+def test_nested_groups_keep_their_parent_chain():
+    p, root, _ = gen(NESTED)
+    assert p.warnings == [], p.warnings
+    assert p.groups['group2']['parent'] == 'group1' and p.groups['group1']['subgroups'] == ['group2', 'group3']
+    assert p.groups['group4']['parent'] is None, "a group back at the outer indent closes the nesting"
+    cells = cells_by_label(root)
+    outer, sales, service = cells['Customer'], cells['Sales'], cells['Service']
+    assert outer.get('parent') == '1'
+    assert sales.get('parent') == outer.get('id') and service.get('parent') == outer.get('id')
+    assert cells['Quoting'].get('parent') == sales.get('id')
+    assert cells['Dispatch'].get('parent') == cells['Operations'].get('id')
+    # every child lies inside its container, every sub-group inside the area
+    for child, parent in (('Quoting', 'Sales'), ('Refunds', 'Service'), ('Sales', 'Customer'), ('Service', 'Customer')):
+        cx, cy, cw, ch = _box(root, cells[child])
+        px, py, pw, ph = _box(root, cells[parent])
+        assert px <= cx and py <= cy and cx + cw <= px + pw and cy + ch <= py + ph, (child, parent)
+    # sub-groups of one row share the row height (official look)
+    assert _box(root, sales)[3] == _box(root, service)[3]
+
+
+def test_nested_groups_official_style_by_default():
+    _, root, _ = gen(NESTED)
+    cells = cells_by_label(root)
+    assert _style(cells['Customer'])['fillColor'] == '#a6c0ff', "area takes the facet colour of what it holds"
+    assert _style(cells['Sales'])['fillColor'] == '#ffffff' and _style(cells['Sales'])['strokeColor'] == 'none'
+    assert _style(cells['Operations'])['strokeColor'] == '#a6c0ff', "top-level leaf container: white with facet stroke"
+    _, root2, _ = gen("group_style: light\n" + NESTED)
+    assert _style(cells_by_label(root2)['Customer'])['fillColor'] == '#eef2f7'
+    # flat groups keep the light style unless official is asked for
+    _, flat, _ = gen('map_type: capability\nelements:\n  - group: "A"\n    - capability: "One"\n')
+    assert _style(cells_by_label(flat)['A'])['fillColor'] == '#eef2f7'
+    _, flat2, _ = gen('map_type: capability\ngroup_style: official\nelements:\n  - group: "A"\n    - capability: "One"\n')
+    assert _style(cells_by_label(flat2)['A'])['fillColor'] == '#ffffff'
+
+
+def test_mixed_facets_area_stays_neutral():
+    _, root, _ = gen("""
+map_type: capability
+elements:
+  - group: "Mixed"
+    - group: "Inner"
+      - capability: "Dispatch"
+      - task: "Plan a trip"
+""")
+    assert _style(cells_by_label(root)['Mixed'])['fillColor'] == '#eef2f7'
+
+
+def test_lane_inside_group_warns_and_nests_as_group():
+    p, root, _ = gen("""
+map_type: capability
+elements:
+  - group: "Area"
+    - lane: "Band"
+      - capability: "One"
+""")
+    assert any("lane 'Band' inside group" in w for w in p.warnings), p.warnings
+    assert p.groups['lane2']['kind'] == 'group' and p.groups['lane2']['parent'] == 'group1'
+    p2, _, _ = gen("""
+elements:
+  - lane: "Band"
+    - group: "Area"
+      - capability: "One"
+""")
+    assert any("inside lane 'Band' is not supported" in w for w in p2.warnings), p2.warnings
+    assert p2.groups['group2']['parent'] is None
+
+
+def test_task_stages_without_lanes_become_columns():
+    p, root, _ = gen("""
+map_type: task
+stages: Inspire, Plan, Book, Travel
+elements:
+  - task: "Get ideas" {stage: Inspire}
+  - task: "Compare" {stage: Inspire}
+  - task: "Check prices" {stage: Plan}
+  - task: "Buy ticket" {stage: Book}
+  - task: "Wander" {stage: Elsewhere}
+""")
+    assert any("'Wander' has no known stage" in w for w in p.warnings), p.warnings
+    assert any("stage 'Travel' has no tasks" in w for w in p.warnings), p.warnings
+    cells = cells_by_label(root)
+    cols = [cells[n] for n in ('Inspire', 'Plan', 'Book')]
+    assert all('container=1' in c.get('style') for c in cols) and 'Travel' not in cells
+    boxes = [_box(root, c) for c in cols]
+    assert boxes[0][0] < boxes[1][0] < boxes[2][0] and len({b[1] for b in boxes}) == 1, "one row, input order"
+    assert len({b[3] for b in boxes}) == 1, "columns share one height"
+    assert cells['Compare'].get('parent') == cols[0].get('id')
+    ga, gc = _box(root, cells['Get ideas']), _box(root, cells['Compare'])
+    assert ga[0] == gc[0] and gc[1] > ga[1], "tasks of one stage stack in one column"
+    assert cells['Wander'].get('parent') == '1' and _box(root, cells['Wander'])[1] > boxes[0][1] + boxes[0][3]
+
+
+def test_task_stage_columns_yield_to_lanes_and_path():
+    p, _, _ = gen("""
+map_type: task
+stages: Plan, Buy
+elements:
+  - lane: "Passenger"
+    - task: "Plan a trip" {stage: Plan}
+""")
+    assert not any(g.get('synthetic') == 'stage' for g in p.groups.values())
+    p2, _, _ = gen("""
+map_type: task
+stages: Plan, Buy
+elements:
+  - task: "Plan a trip" {stage: Plan}
+  - journey: "Commute"
+relationships:
+  - "Plan a trip" -> "Commute": "is part of"
+""")
+    assert not p2.groups, "the path variant keeps its own layout"
+
+
+def test_container_rows_have_equal_gaps():
+    lines = ["map_type: capability", "elements:"]
+    for g in range(8):
+        lines.append(f'  - group: "Area {g + 1}"')
+        lines += [f'    - capability: "Item {g + 1}.{c + 1}"' for c in range(8)]
+    _, root, _ = gen("\n".join(lines))
+    cells = cells_by_label(root)
+    tops = sorted({_box(root, cells[f'Area {g + 1}'])[1] for g in range(8)})
+    h = _box(root, cells['Area 1'])[3]
+    gaps = [tops[i + 1] - (tops[i] + h) for i in range(len(tops) - 1)]
+    assert len(set(gaps)) == 1, gaps
+
+
+def test_box_legend_holds_its_last_line():
+    _, root, _ = gen('map_type: capability\nelements:\n  - capability: "One"\n  - capability: "Two"\n')
+    cells = list(root.iter('mxCell'))
+    bg = next(c for c in cells if 'fillColor=#f5f5f5' in (c.get('style') or ''))
+    last = next(c for c in cells if c.get('value') == 'Influence (guides)')
+    bg_box, last_box = _box(root, bg), _box(root, last)
+    assert last_box[1] + last_box[3] <= bg_box[1] + bg_box[3] - 4
+
+
+# ---- Sprint 18: matrix, product tree, outcome web, draw.io layout source ------------------
+
+EXAMPLES = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'examples')
+
+
+def _example(name):
+    return open(os.path.join(EXAMPLES, name), encoding='utf-8').read()
+
+
+def test_matrix_rows_by_columns():
+    p, root, _ = gen(_example('channel-matrix-map.txt'))
+    assert p.warnings == [], p.warnings
+    cells = cells_by_label(root)
+    phys, dig = cells['Physical'], cells['Digital']
+    assert _box(root, phys)[1] < _box(root, dig)[1], "rows in input order, top-down"
+    sync, asyn = cells['Synchronous'], cells['Asynchronous']
+    assert 'edgyRole=header' in sync.get('style') and _box(root, sync)[0] < _box(root, asyn)[0]
+    # one x per column across both rows; elements sit in their row band
+    assert _box(root, cells['Travel store'])[0] == _box(root, cells['Phone service'])[0]
+    assert _box(root, cells['Ticket machine'])[0] == _box(root, cells['Mobile app'])[0] > _box(root, cells['Travel store'])[0]
+    tb, db = _box(root, cells['Travel store']), _box(root, dig)
+    assert tb[1] < db[1] and _box(root, cells['Website'])[1] > db[1]
+
+
+def test_matrix_warnings():
+    p, _, _ = gen("""
+map_type: channel
+rows: Physical, Digital, Hybrid
+columns: Now
+elements:
+  - channel: "Store" {row: Physical, column: Now}
+  - channel: "App" {row: Online, column: Now}
+""")
+    assert any("'App' has no known row" in w for w in p.warnings), p.warnings
+    assert any("row 'Hybrid' has no elements" in w for w in p.warnings), p.warnings
+    p2, _, _ = gen("""
+map_type: capability
+rows: A
+elements:
+  - group: "Area"
+    - capability: "One" {row: A}
+""")
+    assert any("rows: ignored" in w for w in p2.warnings), p2.warnings
+
+
+def test_columns_without_rows_give_column_containers():
+    p, root, _ = gen("""
+map_type: capability
+columns: Wave 1, Wave 2
+elements:
+  - capability: "One" {column: Wave 1}
+  - capability: "Two" {column: Wave 2}
+  - capability: "Three" {column: Wave 2}
+""")
+    assert p.warnings == [], p.warnings
+    cells = cells_by_label(root)
+    assert cells['Three'].get('parent') == cells['Wave 2'].get('id')
+    assert _box(root, cells['Wave 1'])[1] == _box(root, cells['Wave 2'])[1]
+
+
+def test_product_tree_instead_of_hub():
+    import edgy_lint
+    p, root, xml = gen(_example('product-portfolio-map.txt'))
+    cells = cells_by_label(root)
+    top = _box(root, cells['Acme Transit portfolio'])
+    lines = _box(root, cells['Passenger transport']), _box(root, cells['Freight transport'])
+    leaves = [_box(root, cells[n]) for n in ('Local trains', 'Night trains', 'Family card', 'Senior card')]
+    assert all(b[1] > top[1] + top[3] for b in lines) and all(b[1] > lines[0][1] + lines[0][3] for b in leaves)
+    assert len({b[1] for b in leaves}) == 1, "one level, one row"
+    # tree edges leave the parent at the bottom and enter the child at the top
+    for e in root.iter('mxCell'):
+        if e.get('edge') == '1' and e.get('value') == 'contains':
+            st = _style(e)
+            assert st['exitY'] == '1.0' and st['entryY'] == '0.0', st
+    findings = _lint(xml)
+    assert not [f for f in findings if f.rule in ('W111', 'W112', 'W113')], [f.rule for f in findings]
+
+
+def _lint(xml):
+    import tempfile
+    import edgy_lint
+    with tempfile.NamedTemporaryFile('w', suffix='.drawio', delete=False, encoding='utf-8') as f:
+        f.write(xml)
+        path = f.name
+    try:
+        opts = edgy_lint.main.__globals__['argparse'].Namespace(no_legend=False)
+        return edgy_lint.lint_file(path, opts)
+    finally:
+        os.unlink(path)
+
+
+def test_hub_stays_without_tree_links():
+    p, root, _ = gen(_example('product-map.txt'))
+    cells = cells_by_label(root)
+    hub = _box(root, cells['Smart booking platform'])
+    others = [_box(root, cells[n]) for n in ('Real-time pricing', 'Buy ticket', 'Nordic Trains')]
+    assert any(b[1] < hub[1] for b in others) and any(b[1] > hub[1] for b in others), "spokes around the hub"
+
+
+def test_outcome_web_layers_left_to_right():
+    p, root, xml = gen(_example('outcome-web-map.txt'))
+    by_id = {c.get('id'): c for c in root.iter('mxCell')}
+    n = 0
+    for e in root.iter('mxCell'):
+        if e.get('edge') == '1' and e.get('source'):
+            s, t = _box(root, by_id[e.get('source')]), _box(root, by_id[e.get('target')])
+            assert s[0] + s[2] < t[0], (e.get('source'), e.get('target'))
+            n += 1
+    assert n == 8
+    findings = _lint(xml)
+    assert not [f for f in findings if f.rule in ('W111', 'W112', 'W113')], [f.rule for f in findings]
+
+
+def test_outcome_cycle_still_lays_out():
+    p, root, _ = gen("""
+map_type: outcome
+elements:
+  - outcome: "A"
+  - outcome: "B"
+  - outcome: "C"
+relationships:
+  - "A" -> "B": "enables"
+  - "B" -> "C": "enables"
+  - "C" -> "A": "enables"
+""")
+    cells = cells_by_label(root)
+    xs = [_box(root, cells[n])[0] for n in 'ABC']
+    assert xs[0] < xs[1] < xs[2], xs
+
+
+def test_layout_from_drawio_keeps_moved_area():
+    import re
+    import tempfile
+    src = _example('capability-areas-nested-map.txt')
+    _, _, xml = gen(src)
+    m = re.search(r'(value="Management"[^>]*>\s*<mxGeometry x=")(\d+)', xml)
+    moved = int(m.group(2)) + 400
+    edited = xml[:m.start(2)] + str(moved) + xml[m.end(2):]
+    with tempfile.NamedTemporaryFile('w', suffix='.drawio', delete=False, encoding='utf-8') as f:
+        f.write(edited)
+        path = f.name
+    try:
+        p, root, _ = gen(f"layout_from: {path}#\n" + src)          # bare mxGraphModel: unnamed page
+        assert not [w for w in p.warnings if 'layout_from' in w], p.warnings
+        assert _box(root, cells_by_label(root)['Management'])[0] == moved
+        p2, _, _ = gen(f"layout_from: {path}#No such page\n" + src)
+        assert any("page 'No such page' not found" in w for w in p2.warnings), p2.warnings
+    finally:
+        os.unlink(path)
+    p3, _, _ = gen("layout_from: positions.csv#View\n" + src)
+    assert any('unsupported layout source' in w for w in p3.warnings), p3.warnings
+
+
+# ---- Sprint 19: status badges (maturity / rating extension) -------------------------------
+
+def test_badges_inside_cards_and_fill_untouched():
+    p, root, xml = gen(_example('capability-heatmap-map.txt'))
+    assert p.warnings == [], p.warnings
+    by_id = {c.get('id'): c for c in root.iter('mxCell')}
+    badges = [c for c in root.iter('mxCell') if 'edgyRole=badge;' in (c.get('style') or '')]
+    assert len(badges) == 12
+    for b in badges:
+        card = by_id[b.get('parent')]
+        assert _style(card)['fillColor'] == '#a6c0ff', "status never changes the facet fill"
+        bx, by, bw, bh = _box(root, b)
+        cx, cy, cw, ch = _box(root, card)
+        assert cx <= bx and bx + bw <= cx + cw and cy <= by and by + bh <= cy + ch
+    assert _style(next(b for b in badges if b.get('value') == '1/5'))['fillColor'] == '#d73027'
+    assert _style(next(b for b in badges if b.get('value') == 'commodity'))['fillColor'] == '#bbbbbb', "rating_palette wins"
+    keys = {_style(c)['fillColor'] for c in root.iter('mxCell') if 'edgyRole=badge-key' in (c.get('style') or '')}
+    assert {_style(b)['fillColor'] for b in badges} <= keys, "every badge colour has a legend key"
+    labels = {c.get('value') for c in root.iter('mxCell')}
+    assert any('Maturity (extension)' in (v or '') for v in labels) and any('Rating (extension)' in (v or '') for v in labels)
+    findings = _lint(xml)
+    assert findings == [], [(f.rule, f.msg) for f in findings]
+
+
+def test_badge_legend_only_when_used_and_box_legend_grows():
+    _, plain, _ = gen('map_type: capability\nelements:\n  - capability: "One"\n  - capability: "Two"\n')
+    assert not [c for c in plain.iter('mxCell') if 'edgyRole=badge' in (c.get('style') or '')]
+    _, root, xml = gen('map_type: capability\nlanguage: fi\nelements:\n  - capability: "Yksi" {maturity: 3}\n'
+                       '  - capability: "Kaksi" {rating: strateginen}\n')
+    labels = [c.get('value') or '' for c in root.iter('mxCell')]
+    assert any('Kypsyys (laajennus)' in v for v in labels) and any('Arvio (laajennus)' in v for v in labels)
+    bg = next(c for c in root.iter('mxCell') if 'fillColor=#f5f5f5' in (c.get('style') or ''))
+    keys = [c for c in root.iter('mxCell') if 'edgyRole=badge-key' in (c.get('style') or '')]
+    bgb = _box(root, bg)
+    assert all(_box(root, k)[1] + _box(root, k)[3] <= bgb[1] + bgb[3] for k in keys), "keys inside the legend box"
+    assert [f.rule for f in _lint(xml)] == []
+
+
+def test_badge_value_warnings_and_card_height():
+    p, root, _ = gen('map_type: capability\nequal_cards: false\nrating_palette: high=red\nelements:\n'
+                     '  - capability: "A" {maturity: 7}\n  - capability: "B" {maturity: 2}\n  - capability: "C"\n')
+    assert any("maturity '7'" in w for w in p.warnings) and any("'red' is not a #rrggbb" in w for w in p.warnings), p.warnings
+    cells = cells_by_label(root)
+    assert _box(root, cells['B'])[3] > _box(root, cells['C'])[3], "a card with a badge is taller"
+    assert _box(root, cells['A'])[3] == _box(root, cells['C'])[3], "an ignored maturity adds no badge"
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

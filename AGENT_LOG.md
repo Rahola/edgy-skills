@@ -20,6 +20,47 @@ perustelut.
 
 ---
 
+### 2026-10-10 — Claude Code (Sprints 17–20: coverage plan, v2.3.0)
+
+**Assignment:** `docs/development-plan-2026-10-coverage.md` (a coverage review
+of the bundle against the 16 official EDGY 23 maps), all four sprints in one
+PR, as with the previous plan.
+
+**Done:**
+- *Sprint 17* — nested `group:` (group stack in the parser, `parent` /
+  `subgroups`, depth-ordered layout, containers emitted as children of their
+  parent), `group_style: official | light`, stage columns for task maps
+  without lanes, fixed gap between container rows, W122, clearer W106.
+- *Sprint 18* — `rows:` / `columns:` matrix for any grid-like map (synthetic
+  row lanes, generalised stage columns), forest layout for product / brand /
+  object with `contains`, layered outcome web, tree edges bottom → top,
+  `layout_from:` from a draw.io page.
+- *Sprint 19* — maturity / rating badges as child cells with legend rows in
+  both legend styles, W123, S007–S012 on every page, `rule_set` in qa.json,
+  framework section on tasks / outcomes / the Experience facet, assessment
+  Phase 4b on every map.
+- *Sprint 20* — `edgy_model_diff.py`, `edgy_model_to_archimate.py`, example
+  model pair, `official-shapes.txt` probe and `check.sh` steps, release
+  docs v2.3.0.
+
+**Why these choices:**
+- Badges as child cells of the card: they move with the card in draw.io and
+  never touch the fill, which EDGY reserves for the facet.
+- `{status}` was already taken by the Outcome metric status, so the overlay
+  keys are `maturity` / `rating`.
+- New semantic rules ask only when the wording is unambiguous (exact verb
+  forms, not stems; nouns like "track" left out) — every shipped example
+  stays silent, so a finding means something.
+- The diff never writes `replace` or `decide`: they are decisions, and a tool
+  that guessed them would make the transition map look decided.
+- Regression guard: every shipped expected file was compared after each
+  change; only the legend-height fix and the outcome tree ports changed
+  existing output, both deliberate.
+
+**Deviations from the plan:** §10 of the plan.
+
+---
+
 ### 2026-10-09 — Claude Code (Sprint 16: task stakeholder map, native presets, qa.json, assessment 1.8.0, v2.2.0)
 
 **Assignment:** development-plan-2026-10-semantics-and-layout P2.1–P2.5.

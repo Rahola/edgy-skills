@@ -59,6 +59,15 @@ def _clean(text):
     return " ".join(str(text or "").replace('"', "'").split())
 
 
+# Generated ids when the model has none: the first three letters of the type, except where two
+# types would share them — process and product are both "PRO" (the examples use PRO / PRD).
+ID_PREFIX = {"product": "PRD"}
+
+
+def id_prefix(element_type):
+    return ID_PREFIX.get(element_type, element_type[:3].upper())
+
+
 def primary_index(elements):
     """Index of the element that carries the type's core links: the one flagged
     `"primary": true` (the first such, if several), else 0."""
@@ -102,7 +111,7 @@ def element_lines(model, types, with_ids=True, lang="en"):
             tag_part = f" [{', '.join(tags)}]" if tags else ""
             metrics = {}
             if with_ids:
-                metrics["id"] = e.get("id") or f"{t[:3].upper()}-{i + 1:02d}"
+                metrics["id"] = e.get("id") or f"{id_prefix(t)}-{i + 1:02d}"
             if e.get("primary") is True and i == pi:
                 metrics["primary"] = "true"
             metric_part = " {" + ", ".join(f"{k}: {v}" for k, v in metrics.items()) + "}" if metrics else ""

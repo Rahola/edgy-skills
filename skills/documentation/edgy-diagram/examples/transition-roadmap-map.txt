@@ -1,0 +1,17 @@
+# Transition roadmap (EDGY extension): columns are delivery waves, rows are
+# capability areas, the transition overlay (change:) marks what each wave does.
+# Fictional company: Acme Transit.
+map_type: capability
+columns: Wave 1 (2027), Wave 2 (2028), Wave 3 (2029)
+rows: Customer, Operations, Data
+legend: strip
+
+elements:
+  - capability: "Travel account" {row: Customer, column: Wave 1 (2027), change: new}
+  - capability: "Account-based ticketing" {row: Customer, column: Wave 2 (2028), change: replace}
+  - capability: "Personalised offers" {row: Customer, column: Wave 3 (2029), change: new}
+  - capability: "Real-time dispatch" {row: Operations, column: Wave 1 (2027), change: change}
+  - capability: "Demand-responsive transport" {row: Operations, column: Wave 3 (2029), change: new}
+  - capability: "Ridership data platform" {row: Data, column: Wave 1 (2027), change: new}
+  - capability: "Open data publishing" {row: Data, column: Wave 2 (2028), change: change}
+  - capability: "Legacy reporting" {row: Data, column: Wave 2 (2028), change: remove}

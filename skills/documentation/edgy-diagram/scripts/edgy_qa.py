@@ -122,7 +122,9 @@ def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=No
             'image': ({'svg': rel(prev['svg']), 'png': rel(prev.get('png')), 'width': prev.get('width'), 'height': prev.get('height'),
                        'orientation': prev.get('orientation')} if prev else None),
             'semantic_review': ({'findings': len(semantic), 'questions': sum(1 for f in semantic if f['level'] == 'warning')}
-                                if (p.map_type == 'purpose' or semantic) else None),
+                                if (p.map_type == 'purpose' or semantic
+                                    or any(e['type'] in edgy_semantic_review.REVIEWED_TYPES for e in p.elements.values()))
+                                else None),
         })
     # The files that actually exist: the requested delivery file when it does, else what the renderer
     # wrote (a multi-page native export is <stem>-<page>.svg/.png per page, never the requested single name).
@@ -148,7 +150,8 @@ def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=No
                    'lint_warnings': sum(pg['lint']['warnings'] for pg in per_page),
                    'visual': sum(pg['visual'] for pg in per_page),
                    'layout_quality': sum(pg['layout_quality']['findings'] for pg in per_page)},
-        'semantic_review': {'findings': semantic_total} if any(pg['semantic_review'] for pg in per_page) else None,
+        'semantic_review': ({'findings': semantic_total, 'rule_set': edgy_semantic_review.RULE_SET}
+                            if any(pg['semantic_review'] for pg in per_page) else None),
         # Set by a person, never by the tooling: a null value means *not approved*. `semantic_approval` is the
         # one semantic sign-off field; `semantic_review` above only counts the questions the tool raised.
         'visual_approval': None,

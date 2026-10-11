@@ -1,0 +1,52 @@
+# Capability map in three tiers, the shape of the official EDGY 23 capability map:
+# area (group:) → sub-area (group: indented under it) → capability. Nested groups
+# switch on group_style: official — the area takes the facet colour of what it
+# holds, sub-areas are white. Fictional company: Acme Transit.
+map_type: capability
+group_columns: 2
+cards_per_row: 2
+legend: strip
+
+elements:
+  - group: "Customer"
+    - group: "Customer relationship"
+      - capability: "Customer data"
+      - capability: "Consent management"
+      - capability: "Travel account"
+      - capability: "Feedback handling"
+    - group: "Sales and ticketing"
+      - capability: "Fare products"
+      - capability: "Multichannel sales"
+      - capability: "Ticket validation"
+      - capability: "Refunds"
+  - group: "Operations"
+    - group: "Planning"
+      - capability: "Network planning"
+      - capability: "Timetabling"
+      - capability: "Vehicle scheduling"
+      - capability: "Crew scheduling"
+    - group: "Service delivery"
+      - capability: "Dispatch"
+      - capability: "Incident management"
+      - capability: "Passenger information"
+      - capability: "Accessibility services"
+  - group: "Assets"
+    - group: "Fleet"
+      - capability: "Fleet maintenance"
+      - capability: "Depot management"
+      - capability: "Energy management"
+    - group: "Infrastructure"
+      - capability: "Stop management"
+      - capability: "Track access"
+      - capability: "Infrastructure registry"
+  - group: "Management"
+    - group: "Steering"
+      - capability: "Strategy"
+      - capability: "Performance management"
+      - capability: "Risk management"
+    - group: "Support"
+      - capability: "Finance"
+      - capability: "Procurement"
+      - capability: "Human resources"
+      - capability: "Data platform"
+      - capability: "Revenue allocation"

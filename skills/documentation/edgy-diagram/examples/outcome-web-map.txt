@@ -1,0 +1,25 @@
+# Outcome web, the shape of the official EDGY 23 outcome map: outcomes linked by
+# named influence verbs. Directed links give a layered layout — causes left,
+# effects right — so no link crosses a box. Fictional company: Acme Transit.
+map_type: outcome
+legend: strip
+
+elements:
+  - outcome: "Better partner integration"
+  - outcome: "Upgraded sleeper wagons"
+  - outcome: "Route optimisation"
+  - outcome: "Accurate passenger information"
+  - outcome: "Higher comfort"
+  - outcome: "Increased capacity"
+  - outcome: "Better journey experience"
+  - outcome: "More night-train passengers"
+
+relationships:
+  - "Better partner integration" -> "Route optimisation": "enables"
+  - "Better partner integration" -> "Accurate passenger information": "enables"
+  - "Upgraded sleeper wagons" -> "Higher comfort": "enables"
+  - "Route optimisation" -> "Increased capacity": "enables"
+  - "Accurate passenger information" -> "Better journey experience": "enables"
+  - "Higher comfort" -> "Better journey experience": "enables"
+  - "Increased capacity" -> "More night-train passengers": "enables"
+  - "Better journey experience" -> "More night-train passengers": "enables"

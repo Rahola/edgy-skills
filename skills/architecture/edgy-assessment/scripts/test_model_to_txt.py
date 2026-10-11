@@ -144,6 +144,22 @@ def test_assessment_chain_requires_approvals():
     assert check.returncode == 0, check.stdout
 
 
+
+def test_generated_ids_are_unique_across_types():
+    """process and product both start with "pro": a model without ids must not get PRO-01 twice."""
+    import copy
+    import re
+    model = copy.deepcopy(_model())
+    for t in ("process", "product"):
+        for e in m2t._as_list(model["elements"].get(t)):
+            e.pop("id", None)
+    txt = m2t.build(model, "all", "en")
+    ids = re.findall(r"\{id: ([A-Z]+-\d+)", txt)
+    assert len(ids) == len(set(ids)), sorted(i for i in ids if ids.count(i) > 1)
+    assert "{id: PRD-01" in txt and "{id: PRO-01" in txt
+    assert m2t.id_prefix("product") == "PRD" and m2t.id_prefix("process") == "PRO" and m2t.id_prefix("channel") == "CHA"
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

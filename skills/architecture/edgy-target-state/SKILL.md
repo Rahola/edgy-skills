@@ -1,6 +1,6 @@
 ---
 name: edgy-target-state
-version: "1.0.1"
+version: "1.1.0"
 description: >
   Internal target-state architecture workflow on EDGY 23: strategy → purpose map,
   capability map and cards, guardrails, building-block hypothesis with transition
@@ -145,7 +145,13 @@ removed. Guardrails are tested in Phase 4, not negotiated there.
    systems with `[external]` (right), `{change: keep|new|change|replace|
    remove|decide}` on every block and edge, one integration bus instead of a
    mesh. Generate, lint, preview. State in the delivery that the overlay is
-   an EDGY extension.
+   an EDGY extension. When the current and the target state are both
+   modelled (`edgy-model.json`), derive the tags with
+   `edgy-assessment/scripts/edgy_model_diff.py current.json target.json
+   --out transition.txt --report changes.md` (keep / change / new / remove),
+   then set `replace` and `decide` by hand — they are decisions, not
+   differences. A wave plan is a matrix: `columns:` = waves, `rows:` = areas,
+   `change:` on every block (see *transition-roadmap-map.txt* among the edgy-diagram example inputs).
 4. Open decisions (`decide`) become ADR candidates.
 
 ### Phase 5 — Work packages

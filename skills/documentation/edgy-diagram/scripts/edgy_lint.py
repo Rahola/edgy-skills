@@ -38,6 +38,10 @@ Rules
   W106 empty container                       W107 double-escaped HTML entity in a label
   W108 unlabelled edge between two elements  W109 label repeats the element type ("Capability X")
   W110 stroke colour outside EDGY white / base-element dark / transition overlay palette
+  W122 container coloured with a facet colour (fill, or stroke of an official
+       top-level container) that none of the elements inside it carries
+  W123 status badge (maturity / rating extension, edgyRole=badge) whose colour
+       has no key in the legend — an extension is always explained
 
 Visual rules — computed on the same resolved geometry the native renderer
 draws (edgy_geometry.py): ports, orthogonal joins, waypoints, label boxes.
@@ -173,6 +177,8 @@ def strip_html(value):
 
 
 def shape_of(st):
+    if st.get('edgyRole') in ('badge', 'badge-key'):
+        return 'decoration'          # status badge (extension) and its legend key: not EDGY elements
     shape = st.get('shape', '')
     if 'arrows2.arrow' in shape:
         return 'pentagon'
@@ -373,7 +379,8 @@ def lint_model(path, page, model, lines, opts):
         fill = st.get('fillColor', '').lower()
         is_lane = st.get('strokeColor') == 'none' and st.get('verticalAlign') == 'top'
         if fill and fill not in NEUTRAL_FILLS and fill not in PALETTE and not is_lane:
-            add('WARNING', 'W102', f'fill colour {fill} is not an EDGY 23 palette colour', i)
+            add('WARNING', 'W102', f'fill colour {fill} is not an EDGY 23 palette colour — a heat map keeps the facet '
+                                   f'fill and shows status with {{maturity: 1–5}} / {{rating: …}} badges', i)
 
     # E004/E005/W108 edges
     for i, e in edges.items():
@@ -439,7 +446,42 @@ def lint_model(path, page, model, lines, opts):
 
     for i in containers:
         if not any(c.get('parent') == i for c in cells.values()):
-            add('WARNING', 'W106', 'container has no children (parent="…" pointing to it)', i)
+            add('WARNING', 'W106', 'container has no children (parent="…" pointing to it) — remove it, or, if the '
+                                   'input nests group: under group:, regenerate with edgy-diagram 2.7.0 or later '
+                                   '(earlier versions flattened nested groups and left the outer one empty)', i)
+
+    # W123 every status-badge colour has a legend key (edgyRole=badge-key)
+    keys = {style_dict(c.get('style')).get('fillColor', '').lower() for c in verts.values()
+            if style_dict(c.get('style')).get('edgyRole') == 'badge-key'}
+    for i, c in verts.items():
+        st = style_dict(c.get('style'))
+        if st.get('edgyRole') == 'badge' and st.get('fillColor', '').lower() not in keys:
+            add('WARNING', 'W123', f'status badge "{strip_html(c.get("value") or "")}" is coloured {st.get("fillColor")} '
+                                   f'but the legend has no key for it — status is an extension and needs its legend row '
+                                   f'(the generator writes it for {{maturity: …}} / {{rating: …}})', i)
+
+    # W122 container facet colour vs the facet of the elements inside it (any depth)
+    def _ancestors(c):
+        seen = set()
+        p = c.get('parent')
+        while p in cells and p not in seen:
+            seen.add(p)
+            yield p
+            p = cells[p].get('parent')
+    inside = {}
+    for i, (c, st, _box) in elements.items():
+        fill = st.get('fillColor', '').lower()
+        if fill in PALETTE:
+            for a in _ancestors(c):
+                inside.setdefault(a, set()).add(fill)
+    for i in containers:
+        st = style_dict(cells[i].get('style'))
+        colour = next((v for v in (st.get('fillColor', '').lower(), st.get('strokeColor', '').lower()) if v in PALETTE), None)
+        facets = inside.get(i)
+        if colour and facets and colour not in facets:
+            add('WARNING', 'W122', f'container is coloured {colour} ({PALETTE[colour]}) but its elements are '
+                                   f'{", ".join(sorted(PALETTE[f] for f in facets))} — colour an area by the facet of '
+                                   f'what it holds (group_style: official does this), or use a neutral tint', i)
 
     # E008 overlaps (same parent, > 30 % of the smaller area)
     items = [(i, c.get('parent'), box) for i, (c, st, box) in elements.items() if box]

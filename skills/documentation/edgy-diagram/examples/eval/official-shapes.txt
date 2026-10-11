@@ -1,0 +1,218 @@
+# One page per official EDGY 23 map type, each written in the shape of the
+# official example map (examples/official/decoded/PATTERNS.md). Fictional
+# company: Acme Transit. check.sh (step edgy-official-shapes): 0 lint errors
+# and 0 visual findings (W111–W114) on every page.
+legend: strip
+
+pages:
+  - name: "Activity"
+    map_type: activity
+    elements:
+      - activity: "Collect demand data"
+      - activity: "Analyse travel patterns"
+      - activity: "Draft the network"
+      - activity: "Consult the public"
+      - activity: "Publish the timetable"
+      - activity: "Run the service"
+
+  - name: "Asset"
+    map_type: asset
+    elements:
+      - asset: "Ticketing platform"
+      - asset: "Fare engine"
+      - asset: "Travel account store"
+      - asset: "Payment gateway"
+      - asset: "Validator fleet"
+      - asset: "Validator firmware"
+    relationships:
+      - "Ticketing platform" -> "Fare engine": "contains"
+      - "Ticketing platform" -> "Travel account store": "contains"
+      - "Ticketing platform" -> "Payment gateway": "contains"
+      - "Validator fleet" -> "Validator firmware": "contains"
+
+  - name: "Brand"
+    map_type: brand
+    elements:
+      - brand: "Acme Transit"
+      - story: "From rural lines to a regional network"
+      - content: "Simple fares, honest timetables"
+      - task: "Buy a ticket"
+      - journey: "Daily commute"
+      - purpose: "Effortless everyday travel"
+    relationships:
+      - "Acme Transit" -> "From rural lines to a regional network": "evokes"
+      - "Acme Transit" -> "Effortless everyday travel": "represents"
+      - "Acme Transit" -> "Buy a ticket": "supports"
+      - "Acme Transit" -> "Daily commute": "appears in"
+
+  - name: "Capability"
+    map_type: capability
+    cards_per_row: 2
+    elements:
+      - group: "Customer"
+        - group: "Relationship"
+          - capability: "Customer data"
+          - capability: "Consent management"
+        - group: "Sales"
+          - capability: "Fare products"
+          - capability: "Refunds"
+      - group: "Operations"
+        - group: "Planning"
+          - capability: "Network planning"
+          - capability: "Timetabling"
+        - group: "Delivery"
+          - capability: "Dispatch"
+          - capability: "Passenger information"
+
+  - name: "Channel"
+    map_type: channel
+    rows: Physical, Digital
+    columns: Synchronous, Asynchronous
+    elements:
+      - channel: "Travel store" {row: Physical, column: Synchronous}
+      - channel: "Ticket machine" {row: Physical, column: Asynchronous}
+      - channel: "Live chat" {row: Digital, column: Synchronous}
+      - channel: "Mobile app" {row: Digital, column: Asynchronous}
+      - channel: "Website" {row: Digital, column: Asynchronous}
+
+  - name: "Content"
+    map_type: content
+    elements:
+      - group: "Travel information"
+        - content: "Timetables"
+        - content: "Route maps"
+        - content: "Disruption notices"
+        - content: "Accessibility guide"
+      - group: "Fares"
+        - content: "Fare tables"
+        - content: "Ticket conditions"
+        - content: "Refund policy"
+        - content: "Discount rules"
+
+  - name: "Journey"
+    map_type: journey
+    elements:
+      - journey: "Consider travel"
+      - journey: "Plan the trip"
+      - journey: "Buy a ticket"
+      - journey: "Travel"
+      - journey: "Arrive"
+      - journey: "Follow up"
+
+  - name: "Object"
+    map_type: object
+    elements:
+      - object: "Ticket"
+      - object: "Fare product"
+      - object: "Travel account"
+      - object: "Validation event"
+      - object: "Payment"
+    relationships:
+      - "Ticket" -> "Fare product": "contains"
+      - "Ticket" -> "Validation event": "contains"
+      - "Ticket" -> "Payment": "contains"
+      - "Travel account" -> "Payment": "contains"
+
+  - name: "Organisation"
+    map_type: organisation
+    elements:
+      - organisation: "Acme Transit"
+      - organisation: "Operations"
+      - organisation: "Customer service"
+      - organisation: "Platform team"
+      - organisation: "Depot North"
+      - organisation: "Depot South"
+    relationships:
+      - "Acme Transit" -> "Operations": "contains"
+      - "Acme Transit" -> "Customer service": "contains"
+      - "Acme Transit" -> "Platform team": "contains"
+      - "Operations" -> "Depot North": "contains"
+      - "Operations" -> "Depot South": "contains"
+
+  - name: "Outcome"
+    map_type: outcome
+    elements:
+      - outcome: "Better partner integration"
+      - outcome: "Route optimisation"
+      - outcome: "Higher comfort"
+      - outcome: "Increased capacity"
+      - outcome: "Better journey experience"
+      - outcome: "More passengers"
+    relationships:
+      - "Better partner integration" -> "Route optimisation": "enables"
+      - "Route optimisation" -> "Increased capacity": "enables"
+      - "Higher comfort" -> "Better journey experience": "enables"
+      - "Increased capacity" -> "More passengers": "enables"
+      - "Better journey experience" -> "More passengers": "enables"
+
+  - name: "People"
+    map_type: people
+    elements:
+      - people: "Commuters"
+      - people: "Students"
+      - people: "Tourists"
+      - people: "Drivers"
+      - people: "Planners"
+      - people: "Authorities"
+      - people: "Partner operators"
+      - people: "Suppliers"
+
+  - name: "Process"
+    map_type: process
+    elements:
+      - process: "Plan the network"
+      - process: "Build the timetable"
+      - process: "Schedule vehicles"
+      - process: "Schedule crews"
+      - process: "Operate"
+
+  - name: "Product"
+    map_type: product
+    elements:
+      - product: "Acme Transit portfolio"
+      - product: "Passenger transport"
+      - product: "Freight transport"
+      - product: "Night trains"
+      - product: "Family card"
+    relationships:
+      - "Acme Transit portfolio" -> "Passenger transport": "contains"
+      - "Acme Transit portfolio" -> "Freight transport": "contains"
+      - "Passenger transport" -> "Night trains": "contains"
+      - "Passenger transport" -> "Family card": "contains"
+
+  - name: "Purpose"
+    map_type: purpose
+    elements:
+      - purpose: "Effortless everyday travel" [analytical]
+      - purpose: "Reliable connections" [analytical]
+      - purpose: "Low-carbon mobility" [proposed]
+      - outcome: "Punctuality 95 %" {status: proposed}
+      - outcome: "Emissions −40 %" {status: proposed}
+    relationships:
+      - "Effortless everyday travel" -> "Reliable connections": "contains"
+      - "Effortless everyday travel" -> "Low-carbon mobility": "contains"
+      - "Punctuality 95 %" -> "Reliable connections": "measures"
+      - "Emissions −40 %" -> "Low-carbon mobility": "measures"
+
+  - name: "Story"
+    map_type: story
+    elements:
+      - story: "Mountain pioneers"
+      - story: "The first night train"
+      - story: "A network for everyone"
+      - story: "Electric by 2035"
+      - story: "Local roots, regional reach"
+      - story: "Travel as a habit"
+
+  - name: "Task"
+    map_type: task
+    stages: Inspiration, Plan, Book, Travel
+    elements:
+      - task: "Get trip ideas" {stage: Inspiration}
+      - task: "Compare options" {stage: Inspiration}
+      - task: "Find a connection" {stage: Plan}
+      - task: "Check prices" {stage: Plan}
+      - task: "Buy a ticket" {stage: Book}
+      - task: "Reserve a seat" {stage: Book}
+      - task: "Board the train" {stage: Travel}
+      - task: "Know when I arrive" {stage: Travel}

@@ -1,6 +1,6 @@
 ---
 name: edgy-assessment
-version: "1.8.0"
+version: "1.9.0"
 description: >
   Comprehensive EDGY 23 Enterprise Design assessment: analysis, diagrams, and recommendations.
   Orchestrating skill that chains edgy-framework and edgy-diagram skills into a unified workflow.
@@ -319,6 +319,29 @@ diagrams with four). Edit the model, regenerate; never patch a TXT. The
 format below documents what the script produces, and is the fallback when
 Python is unavailable.
 
+**From the model to a transition map and to ArchiMate** (optional, when the
+assessment compares two states or hands the model to an architecture team):
+
+```bash
+# current vs target model → transition map input (overlay tags) and a change table
+python3 skills/architecture/edgy-assessment/scripts/edgy_model_diff.py current-model.json target-model.json \
+    --facet architecture --layout triad --out <company>-transition.txt --report <company>-changes.md
+# the model as ArchiMate 3.1 Open Exchange XML (one view per facet map) for Archi and other tools
+python3 skills/architecture/edgy-assessment/scripts/edgy_model_to_archimate.py <company>-edgy-model.json -o <company>.archimate.xml
+```
+
+The diff matches elements by id, then name, then a similar name (renamed),
+and tags them `keep`, `change`, `new` or `remove`. A similar-name match can
+pair two different short names ("Ticket sales" / "Ticket rules"): check every
+`renamed from …` row of the change table, and give elements an `id` in both
+models to avoid it; core links are compared
+per type pair. `replace` and `decide` are judgements: set them by hand in
+the transition TXT, never let the tool imply them. The ArchiMate export is
+one-way — the EDGY model stays the source — and keeps the EDGY type of every
+element in the property `edgy:type` (mapping table in the script's header
+and in edgy-diagram `references/export.md`). Example pair:
+`examples/model-diff/` (fictional).
+
 **Layout block.** An optional `layout` object in the model (`legend`,
 `card_width`, `equal_cards`, `group_columns`, `cards_per_row`,
 `equal_group_width`, `align_groups`, `title`, `footnote`) is written as
@@ -450,7 +473,7 @@ with the same ids** (one disconnected second model is worse than none):
 Add a map only when it answers a useful question for this company; do not
 generate every map for every scope.
 
-#### Phase 4b — Semantic review of the purpose map (MANDATORY when a purpose map is delivered)
+#### Phase 4b — Semantic review (MANDATORY for the purpose map; run on every map)
 
 A purpose map that lints clean can still be wrong in meaning (actions as
 Purposes, proposed metrics shown as confirmed, influences drawn as
@@ -473,6 +496,16 @@ and before its diagram is generated:
    S001 action as a Purpose, S002 Outcome measures nothing, S003 / S004
    missing provenance, S005 `contains` that may be an influence, S006 metric
    in a Purpose name. Fix the **model**, regenerate.
+   Run it on the facet and structural map inputs too (one command, every
+   TXT file): S007–S009 ask about capabilities named after systems or units,
+   phrased as verbs or shaped like projects, S010 about tasks in the
+   organisation's voice, S011 / S012 about outcomes that are actions or carry
+   no measure (edgy-framework *Formulating tasks, outcomes and the Experience
+   facet*). The generator's `--qa` manifest records the rule set
+   (`semantic_review.rule_set`).
+   ```bash
+   python3 skills/documentation/edgy-diagram/scripts/edgy_semantic_review.py <company>-*.txt
+   ```
 3. Walk the checklist in edgy-framework *Purpose map semantic review* and
    write the sign-off line into the report (section 9) and the delivery
    note: `Semantic review: approved by <role>, <date> — S-findings answered: <n>`

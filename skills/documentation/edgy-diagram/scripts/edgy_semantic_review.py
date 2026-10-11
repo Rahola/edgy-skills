@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-edgy_semantic_review.py — questions about the *meaning* of a purpose map.
+edgy_semantic_review.py — questions about the *meaning* of an EDGY map.
 
 `edgy_lint.py` checks notation, structure and geometry; it has no opinion on
 whether a Purpose is a purpose. This tool reads the generator's TXT input
@@ -27,6 +27,23 @@ Rules (S = semantic; each finding carries the reason and the question to answer)
        different words is normal and is not reported)
   S006 a Purpose name carries a metric value (number + unit / %) — metrics
        belong to Outcomes
+  S007 a Capability is named after a system, tool or organisational unit
+       (CRM, ERP, "… system", "… team", "… department") — capabilities are
+       what the organisation can do, independent of who or what does it
+  S008 a Capability is phrased as a verb ("Manage fleet", "Hallinnoida …") —
+       name it as a result noun ("Fleet management")
+  S009 a Capability is a project, programme or migration — a work package,
+       not an ability the organisation keeps
+  S010 a Task is phrased from the organisation's side (an internal verb on the
+       customer: "Process customer refund") — a Task is what a person wants to
+       get done, in their words ("Get my money back")
+  S011 an Outcome is phrased as an action ("Implement CRM") — an Outcome is a
+       result or a changed state
+  S012 an Outcome outside a purpose map carries no measure (no metric in
+       {…}, no number in the name) while other Outcomes on the page do —
+       how will anyone know it happened? (info)
+S001–S006 run on purpose maps (S001 / S006 on every Purpose); S007–S012 on
+every page that has the element type.
 
 Standard library only.
 """
@@ -68,6 +85,46 @@ MEASURES_VERBS = _vocab.spellings('measures') or {'measures'}
 METRIC_RE = re.compile(r'(\d+([.,]\d+)?\s?(%|€|eur|kpl|pcs|h|min(?:utes?|uut(?:ti|tia))?|pv|d|days?|hours?|km|t|co2)(?!\w))'
                        r'|([≥≤<>]\s?\d)|(\d+\s?/\s?\d+)', re.I)
 STEM_MIN = 5
+RULE_SET = 'S001-S012'   # recorded in qa.json: which questions a run could raise
+REVIEWED_TYPES = {'purpose', 'outcome', 'capability', 'task'}   # pages with these types get a semantic_review entry
+
+# S008 / S011: the FIRST word is a verb in base form (infinitive / imperative) — exact
+# words, not stems, so "Ticketing", "Upgraded wagons" and "Development planning" pass.
+BASE_VERBS = {
+    # words that are also common nouns in capability names (track, plan, run, support, launch, upgrade,
+    # increase …) are left out on purpose: "Track access" is rail track, not an instruction
+    'en': {'develop', 'implement', 'build', 'deploy', 'manage', 'handle', 'create', 'maintain', 'provide',
+           'sell', 'buy', 'procure', 'monitor', 'ensure', 'improve', 'deliver', 'operate',
+           'administer', 'introduce', 'establish', 'migrate', 'replace', 'modernise',
+           'modernize', 'digitalise', 'digitalize', 'renew', 'optimise', 'optimize'},
+    'fi': {'kehittää', 'toteuttaa', 'rakentaa', 'hallinnoida', 'hallita', 'ylläpitää', 'hoitaa', 'käsitellä', 'tuottaa',
+           'suunnitella', 'myydä', 'ostaa', 'hankkia', 'seurata', 'varmistaa', 'parantaa', 'uudistaa', 'ottaa',
+           'kehitetään', 'toteutetaan', 'rakennetaan', 'otetaan', 'uudistetaan', 'lisätä', 'vähentää', 'optimoida',
+           'korvata', 'päivittää', 'digitalisoida', 'modernisoida'},
+    'fr': {'gérer', 'développer', 'mettre', 'construire', 'déployer', 'créer', 'fournir', 'planifier', 'vendre',
+           'acheter', 'assurer', 'améliorer', 'piloter', 'suivre', 'traiter', 'migrer', 'remplacer', 'moderniser',
+           'augmenter', 'réduire', 'optimiser', 'lancer', 'établir'},
+    'de': {'verwalten', 'entwickeln', 'umsetzen', 'aufbauen', 'bereitstellen', 'betreiben', 'planen', 'verkaufen',
+           'einkaufen', 'sicherstellen', 'verbessern', 'steuern', 'bearbeiten', 'einführen', 'migrieren', 'ersetzen',
+           'modernisieren', 'erhöhen', 'reduzieren', 'optimieren', 'starten', 'etablieren'},
+}
+# S007: systems, tools and organisational units (generic words and common product acronyms only)
+SYSTEM_WORDS = {'system', 'systems', 'tool', 'tools', 'software', 'application', 'crm', 'erp', 'sap', 'salesforce',
+                'servicenow', 'sharepoint', 'excel', 'jira', 'järjestelmä', 'järjestelmät', 'työkalu', 'sovellus',
+                'système', 'logiciel', 'outil', 'anwendung', 'werkzeug'}
+SYSTEM_SUFFIXES = ('järjestelmä', 'system', 'software', 'sovellus')
+UNIT_WORDS = {'team', 'department', 'unit', 'office', 'division', 'tiimi', 'osasto', 'yksikkö', 'toimisto',
+              'équipe', 'service', 'département', 'abteilung', 'bereich', 'referat'}
+# S009: project-shaped names
+PROJECT_STEMS = ('project', 'projekti', 'hanke', 'programme', 'program', 'ohjelma', 'initiative', 'pilot',
+                 'migration', 'migraatio', 'implementation', 'käyttöönotto', 'uudistus', 'projet', 'projekt',
+                 'programm', 'einführung')
+# S010: an internal verb whose object is the customer
+INTERNAL_VERBS = {'process', 'handle', 'approve', 'administer', 'invoice', 'onboard', 'register', 'käsitellä',
+                  'käsittele', 'hyväksyä', 'hyväksy', 'laskuttaa', 'laskuta', 'rekisteröidä', 'traiter', 'approuver',
+                  'facturer', 'bearbeiten', 'genehmigen', 'abrechnen', 'registrieren'}
+CUSTOMER_STEMS = ('customer', 'client', 'passenger', 'citizen', 'user', 'asiak', 'matkustaj', 'käyttäj', 'kansalai',
+                  'usager', 'voyageur', 'kunde', 'kundin', 'fahrgast', 'fahrgäst', 'bürger', 'nutzer')
 
 
 def _tokens(text: str) -> List[str]:
@@ -98,6 +155,48 @@ def _has_metric_status(e: dict) -> bool:
     """Outcome: {status: confirmed|proposed} — a provenance tag alone does not say whether the target value is confirmed."""
     status = (e.get('metrics') or {}).get('status', '').strip().lower()
     return status in ('confirmed', 'proposed')
+
+
+def _base_verb(name: str) -> str:
+    toks = _tokens(name)
+    if not toks:
+        return ''
+    first = toks[0]
+    for lang, words in BASE_VERBS.items():
+        if first in words:
+            return f'{first} ({lang})'
+    return ''
+
+
+def _system_or_unit(name: str) -> str:
+    toks = _tokens(name)
+    for t in toks:
+        if t in SYSTEM_WORDS or any(t.endswith(suf) and t != suf for suf in SYSTEM_SUFFIXES):
+            return f'system or tool word "{t}"'
+        if t in UNIT_WORDS:
+            return f'organisational unit word "{t}"'
+    return ''
+
+
+def _project_word(name: str) -> str:
+    for t in _tokens(name):
+        if any(t.startswith(st) for st in PROJECT_STEMS):
+            return t
+    if re.search(r'\b20\d\d\b', name):
+        return re.search(r'\b20\d\d\b', name).group(0)
+    return ''
+
+
+def _org_voice(name: str) -> str:
+    toks = _tokens(name)
+    if toks and toks[0] in INTERNAL_VERBS and any(t.startswith(st) for t in toks[1:] for st in CUSTOMER_STEMS):
+        return toks[0]
+    return ''
+
+
+def _has_measure(e: dict) -> bool:
+    metrics = {k: v for k, v in (e.get('metrics') or {}).items() if k != 'status'}
+    return bool(metrics) or bool(METRIC_RE.search(e['name'] + ' ' + (e.get('subtext') or '')))
 
 
 def _stems(name: str) -> set:
@@ -149,6 +248,39 @@ def review_parser(p: EDGYParser, page: str = None) -> List[Dict]:
                 if child_key in suspect and not (_stems(parent['name']) & _stems(child['name'])):
                     add('S005', 'info', child, f'`{r["label"]}` from "{parent["name"]}" — the names share no word stem',
                         'Is this a part-of relationship (the child is a component of the parent purpose) or an influence? If influence, use an influence verb.')
+    # S007–S012: capability, task and outcome wording on every page
+    for eid, e in p.elements.items():
+        if e['type'] == 'capability':
+            hit = _system_or_unit(e['name'])
+            if hit:
+                add('S007', 'warning', e, f'named after a system, tool or unit ({hit})',
+                    'What can the organisation do here, whoever or whatever does it? Name that ability '
+                    '("Customer relationship management", not "CRM"); systems are Assets, units are Organisation.')
+            hit = _base_verb(e['name'])
+            if hit:
+                add('S008', 'warning', e, f'phrased as a verb ({hit})',
+                    'Can it be a result noun ("Fleet management" for "Manage fleet")? Capabilities are abilities, not instructions.')
+            hit = _project_word(e['name'])
+            if hit:
+                add('S009', 'warning', e, f'reads as a project or a dated change ("{hit}")',
+                    'Is this a work package or roadmap item? Model the lasting ability as the Capability and put the '
+                    'change on the roadmap (transition overlay, waves).')
+        elif e['type'] == 'task':
+            hit = _org_voice(e['name'])
+            if hit:
+                add('S010', 'warning', e, f'organisation-side verb "{hit}" on the customer',
+                    'What does the person want to get done, in their own words ("Get my money back" for '
+                    '"Process customer refund")? The internal step is a Process or Activity.')
+        elif e['type'] == 'outcome':
+            hit = _base_verb(e['name'])
+            if hit:
+                add('S011', 'warning', e, f'phrased as an action ({hit})',
+                    'What result or changed state does the action bring? Name that as the Outcome and put the action '
+                    'on a Capability, Process or the roadmap.')
+            elif not is_purpose_map and not _has_measure(e) and any(
+                    _has_measure(o) for o in p.elements.values() if o['type'] == 'outcome'):
+                add('S012', 'info', e, 'no measure (no metric, no number)',
+                    'How will anyone know this happened? Add a metric ({kpi: …}) or link a measuring Outcome.')
     return F
 
 
@@ -169,7 +301,7 @@ def format_findings(findings: List[Dict], path: str) -> str:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description='Semantic review of an EDGY purpose map input (questions, not verdicts)')
+    ap = argparse.ArgumentParser(description='Semantic review of an EDGY map input (questions, not verdicts)')
     ap.add_argument('inputs', nargs='+', help='generator TXT input(s)')
     ap.add_argument('--json', action='store_true', help='machine-readable findings')
     ap.add_argument('--strict', action='store_true', help='exit 1 when any warning-level finding exists')
