@@ -216,11 +216,15 @@ def model_page(model, lang, name="Model"):
         value = f"{_clean(e['name'])} - {desc}" if desc else _clean(e["name"])
         opts = {"id": eid}
         for k in ATTRIBUTE_KEYS_19:
-            if k in e and e[k] not in (None, ""):
+            if k == "gaps" and isinstance(e.get(k), dict) and e[k]:
+                # {"processes": "out_of_scope"} → gaps: "processes=out_of_scope" (the capability view's syntax)
+                opts[k] = '"' + "; ".join(f"{_clean(b)}={_clean(v)}" for b, v in e[k].items()) + '"'
+            elif k in e and e[k] not in (None, "") and k != "gaps":
                 opts[k] = str(e[k]).lower() if isinstance(e[k], bool) else e[k]
         tags = [_clean(x) for x in e.get("tags", []) if _clean(x)]
         tag_part = f" [{', '.join(tags)}]" if tags else ""
-        lines.append(f'      - {t}: "{value}"{tag_part} {{' + ", ".join(f"{k}: {_opt(v)}" for k, v in opts.items()) + "}")
+        lines.append(f'      - {t}: "{value}"{tag_part} {{' + ", ".join(f"{k}: {v if k == 'gaps' else _opt(v)}"
+                                                                          for k, v in opts.items()) + "}")
     lines.append("    relationships:")
     for r in model.get("relationships") or []:
         if not isinstance(r, dict):

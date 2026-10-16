@@ -20,6 +20,53 @@ perustelut.
 
 ---
 
+### 2026-10-16 — Claude Code (Sprints 21a–24: architecture views, v2.4.0)
+
+**Assignment:** `docs/development-plan-2026-10-architecture-views.md`
+revision 5 (locked after the Vibe / Codex reviews on draft PR #7), all
+v2.4.0 sprints on the same branch; Vibe and Codex test the draft PR code
+before review.
+
+**Done:**
+- *Sprint 21a* — document graph over all pages (`edgy_graph.py`), identity
+  markers on every cell, E014 / E015, `draw: false`, `expand:`, quote-aware
+  options and relationship attributes, two-line edge labels, influence verbs
+  `stores` / `accesses {crud}` / `interacts with`, install-aware script
+  location (`edgy_paths.py`), golden test for the shipped examples.
+- *Sprint 21b* — model format 1.9 with a migration contract (1.8 fixtures,
+  byte-identical TXT / diff / ArchiMate), validator `oneOf` / `anyOf` /
+  `null`, extension contract 1 (markers, graph JSON schema, SVG groups,
+  notation handlers that fail closed: E012 / E013).
+- *Sprint 22* — renderer contract groups and attribute hardening;
+  presenter-lite (`edgy_present.py`): five effects, CSP with hashes, no
+  network, headless-Chrome self-test in CI.
+- *Sprint 23* — application map (domains × layers, `group_by: capability`
+  with a Shared strip, TIME and second badge, integrations, W124 / W125,
+  S013), orthogonal router, value chain and swimlane (W126), derived views.
+- *Sprint 24* — capability view (five bands, `hops: 2`, W127 with evidence
+  statuses, `qa.json` `model_gaps[]` / `generator_notes[]`), matrices,
+  model diff and ArchiMate mapping for 1.9, capability `gaps` in the model,
+  eval model and `check.sh` step `edgy-architecture-views`, docs, v2.4.0.
+
+**Why these choices:**
+- Applications and data stay EDGY Assets of a `kind`: the views are
+  layouts, not a second notation, so every EDGY rule still applies.
+- Derived views write ordinary TXT lines into the page's parser: the
+  vocabulary, pair validation, sizing and legend apply unchanged, and a
+  derived page lints like a typed one.
+- Byte-identical 1.8 output is a test, not a promise: old writers stay old,
+  1.9 structures require `schema_version: "1.9"`.
+- The eval model was written before the last fixes on purpose — it found
+  the capability cards on a domain application map, labels off the page and
+  the single all-process swimlane; each became a fix and stays in the gate.
+- Model gaps are never findings unless `confirmed_absent`: an outside-in
+  assessment cannot see most processes, and an empty band is evidence of
+  the analysis, not of the company.
+
+**Deviations from the plan:** §12 of the plan.
+
+---
+
 ### 2026-10-10 — Claude Code (Sprints 17–20: coverage plan, v2.3.0)
 
 **Assignment:** `docs/development-plan-2026-10-coverage.md` (a coverage review

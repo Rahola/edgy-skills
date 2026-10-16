@@ -23,7 +23,8 @@
    {
     "name": "Fare product definition",
     "description": "Design fare products and prices",
-    "id": "CAP-04"
+    "id": "CAP-04",
+    "gaps": {"products": "out_of_scope"}
    },
    {
     "name": "Sales in every channel",
@@ -38,7 +39,8 @@
    {
     "name": "Timetable planning",
     "description": "Plan the network and the timetables",
-    "id": "CAP-08"
+    "id": "CAP-08",
+    "gaps": {"products": "out_of_scope"}
    },
    {
     "name": "Real-time passenger information",
@@ -48,7 +50,8 @@
    {
     "name": "Revenue settlement",
     "description": "Allocate revenue to operators",
-    "id": "CAP-10"
+    "id": "CAP-10",
+    "gaps": {"products": "out_of_scope"}
    }
   ],
   "asset": [

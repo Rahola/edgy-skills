@@ -1,6 +1,6 @@
 ---
 name: edgy-deep-dive
-version: "1.1.0"
+version: "1.1.1"
 description: >
   Targeted EDGY 23 deep-dive analysis of a specific element pair or facet combination.
   Requires an existing edgy-model.json produced by the edgy-assessment skill.

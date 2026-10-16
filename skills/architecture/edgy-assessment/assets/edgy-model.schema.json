@@ -154,6 +154,7 @@
         "level": {"type": "string", "enum": ["Strategic", "Operational", "Foundational"]},
         "primary": {"type": "boolean", "description": "Carries the type's core links in a triad diagram; default: the first capability"},
         "provenance": {"type": "string", "enum": ["confirmed", "analytical", "proposed"]},
+        "gaps": {"type": "object", "additionalProperties": false, "description": "1.9: evidence status of an empty capability-view band (W127, qa.json model_gaps[]); only confirmed_absent is a finding", "properties": {"actors": {"type": "string", "enum": ["not_investigated", "out_of_scope", "unknown", "confirmed_absent"]}, "processes": {"type": "string", "enum": ["not_investigated", "out_of_scope", "unknown", "confirmed_absent"]}, "resources": {"type": "string", "enum": ["not_investigated", "out_of_scope", "unknown", "confirmed_absent"]}, "data": {"type": "string", "enum": ["not_investigated", "out_of_scope", "unknown", "confirmed_absent"]}, "products": {"type": "string", "enum": ["not_investigated", "out_of_scope", "unknown", "confirmed_absent"]}}},
         "tags": {"type": "array", "items": {"type": "string"}}
       }
     },

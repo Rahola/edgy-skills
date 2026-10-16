@@ -1,6 +1,6 @@
 ---
 name: edgy-assessment
-version: "1.9.0"
+version: "1.10.0"
 description: >
   Comprehensive EDGY 23 Enterprise Design assessment: analysis, diagrams, and recommendations.
   Orchestrating skill that chains edgy-framework and edgy-diagram skills into a unified workflow.
@@ -205,7 +205,9 @@ This file is the context object for `edgy-deep-dive` follow-up analyses.
 `organisation` is one object (format 1.8, above). Format **1.9** (optional, for the
 architecture views of edgy-diagram 2.8.0) adds: `organisation` as an object **or an
 array**, `elements.people`, asset `kind` (application / platform / integration / data),
-`hosting`, `owner`, `time` (Gartner TIME), and `relationships[]` between element ids
+`hosting`, `owner`, `time` (Gartner TIME), `criticality`, `master`, capability `gaps`
+(`{"products": "out_of_scope"}` — the evidence status of an empty capability-view band:
+`not_investigated`, `out_of_scope`, `unknown`, `confirmed_absent`), and `relationships[]` between element ids
 (`{"source_id": "CAP-05", "target_id": "AST-02", "verb": "requires"}`). A model that uses
 any of these must say `"schema_version": "1.9"` — the validator rejects 1.9 structures in an
 older model, and every 1.8 model keeps producing byte-identical TXT, diff and ArchiMate
@@ -481,6 +483,32 @@ with the same ids** (one disconnected second model is worse than none):
 
 Add a map only when it answers a useful question for this company; do not
 generate every map for every scope.
+
+#### Architecture views (optional, model format 1.9)
+
+When the scope includes the application landscape — applications, data,
+owners, processes — record them in the model as format **1.9** (asset
+`kind`, `relationships[]` between ids, see Phase 2) and draw the views from
+it; never type them a second time:
+
+```bash
+python3 skills/architecture/edgy-assessment/scripts/edgy_model_to_txt.py <company>-edgy-model.json \
+    --prefix <company> --views all          # or: application,process-chain,process-swimlane,capability,capability-matrix,crud-matrix
+python3 skills/documentation/edgy-diagram/scripts/edgy_generator.py <company>-views.txt \
+    --output <company>-views.drawio --preview [--present <company>-presentation.html]
+```
+
+`<company>-views.txt` has a `draw: false` model page and one page per view:
+the application map grouped by capability, the value chain, one swimlane per
+L1 process, one capability view per capability, and the capability ×
+application and CRUD matrices (edgy-diagram `references/architecture-views.md`).
+Read the generator's `Note:` lines and `qa.json` `model_gaps[]`: an empty
+capability-view band is a **model gap** with an evidence status — report
+`not_investigated` / `unknown` as open questions, `confirmed_absent` as a
+finding, never the reverse. W124 (application without an owner) is a note;
+set `ownership: required` on the view page when ownership is in scope.
+`--present` writes one offline HTML of every view for a workshop; it carries
+the model, so it stays in the engagement folder with the `.drawio`.
 
 #### Phase 4b — Semantic review (MANDATORY for the purpose map; run on every map)
 

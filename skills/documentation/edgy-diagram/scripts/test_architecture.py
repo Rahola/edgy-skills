@@ -295,11 +295,15 @@ def test_capability_views_from_the_model():
     r = subprocess.run([sys.executable, m2t, model, '--views', 'capability,capability-matrix,crud-matrix',
                         '--out', tmp, '--prefix', 'acme'], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
-    pages = parse_document(open(os.path.join(tmp, 'acme-views.txt'), encoding='utf-8').read())
+    text = open(os.path.join(tmp, 'acme-views.txt'), encoding='utf-8').read()
+    assert '{id: CAP-04, gaps: "products=out_of_scope"}' in text          # model gaps{} → the view's syntax
+    pages = parse_document(text)
     names = [n for n, _ in pages]
     assert sum(n.startswith('Capability · ') for n in names) >= 2 and names[-2:] == ['Capability × application', 'Process × data (CRUD)'], names
     xml = build_mxfile([(n, p.generate_xml()) for n, p in pages])
     assert not [f for f in _lint(xml) if f[1] == 'error'], _lint(xml)
+    gaps = {(g['element_id'], g['band']): g['status'] for _n, p in pages for g in p.model_gaps}
+    assert gaps[('CAP-04', 'products')] == 'out_of_scope' and gaps[('CAP-06', 'products')] == 'not_investigated'
 
 
 def main():

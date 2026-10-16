@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-edgy_architecture.py — the architecture views of edgy-diagram 2.8.0 (plan F1, F2).
+edgy_architecture.py — the architecture views of edgy-diagram 2.8.0 (plan F1, F2, F3).
 
 Applications and data are EDGY **Assets** (`{kind: application}`, `{kind: data}`),
 so every view below stays EDGY notation; these functions only prepare a page
@@ -37,6 +37,19 @@ Process maps — `map_type: process` (the default stays the sequence row)
     default on)
   * W126 on a banded chain: an L1 without `{band:}`, or an L2 with another
     band than its parent
+
+Capability view — `map_type: capability-view` (derived, edgy_views.py)
+  * the focus capability in the centre; actors above, processes left,
+    resources right, data (CRUD on the labels) and products below;
+    `hops: 2` adds dimmed context
+  * W127 an empty band, with the evidence status of `{gaps: band=status}`
+    (not_investigated / unknown = warning, out_of_scope / confirmed_absent =
+    note); every one is a `model_gaps[]` entry in qa.json
+
+Matrices — `map_type: capability-matrix`
+  * capabilities × applications (● requires, ◉ primary) or, with
+    `matrix: crud`, processes × data assets with the CRUD letters; the links
+    become cell decorations (edgyRole=matrix), not edges
 
 Standard library only.
 """

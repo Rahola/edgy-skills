@@ -3,7 +3,7 @@
 validate-edgy-model.py — Validate an edgy-model.json against
 skills/architecture/edgy-assessment/assets/edgy-model.schema.json using only
 the Python standard library (a small subset of JSON Schema: type, required,
-properties, items, enum, minItems/maxItems, minLength, minimum/maximum,
+properties, additionalProperties: false, items, enum, minItems/maxItems, minLength, minimum/maximum,
 pattern, oneOf / anyOf, $ref within the same document).
 
 Beyond the schema (model format 1.9, edgy-assessment 1.10.0):
@@ -85,6 +85,10 @@ def validate(instance, schema, root, path, out):
         for key, sub in schema.get("properties", {}).items():
             if key in instance:
                 validate(instance[key], sub, root, f"{path}/{key}", out)
+        if schema.get("additionalProperties") is False:
+            for key in instance:
+                if key not in schema.get("properties", {}):
+                    out.append(f"{path or '/'}: unknown property '{key}' (allowed: {', '.join(schema['properties'])})")
     if isinstance(instance, list):
         if "minItems" in schema and len(instance) < schema["minItems"]:
             out.append(f"{path}: fewer than {schema['minItems']} items")
@@ -169,6 +173,8 @@ def structures_19(model):
     keys = sorted({k for e in (elems.get("asset") or []) if isinstance(e, dict) for k in ASSET_19_KEYS if k in e})
     if keys:
         found.append("asset " + " / ".join(keys))
+    if any(isinstance(e, dict) and "gaps" in e for e in (elems.get("capability") or [])):
+        found.append("capability gaps")
     return found
 
 

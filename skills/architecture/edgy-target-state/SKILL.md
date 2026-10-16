@@ -1,6 +1,6 @@
 ---
 name: edgy-target-state
-version: "1.1.0"
+version: "1.2.0"
 description: >
   Internal target-state architecture workflow on EDGY 23: strategy → purpose map,
   capability map and cards, guardrails, building-block hypothesis with transition
@@ -153,6 +153,16 @@ removed. Guardrails are tested in Phase 4, not negotiated there.
    differences. A wave plan is a matrix: `columns:` = waves, `rows:` = areas,
    `change:` on every block (see *transition-roadmap-map.txt* among the edgy-diagram example inputs).
 4. Open decisions (`decide`) become ADR candidates.
+5. **Application landscape (optional).** When the model records applications
+   (format 1.9, assets with `kind: application`), draw the current landscape
+   next to the hypothesis from the same model:
+   `edgy_model_to_txt.py model.json --views application,capability-matrix`
+   (edgy-assessment) and generate it with edgy-diagram. Set `ownership:
+   required` on the application page — in target-state work an application
+   without an owner (W124) is a gap to close, not a note. The TIME badges
+   (`{time: …}`) are the current lifecycle judgement; the transition overlay
+   stays the place for the target. The diff (`edgy_model_diff.py`) compares
+   asset kind, owner, TIME and `relationships[]` too.
 
 ### Phase 5 — Work packages
 

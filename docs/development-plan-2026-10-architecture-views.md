@@ -564,6 +564,28 @@ cell ids are sequential; renderer output flat and style values unescaped;
 Playwright never runs in CI; View Transitions cannot zoom inside SVG; dark
 theme conflicts with renderer colours; effects trimmed; estimate too low.
 
+## 12. Implementation deviations (v2.4.0)
+
+Recorded during Sprints 21a–24 (also in `AGENT_LOG.md`). None changes a
+promise of §9; each is either a simplification with the reason or an
+addition the eval set showed was needed.
+
+| Plan | Implemented | Why |
+|------|-------------|-----|
+| F1 `edges: none \| bus \| direct`, default `bus` above 12 | `edges: direct \| none` (default `none` above 12: cards count their integrations, the presenter shows them on hover); dense maps use the new orthogonal router (`edgy_route.py`, `route: auto`) | a bus needs a shared node outside EDGY's elements and hides who talks to whom; routing through the channels between cards kept the example maps at 0 W111 / W112 |
+| F1 TIME as a preset of `rating_palette` | its own `{time: …}` badge (slot 1, localised fi / en / fr / de, credited legend section) and a second slot for `{hosting:}` / `{criticality:}` | `rating_palette` is one palette per page; TIME next to a maturity or rating badge needed its own slot and legend |
+| F1 application map from the model | a domain map (no `group_by`) draws applications only; capabilities appear only as `group_by: capability` areas | the eval model (12 capabilities, 18 applications) showed capability cards wired to every application on a domain map — a `requires` web with W112 / W119 |
+| F2 swimlane from the model: one page | one page per L1 process (`expand: per-process`, `where: top`, new) | one swimlane of every process is a 3,100 px staircase of unrelated steps |
+| F3 centre card "maturity · owner · TIME" | the centre card carries the existing badges (`{maturity:}` …); the owner is the actor band | no second place for the same fact |
+| F3 `gaps:` only in TXT | also a model field: capability `gaps` object in format 1.9 (band → status, `additionalProperties: false`; the validator gained that keyword), written as `{gaps: "band=status"}` | the evidence status belongs to the model, not to a generated file |
+| F6a overlays: badges enlarged with an outline ring | not built; badges show as the generator draws them | an overlay toggle would be a sixth effect — moved to F6b with the effects cap |
+| F6a manual Firefox / Safari check | open — on the release checklist for the testers of the draft PR | headless Chrome self-test runs in CI |
+| Appendix A `examples/capability-view.txt`, application map with 18 applications / 14 integrations | `examples/capability-view-map.txt` (the `-map` suffix the regeneration script expects); the application example has 16 applications + 2 external and 5 integrations; the 18-application size lives in `eval/architecture-views.txt` | examples stay readable; the eval set carries the size |
+| §8 eval with 0 errors and 0 visual findings | `check.sh` `edgy-architecture-views` also requires 0 lint warnings and 0 layout-quality findings, on the shipped model (`--views all`) and on the eval model | stricter gate, same inputs |
+| — | `qa.json` `generator_notes[]` (the generator's `Note:` lines) next to `model_gaps[]` | foldings (owners on cards, links shown as cells or membership) must be visible to a reviewer |
+| — | router places labels on the longest free segment first and never off the page | eval findings W112 / W114 |
+| — | ten stale `expected-*.drawio` on main; golden test (`edgy-examples-golden`) | found in 21a; a regeneration is now a test |
+
 ## Appendix A. Example inputs to add (all fictional)
 
 | File | Release | Content |
