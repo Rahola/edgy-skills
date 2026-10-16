@@ -1,9 +1,10 @@
 # EDGY skills development plan (2026-10, part 4): architecture views and an interactive presenter
 
-**Revision 2 (2026-10-16) — proposal, not implemented.** Revision 1 was
+**Revision 3 (2026-10-16) — proposal, not implemented.** Revision 1 was
 reviewed by three reviewer agents (generator feasibility against the code,
-EDGY / C4 modelling, presenter front-end); every accepted finding was checked
-against `main` and is folded in. What changed is listed in §10. Follow-up to
+EDGY / C4 modelling, presenter front-end), revision 2 by a fourth
+(adversarial second round); every accepted finding was checked against
+`main` and is folded in. What changed is listed in §10. Follow-up to
 [`development-plan-2026-10-coverage.md`](development-plan-2026-10-coverage.md),
 whose Sprints 17–20 shipped as **v2.3.0** (edgy-diagram 2.7.0,
 edgy-assessment 1.9.0, edgy-framework 1.6.0, edgy-target-state 1.1.0).
@@ -68,9 +69,10 @@ facet and render in its colour:
 | Process | **Process** | — | level is derived from `contains` depth (L1 = value-chain stage), never typed twice |
 | Capability | **Capability** | existing ids, nested groups | |
 
-`kind`, `hosting`, `master`, `owner`, `technology` and `crud` join
-`RESERVED_METRIC_KEYS` (`edgy_parser.py` ~277), otherwise they would be
-printed on the card as "kind: application".
+`kind`, `hosting`, `master`, `owner`, `technology`, `crud`, `type`,
+`criticality`, `data`, `container` and `time` join `RESERVED_METRIC_KEYS`
+(`edgy_parser.py` ~277), otherwise they would be printed on the card as
+"kind: application".
 
 **Relationships.** The 24 core links stay exactly as they are; core links
 are used where EDGY has them (`process → capability: realises`,
@@ -88,8 +90,13 @@ E010 keep working:
 | `interacts with` | people / organisation → asset (application) | actor uses an application (needed for C4 context); deliberately **not** `uses`, which is core for task → channel only and would raise E010 |
 
 Integrations reuse the existing flow verb **`transfers`** (asset → asset)
-with `{data: AST-xx, technology: "REST"}`; the data name goes into the edge
-subtext, not the verb, so W105 stays clean. No `precedes` verb: process
+with `{data: AST-xx, technology: "REST"}`; the data name goes into a second
+line of the edge label, and the linter reads only the **first line** as the
+verb (today it takes the whole value, `edgy_lint.py` ~509 / ~547 — changed
+in Sprint 21). The fi / fr / de spellings of the new verbs must not equal
+any core-link spelling (`käyttää`, `utilise`, `nutzt` are core `uses`), or
+pair validation would raise E010; `render-core-links.py --check` asserts
+it. No `precedes` verb: process
 order is input order (as in the official process maps, which have no
 edges), an explicit `flows` edge only for non-linear steps.
 
@@ -118,11 +125,25 @@ exist only on C4 pages. C4 relationships carry a *description* and a
 - **Quote-aware `{…}` options.** Values are split on every comma today
   (`edgy_parser.py` ~451, ~831), so `technology: "Kotlin, Spring Boot"`
   would break.
+- **Relationship attributes.** `_parse_relationship_options` (~823)
+  whitelists from / to / via / change / label and drops anything else with a
+  warning; add `primary`, `crud`, `data`, `technology` and `container`, and
+  keep them in `rel['options']` for the document graph.
+- **Id lookup.** Relationships and keys resolve elements by name only today
+  (`_find_element_id_by_value`, ~906) and `{id:}` is optional. Add lookup by
+  `{id:}`; on derived views and C4 pages an element without `{id:}` is an
+  error. `edgyId` falls back to a slug of type + name, stable across
+  regenerations.
+- **Edge verb = first label line** in the linter (W105 / E010), so data
+  names and technology can sit on a second line.
 - **Model schema `"1.9"`** (additive): `relationships[] {source_id,
-  target_id, verb, attributes}`, `organisation` / `people` as arrays,
-  `elements.asset[].kind`, C4 elements. `edgy_model_to_txt.py --views
-  application,process,capability,c4` writes every view page from one model.
-  Older models stay valid; type-level `core_links` remain for assessments.
+  target_id, verb, attributes}`; `people` added as an element type (it is
+  missing from the schema today); `organisation` becomes `oneOf` [object,
+  array] so 1.8 models stay valid; `id` required on elements referenced by
+  `relationships[]`; `elements.asset[].kind`; C4 elements.
+  `edgy_model_to_txt.py --views` is the framework that writes view pages
+  from one model — each view sprint adds its view to it. Type-level
+  `core_links` remain for assessments.
 
 ### F1 Application map (`map_type: application`) — P0
 
@@ -136,11 +157,14 @@ exist only on C4 pages. C4 relationships carry a *description* and a
   today). `[external]` column on the right as in the reference layout.
 - **Lifecycle overlay** — Gartner TIME (`Tolerate / Invest / Migrate /
   Eliminate`) as a preset `rating_palette`, credited in the legend; it is
-  a badge, so W123 guards the legend. Optional second badges:
-  `{criticality: …}`, `{hosting: …}`. Cost stays a metric (EDGY lists
-  cost for Asset).
-- **Integrations** from `transfers`, data name and technology in the edge
-  subtext; `edges: none | bus | direct` (default `bus` above 12
+  a badge, so W123 guards the legend. Optional second badge:
+  `{criticality: …}` or `{hosting: …}` — cards carry one badge today
+  (`_badge_of`, ~1428), so a second slot and its legend keys are new work.
+  Cost stays a metric (EDGY lists cost for Asset).
+- **Integrations** from `transfers`, data name and technology on the second
+  label line; several `transfers` on one pair are merged into one edge
+  today with the first options winning (~1450), so the merged edge lists
+  every data name. `edges: none | bus | direct` (default `bus` above 12
   integrations, the integration-bus pattern).
 - Transition overlay (`{change:}`) works unchanged.
 - Checks: **W124** application without an owner (`manages`), **W125**
@@ -163,8 +187,9 @@ The default stays today's sequence row, so existing inputs do not change.
   map, accepting actors that also have other links — order by input order,
   applications used shown as small asset chips under the step
   (`chips: assets`), not as edges.
-- Checks: **W126** the `contains` depth contradicts an explicit layer
-  (e.g. an L2 placed in the L1 row); existing W111 / W113 cover crossings.
+- Checks: **W126** on a banded chain, an L1 process (no `contains` parent)
+  without `{band:}`, or an L2 with a band different from its parent;
+  existing W111 / W113 cover crossings.
 
 ### F3 Capability view (`map_type: capability-view`) — P0
 
@@ -357,9 +382,9 @@ adds its views to it.
 
 | Sprint | Content | Estimate |
 |--------|---------|----------|
-| **21 — Foundations** | document graph, `expand:`, `edgyId` / `edgyType` / `edgyKind` / `edgyNotation` markers, quote-aware options, reserved keys, influence verbs (4 languages), schema 1.9, `edgy_model_to_txt --views` | 5–6 d |
+| **21 — Foundations** | document graph, id lookup, `expand:`, `edgyId` / `edgyType` / `edgyKind` / `edgyFacet` / `edgyNotation` markers, quote-aware options, relationship attributes, reserved keys, influence verbs (4 languages, no core-spelling collisions), first-line edge verb in lint, schema 1.9, `edgy_model_to_txt --views` framework | 5–6 d |
 | **22 — Presenter core** | renderer groups + `data-*` + attribute hardening, `edgy_present.py`, CSP, overview wall, drill-down zoom, cross-view highlight, search, deep links, chrome themes, print, `#selftest` — over today's map types | 5–6 d |
-| **23 — Application map and process maps** | F1 (domains × layers layout, TIME preset, integrations, W124/W125, S013), F2 (chain with bands, swimlane with chips, W126), examples | 6–7 d |
+| **23 — Application map and process maps** | F1 (domains × layers layout, TIME preset, second badge slot + legend keys, integrations with merged data names, W124/W125, S013), F2 (chain with bands, swimlane with chips, W126), examples | 6–7 d |
 | **24 — Capability view and matrices** | F3 (five bands, `hops`, capability matrix, CRUD matrix, W127 → qa.json), ArchiMate / diff mapping | 4–5 d |
 | **25 — C4** | shape probe, C4 page parsing, L1 derivation, L2 / L3 layout, renderer C4 shapes, C4-PlantUML, C001–C007 and EDGY-rule switch-off, `expand: per-application` | 6–7 d |
 | **26 — Presenter effects and release** | edge draw-in, spotlight, impact trace, current → target FLIP, heat overlays, tour, presenter window, reduced motion, a11y pass, skill instructions (assessment, target-state), eval set, README, CHANGELOG, v2.4.0 | 4–5 d |
@@ -390,7 +415,9 @@ split for C4 and the renderer's shapes).
   a drill-down, toggles an overlay, plays one tour step and writes the
   result and the `window.onerror` count into a DOM sentinel.
   `test_present.py` runs it with `edgy_render.find_chromium()` and
-  `--headless --dump-dom` (standard library only; GitHub's `ubuntu-latest`
+  `--headless --no-sandbox --virtual-time-budget=15000 --dump-dom
+  file://…#selftest` — the virtual-time budget lets the async, animated
+  self-test finish before the dump (standard library only; GitHub's `ubuntu-latest`
   runners ship Google Chrome, CI installs only `pyyaml`). Playwright
   screenshots stay a local tool for the eval report.
 - `tools/edgy-eval.py`: eval model `eval/architecture-views.txt` (Acme
@@ -456,6 +483,15 @@ split for C4 and the renderer's shapes).
 | dark theme conflicts with hard-coded renderer colours (presenter) | dark chrome, diagrams on a light paper card |
 | effects: cut label fading, limit flowing dashes; add edge draw-in, spotlight, impact trace, presenter window (presenter) | F6 table |
 | presenter could come earlier; estimate too low (presenter, feasibility) | presenter core is Sprint 22; 30–36 days over six sprints |
+| *Round 2:* relationship options are a fixed whitelist (`edgy_parser.py` ~823) | F0 relationship attributes |
+| *Round 2:* elements resolve by name only; `{id:}` optional | F0 id lookup, ids required on derived views, slug fallback |
+| *Round 2:* a second label line breaks W105 / E010 | linter reads the first line as the verb |
+| *Round 2:* several edges on one pair are merged, first options win | merged `transfers` list every data name |
+| *Round 2:* schema has no `people` type; `organisation` is an object | `people` added; `organisation` `oneOf` object / array |
+| *Round 2:* reserved keys incomplete; one badge slot only | keys added; second badge slot in Sprint 23 |
+| *Round 2:* fi / fr / de verb spellings could equal core `uses` | spelling-collision check |
+| *Round 2:* `--dump-dom` dumps before the self-test ends | `--virtual-time-budget`, `--no-sandbox` |
+| *Round 2:* Sprint 21 listed views that ship later; W126 contradicted "level never typed twice" | `--views` framework only in Sprint 21; W126 checks bands |
 
 ## Appendix A. Example inputs to add (all fictional)
 
