@@ -618,6 +618,14 @@ def _write(xml):
     return f.name
 
 
+def test_w128_header_under_the_legend():
+    header = vertex(2, '● requires', 'text;html=1;edgyRole=header;', 60, 414, 360, 40)
+    cover = vertex(3, '', 'rounded=1;fillColor=#f5f5f5;edgyRole=legend;', 20, 422, 1160, 56)
+    assert 'W128' in rules(run(HEAD + LEGEND + header + cover + TAIL))
+    clear = vertex(3, '', 'rounded=1;fillColor=#f5f5f5;edgyRole=legend;', 20, 480, 1160, 56)
+    assert 'W128' not in rules(run(HEAD + LEGEND + header + clear + TAIL))
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

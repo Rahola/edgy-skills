@@ -1562,6 +1562,15 @@ class EDGYParser:
 
         # Dynaaminen sivukoko: top-level bounding box + marginaali
         boxes = [(positions[i][0] + self._size_of(i)[0], positions[i][1] + self._size_of(i)[1]) for i in positions]
+        # header texts (bands, matrix keys) are content too: the page and the legend strip must make room for them
+        header_bottoms = []
+        for header in self._chain_headers:
+            text, anchor_eid, dx, hw = header[:4]
+            dy = header[4] if len(header) > 4 else 8
+            if anchor_eid in abs_pos:
+                hx, hy = abs_pos[anchor_eid][0] + dx, abs_pos[anchor_eid][1] + dy
+                boxes.append((hx + hw, hy + 24))
+                header_bottoms.append(hy + 24)
         if boxes:
             max_x = max(bx for bx, _ in boxes)
             max_y = max(by for _, by in boxes)
@@ -1574,7 +1583,7 @@ class EDGYParser:
             # Nauha alareunassa: sivun korkeus on sisältö + nauha, ei editorin 900 px oletus —
             # harva kartta ei huku tyhjään kanvakseen
             band_h = self._legend_strip_height(page_width)
-            content_bottom = max((positions[i][1] + self._size_of(i)[1] for i in positions), default=0)
+            content_bottom = max([positions[i][1] + self._size_of(i)[1] for i in positions] + header_bottoms, default=0)
             page_height = max(300, int(_math.ceil((content_bottom + 30 + band_h + 16) / 10) * 10))
         else:
             # Legenda tarvitsee tilaa oikeasta alakulmasta: kasvata sivua jos sisältö ulottuu sinne

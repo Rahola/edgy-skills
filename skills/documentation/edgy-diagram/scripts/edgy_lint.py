@@ -45,6 +45,8 @@ Rules
        top-level container) that none of the elements inside it carries
   W123 status badge (maturity / rating extension, edgyRole=badge) whose colour
        has no key in the legend — an extension is always explained
+  W128 header text (edgyRole=header: band header, matrix key, title) covered by
+       a legend cell — the legend is drawn on top of it
 
 Visual rules — computed on the same resolved geometry the native renderer
 draws (edgy_geometry.py): ports, orthogonal joins, waypoints, label boxes.
@@ -506,6 +508,21 @@ def lint_model(path, page, model, lines, opts):
             add('WARNING', 'W123', f'status badge "{strip_html(c.get("value") or "")}" is coloured {st.get("fillColor")} '
                                    f'but the legend has no key for it — status is an extension and needs its legend row '
                                    f'(the generator writes it for {{maturity: …}} / {{rating: …}})', i)
+
+    # W128 a header text (band header, matrix key, title) covered by a legend cell drawn after it
+    legend_boxes = [abs_box(c) for c in verts.values() if style_dict(c.get('style')).get('edgyRole') == 'legend']
+    for i, c in verts.items():
+        if style_dict(c.get('style')).get('edgyRole') != 'header':
+            continue
+        hb = abs_box(c)
+        if not hb or hb[2] <= 0 or hb[3] <= 0:
+            continue
+        cover = max((max(0.0, min(hb[0] + hb[2], b[0] + b[2]) - max(hb[0], b[0])) *
+                     max(0.0, min(hb[1] + hb[3], b[1] + b[3]) - max(hb[1], b[1])) for b in legend_boxes if b), default=0.0)
+        if cover > 0.2 * hb[2] * hb[3]:
+            add('WARNING', 'W128', f'header "{strip_html(c.get("value") or "")[:40]}" is {cover / (hb[2] * hb[3]):.0%} '
+                                   f'under the legend — the legend is drawn on top; make room for the header or move the '
+                                   f'legend (legend: box / strip)', i)
 
     # W122 container facet colour vs the facet of the elements inside it (any depth)
     def _ancestors(c):

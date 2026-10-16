@@ -174,7 +174,8 @@ layouts that the options below should fix: `card_width`, `equal_cards`,
 they ran. **W122** (always on) flags a container coloured with a facet colour
 that none of the elements inside it carries — an area is coloured by what it
 holds. **W123** flags a status badge (maturity / rating extension) whose
-colour has no key in the legend. **W121 (`--series`)** checks the files of one delivery against the
+colour has no key in the legend. **W128** flags a header text (band header,
+matrix key, title) covered by a legend cell. **W121 (`--series`)** checks the files of one delivery against the
 first: legend placement, content margin, card width of every shared type and
 label font sizes must agree on every page of every file — generate the
 series with the same options.

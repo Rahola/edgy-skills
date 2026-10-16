@@ -69,7 +69,8 @@ contract 1 (`edgyId`, `edgyType`, `edgyOcc` …) and every legend cell
 - Routed maps, after the agent test round: one port list per card side for
   both directions, no shared trunks between different edges, labels off group
   titles and off other edges; `ownership: required` marks `no owner` on the
-  card; a TIME value hidden by a maturity / rating badge is a warning.
+  card; a TIME value hidden by a maturity / rating badge is a warning. New lint
+  **W128**: a header text (band header, matrix key) covered by the legend.
 - Influence verbs `stores`, `accesses {crud:}`, `interacts with`
   (fi / en / fr / de); semantic question **S013** (application named like
   the capability it serves).
@@ -93,7 +94,9 @@ contract 1 (`edgyId`, `edgyType`, `edgyOcc` …) and every legend cell
   structures in a model that does not declare 1.9.
 - `edgy_model_to_txt.py --views …|all`: one multi-page TXT with the model
   page and the architecture views (swimlanes one page per L1 process).
-- `edgy_model_diff.py` compares asset attributes and `relationships[]`;
+- `edgy_model_diff.py` compares asset attributes and `relationships[]`; for
+  a 1.9 model the transition TXT draws only what changes (routed, lint-clean;
+  `--full` draws everything);
   `edgy_model_to_archimate.py` maps applications to ApplicationComponent,
   platforms to Node, data to DataObject, `stores` / `accesses` to Access
   (accessType from `crud`), `transfers` to Flow, People to BusinessActor.
