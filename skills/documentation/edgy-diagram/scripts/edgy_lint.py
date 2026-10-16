@@ -274,7 +274,7 @@ def classify_cells(cells):
         if st.get('edgyNotation'):
             continue                 # a cell of another notation: its handler validates it (extension contract 1)
         label = strip_html(c.get('value') or '').strip().lower()
-        if st.get('container') == '1' or 'swimlane' in (c.get('style') or ''):
+        if st.get('container') == '1' or st.get('shape') == 'swimlane' or (c.get('style') or '').startswith('swimlane'):
             containers.add(i)
             continue
         if 'text' in st and any(w in label for w in LEGEND_WORDS):

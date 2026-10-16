@@ -1,0 +1,47 @@
+# Application map (architecture view, edgy-diagram 2.8.0): applications are EDGY Assets of
+# kind application / platform / integration. Domains are the input groups; with rows: they
+# become the columns of a domains × layers matrix. {time: …} is the Gartner TIME lifecycle
+# badge (extension), {hosting: …} a second badge. Integrations are `transfers` with the data
+# asset and the technology on the second label line. Fictional (Acme Transit).
+map_type: application
+rows: Channel, Core, Shared
+language: en
+legend: strip
+
+elements:
+  - group: "Customer"
+    - asset: "Trip planner app" {id: APP-01, kind: application, row: Channel, time: invest, hosting: saas}
+    - asset: "Customer portal" {id: APP-02, kind: application, row: Channel, time: tolerate, hosting: cloud}
+    - asset: "CRM" {id: APP-03, kind: application, row: Core, time: migrate, hosting: saas}
+    - asset: "Identity provider" {id: APP-04, kind: platform, row: Shared, time: invest, hosting: cloud}
+  - group: "Fares and ticketing"
+    - asset: "Ticket shop" {id: APP-05, kind: application, row: Channel, time: invest, hosting: cloud}
+    - asset: "Validators" {id: APP-06, kind: application, row: Channel, time: migrate, hosting: on-prem}
+    - asset: "Fare engine" {id: APP-07, kind: application, row: Core, time: invest, hosting: cloud}
+    - asset: "Legacy ticketing" {id: APP-08, kind: application, row: Core, time: eliminate, hosting: on-prem}
+    - asset: "Payment gateway" {id: APP-09, kind: platform, row: Shared, time: tolerate, hosting: saas}
+  - group: "Operations"
+    - asset: "Driver tablet" {id: APP-10, kind: application, row: Channel, time: tolerate, hosting: on-prem}
+    - asset: "Timetable planning" {id: APP-11, kind: application, row: Core, time: invest, hosting: cloud}
+    - asset: "Fleet dispatch" {id: APP-12, kind: application, row: Core, time: migrate, hosting: on-prem}
+    - asset: "Vehicle telematics" {id: APP-13, kind: platform, row: Shared, time: tolerate, hosting: on-prem}
+  - group: "Data"
+    - asset: "Open data portal" {id: APP-14, kind: application, row: Channel, time: invest, hosting: cloud}
+    - asset: "Ridership analytics" {id: APP-15, kind: application, row: Core, time: invest, hosting: cloud}
+    - asset: "Integration platform" {id: APP-16, kind: integration, row: Shared, time: invest, hosting: cloud}
+  - asset: "National timetable registry" [external] {id: EXT-01, kind: application, row: Shared}
+  - asset: "Bank" [external] {id: EXT-02, kind: application, row: Shared}
+  - asset: "Fare rules" {id: DAT-01, kind: data}
+  - asset: "Trip events" {id: DAT-02, kind: data}
+  - asset: "Timetable" {id: DAT-03, kind: data}
+  - asset: "Settlement batch" {id: DAT-04, kind: data}
+  - organisation: "Platform team"
+
+relationships:
+  - "APP-07" -> "APP-05": "transfers" {data: DAT-01, technology: REST}
+  - "APP-06" -> "APP-15": "transfers" {data: DAT-02, technology: Kafka}
+  - "APP-11" -> "EXT-01": "transfers" {data: DAT-03, technology: NeTEx}
+  - "APP-09" -> "EXT-02": "transfers" {data: DAT-04, technology: ISO 20022}
+  - "APP-11" -> "APP-01": "transfers" {data: DAT-03, technology: GTFS}
+  - "Platform team" -> "APP-16": "manages"
+  - "Platform team" -> "APP-04": "manages"

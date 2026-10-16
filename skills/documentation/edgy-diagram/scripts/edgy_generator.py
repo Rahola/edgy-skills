@@ -60,6 +60,8 @@ def report_parser_messages(pages, lenient: bool = False) -> None:
         for w in edgy_parser.warnings:
             print(f"Warning: {prefix}{w}", file=sys.stderr)
             n_warn += 1
+        for note in getattr(edgy_parser, 'notes', []):
+            print(f"Note: {prefix}{note}", file=sys.stderr)
         for e in edgy_parser.errors:
             print(f"Error: {prefix}{e}", file=sys.stderr)
             has_errors = True
@@ -80,6 +82,8 @@ def report_layout_warnings(pages, before_counts) -> None:
         for w in edgy_parser.warnings[before:]:
             print(f"Warning: {prefix}{w}", file=sys.stderr)
             n += 1
+        for note in getattr(edgy_parser, 'notes', [])[getattr(edgy_parser, '_notes_before', 0):]:
+            print(f"Note: {prefix}{note}", file=sys.stderr)
     if n:
         print(f"{n} layout warning(s) — see above.", file=sys.stderr)
 
@@ -387,6 +391,8 @@ def main():
 
     # Draw.io pipeline: oletuksena mxfile-kääre (pakkaamaton), jokainen sivu omana <diagram>-elementtinä
     before = [len(p.warnings) for _, p in pages]
+    for _, p in pages:
+        p._notes_before = len(p.notes)
     if args.bare:
         xml_content = edgy_parser.generate_xml()
     else:

@@ -136,6 +136,8 @@ VALID_MAP_TYPES = {
     # EDGY extensions (not EDGY 23 map types): layered reference architecture, stakeholder summary,
     # planned ring of one primary element per type ("Further …" panels for the rest)
     'reference', 'summary', 'triad',
+    # Architecture views (2.8.0): application landscape (Assets of kind application / platform / integration)
+    'application',
 }
 
 # Karttatyyppi → layout-strategia
@@ -157,6 +159,7 @@ MAP_TYPE_LAYOUT = {
     'story': 'grid',
     'task': 'grid',
     'reference': 'reference',
+    'application': 'grid',
     'summary': 'summary',
     'triad': 'triad',
 }
@@ -286,7 +289,7 @@ FACET_OF_TYPE = {**{t: 'identity' for t in IDENTITY_ELEMENTS}, **{t: 'architectu
                  **{t: 'base' for t in BASE_ELEMENTS}}
 # Document keys of the architecture views (2.8.0) and of the document graph
 VIEW_KEYS = ('focus', 'expand', 'where', 'draw', 'notation', 'process_view', 'group_by', 'edges', 'depth', 'hops',
-             'matrix', 'ownership', 'chips', 'level', 'system')
+             'matrix', 'ownership', 'chips', 'level', 'system', 'route')
 # Model ids: what a style value can carry (no ';' or '=' — draw.io style syntax)
 ID_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._:/-]*$')
 
@@ -383,6 +386,13 @@ class EDGYParser:
         self.draw = True             # draw: false — a model page: in the document graph, not in the output
         self.cell_of = {}            # element id → draw.io cell id (after generate_xml)
         self.foreign = None          # (handler module, page text, graph) of a notation: page (edgy_notation)
+        self.notes = []              # information for the reader (printed as Note:, never an error) — W124 by default
+        self._arch_layout = None     # edgy_architecture: ('chain', roots, children, banded) for process_view: chain
+        self._arch_stages = None     # stages: before an architecture view replaced them (restored on the next layout)
+        self._arch_removed_groups = None
+        self._chain_headers = []     # band headers of a banded value chain: (text, x, y, w)
+        self._no_stage_headers = False   # swimlane: the stage columns are the steps themselves — no header row
+        self._suppressed_note = None
 
     def parse_input(self, input_text: str) -> None:
         """Jäsennä käyttäjän syöte EDGY-elementeiksi"""
@@ -697,14 +707,41 @@ class EDGYParser:
         return None
 
     def _badge_of(self, element: dict):
-        """(teksti, väri) tilamerkille tai None. Kypsyys voittaa arvion, jos molemmat on annettu."""
+        """(teksti, väri) ensimmäiselle tilamerkille tai None (yhteensopivuus: kypsyys > arvio > elinkaari)."""
+        badges = self._badges_of(element)
+        return (badges[0][0], badges[0][1]) if badges else None
+
+    def _badges_of(self, element: dict) -> List[Tuple[str, str, str]]:
+        """Up to two status badges (extension): [(text, colour, kind)].
+        Slot 1: maturity > rating > lifecycle (Gartner TIME); slot 2: criticality > hosting."""
+        out = []
         if element.get('maturity'):
             n = element['maturity']
-            return f"{n}/5", MATURITY_PALETTE[n]
-        r = element.get('rating')
-        if r:
-            return r, self._rating_colour(r)
-        return None
+            out.append((f"{n}/5", MATURITY_PALETTE[n], 'maturity'))
+        elif element.get('rating'):
+            out.append((element['rating'], self._rating_colour(element['rating']), 'rating'))
+        elif element.get('time'):
+            import edgy_architecture
+            out.append((edgy_architecture.time_label(self, element['time']), edgy_architecture.TIME_PALETTE[element['time']], 'time'))
+        attrs = element.get('attrs') or {}
+        for kind in ('criticality', 'hosting'):
+            v = (attrs.get(kind) or '').strip()
+            if v:
+                out.append((v, self._second_colour(kind, v), kind))
+                break
+        return out
+
+    _SECOND_PALETTES = {
+        'criticality': {'high': '#b2182b', 'critical': '#b2182b', 'medium': '#ef8a62', 'low': '#67a9cf',
+                        'korkea': '#b2182b', 'kriittinen': '#b2182b', 'keskitaso': '#ef8a62', 'matala': '#67a9cf'},
+        'hosting': {'saas': '#7570b3', 'cloud': '#1b9e77', 'on-prem': '#666666'},
+    }
+
+    def _second_colour(self, kind: str, value: str) -> str:
+        key = value.lower()
+        if key in self.rating_palette:
+            return self.rating_palette[key]
+        return self._SECOND_PALETTES.get(kind, {}).get(key, '#888888')
 
     def _rating_colour(self, label: str) -> str:
         key = label.lower()
@@ -718,20 +755,38 @@ class EDGYParser:
         idx = seen.index(key) if key in seen else len(seen)
         return RATING_COLOURS[idx % len(RATING_COLOURS)]
 
+    _BADGE_TITLES = {
+        'time': {'en': 'Lifecycle (Gartner TIME, extension)', 'fi': 'Elinkaari (Gartner TIME, laajennus)',
+                 'fr': 'Cycle de vie (Gartner TIME, extension)', 'de': 'Lebenszyklus (Gartner TIME, Erweiterung)'},
+        'criticality': {'en': 'Criticality (extension)', 'fi': 'Kriittisyys (laajennus)',
+                        'fr': 'Criticité (extension)', 'de': 'Kritikalität (Erweiterung)'},
+        'hosting': {'en': 'Hosting (extension)', 'fi': 'Sijoitus (laajennus)',
+                    'fr': 'Hébergement (extension)', 'de': 'Betrieb (Erweiterung)'},
+    }
+
     def _badge_legend_sections(self) -> List[Tuple[str, List[Tuple[str, str]]]]:
         """Legendan tilamerkkiosiot: [(otsikko, [(väri, teksti)])] vain käytetyille arvoille."""
         L = self._legend_text()
         out = []
-        mats = sorted({e['maturity'] for e in self.elements.values() if e.get('maturity') and e['id'] not in self._hidden})
-        if mats:
-            out.append((L['maturity'], [(MATURITY_PALETTE[m], f"{m}/5") for m in mats]))
-        ratings = []
-        for e in self.elements.values():
-            r = e.get('rating')
-            if r and not e.get('maturity') and e['id'] not in self._hidden and r.lower() not in [x.lower() for x in ratings]:
-                ratings.append(r)
-        if ratings:
-            out.append((L['rating'], [(self._rating_colour(r), r) for r in ratings]))
+        shown = [e for e in self.elements.values() if e['id'] not in self._hidden]
+        by_kind: Dict[str, List[Tuple[str, str]]] = {}
+        for e in shown:
+            for text, colour, kind in self._badges_of(e):
+                rows = by_kind.setdefault(kind, [])
+                if text.lower() not in [t.lower() for _c, t in rows]:
+                    rows.append((colour, text))
+        if 'maturity' in by_kind:
+            out.append((L['maturity'], sorted(by_kind['maturity'], key=lambda r: r[1])))
+        if 'rating' in by_kind:
+            out.append((L['rating'], by_kind['rating']))
+        lang = self.language if self.language in ('en', 'fi', 'fr', 'de') else 'en'
+        if 'time' in by_kind:
+            import edgy_architecture
+            order = [edgy_architecture.time_label(self, k) for k in ('tolerate', 'invest', 'migrate', 'eliminate')]
+            out.append((self._BADGE_TITLES['time'][lang], sorted(by_kind['time'], key=lambda r: order.index(r[1]))))
+        for kind in ('criticality', 'hosting'):
+            if kind in by_kind:
+                out.append((self._BADGE_TITLES[kind][lang], by_kind[kind]))
         return out
 
     def _parse_layout_from(self, spec: str):
@@ -1068,7 +1123,9 @@ class EDGYParser:
         tags = element.get('tags', [])
         metrics = element.get('metrics', {})
 
-        if not subtext and not ref and not tags and not metrics:
+        chips = element.get('chips') or []
+        note = element.get('count_note')
+        if not subtext and not ref and not tags and not metrics and not chips and not note:
             return html.escape(name)
 
         parts = [f'<b>{html.escape(name)}</b>']
@@ -1077,6 +1134,8 @@ class EDGYParser:
             sub_bits.append(f'[{html.escape(ref)}]')
         if subtext:
             sub_bits.append(html.escape(subtext))
+        if note:
+            sub_bits.append(('· ' if sub_bits else '') + html.escape(note))
         if sub_bits:
             parts.append('<font style="font-size:9px;color:#444444;font-weight:normal">' + ' '.join(sub_bits) + '</font>')
 
@@ -1094,12 +1153,17 @@ class EDGYParser:
             label_parts.append(f'<font color="{color}">{html.escape(k)}: {html.escape(v)}</font>')
         if label_parts:
             parts.append('<font style="font-size:9px;font-weight:normal">' + ' | '.join(label_parts) + '</font>')
+        if chips:
+            # swimlane: the assets the step requires (shown instead of edges)
+            parts.append('<font style="font-size:9px;color:#1f3d99;font-weight:normal">▸ ' +
+                         html.escape(' · '.join(chips)) + '</font>')
         return '<br>'.join(parts)
 
     def _subtext_lines(self, element: dict, width: int) -> int:
         """Alatekstirivien määrä (id + kuvaus) annetulla leveydellä — mitattu 9 px
         normaalilla leikkauksella (edgy_text), ei merkkimäärällä."""
-        sub = ' '.join(x for x in ((f"[{element['ref']}]" if element.get('ref') else ''), element.get('subtext', '')) if x)
+        sub = ' '.join(x for x in ((f"[{element['ref']}]" if element.get('ref') else ''), element.get('subtext', ''),
+                                   element.get('count_note') or '') if x)
         if not sub:
             return 0
         return _text.lines_needed(sub, max(width - 12, 40), self._SUB_FONT, bold=False)
@@ -1194,7 +1258,9 @@ class EDGYParser:
         extra += self._subtext_lines(element, w) * 14
         if element.get('tags') or element.get('metrics'):
             extra += 16
-        if element.get('maturity') or element.get('rating'):
+        if element.get('chips'):
+            extra += 14 * _text.lines_needed('▸ ' + ' · '.join(element['chips']), max(w - 12, 40), self._SUB_FONT, bold=False)
+        if self._badges_of(element):
             extra += BADGE_H + 4                 # tilamerkki kortin alareunassa (laajennus)
         if not size_class:
             h = h + extra if extra else h
@@ -1313,7 +1379,7 @@ class EDGYParser:
             return
         min_x = min(x for x, y in positions.values())
         min_y = min(y for x, y in positions.values())
-        shift_x = MARGIN - min_x
+        shift_x = MARGIN + getattr(self, '_left_reserve', 0) - min_x   # banded value chain: band headers on the left
         shift_y = MARGIN + getattr(self, '_top_reserve', 0) - min_y
         if shift_x or shift_y:
             for eid in positions:
@@ -1392,7 +1458,7 @@ class EDGYParser:
             return ("whiteSpace=wrap;html=1;fillColor=#f4f4f4;strokeColor=none;align=left;verticalAlign=top;"
                     "spacingLeft=8;spacingTop=4;fontColor=#555555;fontSize=11;fontStyle=1;")
         synthetic = group.get('synthetic')
-        if self._effective_group_style() == 'official' and synthetic in (None, 'stage'):
+        if self._effective_group_style() == 'official' and synthetic in (None, 'stage', 'arch'):
             facet_fill = self._group_facet_fill(group['id'])
             if group.get('subgroups'):
                 fill, stroke = facet_fill or FACET_CONTAINER_FILLS['group'], '#ffffff'
@@ -1414,6 +1480,13 @@ class EDGYParser:
         if eid in self.groups:
             return self._computed_sizes.get(eid, (300, 160))
         return self._get_element_size(self.elements[eid])
+
+    def _routes_around_cards(self) -> bool:
+        """route: auto | none — default auto on the application map, none elsewhere."""
+        mode = (self.view.get('route') or '').lower()
+        if mode in ('auto', 'none'):
+            return mode == 'auto'
+        return self.map_type == 'application'
 
     def model_id(self, element: dict) -> Tuple[str, bool]:
         """(model id, explicit?) — the {id:} of the element, else its type + name slug."""
@@ -1543,7 +1616,19 @@ class EDGYParser:
 
         # 1b) Vaiheotsikot kaistojen yläpuolelle (edgyRole=header: lint lukee ne sisällöksi)
         lanes = [g for g in self.groups.values() if g['kind'] == 'lane' and g['id'] in group_pos]
-        if self.stages and lanes:
+        for text, anchor_eid, dx, hw in self._chain_headers:
+            if anchor_eid not in abs_pos:
+                continue
+            hx, hy = abs_pos[anchor_eid][0] + dx, abs_pos[anchor_eid][1]
+            cell = ET.SubElement(mx_root, "mxCell", {
+                "id": str(next_id), "value": html.escape(text),
+                "style": "text;html=1;align=left;verticalAlign=top;fontSize=12;fontStyle=1;fontColor=#333333;whiteSpace=wrap;edgyRole=header;",
+                "vertex": "1", "parent": "1",
+            })
+            ET.SubElement(cell, "mxGeometry", {"x": str(int(hx)), "y": str(int(hy) + 8), "width": str(int(hw)),
+                                               "height": "40", "as": "geometry"})
+            next_id += 1
+        if self.stages and lanes and not self._no_stage_headers:
             first = min(lanes, key=lambda g: group_pos[g['id']][1])
             lx, ly = group_pos[first['id']]
             col_w = max([self._get_element_size(self.elements[m])[0] for g in lanes for m in g['members']] + [120])
@@ -1581,20 +1666,25 @@ class EDGYParser:
             element_mapping[elem_id] = str(next_id)
             self.cell_of[elem_id] = str(next_id)
             next_id += 1
-            badge = self._badge_of(element)
-            if badge:
+            badges = self._badges_of(element)
+            if badges:
                 # Kortin lapsisolu (suhteelliset koordinaatit): liikkuu kortin mukana draw.iossa;
-                # edgyRole=badge → lint ei pidä sitä elementtinä eikä vaadi sille paletin väriä
-                text, colour = badge
-                bw = min(w - 12, max(36, int(_text.measure(text, 9, bold=True)) + 14))
-                cell = ET.SubElement(mx_root, "mxCell", {
-                    "id": str(next_id), "value": html.escape(text),
-                    "style": (f"rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor={colour};strokeColor=#ffffff;"
-                              f"strokeWidth=1;fontSize=9;fontStyle=1;fontColor={_badge_text_colour(colour)};edgyRole=badge;"),
-                    "vertex": "1", "parent": element_mapping[elem_id]})
-                ET.SubElement(cell, "mxGeometry", {"x": str(int((w - bw) / 2)), "y": str(int(h - BADGE_H - 4)),
-                                                   "width": str(bw), "height": str(BADGE_H), "as": "geometry"})
-                next_id += 1
+                # edgyRole=badge → lint ei pidä sitä elementtinä eikä vaadi sille paletin väriä.
+                # Kaksi merkkiä (2.8.0): vierekkäin keskitettynä, kumpikin enintään puolet kortin leveydestä
+                widths = [min((w - 12) // len(badges) - (4 if len(badges) > 1 else 0),
+                              max(36, int(_text.measure(t, 9, bold=True)) + 14)) for t, _c, _k in badges]
+                total = sum(widths) + 6 * (len(badges) - 1)
+                bx = (w - total) / 2
+                for (text, colour, _kind), bw in zip(badges, widths):
+                    cell = ET.SubElement(mx_root, "mxCell", {
+                        "id": str(next_id), "value": html.escape(text),
+                        "style": (f"rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor={colour};strokeColor=#ffffff;"
+                                  f"strokeWidth=1;fontSize=9;fontStyle=1;fontColor={_badge_text_colour(colour)};edgyRole=badge;"),
+                        "vertex": "1", "parent": element_mapping[elem_id]})
+                    ET.SubElement(cell, "mxGeometry", {"x": str(int(bx)), "y": str(int(h - BADGE_H - 4)),
+                                                       "width": str(int(bw)), "height": str(BADGE_H), "as": "geometry"})
+                    bx += bw + 6
+                    next_id += 1
 
         # 3) Relaatiot — yhdistä saman parin useat relaatiot yhdeksi reunaksi ("a / b")
         merged: Dict[Tuple[str, str], dict] = {}
@@ -1602,6 +1692,8 @@ class EDGYParser:
         for rel in self.relationships:
             if rel['source'] not in element_mapping or rel['target'] not in element_mapping:
                 continue
+            if rel.get('suppressed'):
+                continue                      # shown by position / membership (architecture views), reported
             key = (rel['source'], rel['target'])
             if key in merged:
                 m = merged[key]
@@ -1622,6 +1714,30 @@ class EDGYParser:
                 merged[key] = {'source': key[0], 'target': key[1], 'labels': [rel['label']],
                                'kind': rel.get('kind'), 'options': opts, 'details': details}
                 order.append(key)
+
+        if self._routes_around_cards():
+            # dense views (application map): orthogonal routes through the channels between the cards
+            import edgy_route
+            boxes = {eid: (abs_pos[eid][0], abs_pos[eid][1], sizes[eid][0], sizes[eid][1])
+                     for eid in element_mapping if eid in self.elements and eid not in self._hidden}
+            obstacles = list(boxes.values())
+            used: List = []
+            label_boxes: List = []
+            self._route_ctx = (boxes, obstacles, [])          # labels are placed again on the generator's own path
+            for key in order:
+                rel = merged[key]
+                if any(k in rel['options'] for k in ('from', 'to', 'via')):
+                    continue                    # the input's own ports and waypoints win
+                verb = ' / '.join(rel['labels'])
+                detail = self._edge_detail(rel.get('details') or {})
+                lw = max(_text.measure(verb, 11), _text.measure(detail, 9) if detail else 0) + 8
+                lh = 11 * 1.3 + (9 * 1.3 if detail else 0)
+                r = edgy_route.route(boxes[key[0]], boxes[key[1]], obstacles, used, label_size=(lw, lh),
+                                     labels=label_boxes)
+                if r:
+                    rel['options'] = {**rel['options'], 'from': r[0], 'to': r[1], 'via': r[2]}
+                    if 'label' not in rel['options']:
+                        rel['options']['label_at'] = r[3][0] if isinstance(r[3], tuple) else r[3]
 
         from collections import defaultdict
         outgoing_by_side = defaultdict(list)
@@ -1735,6 +1851,24 @@ class EDGYParser:
                 geo_attrs["x"] = "-0.5"
             elif label_pos == 'target':
                 geo_attrs["x"] = "0.5"
+            elif rel['options'].get('label_at') is not None:
+                # routed edge: the label sits on the longest free segment (edgy_route) of the path the edge
+                # really takes (ports distributed along a side shift it slightly from the router's path)
+                import edgy_route
+                boxes, obstacles, placed = self._route_ctx
+                path = _geo.edge_path(boxes[rel['source']], boxes[rel['target']], _geo.style_dict(style),
+                                      rel['options'].get('via') or [])
+                frac = rel['options']['label_at']
+                if path:
+                    lines = [x for x in re.sub(r'<[^>]+>', '\n', value.replace('<br>', '\n')).split('\n') if x.strip()]
+                    lw = max([_text.measure(html.unescape(lines[0]), 11)] +
+                             [_text.measure(html.unescape(x), 9) for x in lines[1:]]) + 8 if lines else 60
+                    lh = 11 * 1.3 + 9 * 1.3 * (len(lines) - 1)
+                    frac = edgy_route._label_fraction(path, obstacles, (lw, lh), placed)
+                if isinstance(frac, tuple):        # no room on the path: beside it, with an absolute offset
+                    frac, (odx, ody) = frac
+                    rel['options'] = {**rel['options'], 'label_dx': odx, 'label_dy': ody}
+                geo_attrs["x"] = f"{2 * frac - 1:.3f}"
             geo = ET.SubElement(cell, "mxGeometry", geo_attrs)
             if 'label_dx' in rel['options'] or 'label_dy' in rel['options']:
                 # absoluuttinen tekstin siirtymä pikseleinä (sama sopimus renderöijässä ja lintissä)
@@ -2059,6 +2193,11 @@ class EDGYParser:
         self._hidden = set()
         self._stage_headers = []
         self._top_reserve = 0
+        self._chain_headers = []
+        self._no_stage_headers = False
+        self._left_reserve = 0
+        import edgy_architecture
+        edgy_architecture.prepare(self)        # application map, process chain / swimlane (2.8.0)
         self._equalise_cards()
         self._prepare_facet_groups()
         self._prepare_task_lanes()
@@ -2548,7 +2687,7 @@ class EDGYParser:
         """Kaistat päällekkäin ylhäältä alas; muut top-level-kohteet riviin kaistojen alle."""
         positions: Dict[str, Tuple[int, int]] = {}
         x0, y = 60, 60
-        self._top_reserve = 40 if self.stages else 0   # sarakeotsikot kaistojen yläpuolelle
+        self._top_reserve = 40 if self.stages and not self._no_stage_headers else 0   # sarakeotsikot kaistojen yläpuolelle
         width = max(self._computed_sizes[l][0] for l in lanes)
         for l in lanes:
             self._computed_sizes[l] = (width, self._computed_sizes[l][1])
@@ -2945,6 +3084,9 @@ class EDGYParser:
     # ---- karttatyypit -----------------------------------------------------
     def _calculate_map_type_layout(self, items: List[str], containers: List[str]) -> Dict[str, Tuple[int, int]]:
         """Laske layout karttatyypin mukaan. Reititä strategiaan MAP_TYPE_LAYOUT-taulun kautta."""
+        if self._arch_layout and self._arch_layout[0] == 'chain' and not containers:
+            import edgy_architecture
+            return edgy_architecture.layout_chain(self, items)
         if containers and all(self.groups[c].get('synthetic') == 'stage' for c in containers):
             # Tehtäväkartan vaihesarakkeet: yksi rivi, tasakorkeat sarakkeet; vaiheettomat tehtävät alle
             cols = self.group_columns or len(containers)

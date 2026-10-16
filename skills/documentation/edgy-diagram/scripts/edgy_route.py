@@ -1,0 +1,198 @@
+#!/usr/bin/env python3
+"""
+edgy_route.py — orthogonal edge routing around the cards of a page (edgy-diagram 2.8.0).
+
+A dense map (the application map: 15–40 cards in a domains × layers matrix)
+cannot be connected with the default elbow routes — they cut through the
+cards in between (lint W111). This router finds an orthogonal path through
+the free channels between the cards: a sparse grid of candidate lines just
+outside every card edge (a classic connector router), searched with A* for the
+shortest path with the fewest bends, preferring channels that no earlier edge
+uses. The result is the exit side, the entry side and the bend points, which
+the generator writes as `exitX/entryX` ports and `<Array as="points">`
+waypoints — so draw.io, the native renderer and the linter all follow the
+same path.
+
+Standard library only. Deterministic: the same page always routes the same way.
+"""
+
+import heapq
+from typing import Dict, List, Optional, Sequence, Tuple
+
+Box = Tuple[float, float, float, float]
+Point = Tuple[float, float]
+MARGIN = 10.0            # channel line distance from a card edge (matrix gaps are 20 px: the line runs in the middle)
+BEND = 60.0              # cost of a bend, in px of length
+REUSE = 120.0            # cost of running along a segment an earlier edge already uses
+SIDES = ('right', 'left', 'bottom', 'top')
+
+
+def _port(box: Box, side: str) -> Point:
+    x, y, w, h = box
+    return {'right': (x + w, y + h / 2), 'left': (x, y + h / 2),
+            'bottom': (x + w / 2, y + h), 'top': (x + w / 2, y)}[side]
+
+
+def _stub(box: Box, side: str, m: float = MARGIN) -> Point:
+    px, py = _port(box, side)
+    dx, dy = {'right': (m, 0), 'left': (-m, 0), 'bottom': (0, m), 'top': (0, -m)}[side]
+    return (px + dx, py + dy)
+
+
+def _blocked(a: Point, b: Point, obstacles: Sequence[Box]) -> bool:
+    """Does segment a–b (axis-parallel) enter the interior of an obstacle?"""
+    (x1, y1), (x2, y2) = a, b
+    lo_x, hi_x = min(x1, x2), max(x1, x2)
+    lo_y, hi_y = min(y1, y2), max(y1, y2)
+    for ox, oy, ow, oh in obstacles:
+        if lo_x < ox + ow and hi_x > ox and lo_y < oy + oh and hi_y > oy:
+            return True
+    return False
+
+
+def route(source: Box, target: Box, obstacles: Sequence[Box], used: Optional[List[Tuple[Point, Point]]] = None,
+          margin: float = MARGIN, label_size: Optional[Tuple[float, float]] = None,
+          labels: Optional[List[Box]] = None) -> Optional[Tuple[str, str, List[Point], float]]:
+    """(exit side, entry side, waypoints, label fraction) of an orthogonal path from `source` to `target`
+    that keeps `margin` px from every obstacle, or None when no such path exists. `obstacles` may contain
+    the two end boxes; `used` (segments of earlier edges) is extended with this path's segments. The label
+    fraction (0–1 along the path) puts a label of `label_size` on the longest segment where it covers no
+    card and no earlier label (`labels`, extended with the chosen box)."""
+    inflate = margin - 1.0
+    others = [b for b in obstacles if b != source and b != target]
+    obst = [(x - inflate, y - inflate, w + 2 * inflate, h + 2 * inflate) for x, y, w, h in others]
+    ends = [(x - inflate, y - inflate, w + 2 * inflate, h + 2 * inflate) for x, y, w, h in (source, target)]
+    xs, ys = set(), set()
+    for x, y, w, h in list(others) + [source, target]:
+        xs.update((x - margin, x + w + margin))
+        ys.update((y - margin, y + h + margin))
+    for box in (source, target):
+        for s in SIDES:
+            sx, sy = _stub(box, s, margin)
+            xs.add(sx)
+            ys.add(sy)
+    xs, ys = sorted(xs), sorted(ys)
+    xi = {x: i for i, x in enumerate(xs)}
+    yi = {y: i for i, y in enumerate(ys)}
+    used = used if used is not None else []
+
+    def inside_any(p: Point) -> bool:
+        px, py = p
+        return any(ox < px < ox + ow and oy < py < oy + oh for ox, oy, ow, oh in obst + ends)
+
+    def reuse_cost(a: Point, b: Point) -> float:
+        for (u1, u2) in used:
+            if a[0] == b[0] == u1[0] == u2[0] and min(a[1], b[1]) < max(u1[1], u2[1]) and max(a[1], b[1]) > min(u1[1], u2[1]):
+                return REUSE
+            if a[1] == b[1] == u1[1] == u2[1] and min(a[0], b[0]) < max(u1[0], u2[0]) and max(a[0], b[0]) > min(u1[0], u2[0]):
+                return REUSE
+        return 0.0
+
+    tcx, tcy = target[0] + target[2] / 2, target[1] + target[3] / 2
+    goals = {_stub(target, s, margin): s for s in SIDES}
+    heap = []
+    best: Dict[Tuple[Point, str], float] = {}
+    prev: Dict[Tuple[Point, str], Tuple[Optional[Tuple[Point, str]], Optional[str]]] = {}
+    scx, scy = source[0] + source[2] / 2, source[1] + source[3] / 2
+    for s in SIDES:
+        st = _stub(source, s, margin)
+        if inside_any(st) or _blocked(_port(source, s), st, obst):
+            continue
+        facing = {'right': tcx > scx, 'left': tcx < scx, 'bottom': tcy > scy, 'top': tcy < scy}[s]
+        cost = margin + (0 if facing else 40)
+        d = 'h' if s in ('left', 'right') else 'v'
+        key = (st, d)
+        best[key] = cost
+        prev[key] = (None, s)
+        heapq.heappush(heap, (cost + abs(st[0] - tcx) + abs(st[1] - tcy), cost, st, d))
+    end_key = None
+    while heap:
+        _f, cost, p, d = heapq.heappop(heap)
+        if best.get((p, d), float('inf')) < cost:
+            continue
+        if p in goals:
+            gs = goals[p]
+            need = 'h' if gs in ('left', 'right') else 'v'
+            if not _blocked(p, _port(target, gs), obst):
+                end_key = (p, d, gs, cost + (BEND if d != need else 0))
+                break
+        i, j = xi.get(p[0]), yi.get(p[1])
+        if i is None or j is None:
+            continue
+        for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            ni, nj = i + di, j + dj
+            if not (0 <= ni < len(xs) and 0 <= nj < len(ys)):
+                continue
+            q = (xs[ni], ys[nj])
+            if inside_any(q) or _blocked(p, q, obst):
+                continue
+            nd = 'h' if di else 'v'
+            c = cost + abs(q[0] - p[0]) + abs(q[1] - p[1]) + (BEND if nd != d else 0) + reuse_cost(p, q)
+            if c < best.get((q, nd), float('inf')):
+                best[(q, nd)] = c
+                prev[(q, nd)] = ((p, d), None)
+                heapq.heappush(heap, (c + abs(q[0] - tcx) + abs(q[1] - tcy), c, q, nd))
+    if end_key is None:
+        return None
+    p, d, entry, _c = end_key
+    pts = [p]
+    key = (p, d)
+    exit_side = None
+    while True:
+        back, side = prev[key]
+        if back is None:
+            exit_side = side
+            break
+        pts.append(back[0])
+        key = back
+    pts.reverse()
+    path = [_port(source, exit_side)] + pts + [_port(target, entry)]
+    # waypoints = both end stubs (so a port the generator shifts along its side still joins inside the
+    # channel) and every bend between them
+    inner: List[Point] = []
+    for k in range(2, len(path) - 2):
+        a, b, c = path[k - 1], path[k], path[k + 1]
+        if not ((a[0] == b[0] == c[0]) or (a[1] == b[1] == c[1])):
+            inner.append(b)
+    bends = [path[1]] + inner + ([path[-2]] if len(path) > 3 else [])
+    for k in range(len(path) - 1):
+        used.append((path[k], path[k + 1]))
+    return exit_side, entry, bends, _label_fraction(path, obstacles, label_size, labels)
+
+
+def _label_fraction(path: List[Point], obstacles: Sequence[Box], size: Optional[Tuple[float, float]],
+                    labels: Optional[List[Box]]):
+    lengths = [abs(b[0] - a[0]) + abs(b[1] - a[1]) for a, b in zip(path, path[1:])]
+    total = sum(lengths) or 1.0
+    w, h = size or (60.0, 16.0)
+    taken = labels if labels is not None else []
+    order = sorted(range(len(lengths)), key=lambda k: (-lengths[k], k))
+    def free(box):
+        return not any(_overlap(box, o) > 0.05 * w * h for o in list(obstacles) + taken)
+
+    for t in (0.5, 0.3, 0.7, 0.15, 0.85):
+        for k in order:
+            (x1, y1), (x2, y2) = path[k], path[k + 1]
+            mx, my = x1 + (x2 - x1) * t, y1 + (y2 - y1) * t
+            box = (mx - w / 2, my - h / 2, w, h)
+            if free(box):
+                taken.append(box)
+                return (sum(lengths[:k]) + lengths[k] * t) / total
+    # no free spot on the path (a short edge between neighbours): the label moves beside the path
+    k = order[0]
+    (x1, y1), (x2, y2) = path[k], path[k + 1]
+    mx, my = (x1 + x2) / 2, (y1 + y2) / 2
+    frac = (sum(lengths[:k]) + lengths[k] / 2) / total
+    for d in range(20, 200, 10):
+        for dx, dy in ((0, d), (0, -d), (d, 0), (-d, 0)):
+            box = (mx + dx - w / 2, my + dy - h / 2, w, h)
+            if free(box):
+                taken.append(box)
+                return frac, (float(dx), float(dy))
+    return frac
+
+
+def _overlap(a: Box, b: Box) -> float:
+    ox = max(0.0, min(a[0] + a[2], b[0] + b[2]) - max(a[0], b[0]))
+    oy = max(0.0, min(a[1] + a[3], b[1] + b[3]) - max(a[1], b[1]))
+    return ox * oy

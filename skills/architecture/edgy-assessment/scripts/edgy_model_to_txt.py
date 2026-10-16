@@ -239,6 +239,27 @@ def model_page(model, lang, name="Model"):
     return lines
 
 
+def _view_page(name, keys):
+    return [f'  - name: "{name}"'] + [f"    {k}: {v}" for k, v in keys]
+
+
+@register_view("application")
+def _application_view(model, lang):
+    """Application map grouped by the capability that requires each application (Shared strip for
+    applications several areas need without a primary link)."""
+    return [_view_page("Application map", [("map_type", "application"), ("group_by", "capability")])]
+
+
+@register_view("process-chain")
+def _process_chain_view(model, lang):
+    return [_view_page("Process landscape", [("map_type", "process"), ("process_view", "chain")])]
+
+
+@register_view("process-swimlane")
+def _process_swimlane_view(model, lang):
+    return [_view_page("Process swimlanes", [("map_type", "process"), ("process_view", "swimlane")])]
+
+
 def build_views(model, views, lang):
     """One multi-page TXT: the model page and the requested view pages."""
     unknown = [v for v in views if v not in VIEW_WRITERS]

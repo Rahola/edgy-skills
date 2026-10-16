@@ -15,16 +15,91 @@ Standard library only.
 
 from typing import List
 
-DERIVED_MAP_TYPES = set()   # filled by the view sprints (capability-view, capability-matrix, …)
+DERIVED_MAP_TYPES = set()   # always derived (capability-view, capability-matrix — Sprint 24)
+# derived when the page has no elements of its own: the view is drawn from the document graph
+FILLED_WHEN_EMPTY = {'application', 'process'}
+APP_KINDS = ('application', 'platform', 'integration')
 
 
 def is_derived(parser) -> bool:
-    return (parser.map_type or '') in DERIVED_MAP_TYPES
+    mt = parser.map_type or ''
+    return mt in DERIVED_MAP_TYPES or (mt in FILLED_WHEN_EMPTY and not parser.elements)
 
 
 def materialize(parser, graph) -> None:
     """Fill a derived view page from the graph (no-op for ordinary pages)."""
-    return None
+    if graph is None:
+        return
+    mt = parser.map_type or ''
+    fill = {'application': _application, 'process': _process}.get(mt) if mt in FILLED_WHEN_EMPTY else None
+    fill = fill or _DERIVED.get(mt)
+    if fill is None:
+        return
+    nodes, rels = fill(parser, graph)
+    if not nodes:
+        msg = f"{mt}: the document graph has nothing to draw on this view (no matching element with an explicit id)"
+        parser.warnings.append(msg)
+        return
+    lines = ['elements:'] + [element_line(n) for n in nodes] + ['relationships:'] + [
+        relationship_line(r['source'], r['target'], r['verb'], r.get('options')) for r in rels]
+    parser.parse_input('\n'.join(lines))
+    parser.derived_from_graph = True
+
+
+_DERIVED = {}
+
+
+def _edges_among(graph, ids, verbs=None):
+    ids = set(ids)
+    out, seen = [], set()
+    for e in graph.edges:
+        if e['source'] in ids and e['target'] in ids and (verbs is None or e['verb'] in verbs):
+            key = (e['source'], e['target'], e['verb'])
+            if key not in seen:
+                seen.add(key)
+                out.append(e)
+    return out
+
+
+def _application(parser, graph):
+    apps = [n for n in graph.of_type('asset') if n.get('kind') in APP_KINDS and n['explicit']]
+    ids = {n['id'] for n in apps}
+    extra = []
+    for e in graph.edges:
+        src, tgt = graph.get(e['source']), graph.get(e['target'])
+        if not src or not tgt:
+            continue
+        if tgt['id'] in ids and src['type'] in ('capability', 'organisation') and src['id'] not in ids:
+            extra.append(src)
+            ids.add(src['id'])
+        if e['verb'] == 'transfers' and src['id'] in ids:
+            for d in (e['options'].get('data') or []):
+                node = graph.get(d)
+                if node and node['id'] not in ids:
+                    extra.append(node)
+                    ids.add(node['id'])
+    nodes = apps + extra
+    return nodes, _edges_among(graph, ids, {'requires', 'manages', 'transfers', 'stores'})
+
+
+def _process(parser, graph):
+    procs = [n for n in graph.of_type('process') if n['explicit']]
+    ids = {n['id'] for n in procs}
+    extra = []
+    swim = (parser.view.get('process_view') or '').lower() == 'swimlane'
+    for e in graph.edges:
+        src, tgt = graph.get(e['source']), graph.get(e['target'])
+        if not src or not tgt:
+            continue
+        if swim and tgt['id'] in ids and src['type'] in ('organisation', 'people') and src['id'] not in ids \
+                and e['verb'] == 'performs':
+            extra.append(src)
+            ids.add(src['id'])
+        if swim and src['id'] in ids and tgt['type'] == 'asset' and e['verb'] == 'requires' and tgt['id'] not in ids:
+            extra.append(tgt)
+            ids.add(tgt['id'])
+    verbs = {'contains', 'flows', 'performs', 'requires'} if swim else {'contains', 'flows'}
+    return procs + extra, _edges_among(graph, ids, verbs)
 
 
 def quote(text: str) -> str:
@@ -64,6 +139,8 @@ def relationship_line(source: str, target: str, verb: str, options: dict = None,
     for k in ('crud', 'technology', 'container', 'change', 'from', 'to'):
         if opts.get(k):
             parts.append(f"{k}: {_val(opts[k])}")
+    if opts.get('primary') is True:
+        parts.append("primary: true")
     if opts.get('data'):
         parts.append("data: " + _val('; '.join(opts['data'])))
     tail = f" {{{', '.join(parts)}}}" if parts else ''

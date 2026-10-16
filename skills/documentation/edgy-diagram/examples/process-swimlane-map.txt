@@ -1,0 +1,39 @@
+# Swimlane process map (architecture view, edgy-diagram 2.8.0): process_view: swimlane draws
+# one lane per actor that performs a step (Organisation → Process: performs), the
+# steps in input order as a staircase, and the assets a step requires as a chip line under it.
+# Lanes and chips replace the performs / requires edges (reported). Fictional (Acme Transit).
+map_type: process
+process_view: swimlane
+language: en
+legend: strip
+
+elements:
+  - organisation: "Passengers"
+  - organisation: "Customer service"
+  - organisation: "Finance"
+  - process: "Request a refund" {id: PRO-71}
+  - process: "Check the ticket" {id: PRO-72}
+  - process: "Approve the refund" {id: PRO-73}
+  - process: "Pay the refund" {id: PRO-74}
+  - process: "Confirm to the passenger" {id: PRO-75}
+  - asset: "Customer portal" {id: APP-02, kind: application}
+  - asset: "CRM" {id: APP-03, kind: application}
+  - asset: "Fare engine" {id: APP-07, kind: application}
+  - asset: "ERP" {id: APP-20, kind: application}
+
+relationships:
+  - "Passengers" -> "PRO-71": "performs"
+  - "Customer service" -> "PRO-72": "performs"
+  - "Customer service" -> "PRO-73": "performs"
+  - "Finance" -> "PRO-74": "performs"
+  - "Customer service" -> "PRO-75": "performs"
+  - "PRO-71" -> "APP-02": "requires"
+  - "PRO-72" -> "APP-07": "requires"
+  - "PRO-72" -> "APP-03": "requires"
+  - "PRO-73" -> "APP-03": "requires"
+  - "PRO-74" -> "APP-20": "requires"
+  - "PRO-75" -> "APP-03": "requires"
+  - "PRO-71" -> "PRO-72": "flows"
+  - "PRO-72" -> "PRO-73": "flows"
+  - "PRO-73" -> "PRO-74": "flows"
+  - "PRO-74" -> "PRO-75": "flows"

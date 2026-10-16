@@ -80,6 +80,14 @@ class DocumentGraph:
         vs = {v.lower() for v in verbs} if verbs else None
         return [e for e in self.edges if e['target'] == mid and (vs is None or e['verb'] in vs)]
 
+    def add_page(self, name: str, parser) -> None:
+        """Occurrences of a page drawn from the graph (derived view, expanded page): its elements are
+        model elements already — no identity checks, only where they are drawn."""
+        for eid, e in parser.elements.items():
+            node = self.get(parser.model_id(e)[0])
+            if node is not None and not any(pr is parser and x == eid for _n, pr, x in node['occurrences']):
+                node['occurrences'].append((name, parser, eid))
+
     def require_explicit(self, mids: Iterable[str]) -> List[str]:
         """Model ids that are slugs — a derived view cannot use them for cross-view identity."""
         return [m for m in mids if m in self.nodes and not self.nodes[m]['explicit']]
@@ -94,7 +102,8 @@ class DocumentGraph:
                 'kind': n.get('kind'), 'attributes': dict(n.get('attrs') or {}),
                 'change': n.get('change'), 'tags': list(n.get('tags') or []),
                 'occurrences': [{'page': p, 'page_id': pr.page_id, 'cell': pr.cell_of.get(eid)}
-                                for p, pr, eid in n['occurrences'] if pr.page_id and pr.draw],
+                                for p, pr, eid in n['occurrences']
+                                if pr.page_id and pr.draw and (not pr.cell_of or eid in pr.cell_of)],   # drawn only
             } for n in (self.nodes[m] for m in self.order)],
             'relationships': [{
                 'source': e['source'], 'target': e['target'], 'verb': e['verb'], 'kind': e['kind'],

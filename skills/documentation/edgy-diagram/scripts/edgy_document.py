@@ -124,6 +124,7 @@ def parse_document(text: str, with_graph: bool = False):
         if parser is not None:
             if edgy_views.is_derived(parser):
                 edgy_views.materialize(parser, graph)
+                graph.add_page(name or default_page_name(parser), parser)
             if parser.draw:
                 result.append((name, parser))
             continue
@@ -137,7 +138,9 @@ def parse_document(text: str, with_graph: bool = False):
             p.parse_input(f"focus: {node['id']}\n" + stripped)
             if edgy_views.is_derived(p):
                 edgy_views.materialize(p, graph)
-            result.append((f"{base} · {node['id']} {node['name']}", p))
+            page_name = f"{base} · {node['id']} {node['name']}"
+            graph.add_page(page_name, p)
+            result.append((page_name, p))
         if problems:
             holder = result[-1][1] if result else (parsed[0][1] or EDGYParser())
             for msg in problems:

@@ -8,7 +8,7 @@
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
 # edgy-tests, edgy-geometry-tests, edgy-lint-tests, edgy-render-tests,
 # edgy-structure-tests, edgy-tool-tests, edgy-model, edgy-model-diff-tests, edgy-archimate-tests,
-# edgy-graph-tests, edgy-examples-golden, edgy-contract, edgy-present, edgy-model-compat, edgy-official-shapes, edgy-eval, edgy-lint,
+# edgy-graph-tests, edgy-examples-golden, edgy-contract, edgy-architecture, edgy-present, edgy-model-compat, edgy-official-shapes, edgy-eval, edgy-lint,
 # edgy-lint-strict, edgy-series, edgy-qa,
 # privacy-scan.
 #
@@ -215,6 +215,7 @@ run_step "edgy-semantic-tests" python3 "$EDGY_SCRIPTS/test_semantic.py"
 run_step "edgy-graph-tests" python3 "$EDGY_SCRIPTS/test_graph.py"
 run_step "edgy-examples-golden" python3 "$EDGY_SCRIPTS/test_examples.py"
 run_step "edgy-contract" python3 "$EDGY_SCRIPTS/test_contract.py"
+run_step "edgy-architecture" python3 "$EDGY_SCRIPTS/test_architecture.py"
 # Presenter: static checks always; the headless-Chrome self-test is a visible WARN (exit 2) without Chrome
 # locally and a FAIL in CI (test_present.py exits 1 there when Chrome is missing)
 present_out=$(python3 "$EDGY_SCRIPTS/test_present.py" 2>&1); present_rc=$?
@@ -283,7 +284,9 @@ edgy_lint_strict() {
         "$ex"/expected-triad-*.drawio "$ex"/expected-purpose.drawio "$ex"/expected-purpose-hierarchy.drawio \
         "$ex"/expected-capability-areas-nested.drawio "$ex"/expected-channel-matrix.drawio \
         "$ex"/expected-transition-roadmap.drawio "$ex"/expected-product-portfolio.drawio \
-        "$ex"/expected-outcome-web.drawio "$ex"/expected-capability-heatmap.drawio "$tmp"/*.drawio
+        "$ex"/expected-outcome-web.drawio "$ex"/expected-capability-heatmap.drawio \
+        "$ex"/expected-application.drawio "$ex"/expected-application-by-capability.drawio \
+        "$ex"/expected-process-chain.drawio "$ex"/expected-process-swimlane.drawio "$tmp"/*.drawio
     local rc=$?
     rm -rf "$tmp"
     return $rc
