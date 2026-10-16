@@ -282,6 +282,9 @@ def main():
     parser.add_argument('--graph', metavar='PATH',
                        help='Also write the document graph as JSON (model ids, occurrences with page and cell, '
                             'relationships) — assets/edgy-graph.schema.json, extension contract 1')
+    parser.add_argument('--present', metavar='HTML',
+                       help='Also write a self-contained presentation (edgy_present.py, presenter-lite): card wall, '
+                            'zoom, cross-view highlight, search, current/target filter, paging — offline, no network')
     parser.add_argument('--no-layout-quality', action='store_true',
                        help='qa.json: run the lint without the layout-quality rules W117–W120 (recorded in the manifest)')
 
@@ -410,6 +413,18 @@ def main():
             _json.dump(graph.to_json(), f, ensure_ascii=False, indent=1)
             f.write('\n')
         print(f"Document graph: {args.graph}")
+    if args.present:
+        if fmt != 'drawio':
+            print("Error: --present needs the .drawio output (the default --format drawio)", file=sys.stderr)
+            sys.exit(2)
+        import edgy_present
+        stats = edgy_present.write(temp_drawio_path, args.present, graph.to_json(),
+                                   title=heading[0] if heading and heading[0] else None,
+                                   lang=edgy_parser.language)
+        print(f"Presentation: {args.present} — {stats['pages']} view(s), {stats['bytes'] / 1024:.0f} KB")
+        if stats['bytes'] > stats['budget']:
+            print(f"Error: the presentation is over its size budget ({stats['budget'] / 1048576:.2f} MB)", file=sys.stderr)
+            sys.exit(3)
 
     def write_qa(previews, manifest=None):
         # qa.json: samat luvut evalille, assessmentin Phase 5:lle ja katselmoijalle; hyväksyntäkentät jäävät null.

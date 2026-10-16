@@ -61,7 +61,68 @@ NATIVE_PRESETS = {
 }
 TITLE_FS, FOOTNOTE_FS = 18, 11
 
-style_dict = geo.style_dict
+_style_dict = geo.style_dict
+COLOUR_RE = re.compile(r'^#[0-9a-fA-F]{3,8}$')
+ID_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._:/-]*$')
+WORD_RE = re.compile(r'^[a-z0-9-]+$')
+_COLOUR_KEYS = ('fillColor', 'strokeColor', 'fontColor', 'labelBackgroundColor')
+_NUMBER_KEYS = ('strokeWidth', 'fontSize', 'arcSize', 'dx', 'dy', 'spacingLeft', 'spacingTop', 'opacity')
+
+
+def style_dict(style):
+    """draw.io style → dict, hardened for inlining into HTML (extension contract 1, §3): a colour must be
+    #rgb … #rrggbbaa or none, a number must parse as a float; anything else falls back to the default —
+    a hand-edited `fillColor=#fff" onmouseover="…` never reaches an attribute."""
+    st = _style_dict(style)
+    for k in _COLOUR_KEYS:
+        if k in st and st[k] != 'none' and not COLOUR_RE.match(st[k] or ''):
+            del st[k]
+    for k in _NUMBER_KEYS:
+        if k in st:
+            try:
+                float(st[k])
+            except (TypeError, ValueError):
+                del st[k]
+    return st
+
+
+def _num(v, default: float) -> float:
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return default
+
+
+def _attr_id(v: Optional[str]) -> Optional[str]:
+    return v if v and ID_RE.match(v) else None
+
+
+def _word(v: Optional[str]) -> Optional[str]:
+    return v.lower() if v and WORD_RE.match(v.lower()) else None
+
+
+def edge_kind(st) -> str:
+    """link / flow / tree / influence from the edge style, as the generator draws them."""
+    if st.get('endArrow') == 'none':
+        return 'tree'
+    if st.get('dashed') == '1' and st.get('edgyChange') != 'decide':
+        return 'influence'
+    if st.get('endArrow') == 'classic' and st.get('endFill', '1') != '0':
+        return 'link'
+    return 'flow'
+
+
+def deco_role(c, st) -> str:
+    role = st.get('edgyRole')
+    if role in ('badge-key',):
+        return 'legend'
+    if role:
+        return _word(role) or 'other'
+    if st.get('container') == '1':
+        return 'container'
+    if st.get('strokeColor') == 'none' and st.get('verticalAlign') == 'top':
+        return 'lane'
+    return 'other'
 
 
 def label_lines(value: str) -> List[Tuple[str, Optional[bool], Optional[float]]]:
@@ -116,6 +177,20 @@ class Page:
 
     def abs_box(self, cid):
         return geo.abs_box(self.cells, cid, self._abs)
+
+    def model_id(self, cid: Optional[str]) -> Optional[str]:
+        """edgyId of a cell (None for hand-drawn cells and decorations)."""
+        c = self.cells.get(cid) if cid else None
+        if c is None:
+            return None
+        st = _style_dict(c.get('style'))
+        return None if st.get('edgyRole') else st.get('edgyId')
+
+    def owner_id(self, cid: str) -> Optional[str]:
+        """Model id of the element a decoration belongs to (a badge is a child cell of its card)."""
+        c = self.cells.get(cid)
+        parent = c.get('parent') if c is not None else None
+        return _attr_id(self.model_id(parent))
 
     def edge_path(self, c):
         """Polyline of an edge cell — the same route the linter checks."""
@@ -201,6 +276,22 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
             continue
         x, y, w, h = box
         st = style_dict(c.get('style'))
+        mid = _attr_id(st.get('edgyId'))
+        if mid and not st.get('edgyRole'):
+            attrs = [f'data-id="{esc(mid)}"']
+            occ = st.get('edgyOcc')
+            if occ and re.match(r'^[a-z0-9-]+/\d+$', occ):
+                attrs.append(f'data-occ="{esc(occ)}"')
+            for key, name in (('edgyType', 'type'), ('edgyKind', 'kind'), ('edgyFacet', 'facet'), ('edgyChange', 'change')):
+                if _word(st.get(key)):
+                    attrs.append(f'data-{name}="{_word(st.get(key))}"')
+            if st.get('edgyIdSource') == 'slug':
+                attrs.append('data-id-source="slug"')
+            parts.append(f'<g class="el" {" ".join(attrs)}>')
+        else:
+            owner = page.owner_id(cid)
+            extra = f' data-for="{esc(owner)}"' if owner else ''
+            parts.append(f'<g class="deco" data-role="{deco_role(c, st)}"{extra}>')
         fill = st.get('fillColor', '#ffffff')
         stroke = st.get('strokeColor', '#000000')
         sw = st.get('strokeWidth', '1')
@@ -214,11 +305,11 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
         is_text = 'text' in st and st.get('text') == '1'
         is_line = st.get('line') == '1'
         if is_line:
-            parts.append(f'<line x1="{x}" y1="{y + h / 2}" x2="{x + w}" y2="{y + h / 2}" stroke="{stroke if stroke != "none" else "#cccccc"}" stroke-width="{sw}"/>')
+            parts.append(f'<line x1="{x}" y1="{y + h / 2}" x2="{x + w}" y2="{y + h / 2}" stroke="{stroke if stroke != "none" else "#cccccc"}" stroke-width="{sw}"/></g>')
             continue
         if not is_text:
             if 'arrows2.arrow' in shape:
-                n = min(float(st.get('dx', 20) or 20), w * 0.3)
+                n = min(_num(st.get('dx'), 20) or 20, w * 0.3)
                 pts = f'{x},{y} {x + w - n},{y} {x + w},{y + h / 2} {x + w - n},{y + h} {x},{y + h}'
                 parts.append(f'<polygon points="{pts}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"{dash}/>')
             elif 'person' in shape:
@@ -227,20 +318,22 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
             else:
                 rx = 0.0
                 if st.get('rounded') == '1':
-                    arc = float(st.get('arcSize', 30) or 30)
+                    arc = _num(st.get('arcSize'), 30) or 30
                     rx = min(w, h) * arc / 200.0
                 parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx:.1f}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"{dash}{opacity}/>')
         elif fill not in ('none', '#ffffff', '') and fill.startswith('#'):
             # legend colour chip rendered as small text background
             parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="3" fill="{fill}"/>')
         # label
-        fs_default = float(st.get('fontSize', 12) or 12)
+        fs_default = _num(st.get('fontSize'), 12) or 12
         bold_default = st.get('fontStyle') in ('1', '3', '5', '7')
         color = st.get('fontColor', '#000000')
         align = st.get('align', 'center')
         valign = st.get('verticalAlign', 'middle')
-        pad_l = float(st.get('spacingLeft', 0) or 0)
-        pad_t = float(st.get('spacingTop', 0) or 0)
+        pad_l = _num(st.get('spacingLeft'), 0)
+        pad_t = _num(st.get('spacingTop'), 0)
+        align = align if align in ('left', 'right', 'center') else 'center'
+        valign = valign if valign in ('top', 'bottom', 'middle') else 'middle'
         lines_spec = label_lines(c.get('value') or '')
         rows: List[Tuple[str, bool, float]] = []
         for text, weight, size in lines_spec:
@@ -250,6 +343,7 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
             for ln in wrap(text, max(w - 10 - pad_l, 20), fs, bold):
                 rows.append((ln, bold, fs))
         if not rows:
+            parts.append('</g>')
             continue
         total_h = sum(fs * LINE_H for _, _, fs in rows)
         if valign == 'top':
@@ -269,6 +363,7 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
             weight = ' font-weight="bold"' if bold else ''
             parts.append(f'<text x="{tx:.1f}" y="{cy:.1f}" font-family="{FONT}" font-size="{fs}" fill="{color}" text-anchor="{anchor}"{weight}>{esc(ln)}</text>')
             cy += fs * (LINE_H - 1)
+        parts.append('</g>')
 
     # edges
     for cid in page.order:
@@ -280,6 +375,15 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
         if path is None or len(path) < 2:
             continue
         _points, _sp, _tp, offset, rel_x, rel_y = geo.edge_points(c)
+        src_id = _attr_id(page.model_id(c.get('source')))
+        tgt_id = _attr_id(page.model_id(c.get('target')))
+        if src_id and tgt_id:
+            verb = esc(' '.join(t for t, _, _ in label_lines(c.get('value') or '')[:1]).lower())
+            change = _word(st.get('edgyChange'))
+            parts.append(f'<g class="edge" data-src="{esc(src_id)}" data-tgt="{esc(tgt_id)}" data-verb="{verb}" '
+                         f'data-kind="{edge_kind(st)}"' + (f' data-change="{change}"' if change else '') + '>')
+        else:
+            parts.append(f'<g class="deco" data-role="{"legend" if not c.get("source") and not c.get("target") else "other"}">')
         color = st.get('strokeColor', '#000000')
         if color == 'none':
             color = '#000000'
@@ -301,7 +405,7 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
         lab_lines = [t for t, _, _ in label_lines(c.get('value') or '')]
         lab = '\n'.join(lab_lines)
         if lab:
-            fs = float(st.get('fontSize', 11) or 11)
+            fs = _num(st.get('fontSize'), 11) or 11
             fc = st.get('fontColor', '#000000')
             lbox = geo.edge_label_box(path, lab, fs, rel_x, rel_y, offset)
             if lbox:
@@ -313,6 +417,7 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
                     if k:
                         ty += f * geo.LABEL_H
                     parts.append(f'<text x="{lx + lw / 2:.1f}" y="{ty:.1f}" font-family="{FONT}" font-size="{f}" fill="{fc}" text-anchor="middle">{esc(ln)}</text>')
+        parts.append('</g>')
 
     pad = NATIVE_PRESETS[preset]['margin'] if preset else (24 if publication else 20)
     if preset:

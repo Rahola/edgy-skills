@@ -1434,6 +1434,8 @@ class EDGYParser:
         facet = FACET_OF_TYPE.get(element['type'])
         if facet:
             out += f"edgyFacet={facet};"
+        if element.get('change'):
+            out += f"edgyChange={element['change']};"
         out += f"edgyOcc={self.page_id or 'page'}/{cell_id};"
         return out
 
@@ -1715,6 +1717,7 @@ class EDGYParser:
                 style += f"strokeColor={color};fontColor={color};strokeWidth=1.5;"
                 if dashed:
                     style += "dashed=1;dashPattern=8 4;"
+                style += f"edgyChange={change};"
             value = " / ".join(self._render_verb(v, (self.elements[rel['source']]['type'], self.elements[rel['target']]['type']))
                                for v in rel['labels'])
             detail = self._edge_detail(rel.get('details') or {})
@@ -1744,10 +1747,16 @@ class EDGYParser:
             next_id += 1
 
         # 4) Legenda: laatikko oikeaan alakulmaan tai nauha alareunaan
+        legend_start = next_id
         if legend_mode == 'strip':
             self._append_legend_strip(mx_root, next_id, page_width, page_height)
         else:
             self._append_legend_cells(mx_root, next_id, page_width, page_height)
+        for cell in mx_root.findall('mxCell'):
+            # edgyRole=legend (extension contract 1): consumers never treat a legend cell as an element
+            cid = cell.get('id') or ''
+            if cid.isdigit() and int(cid) >= legend_start and 'edgyRole=' not in (cell.get('style') or ''):
+                cell.set('style', (cell.get('style') or '') + 'edgyRole=legend;')
         return self._prettify_xml(root)
 
     # Legendan värit ja viivatyylit; tekstit tulevat LEGEND_TEXT[language]-taulusta

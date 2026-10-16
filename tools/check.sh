@@ -8,7 +8,7 @@
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
 # edgy-tests, edgy-geometry-tests, edgy-lint-tests, edgy-render-tests,
 # edgy-structure-tests, edgy-tool-tests, edgy-model, edgy-model-diff-tests, edgy-archimate-tests,
-# edgy-graph-tests, edgy-examples-golden, edgy-contract, edgy-model-compat, edgy-official-shapes, edgy-eval, edgy-lint,
+# edgy-graph-tests, edgy-examples-golden, edgy-contract, edgy-present, edgy-model-compat, edgy-official-shapes, edgy-eval, edgy-lint,
 # edgy-lint-strict, edgy-series, edgy-qa,
 # privacy-scan.
 #
@@ -215,6 +215,20 @@ run_step "edgy-semantic-tests" python3 "$EDGY_SCRIPTS/test_semantic.py"
 run_step "edgy-graph-tests" python3 "$EDGY_SCRIPTS/test_graph.py"
 run_step "edgy-examples-golden" python3 "$EDGY_SCRIPTS/test_examples.py"
 run_step "edgy-contract" python3 "$EDGY_SCRIPTS/test_contract.py"
+# Presenter: static checks always; the headless-Chrome self-test is a visible WARN (exit 2) without Chrome
+# locally and a FAIL in CI (test_present.py exits 1 there when Chrome is missing)
+present_out=$(python3 "$EDGY_SCRIPTS/test_present.py" 2>&1); present_rc=$?
+if [ $present_rc -eq 0 ]; then
+    log_ok "edgy-present"
+elif [ $present_rc -eq 2 ]; then
+    log_warn "edgy-present" "browser self-test skipped — no Chromium/Chrome (set EDGY_CHROMIUM)"
+    WARN=1
+    [ $EXIT_CODE -eq 0 ] && EXIT_CODE=2
+else
+    log_fail "edgy-present"
+    printf '%s\n' "$present_out" >&2
+    EXIT_CODE=1
+fi
 
 # --- Vaihe 3c2: edgy-model.json-skeema + malli → TXT ------------------------
 # Jokaisen repoon kuuluvan *model*.json-esimerkin on vastattava skeemaa, ja
