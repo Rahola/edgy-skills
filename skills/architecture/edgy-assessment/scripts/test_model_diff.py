@@ -179,26 +179,33 @@ def test_model_19_attributes_and_relationships():
 
 def test_model_19_transition_draws_what_changes_and_lints_clean():
     cur = json.loads((HERE.parent / "examples" / "architecture-model.json").read_text(encoding="utf-8"))
-    tgt = copy.deepcopy(cur)
-    app = next(a for a in tgt["elements"]["asset"] if a.get("id") == "APP-07")
-    app["name"], app["time"] = "Pricing engine", "eliminate"
-    tgt["relationships"] = [r for r in tgt["relationships"] if (r["source_id"], r["target_id"]) != ("CAP-04", "APP-07")]
-    tgt["relationships"].append({"source_id": "CAP-04", "target_id": "APP-06", "verb": "requires"})
-    result = md.compare(cur, tgt)
-    txt = md.to_txt(result, cur, tgt)
-    assert "route: auto" in txt and "change: keep}" in txt
-    assert txt.count(" -> ") == 2 and txt.count("  - capability:") == 1, txt
-    full = md.to_txt(result, cur, tgt, full=True)
-    assert full.count(" -> ") > 40
-    with tempfile.TemporaryDirectory() as tmp:
-        src = Path(tmp) / "t.txt"
-        src.write_text(txt, encoding="utf-8")
-        out = Path(tmp) / "t.drawio"
-        subprocess.run([sys.executable, str(DIAGRAM / "scripts" / "edgy_generator.py"), str(src), "--output", str(out)],
-                       check=True, capture_output=True)
-        lint = subprocess.run([sys.executable, str(DIAGRAM / "scripts" / "edgy_lint.py"), "--warnings-as-errors",
-                               str(out)], capture_output=True, text=True)
-        assert lint.returncode == 0, lint.stdout
+    # the name length changes card widths, ports and label room: a fixed name once hid a W112 (Codex retest)
+    for name in ("Pricing engine", "Renamed fare application", "X",
+                 "A very much longer renamed fare application name"):
+        tgt = copy.deepcopy(cur)
+        app = next(a for a in tgt["elements"]["asset"] if a.get("id") == "APP-07")
+        app["name"], app["time"] = name, "eliminate"
+        tgt["relationships"] = [r for r in tgt["relationships"]
+                                if (r["source_id"], r["target_id"]) != ("CAP-04", "APP-07")]
+        tgt["relationships"].append({"source_id": "CAP-04", "target_id": "APP-06", "verb": "requires"})
+        for r in tgt["relationships"]:
+            if (r["source_id"], r["target_id"]) == ("PRO-21", "DAT-01"):
+                r["attributes"] = {"crud": "R"}
+        result = md.compare(cur, tgt)
+        txt = md.to_txt(result, cur, tgt)
+        assert "route: auto" in txt and "change: keep}" in txt
+        assert txt.count(" -> ") == 3 and txt.count("  - capability:") == 1, txt
+        assert md.to_txt(result, cur, tgt, full=True).count(" -> ") > 40
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "t.txt"
+            src.write_text(txt, encoding="utf-8")
+            out = Path(tmp) / "t.drawio"
+            env = {**os.environ, "EDGY_TEXT_TABLE_ONLY": "1"}
+            subprocess.run([sys.executable, str(DIAGRAM / "scripts" / "edgy_generator.py"), str(src), "--output",
+                            str(out)], check=True, capture_output=True, env=env)
+            lint = subprocess.run([sys.executable, str(DIAGRAM / "scripts" / "edgy_lint.py"), "--warnings-as-errors",
+                                   str(out)], capture_output=True, text=True, env=env)
+            assert lint.returncode == 0, (name, lint.stdout)
 
 
 def main():

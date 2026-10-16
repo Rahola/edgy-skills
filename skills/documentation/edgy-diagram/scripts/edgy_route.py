@@ -25,6 +25,7 @@ MARGIN = 10.0            # channel line distance from a card edge (matrix gaps a
 BEND = 60.0              # cost of a bend, in px of length
 REUSE = 2000.0           # running along a segment an earlier edge already uses: two edges on one line read as one (a false link), so only when nothing else exists
 SIDES = ('right', 'left', 'bottom', 'top')
+LABEL_FS = 11.0          # edge label font size (px): the generator and the renderer use the same
 
 
 def _port(box: Box, side: str, frac: float = 0.5) -> Point:
@@ -173,6 +174,10 @@ def _label_fraction(path: List[Point], obstacles: Sequence[Box], size: Optional[
     lengths = [abs(b[0] - a[0]) + abs(b[1] - a[1]) for a, b in zip(path, path[1:])]
     total = sum(lengths) or 1.0
     w, h = size or (60.0, 16.0)
+    # the same box edgy_geometry.edge_label_box draws: the first line centred on the anchor, raised
+    # 0.6 × font size above the path when the label sits on it (no offset); further lines below
+    first_h = min(h, LABEL_FS * 1.3)
+    raise_on_path = LABEL_FS * 0.6
     taken = labels if labels is not None else []
     order = sorted(range(len(lengths)), key=lambda k: (-lengths[k], k))
     def free(box):
@@ -190,7 +195,7 @@ def _label_fraction(path: List[Point], obstacles: Sequence[Box], size: Optional[
         for t in ts:
             (x1, y1), (x2, y2) = path[k], path[k + 1]
             mx, my = x1 + (x2 - x1) * t, y1 + (y2 - y1) * t
-            box = (mx - w / 2, my - h / 2, w, h)
+            box = (mx - w / 2, my - raise_on_path - first_h / 2, w, h)
             frac = (sum(lengths[:k]) + lengths[k] * t) / total
             if free(box):
                 taken.append(box)
@@ -208,7 +213,7 @@ def _label_fraction(path: List[Point], obstacles: Sequence[Box], size: Optional[
                 frac = (sum(lengths[:k]) + lengths[k] * t) / total
                 for ux, uy in across + (along if d >= 20 else ()):
                     dx, dy = ux * d, uy * d
-                    box = (mx + dx - w / 2, my + dy - h / 2, w, h)
+                    box = (mx + dx - w / 2, my + dy - first_h / 2, w, h)
                     if free(box):
                         taken.append(box)
                         return frac, (float(dx), float(dy))

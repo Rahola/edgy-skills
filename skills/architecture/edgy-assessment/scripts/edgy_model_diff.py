@@ -244,6 +244,8 @@ def to_txt_changes(result):
              "# replace / decide are judgements the tool never makes — set them by hand where they apply.",
              # no facet containers: a handful of cards in one column would leave labels no room between them
              f"language: {lang if lang in m2t.VERB_KEY else 'en'}", "route: auto", "legend: strip",
+             "# map_type: asset is the plain grid (about √N columns); in one row long names grow too wide",
+             "map_type: asset",
              "", "elements:"]
     for i in drawn:
         t, change, e, n = by_id[i]
