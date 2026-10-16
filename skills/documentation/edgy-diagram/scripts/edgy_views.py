@@ -38,7 +38,13 @@ def materialize(parser, graph) -> None:
         return
     nodes, rels = fill(parser, graph)
     if not nodes:
-        msg = f"{mt}: the document graph has nothing to draw on this view (no matching element with an explicit id)"
+        if mt == 'capability-matrix':
+            crud = (parser.view.get('matrix') or 'requires').lower() == 'crud'
+            msg = (f"capability matrix ({'crud' if crud else 'requires'}): the document has no "
+                   f"{'accesses link from a process to a data asset' if crud else 'requires link from a capability to an application'}"
+                   f" — the matrix is empty; add those links (with ids) or leave the page out")
+        else:
+            msg = f"{mt}: the document graph has nothing to draw on this view (no matching element with an explicit id)"
         parser.warnings.append(msg)
         return
     lines = ['elements:'] + [element_line(n) for n in nodes] + ['relationships:'] + [

@@ -306,6 +306,27 @@ def test_capability_views_from_the_model():
     assert gaps[('CAP-04', 'products')] == 'out_of_scope' and gaps[('CAP-06', 'products')] == 'not_investigated'
 
 
+def test_matrix_without_links_is_left_out_and_reported_once():
+    m2t = os.path.join(REPO, 'skills', 'architecture', 'edgy-assessment', 'scripts', 'edgy_model_to_txt.py')
+    src = os.path.join(REPO, 'skills', 'architecture', 'edgy-assessment', 'examples', 'architecture-model.json')
+    tmp = tempfile.mkdtemp()
+    model = json.load(open(src, encoding='utf-8'))
+    model['relationships'] = [r for r in model['relationships'] if r['verb'] != 'accesses']
+    path = os.path.join(tmp, 'm.json')
+    json.dump(model, open(path, 'w', encoding='utf-8'))
+    r = subprocess.run([sys.executable, m2t, path, '--views', 'all', '--out', tmp, '--prefix', 'a'],
+                       capture_output=True, text=True)
+    assert r.returncode == 0 and 'leaves out crud-matrix' in r.stderr, r.stderr
+    assert 'matrix: crud' not in open(os.path.join(tmp, 'a-views.txt'), encoding='utf-8').read()
+    r = subprocess.run([sys.executable, m2t, path, '--views', 'crud-matrix', '--out', tmp, '--prefix', 'b'],
+                       capture_output=True, text=True)
+    pages = parse_document(open(os.path.join(tmp, 'b-views.txt'), encoding='utf-8').read())
+    crud = pages[-1][1]
+    crud.generate_xml()
+    warns = [w for w in crud.warnings if 'matrix' in w]
+    assert len(warns) == 1 and 'no accesses link' in warns[0], crud.warnings
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

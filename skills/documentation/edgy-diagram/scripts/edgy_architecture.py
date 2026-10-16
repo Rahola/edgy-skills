@@ -753,7 +753,8 @@ def prepare_matrix(p) -> None:
     for eid in p.elements:
         if eid not in rs and eid not in cs:
             p._hidden.add(eid)
-    if not rows or not cols:
+    if (not rows or not cols) and p.elements and not getattr(p, 'derived_from_graph', False):
+        # a derived page that came out empty is already reported by edgy_views (what link is missing)
         _once(p, f"capability matrix ({kind}): needs {'capabilities and applications' if kind == 'requires' else 'processes and data assets'} on the page")
     n = sum(1 for r in p.relationships if r.get('suppressed'))
     if n:

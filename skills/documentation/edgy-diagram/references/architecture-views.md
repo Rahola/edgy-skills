@@ -48,7 +48,8 @@ pages:
   top of the `contains` hierarchy (L1 processes).
 - `edgy_model_to_txt.py MODEL.json --views application,process-chain,process-swimlane,capability,capability-matrix,crud-matrix`
   (or `--views all`) writes this multi-page TXT from an `edgy-model.json`
-  in format 1.9 (edgy-assessment).
+  in format 1.9 (edgy-assessment). `all` leaves out a matrix the model
+  cannot fill (no `requires` / no `accesses` relationships) and says so.
 - Identity rules: two different definitions of one id, or one id twice on a
   page, are **E014**; a relationship to an id that exists nowhere is **E015**.
   An element without `{id:}` gets a slug id (`edgyIdSource=slug`) — fine on

@@ -326,7 +326,14 @@ def main(argv=None):
         try:
             views = [v.strip() for v in args.views.split(",") if v.strip()]
             if views == ["all"]:
-                views = list(VIEW_WRITERS)
+                # all = every view the model can fill: a matrix without its links would be an empty page
+                verbs = {r.get("verb") for r in model.get("relationships") or [] if isinstance(r, dict)}
+                skip = {"crud-matrix": "accesses", "capability-matrix": "requires"}
+                views = [v for v in VIEW_WRITERS if skip.get(v, "") == "" or skip[v] in verbs]
+                for v, verb in skip.items():
+                    if verb not in verbs:
+                        print(f"edgy_model_to_txt: --views all leaves out {v} — the model has no {verb} relationships",
+                              file=sys.stderr)
             text = build_views(model, views, lang)
         except ValueError as e:
             print(f"edgy_model_to_txt: {e}", file=sys.stderr)

@@ -625,8 +625,10 @@ or duplicate id, **E015** relationship to an unknown id, **W124** application
 without an owner, **W125** integration without a data asset, **W126** band
 mismatch on a value chain, **W127** empty capability-view band with its
 evidence status (`{gaps: band=status}`, written to `qa.json`
-`model_gaps[]`). Read `references/architecture-views.md` before drawing any
-of these maps; examples: `examples/application-map.txt`,
+`model_gaps[]`). Not supported yet: **C4** diagrams (planned as the separate `edgy-c4`
+skill, v2.5.0) — say so and offer the application map or a capability view;
+`notation: c4` is E013 until that skill is installed. Read
+`references/architecture-views.md` before drawing any of these maps; examples: `examples/application-map.txt`,
 `examples/application-by-capability-map.txt`,
 `examples/process-chain-map.txt`, `examples/process-swimlane-map.txt`,
 `examples/capability-view-map.txt`.
