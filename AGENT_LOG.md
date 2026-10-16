@@ -63,6 +63,16 @@ before review.
   assessment cannot see most processes, and an empty band is evidence of
   the analysis, not of the company.
 
+- **A mistake, corrected:** in 21a I took ten examples on main for stale
+  and regenerated them. They were not: this container's Python had Pillow,
+  so text was measured with real fonts, while the examples (and CI) use the
+  glyph tables. CI on the draft PR failed on it. The gates and the
+  regeneration script now force the tables (`EDGY_TEXT_TABLE_ONLY=1`); all 35
+  pre-existing examples equal main except for the `edgy*` markers. The
+  same CI run showed the eval model's application map with a label off the
+  page under the tables — the label search now also tries offsets across
+  the segment at every sampled position.
+
 **Deviations from the plan:** §12 of the plan.
 
 ---

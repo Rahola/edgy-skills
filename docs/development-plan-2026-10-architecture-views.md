@@ -570,6 +570,11 @@ Recorded during Sprints 21a–24 (also in `AGENT_LOG.md`). None changes a
 promise of §9; each is either a simplification with the reason or an
 addition the eval set showed was needed.
 
+**Release order (owner decision, 2026-10-16).** v2.4.0 is tested (Vibe,
+Codex, Claude), reviewed, merged and tagged on its own. v2.5.0 (`edgy-c4`,
+F6b) starts afterwards from the released main, on its own branch and PR —
+nothing of it is in the v2.4.0 PR.
+
 | Plan | Implemented | Why |
 |------|-------------|-----|
 | F1 `edges: none \| bus \| direct`, default `bus` above 12 | `edges: direct \| none` (default `none` above 12: cards count their integrations, the presenter shows them on hover); dense maps use the new orthogonal router (`edgy_route.py`, `route: auto`) | a bus needs a shared node outside EDGY's elements and hides who talks to whom; routing through the channels between cards kept the example maps at 0 W111 / W112 |
@@ -584,7 +589,7 @@ addition the eval set showed was needed.
 | §8 eval with 0 errors and 0 visual findings | `check.sh` `edgy-architecture-views` also requires 0 lint warnings and 0 layout-quality findings, on the shipped model (`--views all`) and on the eval model | stricter gate, same inputs |
 | — | `qa.json` `generator_notes[]` (the generator's `Note:` lines) next to `model_gaps[]` | foldings (owners on cards, links shown as cells or membership) must be visible to a reviewer |
 | — | router places labels on the longest free segment first and never off the page | eval findings W112 / W114 |
-| — | ten stale `expected-*.drawio` on main; golden test (`edgy-examples-golden`) | found in 21a; a regeneration is now a test |
+| — | golden test (`edgy-examples-golden`); `check.sh` and `regen-examples.sh` force the glyph-table text metrics (`EDGY_TEXT_TABLE_ONLY=1`) | a regeneration is now a test. In 21a ten examples looked stale on main — a misreading: they had been measured with the glyph tables and the local run used Pillow fonts. Under the tables main was current; the 35 pre-existing examples now differ from main only in the `edgy*` markers (`tools/compare-style-only.py`). Found when CI (no Pillow) failed on the draft PR |
 
 ## Appendix A. Example inputs to add (all fictional)
 

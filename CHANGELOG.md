@@ -74,8 +74,11 @@ contract 1 (`edgyId`, `edgyType`, `edgyOcc` …) and every legend cell
   gate); eval `architecture-views.txt` (12 capabilities, 18 applications, 10
   data assets, 6 actors) — `check.sh` step `edgy-architecture-views`
   requires 0 lint findings and 0 visual findings on every view.
-- Fix: ten `expected-*.drawio` files on main were stale; a golden test now
-  regenerates every example in `check.sh`.
+- Golden test (`edgy-examples-golden`): every example is regenerated in
+  `check.sh` and must equal its `expected-*` file. The gates and
+  `tools/regen-examples.sh` measure text with the glyph tables
+  (`EDGY_TEXT_TABLE_ONLY=1`), the backend CI has — a local Pillow with real
+  fonts measures a pixel differently and must not move the examples.
 
 **edgy-assessment 1.10.0**
 - Model format **1.9** (additive): `relationships[]` between element ids,

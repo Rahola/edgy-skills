@@ -6,13 +6,13 @@
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
         <mxCell id="2" value="&lt;b&gt;Transit authority&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;steers and funds&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#80eaff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=organisation:transit-authority;edgyIdSource=slug;edgyType=organisation;edgyFacet=intersection;edgyOcc=summary/2;" vertex="1" parent="1">
-          <mxGeometry x="160" y="60" width="130" height="80" as="geometry"/>
+          <mxGeometry x="150" y="60" width="140" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="3" value="&lt;b&gt;Platform team&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;defines and produces&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#80eaff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=organisation:platform-team;edgyIdSource=slug;edgyType=organisation;edgyFacet=intersection;edgyOcc=summary/3;" vertex="1" parent="1">
-          <mxGeometry x="360" y="60" width="130" height="80" as="geometry"/>
+          <mxGeometry x="350" y="60" width="140" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="4" value="&lt;b&gt;Suppliers&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;build and operate&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#80eaff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=organisation:suppliers;edgyIdSource=slug;edgyType=organisation;edgyFacet=intersection;edgyOcc=summary/4;" vertex="1" parent="1">
-          <mxGeometry x="540" y="60" width="130" height="80" as="geometry"/>
+          <mxGeometry x="550" y="60" width="140" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="5" value="&lt;b&gt;Map capabilities&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;what we must be able to do&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=process:map-capabilities;edgyIdSource=slug;edgyType=process;edgyFacet=architecture;edgyOcc=summary/5;" vertex="1" parent="1">
           <mxGeometry x="60" y="230" width="200" height="80" as="geometry"/>

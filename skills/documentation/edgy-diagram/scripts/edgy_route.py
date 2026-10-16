@@ -182,26 +182,42 @@ def _label_fraction(path: List[Point], obstacles: Sequence[Box], size: Optional[
         return not any(_overlap(pad, o) > 0.05 * w * h for o in list(obstacles) + taken)
 
     # the longest segment first, at any free position along it, before a shorter one: a label in the middle of
-    # a long channel reads better than one squeezed beside a card at the end of a short stub
+    # a long channel reads better than one squeezed beside a card at the end of a short stub. The preferred
+    # positions come first, then every 5 % — the free gap between two rows of cards is often narrow
+    ts = (0.5, 0.3, 0.7, 0.15, 0.85) + tuple(k / 20 for k in range(1, 20) if k not in (3, 6, 10, 14, 17))
+    candidates = []
     for k in order:
-        for t in (0.5, 0.3, 0.7, 0.15, 0.85):
+        for t in ts:
             (x1, y1), (x2, y2) = path[k], path[k + 1]
             mx, my = x1 + (x2 - x1) * t, y1 + (y2 - y1) * t
             box = (mx - w / 2, my - h / 2, w, h)
+            frac = (sum(lengths[:k]) + lengths[k] * t) / total
             if free(box):
                 taken.append(box)
-                return (sum(lengths[:k]) + lengths[k] * t) / total
-    # no free spot on the path (a short edge between neighbours): the label moves beside the path
-    k = order[0]
-    (x1, y1), (x2, y2) = path[k], path[k + 1]
-    mx, my = (x1 + x2) / 2, (y1 + y2) / 2
-    frac = (sum(lengths[:k]) + lengths[k] / 2) / total
-    for d in range(20, 200, 10):
-        for dx, dy in ((0, d), (0, -d), (d, 0), (-d, 0)):
-            box = (mx + dx - w / 2, my + dy - h / 2, w, h)
-            if free(box):
-                taken.append(box)
-                return frac, (float(dx), float(dy))
+                return frac
+            candidates.append((box, frac))
+    # no free spot on the path (a short edge between neighbours, a channel at the page edge): the label moves
+    # beside the path — across the segment first, at every sampled position of the three longest segments
+    for k in order[:3]:
+        (x1, y1), (x2, y2) = path[k], path[k + 1]
+        across = ((1, 0), (-1, 0)) if x1 == x2 else ((0, 1), (0, -1))
+        along = ((0, 1), (0, -1)) if x1 == x2 else ((1, 0), (-1, 0))
+        for d in range(10, 200, 10):
+            for t in ts:
+                mx, my = x1 + (x2 - x1) * t, y1 + (y2 - y1) * t
+                frac = (sum(lengths[:k]) + lengths[k] * t) / total
+                for ux, uy in across + (along if d >= 20 else ()):
+                    dx, dy = ux * d, uy * d
+                    box = (mx + dx - w / 2, my + dy - h / 2, w, h)
+                    if free(box):
+                        taken.append(box)
+                        return frac, (float(dx), float(dy))
+    # nothing is free: the on-page position on the path that covers the least
+    def cost(box):
+        off = 1e9 if box[0] < 0 or box[1] < 0 else 0.0
+        return off + sum(_overlap(box, o) for o in list(obstacles) + taken)
+    box, frac = min(candidates, key=lambda c: cost(c[0]))
+    taken.append(box)
     return frac
 
 

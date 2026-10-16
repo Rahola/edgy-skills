@@ -31,6 +31,10 @@ set -u
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")"
 cd "$REPO_ROOT"
 
+# Text metrics: the gates measure with the glyph tables (edgy_text.py), the backend CI has —
+# a local Pillow with real fonts measures a pixel differently and would move the goldens
+export EDGY_TEXT_TABLE_ONLY=1
+
 MODE="full"
 TARGET="skills/"
 SKIP_REGISTRY=0

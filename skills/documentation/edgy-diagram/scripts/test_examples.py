@@ -2,8 +2,9 @@
 """Golden test: every shipped examples/expected-*.drawio equals what the generator
 writes for its input today (and expected-purpose.puml for purpose-map.txt).
 
-Before 2.8.0 nothing checked this, and ten expected files had drifted from their
-inputs. A generator change that moves output must regenerate the examples
+Before 2.8.0 nothing checked this. Text is measured with the glyph tables (as in CI and
+tools/regen-examples.sh); a local Pillow measures with real fonts and would differ by a
+pixel here and there. A generator change that moves output must regenerate the examples
 (bash tools/regen-examples.sh) in the same commit — the diff then shows the
 change for review."""
 
@@ -13,6 +14,7 @@ import os
 import sys
 from contextlib import redirect_stderr, redirect_stdout
 
+os.environ['EDGY_TEXT_TABLE_ONLY'] = '1'   # the examples are written with the glyph tables (regen-examples.sh)
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL = os.path.dirname(HERE)
 sys.path.insert(0, HERE)

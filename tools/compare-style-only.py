@@ -17,7 +17,7 @@ import re
 import subprocess
 import sys
 
-DEFAULT_KEYS = ('edgyId', 'edgyIdSource', 'edgyType', 'edgyKind', 'edgyFacet', 'edgyOcc')
+DEFAULT_KEYS = ('edgyId', 'edgyIdSource', 'edgyType', 'edgyKind', 'edgyFacet', 'edgyOcc', 'edgyRole', 'edgyChange')
 
 
 def strip_keys(xml: str, keys) -> str:
