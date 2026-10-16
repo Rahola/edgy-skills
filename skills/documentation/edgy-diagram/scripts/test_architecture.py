@@ -122,7 +122,7 @@ relationships:
     assert areas['Fares'] == ['Bus'], areas                               # two capabilities of one area
     assert areas['Not required by a capability'] == ['Orphan'], areas
     assert list(areas)[-2:] == ['Shared', 'Not required by a capability']
-    assert '+1 area' in xml
+    assert 'also in 1 other area(s)' in xml
     assert 'value="Pricing"' not in xml and 'edgyType=capability' not in xml, 'capabilities are the areas'
     assert not [f for f in _lint(xml) if f[0] in ('W106', 'E008', 'W111')]
     # deterministic: the same page twice gives the same drawing
@@ -325,6 +325,48 @@ def test_matrix_without_links_is_left_out_and_reported_once():
     crud.generate_xml()
     warns = [w for w in crud.warnings if 'matrix' in w]
     assert len(warns) == 1 and 'no accesses link' in warns[0], crud.warnings
+
+
+def test_review_findings_owner_marker_time_slot_and_titles():
+    text = """map_type: application
+ownership: required
+legend: strip
+elements:
+  - group: "Sales"
+    - asset: "Booking" {id: APP-01, kind: application, maturity: 3, time: invest}
+    - asset: "Fare engine" {id: APP-02, kind: application}
+  - group: "Customer"
+    - asset: "CRM" {id: APP-03, kind: application}
+  - organisation: "Fare team" {id: ORG-01}
+relationships:
+  - "ORG-01" -> "APP-01": "manages"
+  - "ORG-01" -> "APP-02": "manages"
+  - "APP-01" -> "APP-03": "transfers" {data: Reservations, technology: REST}
+  - "APP-02" -> "APP-01": "transfers" {data: Fare rules}
+"""
+    pages, xml = _xml(text)
+    p = pages[0][1]
+    assert any('badge slot 1 shows its maturity' in w for w in p.warnings), p.warnings
+    assert any(w.startswith('W124') for w in p.warnings)
+    crm = next(e for e in p.elements.values() if e['name'] == 'CRM')
+    assert 'no owner' in crm.get('count_note', ''), crm
+    booking = next(e for e in p.elements.values() if e['name'] == 'Booking')
+    assert booking['count_note'].count(' · ') == 0 and booking['count_note'].startswith('owner')
+    # an edge leaving where another arrives gets its own port (routed page: one port list per side)
+    ports = re.findall(r'(exit|entry)X=([0-9.]+);\1Y=([0-9.]+)', xml)
+    assert len(set(ports)) == len(ports), ports
+
+
+def test_process_band_from_the_model():
+    m2t = os.path.join(REPO, 'skills', 'architecture', 'edgy-assessment', 'scripts', 'edgy_model_to_txt.py')
+    model = os.path.join(REPO, 'skills', 'architecture', 'edgy-assessment', 'examples', 'architecture-model.json')
+    tmp = tempfile.mkdtemp()
+    subprocess.run([sys.executable, m2t, model, '--views', 'process-chain', '--out', tmp, '--prefix', 'a'], check=True,
+                   capture_output=True)
+    text = open(os.path.join(tmp, 'a-views.txt'), encoding='utf-8').read()
+    assert '{id: PRO-50, band: support}' in text
+    pages, _ = _xml(text)
+    assert not [w for _n, p in pages for w in p.warnings if 'W126' in w]
 
 
 def main():

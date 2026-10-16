@@ -181,7 +181,7 @@ def build(model, facet, lang, layout="default"):
 # --views writes one multi-page TXT: a `draw: false` model page with every element (by id) and every
 # relationships[] entry, then one or more view pages that edgy-diagram 2.8.0 derives from that graph.
 MODEL_TYPES = IDENTITY + ARCHITECTURE + EXPERIENCE + ["organisation", "product", "brand", "people"]
-ATTRIBUTE_KEYS_19 = ("kind", "hosting", "owner", "criticality", "time", "master", "gaps")
+ATTRIBUTE_KEYS_19 = ("kind", "hosting", "owner", "criticality", "time", "master", "gaps", "band")
 VIEW_WRITERS = {}     # view name → function(model, lang) -> list of page blocks; registered by the view sprints
 
 

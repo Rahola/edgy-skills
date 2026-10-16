@@ -122,7 +122,8 @@
         "id": {"type": "string"},
         "primary": {"type": "boolean", "description": "Carries the type's core links in a triad diagram; default: the first element of the type"},
         "provenance": {"type": "string", "enum": ["confirmed", "analytical", "proposed"], "description": "confirmed = public source, analytical = this analysis's interpretation, proposed = suggestion; written as a tag into the TXT and read by edgy_semantic_review.py"},
-        "tags": {"type": "array", "items": {"type": "string"}}
+        "tags": {"type": "array", "items": {"type": "string"}},
+        "band": {"type": "string", "enum": ["management", "core", "support"], "description": "1.9, processes: the value-chain band of an L1 process (edgy-diagram process_view: chain)"}
       }
     },
     "asset": {

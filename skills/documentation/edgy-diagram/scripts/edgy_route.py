@@ -23,7 +23,7 @@ Box = Tuple[float, float, float, float]
 Point = Tuple[float, float]
 MARGIN = 10.0            # channel line distance from a card edge (matrix gaps are 20 px: the line runs in the middle)
 BEND = 60.0              # cost of a bend, in px of length
-REUSE = 120.0            # cost of running along a segment an earlier edge already uses
+REUSE = 2000.0           # running along a segment an earlier edge already uses: two edges on one line read as one (a false link), so only when nothing else exists
 SIDES = ('right', 'left', 'bottom', 'top')
 
 
@@ -202,7 +202,7 @@ def _label_fraction(path: List[Point], obstacles: Sequence[Box], size: Optional[
         (x1, y1), (x2, y2) = path[k], path[k + 1]
         across = ((1, 0), (-1, 0)) if x1 == x2 else ((0, 1), (0, -1))
         along = ((0, 1), (0, -1)) if x1 == x2 else ((1, 0), (-1, 0))
-        for d in range(10, 200, 10):
+        for d in range(10, 100, 10):      # further away a label reads as another edge's: least overlap instead
             for t in ts:
                 mx, my = x1 + (x2 - x1) * t, y1 + (y2 - y1) * t
                 frac = (sum(lengths[:k]) + lengths[k] * t) / total

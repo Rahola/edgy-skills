@@ -147,7 +147,8 @@
    {
     "name": "Plan services",
     "description": "",
-    "id": "PRO-10"
+    "id": "PRO-10",
+    "band": "core"
    },
    {
     "name": "Plan the network",
@@ -162,7 +163,8 @@
    {
     "name": "Sell travel",
     "description": "",
-    "id": "PRO-20"
+    "id": "PRO-20",
+    "band": "core"
    },
    {
     "name": "Price fare products",
@@ -177,7 +179,8 @@
    {
     "name": "Run services",
     "description": "",
-    "id": "PRO-30"
+    "id": "PRO-30",
+    "band": "core"
    },
    {
     "name": "Inspect tickets",
@@ -187,7 +190,8 @@
    {
     "name": "Settle revenue",
     "description": "",
-    "id": "PRO-50"
+    "id": "PRO-50",
+    "band": "support"
    },
    {
     "name": "Allocate revenue to operators",

@@ -85,7 +85,7 @@ def report_layout_warnings(pages, before_counts) -> None:
         for note in getattr(edgy_parser, 'notes', [])[getattr(edgy_parser, '_notes_before', 0):]:
             print(f"Note: {prefix}{note}", file=sys.stderr)
     if n:
-        print(f"{n} layout warning(s) — see above.", file=sys.stderr)
+        print(f"{n} generator warning(s) — see above.", file=sys.stderr)
 
 
 def render_preview(drawio_path: str, png: bool = True, publication: bool = False, preset: str = None,

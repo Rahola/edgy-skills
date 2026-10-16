@@ -361,6 +361,10 @@ edgy-diagram draw these elements; they do not change their meaning.
    finding before it is a diagram problem (W124).
 3. Which data does it store, and is it the master? Exactly one master per
    data set; two systems claiming it is a decision to make, not a box to draw.
+   In the model: `{master: true}` sits on the **data asset** (this is master
+   data), and the one application that `stores` it is its system of record;
+   any other system holding a copy receives it through `transfers`, never a
+   second `stores`.
 4. What does an integration carry? A `transfers` link without a data asset
    (W125) says nothing about what breaks when it fails.
 5. For a lifecycle view: tolerate, invest, migrate or eliminate (Gartner

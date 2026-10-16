@@ -1753,8 +1753,15 @@ class EDGYParser:
                     obstacles.append((abs_pos[anchor_eid][0] + dx, abs_pos[anchor_eid][1] + dy,
                                       min(hw, _text.measure(text, 12, bold=True) + 12), 24))
             used: List = []
-            label_boxes: List = []
-            self._route_ctx = (boxes, obstacles, [])          # labels are placed again on the generator's own path
+            first_used: List = []
+            # group titles are text a label must not cover (routes may pass below them: cards need their top side)
+            titles = []
+            for gid, (gx, gy) in self._group_positions.items():
+                g = self.groups.get(gid) or {}
+                if g.get('name') and gid in self.groups:
+                    titles.append((gx + 6, gy + 2, _text.measure(g['name'], 13, bold=True) + 12, 22))
+            label_boxes: List = list(titles)
+            self._route_ctx = (boxes, obstacles, list(titles))  # labels are placed again on the generator's own path
             for key in order:
                 rel = merged[key]
                 if any(k in rel['options'] for k in ('from', 'to', 'via')):
@@ -1763,30 +1770,35 @@ class EDGYParser:
                 detail = self._edge_detail(rel.get('details') or {})
                 lw = max(_text.measure(verb, 11), _text.measure(detail, 9) if detail else 0) + 8
                 lh = 11 * 1.3 + (9 * 1.3 if detail else 0)
-                r = edgy_route.route(boxes[key[0]], boxes[key[1]], obstacles, [], label_size=(lw, lh))
+                # first pass: the sides; earlier edges' segments count, so a later edge picks a side with a free channel
+                r = edgy_route.route(boxes[key[0]], boxes[key[1]], obstacles, first_used, label_size=(lw, lh))
                 if r:
                     rel['options'] = {**rel['options'], 'from': r[0], 'to': r[1]}
                     rel['_route_size'] = (lw, lh)
             # second pass: the sides are known, so the generator's port distribution is too — route again
             # from exactly those ports (no jog at a shared side) and place the labels
-            out_by, in_by = {}, {}
+            # one port list per card side for outgoing and incoming edges together (as the generator does on a
+            # routed page): an edge leaving where another arrives would otherwise share its port and merge with it
+            side_users = {}
             for key in order:
                 o = merged[key]['options']
                 if '_route_size' in merged[key] and 'via' not in o:
-                    out_by.setdefault((key[0], o['from']), []).append(key)
-                    in_by.setdefault((key[1], o['to']), []).append(key)
+                    side_users.setdefault((key[0], o['from']), []).append((key, 'out'))
+                    side_users.setdefault((key[1], o['to']), []).append((key, 'in'))
             for key in order:
                 rel = merged[key]
                 if '_route_size' not in rel:
                     continue
                 o = rel['options']
-                outs, ins = out_by[(key[0], o['from'])], in_by[(key[1], o['to'])]
-                ef = _geo.distribute(len(outs), outs.index(key))
-                nf = _geo.distribute(len(ins), ins.index(key))
+                outs, ins = side_users[(key[0], o['from'])], side_users[(key[1], o['to'])]
+                ef = _geo.distribute(len(outs), outs.index((key, 'out')))
+                nf = _geo.distribute(len(ins), ins.index((key, 'in')))
+                before = len(used)
                 r = edgy_route.route(boxes[key[0]], boxes[key[1]], obstacles, used, label_size=rel['_route_size'],
                                      labels=label_boxes, exit_port=(o['from'], ef), entry_port=(o['to'], nf))
                 if r:
                     rel['options'] = {**o, 'via': r[2]}
+                    rel['_segs'] = used[before:]      # this edge's own path: the other edges' labels keep off it
                     if 'label' not in rel['options']:
                         rel['options']['label_at'] = r[3][0] if isinstance(r[3], tuple) else r[3]
                 else:
@@ -1832,13 +1844,24 @@ class EDGYParser:
             valid_rels.append((rel, exit_side, entry_side))
             outgoing_by_side[(rel['source'], exit_side)].append(len(valid_rels) - 1)
             incoming_by_side[(rel['target'], entry_side)].append(len(valid_rels) - 1)
+        routed = self._routes_around_cards()
+        side_users = defaultdict(list)       # routed pages: one port list per side for both directions
+        for vi, (rel, exit_side, entry_side) in enumerate(valid_rels):
+            if rel['options'].get('via') is not None and routed:
+                side_users[(rel['source'], exit_side)].append((vi, 'out'))
+                side_users[(rel['target'], entry_side)].append((vi, 'in'))
 
         _distribute = _geo.distribute        # porttien jako 0.15–0.85, sama kuin renderöijällä ja lintillä
 
         for vi, (rel, exit_side, entry_side) in enumerate(valid_rels):
-            src_list = outgoing_by_side[(rel['source'], exit_side)]
-            tgt_list = incoming_by_side[(rel['target'], entry_side)]
-            src_idx, tgt_idx = src_list.index(vi), tgt_list.index(vi)
+            if routed and (vi, 'out') in side_users.get((rel['source'], exit_side), []):
+                src_list = side_users[(rel['source'], exit_side)]
+                tgt_list = side_users[(rel['target'], entry_side)]
+                src_idx, tgt_idx = src_list.index((vi, 'out')), tgt_list.index((vi, 'in'))
+            else:
+                src_list = outgoing_by_side[(rel['source'], exit_side)]
+                tgt_list = incoming_by_side[(rel['target'], entry_side)]
+                src_idx, tgt_idx = src_list.index(vi), tgt_list.index(vi)
             if exit_side in ('left', 'right'):
                 exit_x = 1.0 if exit_side == 'right' else 0.0
                 exit_y = _distribute(len(src_list), src_idx)
@@ -1909,6 +1932,10 @@ class EDGYParser:
                 # really takes (ports distributed along a side shift it slightly from the router's path)
                 import edgy_route
                 boxes, obstacles, placed = self._route_ctx
+                # a label also keeps off the other routed edges' lines (2 px boxes), not only off cards and labels
+                lines_of_others = [(min(a[0], b[0]) - 1, min(a[1], b[1]) - 1, abs(b[0] - a[0]) + 2, abs(b[1] - a[1]) + 2)
+                                   for other in valid_rels if other[0] is not rel
+                                   for a, b in other[0].get('_segs', [])]
                 path = _geo.edge_path(boxes[rel['source']], boxes[rel['target']], _geo.style_dict(style),
                                       rel['options'].get('via') or [])
                 frac = rel['options']['label_at']
@@ -1917,7 +1944,7 @@ class EDGYParser:
                     lw = max([_text.measure(html.unescape(lines[0]), 11)] +
                              [_text.measure(html.unescape(x), 9) for x in lines[1:]]) + 8 if lines else 60
                     lh = 11 * 1.3 + 9 * 1.3 * (len(lines) - 1)
-                    frac = edgy_route._label_fraction(path, obstacles, (lw, lh), placed)
+                    frac = edgy_route._label_fraction(path, list(obstacles) + lines_of_others, (lw, lh), placed)
                 if isinstance(frac, tuple):        # no room on the path: beside it, with an absolute offset
                     frac, (odx, ody) = frac
                     rel['options'] = {**rel['options'], 'label_dx': odx, 'label_dy': ody}

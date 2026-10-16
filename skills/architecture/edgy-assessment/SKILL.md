@@ -207,7 +207,8 @@ architecture views of edgy-diagram 2.8.0) adds: `organisation` as an object **or
 array**, `elements.people`, asset `kind` (application / platform / integration / data),
 `hosting`, `owner`, `time` (Gartner TIME), `criticality`, `master`, capability `gaps`
 (`{"products": "out_of_scope"}` — the evidence status of an empty capability-view band:
-`not_investigated`, `out_of_scope`, `unknown`, `confirmed_absent`), and `relationships[]` between element ids
+`not_investigated`, `out_of_scope`, `unknown`, `confirmed_absent`), process `band` (`management` / `core` / `support` on
+an L1 process, for the value chain), and `relationships[]` between element ids
 (`{"source_id": "CAP-05", "target_id": "AST-02", "verb": "requires"}`). A model that uses
 any of these must say `"schema_version": "1.9"` — the validator rejects 1.9 structures in an
 older model, and every 1.8 model keeps producing byte-identical TXT, diff and ArchiMate

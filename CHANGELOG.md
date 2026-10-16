@@ -66,6 +66,10 @@ contract 1 (`edgyId`, `edgyType`, `edgyOcc` …) and every legend cell
   markers, graph JSON, SVG `data-*` groups (renderer hardened against
   attribute break-out), notation handlers that fail closed (**E013**
   unknown notation, **E012** mixed notations on one page).
+- Routed maps, after the agent test round: one port list per card side for
+  both directions, no shared trunks between different edges, labels off group
+  titles and off other edges; `ownership: required` marks `no owner` on the
+  card; a TIME value hidden by a maturity / rating badge is a warning.
 - Influence verbs `stores`, `accesses {crud:}`, `interacts with`
   (fi / en / fr / de); semantic question **S013** (application named like
   the capability it serves).
@@ -83,7 +87,8 @@ contract 1 (`edgyId`, `edgyType`, `edgyOcc` …) and every legend cell
 **edgy-assessment 1.10.0**
 - Model format **1.9** (additive): `relationships[]` between element ids,
   `elements.people`, `organisation` as an object or an array, asset `kind`,
-  `hosting`, `owner`, `time`, `criticality`, `master`, capability `gaps`.
+  `hosting`, `owner`, `time`, `criticality`, `master`, capability `gaps`,
+  process `band`.
   The validator supports `oneOf` / `anyOf` / `null` and rejects 1.9
   structures in a model that does not declare 1.9.
 - `edgy_model_to_txt.py --views …|all`: one multi-page TXT with the model

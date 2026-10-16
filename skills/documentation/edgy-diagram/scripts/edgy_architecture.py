@@ -170,6 +170,10 @@ def apply_time_badges(p) -> None:
             e.pop('time', None)
             continue
         e['time'] = key
+        if e.get('maturity') or e.get('rating'):
+            # badge slot 1 holds one value (maturity > rating > lifecycle): say so instead of dropping TIME silently
+            _once(p, f"time '{raw}' on '{e['name']}' is not shown — badge slot 1 shows its "
+                     f"{'maturity' if e.get('maturity') else 'rating'}; the second slot is for hosting or criticality")
 
 
 def time_label(p, key: str) -> str:
@@ -208,6 +212,12 @@ def prepare_application(p) -> None:
         msg = (f"W124 {len(missing)} application(s) without an owner (manages from an organisation, or {{owner: …}}): "
                f"{', '.join(missing[:6])}{' …' if len(missing) > 6 else ''}")
         _once(p, msg, note=not required)
+        if required:
+            # ownership: required — the gap is visible on the card too, not only in the generator output
+            for a in apps:
+                if not _owner_ok(p, a):
+                    e = p.elements[a]
+                    _add_note(e, NO_OWNER[lang])
     integrations = [r for r in p.relationships
                     if _verb_is(r['label'], 'transfers') and r['source'] in p.elements and r['target'] in p.elements
                     and p.elements[r['source']]['type'] == 'asset' and p.elements[r['target']]['type'] == 'asset']
@@ -227,7 +237,7 @@ def prepare_application(p) -> None:
             for x in (r['source'], r['target']):
                 counts[x] = counts.get(x, 0) + 1
         for x, n in counts.items():
-            p.elements[x]['count_note'] = f"↔ {n}"
+            _add_note(p.elements[x], f"↔ {n}")
         if not p.view.get('edges'):
             _once(p, f"application map: {len(integrations)} integrations — not drawn (edges: none above "
                      f"{EDGES_DIRECT_MAX}); each card counts its integrations, the presenter shows them on hover; "
@@ -248,6 +258,16 @@ def prepare_application(p) -> None:
 
 
 OWNER_WORD = {'en': 'owner', 'fi': 'omistaja', 'fr': 'responsable', 'de': 'verantwortlich'}
+MORE_AREAS = {'en': 'also in {n} other area(s)', 'fi': 'myös {n} muulla alueella', 'fr': 'aussi dans {n} autre(s) domaine(s)',
+              'de': 'auch in {n} weiteren Bereich(en)'}
+
+
+def _add_note(e: dict, text: str) -> None:
+    """One more fact on the card's second line, separated like the id and the other facts (' · ')."""
+    e['count_note'] = ' · '.join(x for x in (e.get('count_note'), text) if x)
+
+
+NO_OWNER = {'en': 'no owner', 'fi': 'ei omistajaa', 'fr': 'sans responsable', 'de': 'ohne Verantwortliche'}
 
 
 def _fold_data_and_owners(p, apps: List[str], lang: str) -> None:
@@ -270,7 +290,7 @@ def _fold_data_and_owners(p, apps: List[str], lang: str) -> None:
             for r in rels:
                 r['suppressed'] = True
                 e = p.elements[r['target']]
-                e['count_note'] = (e.get('count_note', '') + f" {OWNER_WORD[lang]}: {o['name']}").strip()
+                _add_note(e, f"{OWNER_WORD[lang]}: {o['name']}")
             p._hidden.add(oid)
             folded += 1
     if folded:
@@ -312,7 +332,7 @@ def _group_by_capability(p, apps: List[str], lang: str) -> None:
             area = _area_of_capability(p, primaries[0])
             others = {_area_of_capability(p, c) for c, _ in caps} - {area}
             if others:
-                p.elements[a]['count_note'] = (p.elements[a].get('count_note', '') + f" +{len(others)} area(s)").strip()
+                _add_note(p.elements[a], MORE_AREAS[lang].format(n=len(others)))
         elif len({_area_of_capability(p, c) for c, _ in caps}) == 1:
             area = _area_of_capability(p, caps[0][0])
         elif caps:
@@ -330,6 +350,7 @@ def _group_by_capability(p, apps: List[str], lang: str) -> None:
     for n, area in enumerate(order, 1):
         gid = f"arch_area_{n}"
         _make_group(p, gid, area, areas[area])
+    area_of_cap = {c: _area_of_capability(p, c) for c in hidden_caps}     # before the source groups go
     for c in hidden_caps:
         p._hidden.add(c)
     # the input's capability groups were the source of the areas: drawn empty they would only repeat them
@@ -345,8 +366,14 @@ def _group_by_capability(p, apps: List[str], lang: str) -> None:
     if removed:
         p._arch_removed_groups = {**(getattr(p, '_arch_removed_groups', None) or {}), **removed}
     if hidden_caps:
-        _once(p, f"application map: grouped by capability — {len(hidden_caps)} capability(ies) shown as areas, "
-                 f"{shown} requires link(s) shown by membership instead of edges", note=True)
+        drawn = {a for a in areas if a not in tail}
+        without = sorted({p.elements[c]['name'] for c in hidden_caps if area_of_cap[c] not in drawn})
+        _once(p, f"application map: grouped by capability — {len(drawn)} area(s) drawn for {len(hidden_caps)} "
+                 f"capability(ies), {shown} requires link(s) shown by membership instead of edges", note=True)
+        if without:
+            _once(p, f"application map: {len(without)} capability(ies) without an area — every application they "
+                     f"require sits in its primary area or in {labels['shared']}: {', '.join(without[:8])}"
+                     f"{' …' if len(without) > 8 else ''}", note=True)
     if labels['shared'] in areas:
         _once(p, f"application map: {len(areas[labels['shared']])} application(s) required by several areas without "
                  f"a {{primary: true}} requires link — placed in the {labels['shared']} strip", note=True)

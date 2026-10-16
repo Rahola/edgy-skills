@@ -175,6 +175,8 @@ def structures_19(model):
         found.append("asset " + " / ".join(keys))
     if any(isinstance(e, dict) and "gaps" in e for e in (elems.get("capability") or [])):
         found.append("capability gaps")
+    if any(isinstance(e, dict) and "band" in e for e in (elems.get("process") or [])):
+        found.append("process band")
     return found
 
 
