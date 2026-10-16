@@ -145,6 +145,18 @@ CC BY-SA 4.0. Contributions that touch EDGY-derived assets (stencils, official
 maps, notation) must preserve attribution and the share-alike obligation — see
 [NOTICE](NOTICE). Original tooling/instructions are Apache-2.0.
 
+## External standards — EDGY first
+
+These are EDGY skills: EDGY 23 is the language of every map. Any standard
+or classification from outside EDGY (TIME, CRUD, C4, ArchiMate exchange …)
+is admitted only with an entry in
+[`skills/documentation/edgy-diagram/references/external-standards.md`](skills/documentation/edgy-diagram/references/external-standards.md).
+The entry records what it answers that EDGY cannot, why this one, the
+alternatives considered, how it stays subordinate to EDGY (badge, stroke,
+layout, export or a separate skill; never a new element, fill or core link)
+and its source and licence. A PR that adds one without an entry is not
+merged.
+
 ## Pull request process
 
 1. Fork and branch from `main`.

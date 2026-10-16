@@ -368,7 +368,9 @@ edgy-diagram draw these elements; they do not change their meaning.
 4. What does an integration carry? A `transfers` link without a data asset
    (W125) says nothing about what breaks when it fails.
 5. For a lifecycle view: tolerate, invest, migrate or eliminate (Gartner
-   TIME, extension) — and on what evidence?
+   TIME, extension) — and on what evidence? Why TIME and its limits: the
+   register of external standards (edgy-diagram
+   `references/external-standards.md`); EDGY stays the language of the map.
 
 **Naming:** an application keeps its product or system name — it *is* an
 asset, unlike a capability. When a capability and an application share a

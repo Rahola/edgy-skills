@@ -85,6 +85,13 @@ contract 1 (`edgyId`, `edgyType`, `edgyOcc` …) and every legend cell
   (`EDGY_TEXT_TABLE_ONLY=1`), the backend CI has — a local Pillow with real
   fonts measures a pixel differently and must not move the examples.
 
+- **External standards register** (`references/external-standards.md`):
+  every classification from outside EDGY (Gartner TIME, CRUD, process bands,
+  swimlane layout, maturity / hosting badges, ArchiMate export, C4 planned)
+  with what it answers, why it was chosen, alternatives, how it stays
+  subordinate to EDGY, and its source and licence. CONTRIBUTING: no external
+  standard without an entry; NOTICE names the third parties.
+
 **edgy-assessment 1.10.0**
 - Model format **1.9** (additive): `relationships[]` between element ids,
   `elements.people`, `organisation` as an object or an array, asset `kind`,

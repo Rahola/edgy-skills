@@ -73,6 +73,13 @@ before review.
   page under the tables — the label search now also tries offsets across
   the segment at every sampled position.
 
+- **External standards (owner's request):** EDGY stays at the centre; every
+  external standard or classification the skills use is registered with its
+  rationale (`edgy-diagram/references/external-standards.md`) — TIME and C4
+  first, then CRUD, process bands, swimlanes, badges, ArchiMate export, ADRs.
+  The register ships with the skill, so an agent can cite it; CONTRIBUTING
+  makes an entry a merge condition.
+
 **Deviations from the plan:** §12 of the plan.
 
 ---

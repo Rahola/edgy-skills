@@ -707,6 +707,14 @@ external systems only when the user asks, and then place each diagram next
 to the section it belongs to. Say in the delivery which layouts are EDGY
 extensions (transition overlay, `reference`, `summary`).
 
+**External standards.** EDGY 23 is the language of every map. Classifications
+from outside EDGY — Gartner TIME, CRUD, the management / core / support
+process bands, the swimlane layout, maturity and hosting badges, the
+ArchiMate export, and C4 (planned, separate skill) — are registered with
+their rationale, limits and source in `references/external-standards.md`.
+Name the ones a delivery uses, credit the source (the legends do), and never
+use a classification that is not in the register: propose an entry instead.
+
 ## Dependencies
 
 - Python 3.7+ and `xml.etree.ElementTree` (standard library) — for `edgy_generator.py`, `edgy_lint.py`, `edgy_render.py` (SVG), the shared `edgy_geometry.py` / `edgy_text.py` and the generated `edgy_core_links.py`; Pillow is used for text measurement only when it happens to be installed together with a Liberation/Arimo/Arial font, never required
