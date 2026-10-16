@@ -1,6 +1,6 @@
 # EDGY skills development plan (2026-10, part 4): architecture views and an interactive presenter
 
-**Revision 5 (2026-10-16) — proposal, not implemented. Scope decided:
+**Revision 5 (2026-10-16) — LOCKED. Approved by the maintainer after the Vibe and Codex follow-up reviews on PR #7; implementation of v2.4.0 (Sprints 21a–24) has started on this branch. Deviations found during implementation are recorded in `AGENT_LOG.md` and in §12. Scope:
 v2.4.0 = foundations, application / process / capability views and a
 presenter-lite in core; v2.5.0 = a separate `edgy-c4` skill in this repo;
 presenter effects only after workshop demand.** Revisions 1–3 were
