@@ -308,7 +308,7 @@ relationships:
 Then author `<company>-deep-dive-<elements>.drawio` directly as XML following the pairwise layout rules (the generator does not yet support the pairwise layout), include the legend block from the edgy-diagram skill, and lint the file before delivery:
 
 ```bash
-G=skills/documentation/edgy-diagram/scripts
+G=${EDGY_DIAGRAM_SCRIPTS:-skills/documentation/edgy-diagram/scripts}   # installed skills: ~/.claude/skills/edgy-diagram/scripts
 python3 $G/edgy_lint.py <company>-deep-dive-<elements>.drawio     # 0 errors required
 python3 $G/edgy_render.py <company>-deep-dive-<elements>.drawio   # SVG (+PNG) preview — look at it before delivery
 ```

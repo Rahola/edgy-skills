@@ -41,94 +41,94 @@
         <mxCell id="13" value="Support" style="rounded=1;arcSize=8;container=1;collapsible=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=none;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=13;fontStyle=1;fontColor=#333333;edgyGroup=official;" vertex="1" parent="5">
           <mxGeometry x="500" y="36" width="460" height="280" as="geometry"/>
         </mxCell>
-        <mxCell id="14" value="Customer data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="6">
+        <mxCell id="14" value="Customer data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:customer-data;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/14;" vertex="1" parent="6">
           <mxGeometry x="20" y="36" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="15" value="Consent management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="6">
+        <mxCell id="15" value="Consent management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:consent-management;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/15;" vertex="1" parent="6">
           <mxGeometry x="240" y="36" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="16" value="Travel account" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="6">
+        <mxCell id="16" value="Travel account" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:travel-account;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/16;" vertex="1" parent="6">
           <mxGeometry x="20" y="116" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="17" value="Feedback handling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="6">
+        <mxCell id="17" value="Feedback handling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:feedback-handling;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/17;" vertex="1" parent="6">
           <mxGeometry x="240" y="116" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="18" value="Fare products" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="7">
+        <mxCell id="18" value="Fare products" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:fare-products;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/18;" vertex="1" parent="7">
           <mxGeometry x="20" y="36" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="19" value="Multichannel sales" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="7">
+        <mxCell id="19" value="Multichannel sales" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:multichannel-sales;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/19;" vertex="1" parent="7">
           <mxGeometry x="240" y="36" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="20" value="Ticket validation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="7">
+        <mxCell id="20" value="Ticket validation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:ticket-validation;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/20;" vertex="1" parent="7">
           <mxGeometry x="20" y="116" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="21" value="Refunds" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="7">
+        <mxCell id="21" value="Refunds" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:refunds;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/21;" vertex="1" parent="7">
           <mxGeometry x="240" y="116" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="22" value="Network planning" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="8">
+        <mxCell id="22" value="Network planning" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:network-planning;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/22;" vertex="1" parent="8">
           <mxGeometry x="20" y="36" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="23" value="Timetabling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="8">
+        <mxCell id="23" value="Timetabling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:timetabling;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/23;" vertex="1" parent="8">
           <mxGeometry x="240" y="36" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="24" value="Vehicle scheduling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="8">
+        <mxCell id="24" value="Vehicle scheduling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:vehicle-scheduling;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/24;" vertex="1" parent="8">
           <mxGeometry x="20" y="116" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="25" value="Crew scheduling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="8">
+        <mxCell id="25" value="Crew scheduling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:crew-scheduling;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/25;" vertex="1" parent="8">
           <mxGeometry x="240" y="116" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="26" value="Dispatch" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="9">
+        <mxCell id="26" value="Dispatch" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:dispatch;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/26;" vertex="1" parent="9">
           <mxGeometry x="20" y="36" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="27" value="Incident management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="9">
+        <mxCell id="27" value="Incident management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:incident-management;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/27;" vertex="1" parent="9">
           <mxGeometry x="240" y="36" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="28" value="Passenger information" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="9">
+        <mxCell id="28" value="Passenger information" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:passenger-information;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/28;" vertex="1" parent="9">
           <mxGeometry x="20" y="116" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="29" value="Accessibility services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="9">
+        <mxCell id="29" value="Accessibility services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:accessibility-services;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/29;" vertex="1" parent="9">
           <mxGeometry x="240" y="116" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="30" value="Fleet maintenance" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="10">
+        <mxCell id="30" value="Fleet maintenance" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:fleet-maintenance;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/30;" vertex="1" parent="10">
           <mxGeometry x="20" y="36" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="31" value="Depot management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="10">
+        <mxCell id="31" value="Depot management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:depot-management;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/31;" vertex="1" parent="10">
           <mxGeometry x="240" y="36" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="32" value="Energy management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="10">
+        <mxCell id="32" value="Energy management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:energy-management;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/32;" vertex="1" parent="10">
           <mxGeometry x="20" y="116" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="33" value="Stop management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="11">
+        <mxCell id="33" value="Stop management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:stop-management;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/33;" vertex="1" parent="11">
           <mxGeometry x="20" y="36" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="34" value="Track access" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="11">
+        <mxCell id="34" value="Track access" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:track-access;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/34;" vertex="1" parent="11">
           <mxGeometry x="240" y="36" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="35" value="Infrastructure registry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="11">
+        <mxCell id="35" value="Infrastructure registry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:infrastructure-registry;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/35;" vertex="1" parent="11">
           <mxGeometry x="20" y="116" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="36" value="Strategy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="12">
+        <mxCell id="36" value="Strategy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:strategy;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/36;" vertex="1" parent="12">
           <mxGeometry x="20" y="36" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="37" value="Performance management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="12">
+        <mxCell id="37" value="Performance management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:performance-management;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/37;" vertex="1" parent="12">
           <mxGeometry x="240" y="36" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="38" value="Risk management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="12">
+        <mxCell id="38" value="Risk management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:risk-management;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/38;" vertex="1" parent="12">
           <mxGeometry x="20" y="116" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="39" value="Finance" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="13">
+        <mxCell id="39" value="Finance" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:finance;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/39;" vertex="1" parent="13">
           <mxGeometry x="20" y="36" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="40" value="Procurement" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="13">
+        <mxCell id="40" value="Procurement" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:procurement;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/40;" vertex="1" parent="13">
           <mxGeometry x="240" y="36" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="41" value="Human resources" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="13">
+        <mxCell id="41" value="Human resources" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:human-resources;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/41;" vertex="1" parent="13">
           <mxGeometry x="20" y="116" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="42" value="Data platform" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="13">
+        <mxCell id="42" value="Data platform" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:data-platform;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/42;" vertex="1" parent="13">
           <mxGeometry x="240" y="116" width="200" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="43" value="Revenue allocation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="13">
+        <mxCell id="43" value="Revenue allocation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:revenue-allocation;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=capability/43;" vertex="1" parent="13">
           <mxGeometry x="20" y="196" width="200" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="44" value="" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#fafafa;strokeColor=#e5e5e5;strokeWidth=1;" vertex="1" parent="1">
@@ -189,25 +189,25 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="61" value="Flow" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
-          <mxGeometry x="716" y="730" width="24" height="24" as="geometry"/>
+          <mxGeometry x="716" y="730" width="25" height="24" as="geometry"/>
         </mxCell>
         <mxCell id="62" value="" style="edgeStyle=none;endArrow=none;strokeWidth=1;strokeColor=#333333;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="754" y="742" as="sourcePoint"/>
-            <mxPoint x="782" y="742" as="targetPoint"/>
+            <mxPoint x="755" y="742" as="sourcePoint"/>
+            <mxPoint x="783" y="742" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
         <mxCell id="63" value="Tree" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
-          <mxGeometry x="786" y="730" width="24" height="24" as="geometry"/>
+          <mxGeometry x="787" y="730" width="24" height="24" as="geometry"/>
         </mxCell>
         <mxCell id="64" value="" style="edgeStyle=none;endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="824" y="742" as="sourcePoint"/>
-            <mxPoint x="852" y="742" as="targetPoint"/>
+            <mxPoint x="825" y="742" as="sourcePoint"/>
+            <mxPoint x="853" y="742" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
         <mxCell id="65" value="Influence" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
-          <mxGeometry x="856" y="730" width="42" height="24" as="geometry"/>
+          <mxGeometry x="857" y="730" width="42" height="24" as="geometry"/>
         </mxCell>
       </root>
     </mxGraphModel>

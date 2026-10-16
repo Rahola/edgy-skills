@@ -143,7 +143,7 @@ def content_bounds(page: Page) -> Optional[Tuple[float, float, float, float]]:
             if not path:
                 continue
             points.extend(path)
-            lab = ' '.join(t for t, _, _ in label_lines(c.get('value') or ''))
+            lab = '\n'.join(t for t, _, _ in label_lines(c.get('value') or ''))
             if lab:
                 st = style_dict(c.get('style'))
                 _p, _s, _t, offset, rel_x, rel_y = geo.edge_points(c)
@@ -298,15 +298,21 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
         parts.append(f'<path d="{d}" fill="none" stroke="{color}" stroke-width="{sw}"{dash}{attrs}/>')
         # label: position along the path from mxGeometry x (-1 … 1 → 0 … 100 %),
         # perpendicular offset from y, absolute offset from <mxPoint as="offset">
-        lab = ' '.join(t for t, _, _ in label_lines(c.get('value') or ''))
+        lab_lines = [t for t, _, _ in label_lines(c.get('value') or '')]
+        lab = '\n'.join(lab_lines)
         if lab:
             fs = float(st.get('fontSize', 11) or 11)
             fc = st.get('fontColor', '#000000')
             lbox = geo.edge_label_box(path, lab, fs, rel_x, rel_y, offset)
             if lbox:
                 lx, ly, lw, lh = lbox
-                parts.append(f'<rect x="{lx:.1f}" y="{ly:.1f}" width="{lw:.1f}" height="{lh:.1f}" fill="#ffffff" fill-opacity="0.8"/>'
-                             f'<text x="{lx + lw / 2:.1f}" y="{ly + lh / 2 + fs * 0.35:.1f}" font-family="{FONT}" font-size="{fs}" fill="{fc}" text-anchor="middle">{esc(lab)}</text>')
+                parts.append(f'<rect x="{lx:.1f}" y="{ly:.1f}" width="{lw:.1f}" height="{lh:.1f}" fill="#ffffff" fill-opacity="0.8"/>')
+                ty = ly + fs * geo.LABEL_H / 2 + fs * 0.35
+                for k, ln in enumerate(lab_lines):
+                    f = fs if k == 0 else min(fs, geo.DETAIL_FS)
+                    if k:
+                        ty += f * geo.LABEL_H
+                    parts.append(f'<text x="{lx + lw / 2:.1f}" y="{ty:.1f}" font-family="{FONT}" font-size="{f}" fill="{fc}" text-anchor="middle">{esc(ln)}</text>')
 
     pad = NATIVE_PRESETS[preset]['margin'] if preset else (24 if publication else 20)
     if preset:

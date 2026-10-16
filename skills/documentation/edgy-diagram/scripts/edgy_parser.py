@@ -275,6 +275,58 @@ LEGEND_TEXT = {
 }
 LEGEND_TITLES = {lang: t['title'] for lang, t in LEGEND_TEXT.items()}   # lint päättelee kartan kielen otsikosta
 RESERVED_METRIC_KEYS = {'id', 'change', 'size', 'highlight', 'primary', 'stage', 'column', 'row', 'maturity', 'rating'}
+# Attributes of the architecture views (2.8.0): kept on the element (element['attrs']), never printed on the card
+ATTRIBUTE_KEYS = {'kind', 'hosting', 'master', 'owner', 'technology', 'crud', 'type', 'criticality', 'data',
+                  'container', 'time', 'gaps', 'band', 'state'}
+RESERVED_METRIC_KEYS |= ATTRIBUTE_KEYS
+# Asset kinds (architecture views): an application, a platform, an integration or a data asset; other kinds are free text
+ASSET_KINDS = ('application', 'platform', 'integration', 'data')
+FACET_OF_TYPE = {**{t: 'identity' for t in IDENTITY_ELEMENTS}, **{t: 'architecture' for t in ARCHITECTURE_ELEMENTS},
+                 **{t: 'experience' for t in EXPERIENCE_ELEMENTS}, **{t: 'intersection' for t in INTERSECTION_ELEMENTS},
+                 **{t: 'base' for t in BASE_ELEMENTS}}
+# Document keys of the architecture views (2.8.0) and of the document graph
+VIEW_KEYS = ('focus', 'expand', 'where', 'draw', 'notation', 'process_view', 'group_by', 'edges', 'depth', 'hops',
+             'matrix', 'ownership', 'chips', 'level', 'system')
+# Model ids: what a style value can carry (no ';' or '=' — draw.io style syntax)
+ID_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._:/-]*$')
+
+
+def split_options(text: str) -> List[str]:
+    """Split `a: 1, b: "x, y", via: [(1,2),(3,4)]` on the commas that are not inside
+    quotes, brackets or parentheses. Values keep their quotes (strip with unquote)."""
+    out, buf, depth, quote = [], [], 0, None
+    for ch in text:
+        if quote:
+            buf.append(ch)
+            if ch == quote:
+                quote = None
+            continue
+        if ch in '"\'' and (''.join(buf).rstrip()[-1:] in (':', '') ):
+            quote = ch            # a quote opens a value only right after "key:" — an apostrophe in a word does not
+        elif ch in '([':
+            depth += 1
+        elif ch in ')]':
+            depth = max(depth - 1, 0)
+        elif ch == ',' and depth == 0:
+            out.append(''.join(buf))
+            buf = []
+            continue
+        buf.append(ch)
+    if ''.join(buf).strip():
+        out.append(''.join(buf))
+    return out
+
+
+def unquote(value: str) -> str:
+    v = value.strip()
+    if len(v) >= 2 and v[0] == v[-1] and v[0] in '"\'':
+        return v[1:-1]
+    return v
+
+
+def slug_id(element_type: str, name: str) -> str:
+    """Fallback model id for an element without {id:} — marked edgyIdSource=slug, never cross-view."""
+    return f"{element_type}:" + (re.sub(r'[^a-z0-9]+', '-', (name or '').lower()).strip('-') or 'x')
 
 # Ydinlinkkien parivalidointi: verbi → {(lähdetyyppi, kohdetyyppi), ...}
 # Sama verbi voi olla sallittu usealle parille (esim. requires/vaatii:
@@ -323,6 +375,13 @@ class EDGYParser:
         self._size_override = {}   # elem_id → (w, h): layoutin pakottama koko (triad: kehän laatikot, paneelien sirut)
         self._triad_detours = {}   # (src, tgt) → (exit_side, entry_side, [(x, y), …]) kehää kiertävät linkit
         self._triad_hidden = set() # paneeleihin jäävät (ei-ensisijaiset) elementit: niiden linkkejä ei piirretä
+        self.page_id = None          # draw.io page id (edgy_document) — the page half of edgyOcc=<page>/<cell>
+        self.dangling = []           # relationships whose endpoint is on no page: (source text, target text, verb)
+        self.graph = None            # edgy_graph.DocumentGraph of the whole document (set by edgy_document)
+        self.notation = None         # notation: <name> — a page drawn by a registered notation handler (extension)
+        self.view = {}               # view keys of the architecture views (focus, expand, process_view, …)
+        self.draw = True             # draw: false — a model page: in the document graph, not in the output
+        self.cell_of = {}            # element id → draw.io cell id (after generate_xml)
 
     def parse_input(self, input_text: str) -> None:
         """Jäsennä käyttäjän syöte EDGY-elementeiksi"""
@@ -374,6 +433,16 @@ class EDGYParser:
                     self.translate_verbs = tv in ('true', 'yes', 'kyllä')
                 else:
                     self.warnings.append(f"Tuntematon translate_verbs-arvo '{tv}' (sallitut: true, false), käytetään 'true'")
+                continue
+            elif current_section is None and line.split(':')[0].strip() in VIEW_KEYS:
+                key, _, raw = line.partition(':')
+                key, value = key.strip(), raw.strip().strip('"')
+                if key == 'draw':
+                    self.draw = value.lower() not in ('false', 'no', 'ei', '0')
+                elif key == 'notation':
+                    self.notation = value.lower() or None
+                else:
+                    self.view[key] = value
                 continue
             elif line.split(':')[0].strip() in self._LAYOUT_OPTION_KEYS:
                 self._parse_layout_option(line)
@@ -449,10 +518,10 @@ class EDGYParser:
                     tags = [t.strip() for t in tags_str.split(',') if t.strip()] if tags_str else []
                     metrics = {}
                     if metrics_str:
-                        for pair in metrics_str.split(','):
+                        for pair in split_options(metrics_str):
                             if ':' in pair:
                                 k, v = pair.split(':', 1)
-                                metrics[k.strip()] = v.strip()
+                                metrics[k.strip()] = unquote(v)
 
                     if element_type in STRUCTURE_TYPES:
                         group_id = f"{element_type}{len(self.groups) + 1}"
@@ -497,13 +566,30 @@ class EDGYParser:
                     if size_class and size_class not in SIZE_CLASSES:
                         self.warnings.append(f"Tuntematon size-arvo '{metrics['size']}' (sallitut: S, M, L), ohitetaan")
                         size_class = None
+                    ref = (metrics.get('id') or '').strip() or None
+                    if ref and not ID_RE.match(ref):
+                        clean = re.sub(r'[^A-Za-z0-9._:/-]+', '-', ref).strip('-') or None
+                        self.warnings.append(f"id '{ref}' on '{name}' has characters a model id cannot carry "
+                                             f"(letters, digits, . _ : / - only) — used as '{clean}'")
+                        ref = clean
+                    if ref and any((e.get('ref') or '').lower() == ref.lower() for e in self.elements.values()):
+                        msg = f"E014 duplicate id '{ref}' on this page ('{name}') — every element needs its own id"
+                        self.warnings.append(msg)
+                        self.errors.append(msg)
+                    attrs = {k: v for k, v in metrics.items() if k in ATTRIBUTE_KEYS}
+                    kind = (attrs.get('kind') or '').strip().lower() or None
+                    if kind and element_type != 'asset':
+                        self.warnings.append(f"kind: {kind} on {element_type} '{name}' — kind applies to assets "
+                                             f"(application, platform, integration, data); kept as an attribute")
                     self.elements[element_id] = {
                         'type': element_type,
                         'value': element_value,
                         'name': name,
                         'subtext': subtext,
                         'id': element_id,
-                        'ref': metrics.get('id'),
+                        'ref': ref,
+                        'kind': kind if element_type == 'asset' else None,
+                        'attrs': attrs,
                         'change': change,
                         'size_class': size_class,
                         'highlight': metrics.get('highlight', '').lower() in ('1', 'true', 'yes', 'kyllä') or 'focus' in [t.lower() for t in tags],
@@ -543,6 +629,9 @@ class EDGYParser:
                     source_id = self._find_element_id_by_value(source)
                     target_id = self._find_element_id_by_value(target)
 
+                    if not (source_id and target_id):
+                        # the document graph resolves cross-page ids later; what stays unresolved is E015
+                        self.dangling.append((source, target, label, options))
                     if source_id and target_id:
                         kind = self._classify_relationship(
                             label, source_id, target_id
@@ -828,12 +917,24 @@ class EDGYParser:
             pts = re.findall(r'\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)', via_match.group(1))
             options['via'] = [(float(x), float(y)) for x, y in pts]
             text = text[:via_match.start()] + text[via_match.end():]
-        for pair in text.split(','):
+        for pair in split_options(text):
             if ':' not in pair:
                 continue
             k, v = pair.split(':', 1)
-            k, v = k.strip().lower(), v.strip()
-            if k in ('from', 'to'):
+            k, v = k.strip().lower(), unquote(v)
+            if k == 'primary':
+                options['primary'] = v.lower() in ('1', 'true', 'yes', 'kyllä')
+            elif k == 'crud':
+                letters = v.upper().replace(' ', '')
+                if letters and all(ch in 'CRUD' for ch in letters):
+                    options['crud'] = ''.join(ch for ch in 'CRUD' if ch in letters)
+                else:
+                    self.warnings.append(f"crud '{v}' is not a combination of C, R, U, D — ignored")
+            elif k == 'data':
+                options['data'] = [unquote(x) for x in re.split(r'\s*[;|]\s*|\s+/\s+', v) if unquote(x)]
+            elif k in ('technology', 'container'):
+                options[k] = v
+            elif k in ('from', 'to'):
                 if v.lower() in ('left', 'right', 'top', 'bottom'):
                     options[k] = v.lower()
                 else:
@@ -913,6 +1014,11 @@ class EDGYParser:
         4. Tyyppi-osuma (vain jos tyypillä on tasan yksi elementti)
         """
         value_lower = value.lower()
+
+        # 0. Model id ({id: CAP-05}) — explicit, so it wins over names
+        for element_id, element in self.elements.items():
+            if (element.get('ref') or '').lower() == value_lower:
+                return element_id
 
         # 1. Tarkka osuma
         for element_id, element in self.elements.items():
@@ -1308,6 +1414,44 @@ class EDGYParser:
             return self._computed_sizes.get(eid, (300, 160))
         return self._get_element_size(self.elements[eid])
 
+    def model_id(self, element: dict) -> Tuple[str, bool]:
+        """(model id, explicit?) — the {id:} of the element, else its type + name slug."""
+        if element.get('ref'):
+            return element['ref'], True
+        return slug_id(element['type'], element.get('name') or element.get('value', '')), False
+
+    def _identity_markers(self, element: dict, cell_id: int) -> str:
+        """edgyId / edgyIdSource / edgyType / edgyKind / edgyFacet / edgyOcc style keys (extension contract 1):
+        the model id of what the cell draws and where this occurrence is. draw.io keeps unknown style keys."""
+        mid, explicit = self.model_id(element)
+        out = f"edgyId={mid};"
+        if not explicit:
+            out += "edgyIdSource=slug;"
+        out += f"edgyType={element['type']};"
+        if element.get('kind'):
+            out += f"edgyKind={re.sub(r'[^a-z0-9-]+', '-', element['kind'])};"
+        facet = FACET_OF_TYPE.get(element['type'])
+        if facet:
+            out += f"edgyFacet={facet};"
+        out += f"edgyOcc={self.page_id or 'page'}/{cell_id};"
+        return out
+
+    def _data_name(self, ref: str) -> str:
+        """Display name for {data: AST-07}: the element with that id on this page or in the document, else the text."""
+        for e in self.elements.values():
+            if (e.get('ref') or '').lower() == ref.lower():
+                return e.get('name') or e['value']
+        if self.graph is not None:
+            node = self.graph.get(ref)
+            if node:
+                return node['name']
+        return ref
+
+    def _edge_detail(self, details: dict) -> str:
+        data = [self._data_name(d) for d in details.get('data') or []]
+        tech = details.get('technology') or []
+        return ' · '.join(x for x in (', '.join(data), ', '.join(tech)) if x)
+
     def generate_xml(self) -> str:
         """Generoi draw.io XML EDGY-elementeistä. Sivukoko skaalautuu sisällön mukaan.
 
@@ -1419,11 +1563,12 @@ class EDGYParser:
                 x, y = abs_pos.get(elem_id, (100 + idx * 160, 100))
             cell = ET.SubElement(mx_root, "mxCell", {
                 "id": str(next_id), "value": self._build_display_value(element),
-                "style": style, "vertex": "1", "parent": parent,
+                "style": style + self._identity_markers(element, next_id), "vertex": "1", "parent": parent,
             })
             ET.SubElement(cell, "mxGeometry", {"x": str(int(round(x))), "y": str(int(round(y))),
                                                "width": str(w), "height": str(h), "as": "geometry"})
             element_mapping[elem_id] = str(next_id)
+            self.cell_of[elem_id] = str(next_id)
             next_id += 1
             badge = self._badge_of(element)
             if badge:
@@ -1453,10 +1598,18 @@ class EDGYParser:
                     m['labels'].append(rel['label'])
                 if rel.get('kind') == 'link':
                     m['kind'] = 'link'
+                for extra in ('data', 'technology'):      # merged integrations keep every data name and technology
+                    for v in ([rel['options'][extra]] if isinstance(rel.get('options', {}).get(extra), str)
+                              else rel.get('options', {}).get(extra) or []):
+                        if v not in m['details'][extra]:
+                            m['details'][extra].append(v)
                 m['options'] = {**rel.get('options', {}), **m['options']}
             else:
+                opts = dict(rel.get('options', {}))
+                details = {'data': list(opts.get('data') or []),
+                           'technology': [opts['technology']] if opts.get('technology') else []}
                 merged[key] = {'source': key[0], 'target': key[1], 'labels': [rel['label']],
-                               'kind': rel.get('kind'), 'options': dict(rel.get('options', {}))}
+                               'kind': rel.get('kind'), 'options': opts, 'details': details}
                 order.append(key)
 
         from collections import defaultdict
@@ -1553,9 +1706,14 @@ class EDGYParser:
                 style += f"strokeColor={color};fontColor={color};strokeWidth=1.5;"
                 if dashed:
                     style += "dashed=1;dashPattern=8 4;"
+            value = " / ".join(self._render_verb(v, (self.elements[rel['source']]['type'], self.elements[rel['target']]['type']))
+                               for v in rel['labels'])
+            detail = self._edge_detail(rel.get('details') or {})
+            if detail:
+                # first line = the verb (lint reads only that), second line = data and technology in small type
+                value = (html.escape(value) + '<br><font style="font-size:9px">' + html.escape(detail) + '</font>')
             cell = ET.SubElement(mx_root, "mxCell", {
-                "id": str(next_id), "value": " / ".join(self._render_verb(v, (self.elements[rel['source']]['type'], self.elements[rel['target']]['type']))
-                                                        for v in rel['labels']), "style": style,
+                "id": str(next_id), "value": value, "style": style,
                 "edge": "1", "source": element_mapping[rel['source']],
                 "target": element_mapping[rel['target']], "parent": "1",
             })

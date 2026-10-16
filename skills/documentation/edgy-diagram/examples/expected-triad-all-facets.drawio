@@ -50,109 +50,109 @@
         <mxCell id="16" value="Further journeys" style="rounded=1;arcSize=6;container=1;collapsible=0;whiteSpace=wrap;html=1;fillColor=#f3f4f6;strokeColor=#d0d4dc;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=12;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
           <mxGeometry x="570" y="1433" width="240" height="88" as="geometry"/>
         </mxCell>
-        <mxCell id="17" value="&lt;b&gt;Effortless everyday travel in the region&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PUR-01] corporate purpose&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="2">
+        <mxCell id="17" value="&lt;b&gt;Effortless everyday travel in the region&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PUR-01] corporate purpose&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=PUR-01;edgyType=purpose;edgyFacet=identity;edgyOcc=triad/17;" vertex="1" parent="2">
           <mxGeometry x="275" y="13" width="230" height="74" as="geometry"/>
         </mxCell>
-        <mxCell id="18" value="&lt;b&gt;Zero-emission fleet by 2035&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PUR-12]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="5">
+        <mxCell id="18" value="&lt;b&gt;Zero-emission fleet by 2035&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PUR-12]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=PUR-12;edgyType=purpose;edgyFacet=identity;edgyOcc=triad/18;" vertex="1" parent="5">
           <mxGeometry x="12" y="30" width="183" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="19" value="&lt;b&gt;Affordable and fair fares&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PUR-13]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="5">
+        <mxCell id="19" value="&lt;b&gt;Affordable and fair fares&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PUR-13]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=PUR-13;edgyType=purpose;edgyFacet=identity;edgyOcc=triad/19;" vertex="1" parent="5">
           <mxGeometry x="205" y="30" width="183" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="20" value="&lt;b&gt;From a single bus line to a regional mobility platform&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[STO-01]&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="2">
+        <mxCell id="20" value="&lt;b&gt;From a single bus line to a regional mobility platform&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[STO-01]&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=STO-01;edgyType=story;edgyFacet=identity;edgyOcc=triad/20;" vertex="1" parent="2">
           <mxGeometry x="35" y="153" width="210" height="74" as="geometry"/>
         </mxCell>
-        <mxCell id="21" value="&lt;b&gt;The night the storm closed the bridge&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[STO-02]&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="13">
+        <mxCell id="21" value="&lt;b&gt;The night the storm closed the bridge&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[STO-02]&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=STO-02;edgyType=story;edgyFacet=identity;edgyOcc=triad/21;" vertex="1" parent="13">
           <mxGeometry x="12" y="30" width="216" height="56" as="geometry"/>
         </mxCell>
-        <mxCell id="22" value="&lt;b&gt;We keep the region moving&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CON-01] plain-language promise&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="2">
+        <mxCell id="22" value="&lt;b&gt;We keep the region moving&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CON-01] plain-language promise&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=CON-01;edgyType=content;edgyFacet=identity;edgyOcc=triad/22;" vertex="1" parent="2">
           <mxGeometry x="545" y="153" width="210" height="74" as="geometry"/>
         </mxCell>
-        <mxCell id="23" value="&lt;b&gt;Fare rules explained in one page&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CON-02]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="6">
+        <mxCell id="23" value="&lt;b&gt;Fare rules explained in one page&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CON-02]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=CON-02;edgyType=content;edgyFacet=identity;edgyOcc=triad/23;" vertex="1" parent="6">
           <mxGeometry x="12" y="30" width="183" height="56" as="geometry"/>
         </mxCell>
-        <mxCell id="24" value="&lt;b&gt;Annual sustainability report&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CON-03]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="6">
+        <mxCell id="24" value="&lt;b&gt;Annual sustainability report&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CON-03]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=CON-03;edgyType=content;edgyFacet=identity;edgyOcc=triad/24;" vertex="1" parent="6">
           <mxGeometry x="205" y="30" width="183" height="56" as="geometry"/>
         </mxCell>
-        <mxCell id="25" value="&lt;b&gt;Acme Transit&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[ORG-01]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#80eaff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="25" value="&lt;b&gt;Acme Transit&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[ORG-01]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#80eaff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=ORG-01;edgyType=organisation;edgyFacet=intersection;edgyOcc=triad/25;" vertex="1" parent="1">
           <mxGeometry x="275" y="363" width="210" height="74" as="geometry"/>
         </mxCell>
-        <mxCell id="26" value="&lt;b&gt;Regional operators&amp;#x27; consortium&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[ORG-02]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#80eaff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="14">
+        <mxCell id="26" value="&lt;b&gt;Regional operators&amp;#x27; consortium&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[ORG-02]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#80eaff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=ORG-02;edgyType=organisation;edgyFacet=intersection;edgyOcc=triad/26;" vertex="1" parent="14">
           <mxGeometry x="12" y="30" width="216" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="27" value="&lt;b&gt;Acme Transit brand&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[BRA-01]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#ffd580;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="27" value="&lt;b&gt;Acme Transit brand&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[BRA-01]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#ffd580;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=BRA-01;edgyType=brand;edgyFacet=intersection;edgyOcc=triad/27;" vertex="1" parent="1">
           <mxGeometry x="815" y="363" width="210" height="74" as="geometry"/>
         </mxCell>
-        <mxCell id="28" value="&lt;b&gt;Night Rider&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[BRA-02]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#ffd580;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="15">
+        <mxCell id="28" value="&lt;b&gt;Night Rider&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[BRA-02]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#ffd580;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=BRA-02;edgyType=brand;edgyFacet=intersection;edgyOcc=triad/28;" vertex="1" parent="15">
           <mxGeometry x="12" y="30" width="216" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="29" value="&lt;b&gt;Regional travel subscription&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PRD-01]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="29" value="&lt;b&gt;Regional travel subscription&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PRD-01]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=PRD-01;edgyType=product;edgyFacet=intersection;edgyOcc=triad/29;" vertex="1" parent="1">
           <mxGeometry x="545" y="863" width="210" height="74" as="geometry"/>
         </mxCell>
-        <mxCell id="30" value="&lt;b&gt;Single ticket&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PRD-02]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="7">
+        <mxCell id="30" value="&lt;b&gt;Single ticket&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PRD-02]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=PRD-02;edgyType=product;edgyFacet=intersection;edgyOcc=triad/30;" vertex="1" parent="7">
           <mxGeometry x="12" y="30" width="183" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="31" value="&lt;b&gt;Travel planner app&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PRD-03]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="7">
+        <mxCell id="31" value="&lt;b&gt;Travel planner app&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PRD-03]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=PRD-03;edgyType=product;edgyFacet=intersection;edgyOcc=triad/31;" vertex="1" parent="7">
           <mxGeometry x="205" y="30" width="183" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="32" value="&lt;b&gt;Operator settlement report&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PRD-04]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="7">
+        <mxCell id="32" value="&lt;b&gt;Operator settlement report&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PRD-04]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=PRD-04;edgyType=product;edgyFacet=intersection;edgyOcc=triad/32;" vertex="1" parent="7">
           <mxGeometry x="12" y="86" width="183" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="33" value="&lt;b&gt;Account-based travel&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CAP-02]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="3">
+        <mxCell id="33" value="&lt;b&gt;Account-based travel&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CAP-02]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=CAP-02;edgyType=capability;edgyFacet=architecture;edgyOcc=triad/33;" vertex="1" parent="3">
           <mxGeometry x="75" y="23" width="210" height="74" as="geometry"/>
         </mxCell>
-        <mxCell id="34" value="&lt;b&gt;Ticketing&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CAP-01]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="8">
+        <mxCell id="34" value="&lt;b&gt;Ticketing&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CAP-01]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=CAP-01;edgyType=capability;edgyFacet=architecture;edgyOcc=triad/34;" vertex="1" parent="8">
           <mxGeometry x="12" y="30" width="183" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="35" value="&lt;b&gt;Trip planning&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CAP-03]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="8">
+        <mxCell id="35" value="&lt;b&gt;Trip planning&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CAP-03]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=CAP-03;edgyType=capability;edgyFacet=architecture;edgyOcc=triad/35;" vertex="1" parent="8">
           <mxGeometry x="205" y="30" width="183" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="36" value="&lt;b&gt;Real-time passenger information&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CAP-04]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="8">
+        <mxCell id="36" value="&lt;b&gt;Real-time passenger information&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CAP-04]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=CAP-04;edgyType=capability;edgyFacet=architecture;edgyOcc=triad/36;" vertex="1" parent="8">
           <mxGeometry x="12" y="86" width="183" height="56" as="geometry"/>
         </mxCell>
-        <mxCell id="37" value="&lt;b&gt;Revenue settlement&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CAP-08]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="8">
+        <mxCell id="37" value="&lt;b&gt;Revenue settlement&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CAP-08]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=CAP-08;edgyType=capability;edgyFacet=architecture;edgyOcc=triad/37;" vertex="1" parent="8">
           <mxGeometry x="205" y="86" width="183" height="56" as="geometry"/>
         </mxCell>
-        <mxCell id="38" value="&lt;b&gt;Account-based ticketing platform&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[AST-01]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="3">
+        <mxCell id="38" value="&lt;b&gt;Account-based ticketing platform&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[AST-01]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=AST-01;edgyType=asset;edgyFacet=architecture;edgyOcc=triad/38;" vertex="1" parent="3">
           <mxGeometry x="25" y="183" width="210" height="74" as="geometry"/>
         </mxCell>
-        <mxCell id="39" value="&lt;b&gt;Payment gateway&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[AST-02]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="9">
+        <mxCell id="39" value="&lt;b&gt;Payment gateway&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[AST-02]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=AST-02;edgyType=asset;edgyFacet=architecture;edgyOcc=triad/39;" vertex="1" parent="9">
           <mxGeometry x="12" y="30" width="183" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="40" value="&lt;b&gt;Data lake&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[AST-05]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="9">
+        <mxCell id="40" value="&lt;b&gt;Data lake&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[AST-05]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=AST-05;edgyType=asset;edgyFacet=architecture;edgyOcc=triad/40;" vertex="1" parent="9">
           <mxGeometry x="205" y="30" width="183" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="41" value="&lt;b&gt;Sell and validate tickets&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PRO-01]&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="3">
+        <mxCell id="41" value="&lt;b&gt;Sell and validate tickets&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PRO-01]&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=PRO-01;edgyType=process;edgyFacet=architecture;edgyOcc=triad/41;" vertex="1" parent="3">
           <mxGeometry x="225" y="303" width="210" height="74" as="geometry"/>
         </mxCell>
-        <mxCell id="42" value="&lt;b&gt;Plan and publish timetables&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PRO-02]&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="10">
+        <mxCell id="42" value="&lt;b&gt;Plan and publish timetables&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PRO-02]&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=PRO-02;edgyType=process;edgyFacet=architecture;edgyOcc=triad/42;" vertex="1" parent="10">
           <mxGeometry x="12" y="30" width="183" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="43" value="&lt;b&gt;Settle revenue&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PRO-04]&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="10">
+        <mxCell id="43" value="&lt;b&gt;Settle revenue&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[PRO-04]&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=PRO-04;edgyType=process;edgyFacet=architecture;edgyOcc=triad/43;" vertex="1" parent="10">
           <mxGeometry x="205" y="30" width="183" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="44" value="&lt;b&gt;Buy a monthly subscription&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[TAS-01]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="4">
+        <mxCell id="44" value="&lt;b&gt;Buy a monthly subscription&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[TAS-01]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=TAS-01;edgyType=task;edgyFacet=experience;edgyOcc=triad/44;" vertex="1" parent="4">
           <mxGeometry x="175" y="23" width="210" height="74" as="geometry"/>
         </mxCell>
-        <mxCell id="45" value="&lt;b&gt;Check the next departure&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[TAS-02]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="11">
+        <mxCell id="45" value="&lt;b&gt;Check the next departure&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[TAS-02]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=TAS-02;edgyType=task;edgyFacet=experience;edgyOcc=triad/45;" vertex="1" parent="11">
           <mxGeometry x="12" y="30" width="183" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="46" value="&lt;b&gt;Report a lost item&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[TAS-03]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="11">
+        <mxCell id="46" value="&lt;b&gt;Report a lost item&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[TAS-03]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=TAS-03;edgyType=task;edgyFacet=experience;edgyOcc=triad/46;" vertex="1" parent="11">
           <mxGeometry x="205" y="30" width="183" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="47" value="&lt;b&gt;Mobile app&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CHA-01]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="4">
+        <mxCell id="47" value="&lt;b&gt;Mobile app&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CHA-01]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=CHA-01;edgyType=channel;edgyFacet=experience;edgyOcc=triad/47;" vertex="1" parent="4">
           <mxGeometry x="275" y="183" width="210" height="74" as="geometry"/>
         </mxCell>
-        <mxCell id="48" value="&lt;b&gt;Ticket machines&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CHA-02]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="12">
+        <mxCell id="48" value="&lt;b&gt;Ticket machines&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CHA-02]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=CHA-02;edgyType=channel;edgyFacet=experience;edgyOcc=triad/48;" vertex="1" parent="12">
           <mxGeometry x="12" y="30" width="183" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="49" value="&lt;b&gt;Customer service desk&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CHA-03]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="12">
+        <mxCell id="49" value="&lt;b&gt;Customer service desk&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[CHA-03]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=CHA-03;edgyType=channel;edgyFacet=experience;edgyOcc=triad/49;" vertex="1" parent="12">
           <mxGeometry x="205" y="30" width="183" height="46" as="geometry"/>
         </mxCell>
-        <mxCell id="50" value="&lt;b&gt;Commute across two operators&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[JOU-01]&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="4">
+        <mxCell id="50" value="&lt;b&gt;Commute across two operators&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[JOU-01]&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=JOU-01;edgyType=journey;edgyFacet=experience;edgyOcc=triad/50;" vertex="1" parent="4">
           <mxGeometry x="25" y="303" width="210" height="74" as="geometry"/>
         </mxCell>
-        <mxCell id="51" value="&lt;b&gt;Occasional trip to the airport&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[JOU-02]&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;" vertex="1" parent="16">
+        <mxCell id="51" value="&lt;b&gt;Occasional trip to the airport&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[JOU-02]&lt;/font&gt;" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=12;edgyId=JOU-02;edgyType=journey;edgyFacet=experience;edgyOcc=triad/51;" vertex="1" parent="16">
           <mxGeometry x="12" y="30" width="216" height="46" as="geometry"/>
         </mxCell>
         <mxCell id="52" value="contextualises" style="edgeStyle=none;rounded=0;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=classic;endFill=1;" edge="1" source="20" target="17" parent="1">
@@ -341,25 +341,25 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="93" value="Flow" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
-          <mxGeometry x="716" y="1560" width="24" height="24" as="geometry"/>
+          <mxGeometry x="716" y="1560" width="25" height="24" as="geometry"/>
         </mxCell>
         <mxCell id="94" value="" style="edgeStyle=none;endArrow=none;strokeWidth=1;strokeColor=#333333;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="754" y="1572" as="sourcePoint"/>
-            <mxPoint x="782" y="1572" as="targetPoint"/>
+            <mxPoint x="755" y="1572" as="sourcePoint"/>
+            <mxPoint x="783" y="1572" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
         <mxCell id="95" value="Tree" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
-          <mxGeometry x="786" y="1560" width="24" height="24" as="geometry"/>
+          <mxGeometry x="787" y="1560" width="24" height="24" as="geometry"/>
         </mxCell>
         <mxCell id="96" value="" style="edgeStyle=none;endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="824" y="1572" as="sourcePoint"/>
-            <mxPoint x="852" y="1572" as="targetPoint"/>
+            <mxPoint x="825" y="1572" as="sourcePoint"/>
+            <mxPoint x="853" y="1572" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
         <mxCell id="97" value="Influence" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
-          <mxGeometry x="856" y="1560" width="42" height="24" as="geometry"/>
+          <mxGeometry x="857" y="1560" width="42" height="24" as="geometry"/>
         </mxCell>
       </root>
     </mxGraphModel>

@@ -26,8 +26,9 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-DIAGRAM_SCRIPTS = HERE.parent.parent.parent / "documentation" / "edgy-diagram" / "scripts"
-sys.path.insert(0, str(DIAGRAM_SCRIPTS))
+sys.path.insert(0, str(HERE))
+import edgy_paths  # noqa: E402 — finds edgy-diagram in a checkout and after an install
+DIAGRAM_SCRIPTS = edgy_paths.add_diagram_scripts_to_path() or edgy_paths.candidates()[-1]
 try:
     from edgy_core_links import CORE_LINKS  # noqa: E402
 except ImportError as exc:  # the vocabulary is required to derive core links — never continue without it

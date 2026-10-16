@@ -14,40 +14,40 @@
         <mxCell id="4" value="Experience" style="rounded=1;arcSize=6;container=1;collapsible=0;whiteSpace=wrap;html=1;fillColor=#ffe6ef;strokeColor=#ffffff;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=12;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
           <mxGeometry x="940" y="60" width="240" height="276" as="geometry"/>
         </mxCell>
-        <mxCell id="5" value="Yrityksen tarkoitus" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="2">
+        <mxCell id="5" value="Yrityksen tarkoitus" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=purpose:yrityksen-tarkoitus;edgyIdSource=slug;edgyType=purpose;edgyFacet=identity;edgyOcc=edgy/5;" vertex="1" parent="2">
           <mxGeometry x="20" y="36" width="150" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="6" value="Laadukas sisältö" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="2">
+        <mxCell id="6" value="Laadukas sisältö" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=content:laadukas-sis-lt;edgyIdSource=slug;edgyType=content;edgyFacet=identity;edgyOcc=edgy/6;" vertex="1" parent="2">
           <mxGeometry x="20" y="116" width="140" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="7" value="Yhteinen tarina" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="2">
+        <mxCell id="7" value="Yhteinen tarina" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=story:yhteinen-tarina;edgyIdSource=slug;edgyType=story;edgyFacet=identity;edgyOcc=edgy/7;" vertex="1" parent="2">
           <mxGeometry x="20" y="196" width="150" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="8" value="Brändi" style="whiteSpace=wrap;html=1;fillColor=#ffd580;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="8" value="Brändi" style="whiteSpace=wrap;html=1;fillColor=#ffd580;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=brand:br-ndi;edgyIdSource=slug;edgyType=brand;edgyFacet=intersection;edgyOcc=edgy/8;" vertex="1" parent="1">
           <mxGeometry x="560" y="400" width="120" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="9" value="Organisaatio" style="whiteSpace=wrap;html=1;fillColor=#80eaff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="9" value="Organisaatio" style="whiteSpace=wrap;html=1;fillColor=#80eaff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=organisation:organisaatio;edgyIdSource=slug;edgyType=organisation;edgyFacet=intersection;edgyOcc=edgy/9;" vertex="1" parent="1">
           <mxGeometry x="340" y="170" width="120" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="10" value="Kehitysosaaminen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="3">
+        <mxCell id="10" value="Kehitysosaaminen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=capability:kehitysosaaminen;edgyIdSource=slug;edgyType=capability;edgyFacet=architecture;edgyOcc=edgy/10;" vertex="1" parent="3">
           <mxGeometry x="20" y="36" width="150" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="11" value="Resurssit" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="3">
+        <mxCell id="11" value="Resurssit" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=asset:resurssit;edgyIdSource=slug;edgyType=asset;edgyFacet=architecture;edgyOcc=edgy/11;" vertex="1" parent="3">
           <mxGeometry x="20" y="116" width="120" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="12" value="Prosessit" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="3">
+        <mxCell id="12" value="Prosessit" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=process:prosessit;edgyIdSource=slug;edgyType=process;edgyFacet=architecture;edgyOcc=edgy/12;" vertex="1" parent="3">
           <mxGeometry x="20" y="196" width="140" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="13" value="Tuote" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="13" value="Tuote" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=product:tuote;edgyIdSource=slug;edgyType=product;edgyFacet=intersection;edgyOcc=edgy/13;" vertex="1" parent="1">
           <mxGeometry x="780" y="170" width="120" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="14" value="Tehtävä" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="4">
+        <mxCell id="14" value="Tehtävä" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=task:teht-v;edgyIdSource=slug;edgyType=task;edgyFacet=experience;edgyOcc=edgy/14;" vertex="1" parent="4">
           <mxGeometry x="20" y="36" width="120" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="15" value="Kanava" style="whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="4">
+        <mxCell id="15" value="Kanava" style="whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=channel:kanava;edgyIdSource=slug;edgyType=channel;edgyFacet=experience;edgyOcc=edgy/15;" vertex="1" parent="4">
           <mxGeometry x="20" y="116" width="120" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="16" value="Matka" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="4">
+        <mxCell id="16" value="Matka" style="shape=mxgraph.arrows2.arrow;dy=0.6;dx=20;notch=0;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=journey:matka;edgyIdSource=slug;edgyType=journey;edgyFacet=experience;edgyOcc=edgy/16;" vertex="1" parent="4">
           <mxGeometry x="20" y="196" width="140" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="17" value="ilmaisee" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=classic;endFill=1;exitX=0.5;exitY=0.0;exitDx=0;exitDy=0;entryX=0.15;entryY=1.0;entryDx=0;entryDy=0;" edge="1" source="6" target="5" parent="1">

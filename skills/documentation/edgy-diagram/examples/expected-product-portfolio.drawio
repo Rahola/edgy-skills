@@ -5,28 +5,28 @@
       <root>
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
-        <mxCell id="2" value="Acme Transit portfolio" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="2" value="Acme Transit portfolio" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=product:acme-transit-portfolio;edgyIdSource=slug;edgyType=product;edgyFacet=intersection;edgyOcc=product/2;" vertex="1" parent="1">
           <mxGeometry x="480" y="60" width="170" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="3" value="Passenger transport" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="3" value="Passenger transport" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=product:passenger-transport;edgyIdSource=slug;edgyType=product;edgyFacet=intersection;edgyOcc=product/3;" vertex="1" parent="1">
           <mxGeometry x="380" y="170" width="170" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="4" value="Freight transport" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="4" value="Freight transport" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=product:freight-transport;edgyIdSource=slug;edgyType=product;edgyFacet=intersection;edgyOcc=product/4;" vertex="1" parent="1">
           <mxGeometry x="900" y="170" width="170" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="5" value="Local trains" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="5" value="Local trains" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=product:local-trains;edgyIdSource=slug;edgyType=product;edgyFacet=intersection;edgyOcc=product/5;" vertex="1" parent="1">
           <mxGeometry x="60" y="280" width="170" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="6" value="Night trains" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="6" value="Night trains" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=product:night-trains;edgyIdSource=slug;edgyType=product;edgyFacet=intersection;edgyOcc=product/6;" vertex="1" parent="1">
           <mxGeometry x="270" y="280" width="170" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="7" value="Family card" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="7" value="Family card" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=product:family-card;edgyIdSource=slug;edgyType=product;edgyFacet=intersection;edgyOcc=product/7;" vertex="1" parent="1">
           <mxGeometry x="480" y="280" width="170" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="8" value="Senior card" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="8" value="Senior card" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=product:senior-card;edgyIdSource=slug;edgyType=product;edgyFacet=intersection;edgyOcc=product/8;" vertex="1" parent="1">
           <mxGeometry x="690" y="280" width="170" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="9" value="Container shuttle" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="9" value="Container shuttle" style="whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=product:container-shuttle;edgyIdSource=slug;edgyType=product;edgyFacet=intersection;edgyOcc=product/9;" vertex="1" parent="1">
           <mxGeometry x="900" y="280" width="170" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="10" value="contains" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=none;exitX=0.15;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="2" target="3" parent="1">
@@ -108,25 +108,25 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="34" value="Flow" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
-          <mxGeometry x="716" y="370" width="24" height="24" as="geometry"/>
+          <mxGeometry x="716" y="370" width="25" height="24" as="geometry"/>
         </mxCell>
         <mxCell id="35" value="" style="edgeStyle=none;endArrow=none;strokeWidth=1;strokeColor=#333333;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="754" y="382" as="sourcePoint"/>
-            <mxPoint x="782" y="382" as="targetPoint"/>
+            <mxPoint x="755" y="382" as="sourcePoint"/>
+            <mxPoint x="783" y="382" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
         <mxCell id="36" value="Tree" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
-          <mxGeometry x="786" y="370" width="24" height="24" as="geometry"/>
+          <mxGeometry x="787" y="370" width="24" height="24" as="geometry"/>
         </mxCell>
         <mxCell id="37" value="" style="edgeStyle=none;endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="824" y="382" as="sourcePoint"/>
-            <mxPoint x="852" y="382" as="targetPoint"/>
+            <mxPoint x="825" y="382" as="sourcePoint"/>
+            <mxPoint x="853" y="382" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
         <mxCell id="38" value="Influence" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
-          <mxGeometry x="856" y="370" width="42" height="24" as="geometry"/>
+          <mxGeometry x="857" y="370" width="42" height="24" as="geometry"/>
         </mxCell>
       </root>
     </mxGraphModel>

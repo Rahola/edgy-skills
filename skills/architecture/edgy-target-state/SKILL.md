@@ -104,7 +104,7 @@ mode*). Never pad.
    Organisation and Brand present).
 3. Generate, lint, preview:
    ```bash
-   G=skills/documentation/edgy-diagram/scripts
+   G=${EDGY_DIAGRAM_SCRIPTS:-skills/documentation/edgy-diagram/scripts}   # installed skills: ~/.claude/skills/edgy-diagram/scripts
    python3 $G/edgy_generator.py <programme>-purpose-map.txt --output <programme>-purpose-map.drawio --preview
    python3 $G/edgy_lint.py <programme>-purpose-map.drawio
    ```

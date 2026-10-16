@@ -176,6 +176,13 @@ def strip_html(value):
     return html.unescape(text)
 
 
+def edge_verb(edge, lower=True):
+    """The verb of an edge label: its first line. The generator writes data names and technology on a
+    second line (`transfers<br>Fare data · REST`); only the first line is vocabulary."""
+    first = strip_html(edge.get('value') or '').strip().split('\n')[0].strip()
+    return first.lower() if lower else first
+
+
 def shape_of(st):
     if st.get('edgyRole') in ('badge', 'badge-key'):
         return 'decoration'          # status badge (extension) and its legend key: not EDGY elements
@@ -207,6 +214,8 @@ def element_type(st):
     return table[fam].get(sh)
 
 
+KNOWN_TYPES = {'purpose', 'content', 'story', 'capability', 'asset', 'process', 'task', 'channel', 'journey',
+               'brand', 'product', 'organisation', 'people', 'activity', 'outcome', 'object'}
 BASE_FILLS = {'#ffffff', '#fff'}
 BASE_STROKES = {'#262626', '#000000', '#333333', '#555555'} | {'#6b778c', '#006644', '#b26b00', '#c25100', '#bf2600'}
 BASE_TYPES = {'rounded': 'outcome', 'pentagon': 'activity', 'rect': 'object', 'person': 'people'}
@@ -271,7 +280,8 @@ def classify_cells(cells):
         if shape_of(st) == 'decoration':
             continue
         if st.get('fillColor', '').lower() in PALETTE:
-            elements[i] = (c, st, element_type(st))
+            # the generator's edgyType marker names the type exactly; colour + shape is the fallback
+            elements[i] = (c, st, st.get('edgyType') if st.get('edgyType') in KNOWN_TYPES else element_type(st))
             continue
         base = base_element_type(st)
         if base:
@@ -507,7 +517,7 @@ def lint_model(path, page, model, lines, opts):
         src, tgt = e.get('source'), e.get('target')
         if src not in elements or tgt not in elements:
             continue
-        verb = strip_html(e.get('value') or '').strip().lower()
+        verb = edge_verb(e)          # the first label line; a second line carries data / technology
         if not verb:
             continue
         st = style_dict(e.get('style'))
@@ -544,7 +554,7 @@ def lint_model(path, page, model, lines, opts):
         for i, e in edges.items():
             if e.get('source') not in elements or e.get('target') not in elements:
                 continue
-            for part in strip_html(e.get('value') or '').split(' / '):
+            for part in edge_verb(e, lower=False).split(' / '):
                 verb = part.strip().lower()
                 langs = languages_of(verb)
                 if langs and map_lang not in langs:
@@ -622,10 +632,10 @@ def visual_findings(path, page, lines, cells, elements, containers, page_w, page
         if not verb:
             continue
         fs = float(st.get('fontSize', 11) or 11)
-        lbox = geo.edge_label_box(route, verb.split('\n')[0], fs, rel_x, rel_y, offset)
+        lbox = geo.edge_label_box(route, verb, fs, rel_x, rel_y, offset)
         if lbox is None:
             continue
-        labels.append((i, src, verb.lower(), lbox))
+        labels.append((i, src, verb.split('\n')[0].strip().lower(), lbox))
         area = max(lbox[2] * lbox[3], 1.0)
         # W112: label over an element (its own ends included — a label on the source box is unreadable too)
         for j, box in boxes.items():

@@ -5,22 +5,22 @@
       <root>
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
-        <mxCell id="2" value="Reliable mobility" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="2" value="Reliable mobility" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=outcome:reliable-mobility;edgyIdSource=slug;edgyType=outcome;edgyFacet=base;edgyOcc=outcome/2;" vertex="1" parent="1">
           <mxGeometry x="280" y="60" width="180" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="3" value="Reduced commute time" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="3" value="Reduced commute time" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=outcome:reduced-commute-time;edgyIdSource=slug;edgyType=outcome;edgyFacet=base;edgyOcc=outcome/3;" vertex="1" parent="1">
           <mxGeometry x="60" y="170" width="180" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="4" value="Lower emissions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="4" value="Lower emissions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=outcome:lower-emissions;edgyIdSource=slug;edgyType=outcome;edgyFacet=base;edgyOcc=outcome/4;" vertex="1" parent="1">
           <mxGeometry x="280" y="170" width="180" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="5" value="Customer trust" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="5" value="Customer trust" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=outcome:customer-trust;edgyIdSource=slug;edgyType=outcome;edgyFacet=base;edgyOcc=outcome/5;" vertex="1" parent="1">
           <mxGeometry x="500" y="170" width="180" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="6" value="Operational efficiency" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="6" value="Operational efficiency" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=outcome:operational-efficiency;edgyIdSource=slug;edgyType=outcome;edgyFacet=base;edgyOcc=outcome/6;" vertex="1" parent="1">
           <mxGeometry x="280" y="260" width="180" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="7" value="Profitable growth" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="7" value="Profitable growth" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=outcome:profitable-growth;edgyIdSource=slug;edgyType=outcome;edgyFacet=base;edgyOcc=outcome/7;" vertex="1" parent="1">
           <mxGeometry x="500" y="260" width="180" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="8" value="contains" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=none;exitX=0.15;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="2" target="3" parent="1">

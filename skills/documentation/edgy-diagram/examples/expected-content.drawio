@@ -5,28 +5,28 @@
       <root>
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
-        <mxCell id="2" value="Sustainability promise" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="2" value="Sustainability promise" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=content:sustainability-promise;edgyIdSource=slug;edgyType=content;edgyFacet=identity;edgyOcc=content/2;" vertex="1" parent="1">
           <mxGeometry x="60" y="60" width="190" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="3" value="On-time guarantee" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="3" value="On-time guarantee" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=content:on-time-guarantee;edgyIdSource=slug;edgyType=content;edgyFacet=identity;edgyOcc=content/3;" vertex="1" parent="1">
           <mxGeometry x="290" y="60" width="190" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="4" value="Customer testimonials" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="4" value="Customer testimonials" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=content:customer-testimonials;edgyIdSource=slug;edgyType=content;edgyFacet=identity;edgyOcc=content/4;" vertex="1" parent="1">
           <mxGeometry x="60" y="160" width="190" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="5" value="Annual report" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="5" value="Annual report" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=content:annual-report;edgyIdSource=slug;edgyType=content;edgyFacet=identity;edgyOcc=content/5;" vertex="1" parent="1">
           <mxGeometry x="290" y="160" width="190" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="6" value="Service alerts" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="6" value="Service alerts" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=content:service-alerts;edgyIdSource=slug;edgyType=content;edgyFacet=identity;edgyOcc=content/6;" vertex="1" parent="1">
           <mxGeometry x="60" y="260" width="190" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="7" value="Travel inspiration blog" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="7" value="Travel inspiration blog" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=content:travel-inspiration-blog;edgyIdSource=slug;edgyType=content;edgyFacet=identity;edgyOcc=content/7;" vertex="1" parent="1">
           <mxGeometry x="290" y="260" width="190" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="8" value="Loyalty programme rules" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="8" value="Loyalty programme rules" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=content:loyalty-programme-rules;edgyIdSource=slug;edgyType=content;edgyFacet=identity;edgyOcc=content/8;" vertex="1" parent="1">
           <mxGeometry x="60" y="360" width="190" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="9" value="Pricing FAQ" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="9" value="Pricing FAQ" style="whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=content:pricing-faq;edgyIdSource=slug;edgyType=content;edgyFacet=identity;edgyOcc=content/9;" vertex="1" parent="1">
           <mxGeometry x="290" y="360" width="190" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="10" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#cccccc;strokeWidth=1;" vertex="1" parent="1">

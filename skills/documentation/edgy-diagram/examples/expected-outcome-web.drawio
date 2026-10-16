@@ -5,28 +5,28 @@
       <root>
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
-        <mxCell id="2" value="Better partner integration" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="2" value="Better partner integration" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=outcome:better-partner-integration;edgyIdSource=slug;edgyType=outcome;edgyFacet=base;edgyOcc=outcome/2;" vertex="1" parent="1">
           <mxGeometry x="60" y="130" width="240" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="3" value="Upgraded sleeper wagons" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="3" value="Upgraded sleeper wagons" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=outcome:upgraded-sleeper-wagons;edgyIdSource=slug;edgyType=outcome;edgyFacet=base;edgyOcc=outcome/3;" vertex="1" parent="1">
           <mxGeometry x="60" y="270" width="240" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="4" value="Route optimisation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="4" value="Route optimisation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=outcome:route-optimisation;edgyIdSource=slug;edgyType=outcome;edgyFacet=base;edgyOcc=outcome/4;" vertex="1" parent="1">
           <mxGeometry x="440" y="60" width="240" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="5" value="Accurate passenger information" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="5" value="Accurate passenger information" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=outcome:accurate-passenger-information;edgyIdSource=slug;edgyType=outcome;edgyFacet=base;edgyOcc=outcome/5;" vertex="1" parent="1">
           <mxGeometry x="440" y="200" width="240" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="6" value="Higher comfort" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="6" value="Higher comfort" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=outcome:higher-comfort;edgyIdSource=slug;edgyType=outcome;edgyFacet=base;edgyOcc=outcome/6;" vertex="1" parent="1">
           <mxGeometry x="440" y="340" width="240" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="7" value="Increased capacity" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="7" value="Increased capacity" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=outcome:increased-capacity;edgyIdSource=slug;edgyType=outcome;edgyFacet=base;edgyOcc=outcome/7;" vertex="1" parent="1">
           <mxGeometry x="820" y="130" width="240" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="8" value="Better journey experience" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="8" value="Better journey experience" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=outcome:better-journey-experience;edgyIdSource=slug;edgyType=outcome;edgyFacet=base;edgyOcc=outcome/8;" vertex="1" parent="1">
           <mxGeometry x="820" y="270" width="240" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="9" value="More night-train passengers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="9" value="More night-train passengers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#262626;strokeWidth=2;arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=outcome:more-night-train-passengers;edgyIdSource=slug;edgyType=outcome;edgyFacet=base;edgyOcc=outcome/9;" vertex="1" parent="1">
           <mxGeometry x="1200" y="200" width="240" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="10" value="enables" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=open;endFill=0;dashed=1;exitX=1.0;exitY=0.15;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="2" target="4" parent="1">
@@ -111,25 +111,25 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="35" value="Flow" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
-          <mxGeometry x="716" y="430" width="24" height="24" as="geometry"/>
+          <mxGeometry x="716" y="430" width="25" height="24" as="geometry"/>
         </mxCell>
         <mxCell id="36" value="" style="edgeStyle=none;endArrow=none;strokeWidth=1;strokeColor=#333333;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="754" y="442" as="sourcePoint"/>
-            <mxPoint x="782" y="442" as="targetPoint"/>
+            <mxPoint x="755" y="442" as="sourcePoint"/>
+            <mxPoint x="783" y="442" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
         <mxCell id="37" value="Tree" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
-          <mxGeometry x="786" y="430" width="24" height="24" as="geometry"/>
+          <mxGeometry x="787" y="430" width="24" height="24" as="geometry"/>
         </mxCell>
         <mxCell id="38" value="" style="edgeStyle=none;endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="824" y="442" as="sourcePoint"/>
-            <mxPoint x="852" y="442" as="targetPoint"/>
+            <mxPoint x="825" y="442" as="sourcePoint"/>
+            <mxPoint x="853" y="442" as="targetPoint"/>
           </mxGeometry>
         </mxCell>
         <mxCell id="39" value="Influence" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;" vertex="1" parent="1">
-          <mxGeometry x="856" y="430" width="42" height="24" as="geometry"/>
+          <mxGeometry x="857" y="430" width="42" height="24" as="geometry"/>
         </mxCell>
       </root>
     </mxGraphModel>

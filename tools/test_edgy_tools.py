@@ -94,7 +94,9 @@ def test_model_to_txt_fails_loudly_without_vocabulary():
     script_dir = d / "a" / "b" / "c" / "scripts"     # DIAGRAM_SCRIPTS resolves to a non-existent path
     script_dir.mkdir(parents=True)
     shutil.copy(M2T, script_dir / "edgy_model_to_txt.py")
-    env = dict(os.environ, PYTHONPATH="")
+    shutil.copy(M2T.parent / "edgy_paths.py", script_dir / "edgy_paths.py")   # ships with the script (2.8.0)
+    env = {k: v for k, v in os.environ.items() if k != "EDGY_DIAGRAM_SCRIPTS"}
+    env["PYTHONPATH"] = ""
     r = subprocess.run([sys.executable, str(script_dir / "edgy_model_to_txt.py"), str(SAMPLE), "--out", str(d / "out")],
                        capture_output=True, text=True, env=env, cwd=str(d))
     assert r.returncode != 0 and "vocabulary" in (r.stderr + r.stdout), (r.returncode, r.stdout, r.stderr)

@@ -404,7 +404,7 @@ relationships:
 Generate a drawio diagram for each TXT file **with the edgy-diagram generator** and lint the result:
 
 ```bash
-G=skills/documentation/edgy-diagram/scripts
+G=${EDGY_DIAGRAM_SCRIPTS:-skills/documentation/edgy-diagram/scripts}   # installed skills: ~/.claude/skills/edgy-diagram/scripts
 python3 $G/edgy_generator.py <company>-identity.txt --output <company>-identity.drawio --preview --preset publication
 python3 $G/edgy_lint.py <company>-identity.drawio      # 0 errors required
 # --preview wrote <company>-identity.svg (+ .png when Chromium is available) and <company>-identity.qa.json:

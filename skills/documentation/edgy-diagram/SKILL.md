@@ -486,6 +486,9 @@ and the linter flag such edges and draw them as influence.
 | produces | tuottaa | produit | bringt hervor | process → outcome: a process yields a measurable result |
 | measures | mittaa | mesure | misst | outcome → purpose: an outcome (KPI) measures a purpose |
 | contributes to | edistää | contribue à | trägt bei zu | capability → purpose or outcome: bridge when no core link exists |
+| stores | tallentaa | stocke | speichert | asset (application) → asset (data): the application is the system of record |
+| accesses | käsittelee | accède à | greift zu auf | process → asset (data): reads or changes data; {crud: R | CU | CRUD} says how |
+| interacts with | asioi | interagit avec | interagiert mit | people / organisation → asset (application): an actor works with an application (core uses is task → channel only) |
 <!-- edgy-links:end -->
 
 `supports`/`tukee` is the core link brand → task; on any other pair it is

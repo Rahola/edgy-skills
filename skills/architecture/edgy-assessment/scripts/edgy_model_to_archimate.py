@@ -44,8 +44,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import edgy_model_to_txt as m2t  # noqa: E402
 
-DIAGRAM_SCRIPTS = HERE.parent.parent.parent / "documentation" / "edgy-diagram" / "scripts"
-sys.path.insert(0, str(DIAGRAM_SCRIPTS))
+import edgy_paths  # noqa: E402 — finds edgy-diagram in a checkout and after an install
+DIAGRAM_SCRIPTS = edgy_paths.add_diagram_scripts_to_path() or edgy_paths.candidates()[-1]
 
 NS = "http://www.opengroup.org/xsd/archimate/3.0/"
 XSI = "http://www.w3.org/2001/XMLSchema-instance"
