@@ -164,7 +164,11 @@ skills cannot produce yet (nested groups, stage and matrix layouts, product
 trees, outcome webs, status overlay, wider semantic review, model diff,
 ArchiMate export) — is
 [`docs/development-plan-2026-10-coverage.md`](docs/development-plan-2026-10-coverage.md)
-(shipped in v2.3.0).
+(shipped in v2.3.0). The next plan — application map, process map,
+capability view (processes, applications, data, actors), C4 diagrams per
+application and an interactive single-page presenter for all diagrams — is
+[`docs/development-plan-2026-10-architecture-views.md`](docs/development-plan-2026-10-architecture-views.md)
+(proposal, planned for v2.4.0).
 
 ## Contributing
 
