@@ -165,10 +165,11 @@ trees, outcome webs, status overlay, wider semantic review, model diff,
 ArchiMate export) — is
 [`docs/development-plan-2026-10-coverage.md`](docs/development-plan-2026-10-coverage.md)
 (shipped in v2.3.0). The next plan — application map, process map,
-capability view (processes, applications, data, actors), C4 diagrams per
-application and an interactive single-page presenter for all diagrams — is
+capability view (processes, applications, data, actors) and an interactive
+single-page presenter for v2.4.0, then C4 diagrams per application as a
+separate `edgy-c4` skill in v2.5.0 — is
 [`docs/development-plan-2026-10-architecture-views.md`](docs/development-plan-2026-10-architecture-views.md)
-(proposal, planned for v2.4.0).
+(proposal).
 
 ## Contributing
 

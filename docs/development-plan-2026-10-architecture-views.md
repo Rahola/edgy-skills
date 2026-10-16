@@ -1,13 +1,18 @@
 # EDGY skills development plan (2026-10, part 4): architecture views and an interactive presenter
 
-**Revision 3 (2026-10-16) — proposal, not implemented.** Revision 1 was
-reviewed by three reviewer agents (generator feasibility against the code,
-EDGY / C4 modelling, presenter front-end), revision 2 by a fourth
-(adversarial second round); every accepted finding was checked against
-`main` and is folded in. What changed is listed in §10. Follow-up to
-[`development-plan-2026-10-coverage.md`](development-plan-2026-10-coverage.md),
-whose Sprints 17–20 shipped as **v2.3.0** (edgy-diagram 2.7.0,
-edgy-assessment 1.9.0, edgy-framework 1.6.0, edgy-target-state 1.1.0).
+**Revision 4 (2026-10-16) — proposal, not implemented. Scope decided:
+v2.4.0 = foundations, application / process / capability views and a
+presenter-lite in core; v2.5.0 = a separate `edgy-c4` skill in this repo;
+presenter effects only after workshop demand.** Revisions 1–3 were
+reviewed by four reviewer agents (generator feasibility, EDGY / C4
+modelling, presenter front-end, adversarial second round); revision 3 by
+two external agents (Vibe by Mistral, Codex) on PR #7 and by three more
+agents on the repository boundary (case for keeping, split design,
+finding verification). Every accepted finding was checked against `main`;
+§10 maps each one to its change. Follow-up to
+[`development-plan-2026-10-coverage.md`](development-plan-2026-10-coverage.md)
+(v2.3.0: edgy-diagram 2.7.0, edgy-assessment 1.9.0, edgy-framework 1.6.0,
+edgy-target-state 1.1.0).
 
 **Source — a feature request, not a review.** The request was for five
 deliverables the bundle cannot produce today:
@@ -18,8 +23,7 @@ deliverables the bundle cannot produce today:
    data and actors around it;
 4. **C4 diagrams** for each application (system context, containers);
 5. a **dynamic single-page web app** that presents all EDGY diagrams of an
-   engagement with a strong visual effect — drill-down, highlighting,
-   current → target transitions, a guided tour.
+   engagement with a strong visual effect.
 
 The baseline below was read from `main` (3aef09c). All examples are
 fictional (Acme Transit).
@@ -30,477 +34,468 @@ fictional (Acme Transit).
 
 ---
 
+## 0. Repository boundary (decision)
+
+The question raised on PR #7: which of these belong in an EDGY skills
+repository, and do the presenter and C4 belong in another repository?
+
+| Feature | Where | Release | Why |
+|---------|-------|---------|-----|
+| F0 Foundations | core (`edgy-diagram`, `edgy-assessment`) | v2.4.0 | ids, document graph and schema improve every EDGY output; every extension depends on them |
+| F1 Application map, F2 Process maps, F3 Capability view, F5 One model | core | v2.4.0 | EDGY views over the Architecture facet; new inputs to existing layouts |
+| F6a Presenter-lite | core (`edgy-diagram`) | v2.4.0 | a standard-library export like `edgy_render.py`; decorates its SVG, computes no layout |
+| F4 C4 | **separate skill in this repo**, `skills/documentation/edgy-c4/` | v2.5.0 | another notation with its own parser rules, shapes, lint and output; kept out of the 3,400-line EDGY parser, but in the same repo so it shares install, CI and release tags |
+| F6b Presenter effects | deferred — a v2.5.0 plan if workshops ask for them | — | product-grade UI with its own test burden; built only against the published contract |
+
+**Why not separate repositories.** The adapters read one `registry.yaml`
+from one repo at one ref (`EDGY_SKILLS_REPO` / `EDGY_SKILLS_REF`,
+`adapters/claude-code/install.sh`) and copy whole skill directories; a
+second repo needs a second registry, paired release tags, changes to four
+adapters and a duplicated CI. A C4 repo would also have to fork the parser,
+layout and renderer shapes. A separate *skill* gets the separation without
+those costs. A companion repo stays possible for F6b once the contract is
+frozen.
+
+**README correction.** `README.md` says the skills contain "no code that
+runs on your machine except the optional validation tooling in `tools/`".
+That is already untrue (the skills ship ~12,800 lines of Python: generator,
+linter, renderer, model tools). v2.4.0 corrects the sentence: skills ship
+standard-library Python scripts that run only when the agent calls them.
+
 ## 1. What is covered today (baseline)
 
 | Need | Closest existing feature | Gap |
 |------|--------------------------|-----|
-| Application map | `map_type: asset` (grid / tree), `map_type: reference` (lanes, actors left, `[external]` right, integration bus) | assets carry no kind; no lifecycle overlay; `rows:` is ignored when `group:` is used (`edgy_parser.py` ~2069) and a group inside a lane is not supported (~462), so *domains × layers* is a new layout, not a reuse |
-| Process map | `map_type: process` = one sequence row (`_layout_sequence`), `lane:`, `stages:` columns, matrix | no value chain (L1 row with L2 under each); lanes are derived from actors only in `map_type: task`, and only when the actor links to nothing but tasks (~2017) |
-| Capability view | nested capability map; `edgy-deep-dive` pairwise map; `[focus]` tag (= thicker border, same as `{highlight}`) | no single-capability view; no page generation per element |
-| Data | Asset tags already recommend `application` / `data` (`references/vocabulary.md` §Asset); flow verbs `flows [data]`, `transfers`, `sends` (`edgy_vocab.py` FLOW_VERBS) | no data-access verb, no CRUD |
+| Application map | `map_type: asset` (grid / tree), `map_type: reference` (lanes, actors left, `[external]` right, integration bus) | assets carry no kind; no lifecycle overlay; `rows:` is ignored when `group:` is used (`edgy_parser.py` ~2069) and a group inside a lane is not supported (~462), so *domains × layers* is a new layout |
+| Process map | `map_type: process` = one sequence row (`_layout_sequence`), `lane:`, `stages:` columns, matrix | no value chain; lanes are derived from actors only in `map_type: task`, and only when the actor links to nothing but tasks (~2017) |
+| Capability view | nested capability map; `edgy-deep-dive` pairwise map; `[focus]` tag (= thicker border) | no single-capability view; no page generation per element |
+| Data | Asset tags already recommend `application` / `data` (`references/vocabulary.md` §Asset); flow verbs `flows`, `transfers`, `sends` | no data-access verb, no CRUD |
 | Actors | `people`, `organisation`, role model | reusable as is |
-| C4 | — | no notation, shapes, lint or C4-PlantUML; the renderer knows only the EDGY shapes (`edgy_render.py` ~213) |
-| Presentation | multi-page draw.io, native SVG/PNG preview, PDF report layout | **no interactive output** (coverage plan §2.11, P3) |
-| Single source | `edgy-model.json` (shipped models: `schema_version "1.8"`), TXT pages, `edgy_model_to_txt.py`, ArchiMate export | the model stores **links between element types only** (`core_links`, one edge per type pair), `organisation` is a single object; there are no element-to-element relationships, so views cannot be derived from it yet |
-| Document | `pages:` multi-page TXT (`edgy_document.py`) | **each page has its own parser** (`edgy_document.py` ~87): there is no document-level graph to derive one view from another |
-| Ids in output | `{id: CAP-05}` rendered as subtext | draw.io cell ids are sequential (`"2"`, `"3"`, …); the model id is not machine-readable in the file |
+| C4 | — | none |
+| Presentation | multi-page draw.io, native SVG/PNG preview with `--preset presentation`, PDF report layout | **no interactive output** |
+| Single source | `edgy-model.json` (shipped models: `schema_version "1.8"`), `edgy_model_to_txt.py`, model diff, ArchiMate export | links between element **types** only; `organisation` is one object; no `people` type; the validator (`tools/validate-edgy-model.py`) has no `oneOf` / `anyOf` |
+| Document | `pages:` multi-page TXT (`edgy_document.py`) | **each page has its own parser** (~87); no document-level graph |
+| Ids in output | `{id: CAP-05}` rendered as subtext | draw.io cell ids are sequential; relationships resolve by name only (`_find_element_id_by_value`, ~906) |
+| Cross-skill scripts | `edgy_model_to_txt.py` imports `../../../documentation/edgy-diagram/scripts` | **works only in a repo checkout** — installed skills sit in `~/.claude/skills/<id>/`, so the import fails and the script exits (existing bug) |
 
-What already helps: lanes, matrix, nested groups, status badges (`{rating:}`
-+ `rating_palette:`), transition overlay (`{change:}`), `[external]`
-placement, `layout_from:`, and the generator's style markers that the
-linter reads (`edgyRole`, `edgyLang`). The new views are new layouts over
-existing building blocks; the real new foundations are a **document graph**,
-**model ids in the output**, **one new notation (C4)** and **one new output
-(HTML)**.
+What already helps: lanes, matrix, nested groups, status badges
+(`{rating:}` + `rating_palette:`), transition overlay (`{change:}`),
+`[external]` placement, `layout_from:`, and style markers the linter reads
+(`edgyRole`, `edgyLang`).
 
 ## 2. Modelling decisions (EDGY mapping)
 
 EDGY 23 has no *application* or *data* element; actors are People and
 Organisation. Applications and data map onto **Asset**, following the Asset
 tags the vocabulary already recommends, so they stay in the Architecture
-facet and render in its colour:
+facet and its colour:
 
 | Concept | EDGY element | Marker | Notes |
 |---------|--------------|--------|-------|
 | Application / IT system | **Asset** | `{kind: application}` | also `kind: platform`, `kind: integration`; `[external]` as today |
-| Data | **Asset** | `{kind: data}` | `{master: yes}`, `{owner: ORG-xx}`; *Object* stays the facet-neutral base element and is not used for data |
+| Data | **Asset** | `{kind: data}` | `{master: yes}`, `{owner: ORG-xx}`; Object stays the facet-neutral base element |
+| Other resources | **Asset** | no kind, or `kind: material \| document \| …` | the capability view's resource band covers every asset, not only IT |
 | Hosting (optional) | — | `{hosting: saas \| cloud \| on-prem}` | an attribute, not a kind |
-| Actor | **People** (role, persona) or **Organisation** (unit, partner) | — | existing role-model conventions |
-| Process | **Process** | — | level is derived from `contains` depth (L1 = value-chain stage), never typed twice |
+| Actor | **People** or **Organisation** | — | existing role-model conventions |
+| Process | **Process** | — | level derived from `contains` depth, never typed twice |
 | Capability | **Capability** | existing ids, nested groups | |
 
 `kind`, `hosting`, `master`, `owner`, `technology`, `crud`, `type`,
-`criticality`, `data`, `container` and `time` join `RESERVED_METRIC_KEYS`
-(`edgy_parser.py` ~277), otherwise they would be printed on the card as
-"kind: application".
+`criticality`, `data`, `container`, `time` and `gaps` join
+`RESERVED_METRIC_KEYS` (`edgy_parser.py` ~277), otherwise they would be
+printed on the card.
 
-**Relationships.** The 24 core links stay exactly as they are; core links
-are used where EDGY has them (`process → capability: realises`,
-`capability → asset: requires`, `process → asset: requires`,
-`product → capability: requires`, `organisation → process: performs`,
-`organisation → capability: has`, `organisation → asset: manages`
-(influence)). New verbs are **influence verbs** in
-`skills/_shared/edgy-core-links.yaml` (fi / en / fr / de), so W105 and
-E010 keep working:
+**Relationships.** The 24 core links do not change. New verbs are
+**influence verbs** in `skills/_shared/edgy-core-links.yaml` (fi / en / fr /
+de):
 
 | Verb | Pair | Usage |
 |------|------|-------|
-| `stores` | asset (application) → asset (data) | the application is the system of record |
-| `accesses` `{crud: R \| CU \| CRUD}` | process → asset (data) | one verb with an attribute, so a CRUD matrix can be drawn; no clash with core `creates` |
-| `interacts with` | people / organisation → asset (application) | actor uses an application (needed for C4 context); deliberately **not** `uses`, which is core for task → channel only and would raise E010 |
+| `stores` | asset (application) → asset (data) | system of record |
+| `accesses` `{crud: R \| CU \| CRUD}` | process → asset (data) | one verb with an attribute, so a CRUD matrix can be drawn |
+| `interacts with` | people / organisation → asset (application) | actor uses an application; not `uses`, which is core for task → channel only (E010) |
 
-Integrations reuse the existing flow verb **`transfers`** (asset → asset)
-with `{data: AST-xx, technology: "REST"}`; the data name goes into a second
-line of the edge label, and the linter reads only the **first line** as the
-verb (today it takes the whole value, `edgy_lint.py` ~509 / ~547 — changed
-in Sprint 21). The fi / fr / de spellings of the new verbs must not equal
-any core-link spelling (`käyttää`, `utilise`, `nutzt` are core `uses`), or
-pair validation would raise E010; `render-core-links.py --check` asserts
-it. No `precedes` verb: process
-order is input order (as in the official process maps, which have no
-edges), an explicit `flows` edge only for non-linear steps.
+Integrations reuse the flow verb **`transfers`** (asset → asset) with
+`{data: AST-xx, technology: "REST"}`; the data name sits on a second label
+line and the linter reads only the first line as the verb (changed in
+Sprint 21; today it takes the whole value, `edgy_lint.py` ~509 / ~547). The
+fi / fr / de spellings of new verbs must not equal any core-link spelling
+(`käyttää`, `utilise`, `nutzt` are core `uses`); `render-core-links.py
+--check` asserts it. No `precedes`: process order is input order, a `flows`
+edge only for non-linear steps.
 
-**C4 is not EDGY.** It is drawn as an **extension notation** on its own
-pages (`notation: c4`), never mixed into an EDGY page. A C4 *software
-system* is an Asset of `kind: application`; *containers* and *components*
-exist only on C4 pages. C4 relationships carry a *description* and a
-*technology*.
+## 3. Features — v2.4.0 (core)
 
-## 3. Features
-
-### F0 Foundations — P0 (enabler for everything below)
+### F0 Foundations — P0
 
 - **Document graph.** `edgy_document.py` builds one graph over all pages
   (elements by id, relationships with verb and attributes) before the
-  per-page parsers run. Every derived view reads from it.
+  per-page parsers run; single-page inputs keep today's code path.
 - **Page expansion.** `expand: per-capability | per-application` (not
-  `pages:`, which is the existing multi-page key) turns one view page into
-  one page per element, optionally `where: highlight` or a list of ids.
+  `pages:`, the existing multi-page key), optionally `where: highlight` or
+  a list of ids.
+- **Id lookup.** Lookup by `{id:}`; on derived views an element without
+  `{id:}` is an error; `edgyId` falls back to a slug of type + name.
 - **Model ids in the output.** The generator writes
-  `edgyId=<model id>;edgyType=<type>;edgyKind=<kind>;edgyFacet=<facet>`
-  into each cell's style (draw.io keeps unknown style keys when the file is
-  edited; precedent: `edgyRole`, `edgyLang`) and `edgyNotation=c4` on C4
-  pages. No `<UserObject>` wrappers: the renderer and linter read
-  `root.findall('mxCell')` and would silently lose wrapped cells.
-- **Quote-aware `{…}` options.** Values are split on every comma today
-  (`edgy_parser.py` ~451, ~831), so `technology: "Kotlin, Spring Boot"`
-  would break.
-- **Relationship attributes.** `_parse_relationship_options` (~823)
-  whitelists from / to / via / change / label and drops anything else with a
-  warning; add `primary`, `crud`, `data`, `technology` and `container`, and
-  keep them in `rel['options']` for the document graph.
-- **Id lookup.** Relationships and keys resolve elements by name only today
-  (`_find_element_id_by_value`, ~906) and `{id:}` is optional. Add lookup by
-  `{id:}`; on derived views and C4 pages an element without `{id:}` is an
-  error. `edgyId` falls back to a slug of type + name, stable across
-  regenerations.
-- **Edge verb = first label line** in the linter (W105 / E010), so data
-  names and technology can sit on a second line.
+  `edgyId=…;edgyType=…;edgyKind=…;edgyFacet=…` into each cell's style
+  (draw.io keeps unknown style keys) and `edgyNotation=<name>` on pages of
+  another notation. No `<UserObject>` wrappers (renderer and linter read
+  `root.findall('mxCell')`).
+- **Foreign-notation pages.** On a page with `edgyNotation` set, the EDGY
+  rules E009 (legend), W102 (colours) and W105 (verbs) are off, and
+  **E012** flags EDGY and foreign cells on one page. This is the hook
+  `edgy-c4` uses in v2.5.0.
+- **Options.** Quote-aware `{…}` splitting (values are split on every comma
+  today, ~451 / ~831); relationship attributes `primary`, `crud`, `data`,
+  `technology`, `container` added to the whitelist in
+  `_parse_relationship_options` (~823) and kept in `rel['options']`.
+- **Edge verb = first label line** in the linter.
+- **Script location** (fixes the existing install bug). Cross-skill imports
+  resolve, in order: `EDGY_DIAGRAM_SCRIPTS`, the sibling installed skill
+  (`<skills dir>/edgy-diagram/scripts`), the repo-checkout path. SKILL.md
+  files that use `G=skills/documentation/edgy-diagram/scripts` say how to
+  find the installed path. An install test copies two skills the way the
+  adapters do and runs `edgy_model_to_txt.py`.
 - **Model schema `"1.9"`** (additive): `relationships[] {source_id,
-  target_id, verb, attributes}`; `people` added as an element type (it is
-  missing from the schema today); `organisation` becomes `oneOf` [object,
-  array] so 1.8 models stay valid; `id` required on elements referenced by
-  `relationships[]`; `elements.asset[].kind`; C4 elements.
-  `edgy_model_to_txt.py --views` is the framework that writes view pages
-  from one model — each view sprint adds its view to it. Type-level
-  `core_links` remain for assessments.
+  target_id, verb, attributes}`; `people` as a new element type;
+  `organisation` as object **or** array; `id` required on elements
+  referenced by `relationships[]`; `elements.asset[].kind`.
+- **Migration contract.** The validator gains `oneOf` / `anyOf` (it skips
+  unknown keywords today, so `organisation` would go unvalidated); readers
+  normalise with `_as_list` (already used by `edgy_model_to_txt.py`,
+  `edgy_model_diff.py`, `edgy_model_to_archimate.py`); writers emit an
+  array only with `schema_version "1.9"`; compatibility fixtures check that
+  every shipped 1.8 model gives byte-identical output from to_txt, diff and
+  ArchiMate export; tests that index `["organisation"]["name"]`
+  (`test_model_diff.py` ~50) use the normaliser; the assessment template
+  and deep-dive text say "object or array".
+- **Extension contract** (new):
+  `skills/documentation/edgy-diagram/references/extension-contract.md`
+  with `assets/edgy-graph.schema.json` (document graph JSON) — style-marker
+  grammar, `edgyNotation` values and which rules switch off, the SVG
+  `data-*` / `class` / `data-role` attributes and their sanitising rules,
+  the import entry points (`edgy_document.load_graph()`,
+  `edgy_render.page_to_svg()`), and a contract number (`contract: 1`).
+  Core CI runs a fixture-based contract test, so a break shows up here, not
+  in an extension.
+- `edgy_model_to_txt.py --views` framework; each view adds itself.
 
 ### F1 Application map (`map_type: application`) — P0
 
-- Applications as cards grouped by **domain** (`group:`, nesting allowed)
-  or, with `group_by: capability`, by the capability area that `requires`
-  them. An application required by several areas sits in its **primary**
-  area — the `requires` link marked `{primary: true}`, else the first in
-  input order — and shows "+n areas" in its subtext.
-- Optional layers as rows (`rows: Channel, Core, Shared` + `{row: …}`);
-  domains × layers is a **new layout** (rows are ignored with groups
-  today). `[external]` column on the right as in the reference layout.
+- Applications grouped by **domain** (`group:`, nesting allowed) or, with
+  `group_by: capability`, by the capability area that `requires` them. An
+  application required by several areas sits in the area of its
+  `{primary: true}` link; **without one it goes into a "Shared" strip** of
+  the map with an info note — input order is never used.
+- Optional layers as rows (`rows:` + `{row:}`); domains × layers is a new
+  layout. `[external]` column on the right.
 - **Lifecycle overlay** — Gartner TIME (`Tolerate / Invest / Migrate /
-  Eliminate`) as a preset `rating_palette`, credited in the legend; it is
-  a badge, so W123 guards the legend. Optional second badge:
-  `{criticality: …}` or `{hosting: …}` — cards carry one badge today
-  (`_badge_of`, ~1428), so a second slot and its legend keys are new work.
-  Cost stays a metric (EDGY lists cost for Asset).
-- **Integrations** from `transfers`, data name and technology on the second
-  label line; several `transfers` on one pair are merged into one edge
-  today with the first options winning (~1450), so the merged edge lists
-  every data name. `edges: none | bus | direct` (default `bus` above 12
-  integrations, the integration-bus pattern).
-- Transition overlay (`{change:}`) works unchanged.
-- Checks: **W124** application without an owner (`manages`), **W125**
-  integration without a data asset — raised by the **parser / QA** from the
-  document graph (the linter only sees XML and owner edges are not drawn on
-  this map); semantic **S013** application named after a capability
-  ("Ticketing" — the system is "Fare engine").
+  Eliminate`) as an optional, labelled preset `rating_palette`, credited in
+  the legend; a badge, never a fill. Optional second badge
+  `{criticality:}` or `{hosting:}` — a second badge slot and legend keys
+  are new work (`_badge_of`, ~1428).
+- **Integrations** from `transfers`, data and technology on the second
+  label line; several `transfers` on one pair (merged into one edge today,
+  ~1450) list every data name. `edges: none | bus | direct` (default `bus`
+  above 12).
+- Transition overlay unchanged.
+- Checks (parser / QA, from the document graph): **W124** application
+  without an owner (`manages`) — **info by default**, a warning when the
+  document sets `ownership: required` (edgy-target-state sets it; outside-in
+  assessments rarely know owners); **W125** integration without a data
+  asset; semantic **S013** asks "is this the system or the ability?" when
+  an application's name equals or shares a stem with a capability it
+  serves — a review question, never a demand to rename.
 
 ### F2 Process map (`map_type: process`, two variants) — P0
 
-The default stays today's sequence row, so existing inputs do not change.
+The default stays today's sequence row.
 
 - **Value chain** (`process_view: chain`): L1 processes as the official
-  pentagon shapes in one row, L2 stacked under each (from `contains`, reusing
-  the stage-column layout), L3 only with `depth: 3`. Optional
-  `band: management | core | support` gives the classic process landscape
-  (three horizontal bands).
+  pentagons in one row, L2 under each (from `contains`, stage-column
+  layout), L3 with `depth: 3`; optional `band: management | core |
+  support`.
 - **Swimlane** (`process_view: swimlane`): one lane per actor that
-  `performs` the process — the lane derivation generalised from the task
-  map, accepting actors that also have other links — order by input order,
-  applications used shown as small asset chips under the step
-  (`chips: assets`), not as edges.
-- Checks: **W126** on a banded chain, an L1 process (no `contains` parent)
-  without `{band:}`, or an L2 with a band different from its parent;
-  existing W111 / W113 cover crossings.
+  `performs` the process (lane derivation generalised from the task map),
+  input order, used assets as chips under the step (`chips: assets`).
+- **W126** on a banded chain: an L1 without `{band:}`, or an L2 with a band
+  different from its parent.
 
 ### F3 Capability view (`map_type: capability-view`) — P0
 
-One capability in the centre, five bands derived from the document graph —
-nothing is re-entered:
+One capability in the centre, five bands derived from the document graph:
 
 ```
                  ┌───── actors (organisation has / performs a realising process) ─────┐
- processes  ───▶ │                     CAP-05  Ticketing                              │ ───▶ applications
- (realises)      │        maturity 3 · owner: Fare team · TIME: invest                │      (requires)
-                 └───── data (accessed by the processes, with CRUD) ──────────────────┘
+ processes  ───▶ │                     CAP-05  Ticketing                              │ ───▶ resources
+ (realises)      │        maturity 3 · owner: Fare team · TIME: invest                │      (requires: applications
+                 └───── data (accessed by the processes, with CRUD) ──────────────────┘       and other assets)
                          products that require the capability (requires)
 ```
 
 - `focus: CAP-05` draws one view; `expand: per-capability` one page per
-  capability.
-- `hops: 2` (opt-in) adds, dimmed: data stored by the required
-  applications, their integrations, and outcomes the capability
-  `contributes to`.
-- **Matrices** reuse the matrix layout: `map_type: capability-matrix`
-  (rows = capabilities, columns = applications, cell = `requires` badge +
-  TIME rating) and `matrix: crud` (rows = processes, columns = data, cell
-  = CRUD letters).
-- Check: **W127** empty band, explained ("no process realises CAP-05 —
-  a model gap, not a layout error"); written to `qa.json` as a finding for
-  the report.
-
-### F4 C4 diagrams per application (`notation: c4`) — P1
-
-- **Level 1 — System context**, derived from the document graph: the
-  application in the centre; **People → Person**; an Organisation becomes a
-  Person only when it is an internal unit acting as a user; a partner's
-  system is an external Software System. Systems outside the scope are grey
-  whether internal or external. Integration through a bus is shown as the
-  logical `transfers` with `technology: via <bus>` — the integration
-  platform is not drawn as a hub. Warning when no Person interacts with the
-  system.
-- **Level 2 — Containers**, flat syntax on a C4 page (the parser opens
-  indented blocks only for `group:` / `lane:`, so no nested `c4:` block):
-
-  ```
-  notation: c4
-  level: container
-  system: AST-02
-  elements:
-    - container: "Fare API" {technology: "Kotlin, Spring Boot"}
-    - container: "Fare rules DB" {technology: "PostgreSQL", type: database}
-    - container: "Admin UI" {technology: "React"}
-  relationships:
-    - "Admin UI" -> "Fare API": "updates fare rules" {technology: "HTTPS/JSON"}
-    - "Fare API" -> "Fare rules DB": "reads and writes" {technology: "JDBC"}
-  ```
-
-  Relationships across the boundary come from F1's `transfers` and attach
-  to the container named in `{container: …}` (not `{via: …}`, which is the
-  existing waypoint option).
-- **Level 3 — Components** only when a page has `level: component`; no
-  Level 4.
-- `expand: per-application` → context + container pages per application
-  in one draw.io file (`C4-L1 Fare engine`, `C4-L2 Fare engine`).
-- Shapes: draw.io's C4 shapes (`mxgraph.c4.*`, probed first) with the
-  standard C4 colours, fallback to styled rectangles; native preview gains
-  the C4 shapes; PlantUML via **C4-PlantUML** (`!include C4_Container.puml`).
-- Lint on pages marked `edgyNotation=c4`: EDGY rules E009 (legend), W102
-  (colours) and W105 (verbs) are switched off, and **C001–C007** apply:
-  element without a type; container without technology; relationship
-  without a description; relationship without technology at container
-  level; person inside a system boundary; container page without a
-  boundary; **C007** EDGY and C4 cells on one page.
-- `edgy-framework` gets a short section on deriving C4 from the EDGY
-  architecture facet (what is an application, where the boundary is, when
-  Level 3 is worth drawing).
+  capability. The resource band shows every required asset, applications
+  first, so the view also works for non-IT capabilities.
+- `hops: 2` (opt-in) adds, dimmed: data stored by required applications,
+  their integrations, outcomes the capability `contributes to`.
+- **Matrices**: `map_type: capability-matrix` (capabilities × applications,
+  cell = `requires` badge + TIME) and `matrix: crud` (processes × data).
+- **W127 empty band with evidence status.** Written to a new `qa.json`
+  array `model_gaps[] {rule, page, element_id, band, status}` — status
+  `not_investigated` (default), `out_of_scope`, `unknown` or
+  `confirmed_absent`, set with `{gaps: processes=out_of_scope}` on the
+  focus element. Only `not_investigated` and `unknown` raise the warning;
+  reports present `confirmed_absent` as a finding and the others as open
+  questions, never the reverse. Additive to `qa.schema.json`.
 
 ### F5 One architecture model, many views — P0
 
-Built on F0: one `edgy-model.json` (schema 1.9) or one multi-page TXT drives
-the application map, both process maps, every capability view, the
-matrices and the C4 pages; a renamed application changes everywhere on the
-next regeneration. `edgy_model_diff.py` covers the new keys (integration
-added / removed, kind / TIME changed, container changes);
+One `edgy-model.json` (schema 1.9) or one multi-page TXT drives the
+application map, both process maps, every capability view and the
+matrices. `edgy_model_diff.py` covers the new keys;
 `edgy_model_to_archimate.py` maps applications to *Application Component*,
-data to *Data Object*, `stores` / `accesses` to *Access* (access type from
+data to *Data Object*, `stores` / `accesses` to *Access* (type from
 `crud`), `transfers` to *Flow*.
 
-### F6 Presenter — dynamic single-page web app (`edgy_present.py`) — P1
+### F6a Presenter-lite (`edgy_present.py`) — P1
 
 **Output:** one self-contained `presentation.html` — no server, no CDN, no
-network at all, works offline and as an e-mail attachment — built by a
-standard-library Python script from the draw.io file and the document graph:
+network — built by a standard-library script from the draw.io file and the
+document graph:
 
 ```
 python edgy_present.py diagrams.drawio [--model model.json] -o presentation.html \
-  [--title "Acme Transit target state"] [--tour tour.txt] [--theme dark]
+  [--title "Acme Transit target state"] [--theme dark]
 ```
 
-**Architecture.** The presenter never computes layout. It inlines the
-native SVG of `edgy_render.py` and decorates it; parsing draw.io in the
-browser would be a second renderer, and a generator layout JSON would miss
-hand-edited files. Renderer changes (specified, not "small"):
+**Architecture.** The presenter never computes layout: it inlines the
+native SVG of `edgy_render.py` and decorates it. Renderer changes:
 
-- wrap each vertex in `<g class="el" data-id data-type data-kind
-  data-facet>` holding its shape and label lines, each edge in
-  `<g class="edge" data-src data-tgt>` with its label; legend cells get
-  `data-role="legend"`; ids come from the `edgyId` style marker (F0) —
-  cells without one (hand-drawn) are shown but not interactive;
-- repeated `font-family` / `font-size` attributes become CSS classes (size);
-- **attribute hardening**: colours must match `#[0-9a-fA-F]{3,8}|none`,
-  numbers must parse as floats, anything else falls back to a default —
-  today style values go into attributes unescaped, which becomes XSS once
-  the SVG is inlined in HTML.
+- each vertex in `<g class="el" data-id data-type data-kind data-facet>`
+  with its shape and label lines; each edge in `<g class="edge" data-src
+  data-tgt>`; legend cells `data-role="legend"`; ids from `edgyId`; cells
+  without one shown, not interactive;
+- repeated font attributes become CSS classes;
+- **attribute hardening** — colours must match `#[0-9a-fA-F]{3,8}|none`,
+  numbers must parse as floats, else a default. A security fix for every
+  SVG consumer, presenter or not.
 
-Only the current view is live in the DOM; the others sit in `<template>`
-and are cloned on entry (60 fps budget, no duplicate `<marker id>`s). The
-graph is embedded as `json.dumps(...).replace('<', '\\u003c')`; labels,
-captions, notes and search results are written with `textContent` only;
-hash parameters are checked against known ids. A CSP meta —
-`default-src 'none'; script-src 'sha256-…'; style-src 'sha256-…';
-img-src data:; font-src data:; connect-src 'none'; base-uri 'none';
-form-action 'none'` — makes it impossible for the page to send the model
-anywhere.
+One live view in the DOM, the others in `<template>`. Graph embedded as
+`json.dumps(...).replace('<', '\\u003c')`; text via `textContent` only;
+hash parameters checked against known ids. CSP meta: `default-src 'none';
+script-src 'sha256-…'; style-src 'sha256-…'; img-src data:; font-src
+data:; connect-src 'none'; base-uri 'none'; form-action 'none'` — the page
+cannot send the model anywhere.
 
-**Experience — "stunning", in service of the content:**
+**Five effects** — the ones that show "this is one model", chosen for
+impact per line of code:
 
-| Feature | Effect |
-|---------|--------|
-| Overview | all views as a card wall (facet-coloured), staggered entrance; click zooms the card into the full view |
-| Drill-down | capability map → capability view → application → C4 context → containers. Step 1: the source SVG's `viewBox` tweens with a spring to the clicked element's box (requestAnimationFrame, crisp vector at every frame, works everywhere); step 2: cross-fade to the target view (`document.startViewTransition` for the fade where available, CSS opacity otherwise). Breadcrumb trail; *back* plays the zoom in reverse |
-| Edges draw in | on view entry, edges draw themselves (`stroke-dashoffset`), staggered outward from the focus element |
-| Focus & trace | hover or tap highlights the element and its 1-hop neighbours **across all views** (counter badges on the other view cards); the rest dims, with a soft spotlight mask; only highlighted integration edges get a flowing dash in flow direction |
-| Impact trace | pick two elements → the path between them lights up step by step (capability → process → application → data) |
-| Current → target | press `T`: elements matched by `edgyId` glide to their target position (FLIP), removed ones fade out, new ones grow in, changed ones pulse once |
-| Heat overlays | toggle maturity / TIME / rating as a colour wash on the cards |
-| Zoom & pan | wheel / pinch with spring easing, minimap; description subtext hides below 8 px rendered size — no other label fading, the pages are laid out to be read whole |
-| Search | ⌘K / Ctrl+K palette over all elements and ids; jumps with the drill-down zoom |
-| Guided tour | `tour:` steps (view, focus, overlay, caption) with ← / →, full-screen on `F` |
-| Presenter view | `P` opens a second window (`window.open` + `postMessage`): notes, next step, timer; the audience window follows |
-| Deep links | `#/view/capability-view/CAP-05?overlay=target` — shareable state |
-| Themes | light / dark **presenter chrome**; the diagrams stay on a light "paper" card (the renderer hard-codes white canvas and label boxes — themable diagrams are out of scope) |
-| Print | a print stylesheet lays out one view per page (PDF hand-out) |
+| Effect | What it does |
+|--------|--------------|
+| Card wall → zoom | all views as facet-coloured cards; a click tweens the SVG `viewBox` with a spring into the full view (crisp vector at every frame); *back* reverses |
+| Cross-view highlight | hover / tap highlights an element and its 1-hop neighbours, dims the rest, and puts counter badges on the other views' cards where the same `edgyId` appears |
+| Search | ⌘K / Ctrl+K palette over all elements and ids; jumps with the zoom |
+| Current → target | `T` cross-fades the transition overlay; change badges pulse once |
+| Paging | ← / → step through pages in order (an implicit tour), `F` full-screen, deep links `#/view/<page>/<id>`, print stylesheet (one view per page) |
 
-Motion: no `filter: blur / drop-shadow` during animation;
-`prefers-reduced-motion` turns every animation into a cut. Accessibility:
-every element focusable by keyboard, `aria-label` from name + type + id,
-visible focus ring, contrast checked for both chrome themes. Fonts: system
-stack `Helvetica, Arial, "Liberation Sans", sans-serif` (the renderer
-measures text with Helvetica / Arial metrics), no embedded fonts.
+Overlays keep the facet fill: maturity / TIME / rating are shown by
+enlarging the existing badges and adding a coloured outline ring (SKILL.md:
+"a heat map keeps the facet fill"; W102). Light / dark **chrome**;
+diagrams stay on a light paper card. `prefers-reduced-motion` turns every
+animation into a cut. Keyboard-focusable elements with `aria-label`.
+System font stack `Helvetica, Arial, "Liberation Sans", sans-serif`.
 
-Tour input (TXT, same style as the generator):
+## 4. v2.5.0 and later (outside the v2.4.0 cut)
 
-```
-tour:
-  - view: "Capability map" {caption: "Twelve capabilities, three to invest in"}
-  - view: "Capability map" {focus: CAP-05, overlay: maturity}
-  - view: "CAP-05 Ticketing" {caption: "Two processes depend on the legacy fare engine"}
-  - view: "C4-L1 Fare engine" {overlay: target}
-```
+### F4 C4 — `edgy-c4` skill 0.1.0 (v2.5.0)
 
-## 4. Scope decisions
+A separate skill in `skills/documentation/edgy-c4/` (own SKILL.md, version,
+registry entry, `check.sh` step), built on the extension contract
+(`contract: 1`) — it imports `edgy_document.load_graph()` and the renderer
+entry point and never patches core files. Requires a `requires:` field in
+the validator and registry (`requires: edgy-diagram >=2.8, contract 1`) and
+transitive install in the adapters (Sprint 25).
 
-- **In:** foundations (F0), the four views, the model extension, the
-  presenter, skill instructions and examples.
-- **Out:** live editing in the presenter (draw.io stays the editor);
-  themable diagram colours; C4 Level 4, deployment and dynamic diagrams;
-  any hosted service (the same HTML can be published later).
-- **No external runtime dependency** — the presenter uses system fonts and
-  no network; the generator stays standard-library Python.
-- **C4 stays separate from EDGY pages** — mixing notations on one page is
-  lint error **C007**, not a style choice.
-- **The 24 core links do not change**; everything new is an influence verb,
-  a flow verb or a C4 relationship.
+- **Level 1 — System context**, derived from the document graph: People →
+  Person; an internal Organisation acting as a user → Person; a partner's
+  system → external Software System; out-of-scope systems grey; bus
+  integrations shown as logical `transfers` with `technology: via <bus>`;
+  warning when no Person interacts with the system.
+- **Level 2 — Containers** on flat C4 pages (`notation: c4`, `level:
+  container`, `system: AST-02`, `- container: "Fare API" {technology:
+  "Kotlin, Spring Boot"}`, relationships in `relationships:` with
+  description + `{technology:}`; boundary crossings attach via
+  `{container: …}`).
+- **L1 and L2 only.** Level 3 only if demand appears; it would grow C4 into
+  its own modelling framework.
+- `expand: per-application`; draw.io C4 shapes (`mxgraph.c4.*`, probed
+  first; fallback styled rectangles) through a shape hook in the renderer;
+  C4-PlantUML via `!include`; lint C001–C006 in the skill, E012 in core.
+- **Conditional deliverable**: edgy-target-state draws C4 only for
+  applications named in a decided building block — its building blocks are
+  product-independent and many are not software systems.
 
-## 5. Target state
+### F6b Presenter effects (deferred)
 
-| Skill | v2.3.0 | v2.4.0 |
-|-------|--------|--------|
-| edgy-diagram | 2.7.0 | **2.8.0** — document graph, page expansion, model ids in output, application / process / capability-view / matrix layouts, C4 notation, presenter |
-| edgy-framework | 1.6.0 | **1.7.0** — modelling guidance for applications, data, actors and C4 |
-| edgy-assessment | 1.9.0 | **1.10.0** — schema 1.9 with element relationships, views from the model, `presentation.html` as optional deliverable |
-| edgy-target-state | 1.1.0 | **1.2.0** — application landscape and C4 per building block in the target-state pack; tour template |
-| edgy-deep-dive | 1.1.0 | 1.1.0 (the presenter can open a pairwise map, no change) |
+Edge draw-in, spotlight mask, impact trace between two elements, FLIP morph
+for current → target, minimap, guided `tour:` file with captions, presenter
+window (`window.open` + `postMessage`). A v2.5.0 plan only if workshops on
+real engagements show demand; built against `contract: 1`, so it can also
+live in a companion repo.
 
-No breaking changes; all new keys are opt-in and `map_type: process`
-keeps its current default.
+## 5. Scope decisions
 
-## 6. Sprints and estimate
+- **v2.4.0 in:** F0, F1, F2, F3, F5, F6a, README correction.
+- **v2.5.0:** `edgy-c4`; F6b if demanded.
+- **Out:** live editing in the presenter; themable diagram colours; C4
+  Level 4, deployment and dynamic diagrams; any hosted service.
+- **No external runtime dependency**; generator and presenter stay
+  standard-library Python.
+- **The 24 core links do not change.**
 
-The presenter moves forward: it needs only F0's ids and the renderer, so the
-user sees a working result after the second sprint, and every later sprint
-adds its views to it.
+## 6. Target state
+
+| Skill | v2.3.0 | v2.4.0 | v2.5.0 |
+|-------|--------|--------|--------|
+| edgy-diagram | 2.7.0 | **2.8.0** — F0 (graph, ids, expansion, foreign-notation hook, contract), application / process / capability-view / matrix layouts, presenter-lite | 2.9.0 — shape hook for extensions |
+| edgy-assessment | 1.9.0 | **1.10.0** — schema 1.9 + migration contract, views from the model, script-location fix, optional `presentation.html` | — |
+| edgy-framework | 1.6.0 | **1.7.0** — modelling guidance for applications, data, actors | 1.8.0 — deriving C4 from the Architecture facet |
+| edgy-target-state | 1.1.0 | **1.2.0** — optional application landscape when the model has `kind: application` assets; `ownership: required` | 1.3.0 — C4 L1/L2 for applications in decided building blocks |
+| edgy-deep-dive | 1.1.0 | 1.1.1 — "organisation: object or array" | — |
+| edgy-c4 | — | — | **0.1.0** |
+
+No breaking changes for 1.8 inputs (migration contract in F0);
+`map_type: process` keeps its current default.
+
+## 7. Sprints and estimate
 
 | Sprint | Content | Estimate |
 |--------|---------|----------|
-| **21 — Foundations** | document graph, id lookup, `expand:`, `edgyId` / `edgyType` / `edgyKind` / `edgyFacet` / `edgyNotation` markers, quote-aware options, relationship attributes, reserved keys, influence verbs (4 languages, no core-spelling collisions), first-line edge verb in lint, schema 1.9, `edgy_model_to_txt --views` framework | 5–6 d |
-| **22 — Presenter core** | renderer groups + `data-*` + attribute hardening, `edgy_present.py`, CSP, overview wall, drill-down zoom, cross-view highlight, search, deep links, chrome themes, print, `#selftest` — over today's map types | 5–6 d |
-| **23 — Application map and process maps** | F1 (domains × layers layout, TIME preset, second badge slot + legend keys, integrations with merged data names, W124/W125, S013), F2 (chain with bands, swimlane with chips, W126), examples | 6–7 d |
-| **24 — Capability view and matrices** | F3 (five bands, `hops`, capability matrix, CRUD matrix, W127 → qa.json), ArchiMate / diff mapping | 4–5 d |
-| **25 — C4** | shape probe, C4 page parsing, L1 derivation, L2 / L3 layout, renderer C4 shapes, C4-PlantUML, C001–C007 and EDGY-rule switch-off, `expand: per-application` | 6–7 d |
-| **26 — Presenter effects and release** | edge draw-in, spotlight, impact trace, current → target FLIP, heat overlays, tour, presenter window, reduced motion, a11y pass, skill instructions (assessment, target-state), eval set, README, CHANGELOG, v2.4.0 | 4–5 d |
+| **21 — Foundations** | document graph, id lookup, `expand:`, style markers, foreign-notation hook + E012, quote-aware options, relationship attributes, reserved keys, influence verbs (4 languages, collision check), first-line edge verb, script-location fix + install test, schema 1.9 + migration contract + validator `oneOf`, extension contract + contract test, `--views` framework | 7–8 d |
+| **22 — Presenter-lite** | renderer groups, `data-*`, hardening; `edgy_present.py`, CSP, the five effects, overlays as badges, chrome themes, print, `#selftest` — over today's map types | 5–6 d |
+| **23 — Application and process maps** | F1 (domains × layers, Shared strip, TIME preset, second badge slot, integrations, W124 info/warning, W125, S013), F2 (chain, bands, swimlane, chips, W126), examples | 6–7 d |
+| **24 — Capability view and release** | F3 (five bands, `hops`, matrices, W127 + `model_gaps[]`), F5 diff / ArchiMate mapping, eval set, skill instructions, README correction, CHANGELOG, **v2.4.0** | 5–6 d |
+| *25 — edgy-c4 (v2.5.0)* | skill scaffold, `requires:` in validator / registry / adapters, renderer shape hook, L1 derivation, L2 layout, C001–C006, C4-PlantUML, target-state conditional | 6–7 d |
+| *26 — Presenter effects (conditional)* | F6b items that workshops asked for | 4–5 d |
 
-Total ≈ **30–36 working days** (revision 1 said 18–22; it missed the
-document graph, the id markers, the parser's option splitting, the lint
-split for C4 and the renderer's shapes).
+**v2.4.0 ≈ 23–27 working days**; v2.5.0 adds 6–7 days for C4 and up to 5
+for effects. The presenter-lite comes in Sprint 22, so there is a visible
+result after the second sprint.
 
-## 7. Tests to add
+## 8. Tests to add (v2.4.0)
 
-- `test_edgy.py`: document graph across pages; `expand:` page generation;
-  quote-aware options; reserved keys not printed; `kind:` / `hosting:`;
-  derived lanes, bands and process levels; bus threshold; `edgyId` written
-  on every element cell.
-- `test_lint.py`: C001–C007 each with a passing and a failing fixture; EDGY
-  rules silent on `edgyNotation=c4` pages; new influence verbs accepted,
-  `uses` on actor → asset still E010.
-- Parser / QA warnings W124–W127 and `qa.json` entries; `test_semantic.py`:
-  S013.
-- `test_render.py`: every vertex / edge group carries `data-id`, ids unique
-  per page and equal to the model ids; **hostile input** — a label
-  `<script>` and a style `fillColor=#fff" onmouseover="x` — renders inert.
-- `test_present.py` (new): HTML is self-contained (no `http(s)://`
-  `src` / `href`), CSP present and its hashes match the inline script and
-  style, embedded graph parses, every draw.io page appears once, the tour
-  references existing views and ids, size budget (< 1.5 MB for 30 pages).
-- **Browser self-test that runs in CI:** `presentation.html#selftest` does
-  a drill-down, toggles an overlay, plays one tour step and writes the
-  result and the `window.onerror` count into a DOM sentinel.
-  `test_present.py` runs it with `edgy_render.find_chromium()` and
-  `--headless --no-sandbox --virtual-time-budget=15000 --dump-dom
-  file://…#selftest` — the virtual-time budget lets the async, animated
-  self-test finish before the dump (standard library only; GitHub's `ubuntu-latest`
-  runners ship Google Chrome, CI installs only `pyyaml`). Playwright
-  screenshots stay a local tool for the eval report.
-- `tools/edgy-eval.py`: eval model `eval/architecture-views.txt` (Acme
-  Transit: 12 capabilities, 18 applications, 10 data assets, 6 actors,
-  3 applications with C4 pages); every view generated from it with 0 errors
-  and 0 visual findings; new `check.sh` step `edgy-architecture-views`.
+- `test_edgy.py`: document graph across pages; `expand:`; quote-aware
+  options; relationship attributes kept; reserved keys not printed;
+  derived lanes, bands and levels; Shared strip; bus threshold; `edgyId` on
+  every element cell.
+- `test_lint.py`: E012; EDGY rules silent on `edgyNotation` pages; new
+  influence verbs accepted; `uses` on actor → asset still E010; first-line
+  verb.
+- Parser / QA: W124 (info vs. `ownership: required`), W125–W127,
+  `model_gaps[]` statuses; `test_semantic.py`: S013 as a question.
+- Model tools: validator `oneOf`; 1.8 fixtures byte-identical through
+  to_txt, diff and ArchiMate; 1.9 arrays round-trip.
+- Install: copy `edgy-assessment` and `edgy-diagram` as the adapters do and
+  run `edgy_model_to_txt.py` from the copy.
+- Contract: fixture-based test of the style markers, graph JSON schema and
+  SVG `data-*` attributes.
+- `test_render.py`: groups carry `data-id`, unique per page, equal to the
+  model ids; hostile label `<script>` and style `fillColor=#fff"
+  onmouseover="x` render inert.
+- `test_present.py`: HTML self-contained (no `http(s)://` `src` / `href`),
+  CSP hashes match, graph parses, every page appears once, < 1.5 MB for
+  30 pages; **browser self-test in CI**: `presentation.html#selftest`
+  zooms, highlights, searches and toggles current → target, then writes
+  the result and the `window.onerror` count to a DOM sentinel, run with
+  `edgy_render.find_chromium()` and `--headless --no-sandbox
+  --virtual-time-budget=15000 --dump-dom file://…#selftest` (GitHub's
+  `ubuntu-latest` ships Chrome; CI installs only `pyyaml`).
+- `tools/edgy-eval.py`: `eval/architecture-views.txt` (Acme Transit:
+  12 capabilities, 18 applications, 10 data assets, 6 actors); every view
+  with 0 errors and 0 visual findings; `check.sh` step
+  `edgy-architecture-views`.
 
-## 8. Acceptance
+## 9. Acceptance (v2.4.0)
 
-1. From one fictional model the bundle produces, without manual draw.io
-   work: an application map, a value chain and a swimlane process map, one
-   capability view per capability, a capability × application and a CRUD
-   matrix, and C4 L1 + L2 for every application with a C4 container page.
-2. All of these pass `edgy_lint.py` with 0 errors (C4 pages under the C
-   rules) and W108 / W111 / W113 = 0 in the eval set.
-3. `presentation.html` passes the `#selftest` in headless Chromium in CI,
-   drills from the capability map to a C4 container view in ≤ 3 clicks, and
-   the tour plays end to end; with reduced motion there are no animations.
-   Firefox and Safari are a manual release-checklist item.
-4. A model change (rename an application) appears in every view and in the
-   presenter after one regeneration.
-5. `check.sh` green, privacy scan green (it also scans HTML), CHANGELOG and
-   README updated.
+1. From one fictional model, without manual draw.io work: an application
+   map, a value chain and a swimlane process map, one capability view per
+   capability, a capability × application and a CRUD matrix.
+2. All pass `edgy_lint.py` with 0 errors; W108 / W111 / W113 = 0 in the
+   eval set.
+3. `presentation.html` passes `#selftest` in headless Chrome in CI and
+   shows the five effects; with reduced motion there are no animations.
+   Firefox and Safari: manual release checklist.
+4. Renaming an application changes every view and the presenter after one
+   regeneration.
+5. Every shipped 1.8 model gives byte-identical output; the installed-skill
+   test passes.
+6. `check.sh` and privacy scan green (privacy scan also scans HTML);
+   CHANGELOG, README (including the corrected code sentence) updated.
 
-## 9. Risks and limits
+## 10. Risks and limits
 
 | Risk | Mitigation |
 |------|------------|
-| Applications and data are not EDGY elements | mapped to Asset with `kind:`, as the Asset tags already recommend; legend says "Asset (application)"; framework text explains the choice |
-| Document graph changes the parser's page isolation | built as a pre-pass; single-page inputs keep today's code path; regression covered by every existing expected example |
-| C4 shapes in draw.io differ between versions | probe first in Sprint 25; fall back to styled rectangles in the C4 colours |
-| Presenter becomes a second renderer | it never computes layout; it only decorates the renderer's SVG |
-| The presenter shows the native preview, which approximates draw.io | for publication quality use the draw.io CLI PNG / PDF; the presenter is for walking through the model |
-| Effects hurt readability or performance | each effect in the F6 table has a purpose; one live view in the DOM; no filters during motion; reduced-motion path; effects off in print |
-| XSS through labels or style values | attribute hardening in the renderer, `textContent` only, CSP with hashes, hostile-input tests |
-| Presentation files leak client data | generated into the engagement folder only; `connect-src 'none'`; `.gitignore` pattern `*presentation*.html` outside `examples/`; privacy-scan scans HTML |
-| Large landscapes (100+ applications) | grouping by domain, collapsed groups in the presenter, matrix page instead of edges |
-| Licences | the C4 notation itself needs no licence; attribution is a courtesy on C4 legends and required only for copied C4 material; C4-PlantUML is referenced by `!include`, and if it is ever vendored its MIT notice goes into `NOTICE`; TIME credited to Gartner in the legend |
+| Applications and data are not EDGY elements | Asset with `kind:`, as the Asset tags recommend; legend says "Asset (application)" |
+| Document graph changes page isolation | pre-pass; single-page inputs keep today's path; every expected example is a regression test |
+| Schema change breaks consumers | migration contract and 1.8 fixtures (F0) |
+| Extension contract drifts | contract number, fixture test in core CI, extensions never patch core files |
+| Presenter becomes a second renderer | it computes no layout; effects capped at five in v2.4.0 |
+| The presenter shows the native preview, which approximates draw.io | for publication quality use the draw.io CLI PNG / PDF |
+| XSS through labels or style values | renderer hardening, `textContent`, CSP with hashes, hostile-input tests |
+| Presentation files leak client data | engagement folder only; `connect-src 'none'`; `.gitignore` `*presentation*.html` outside `examples/`; privacy-scan scans HTML |
+| Model gaps reported as business findings | `model_gaps[]` evidence status; only `confirmed_absent` is a finding |
+| Licences | TIME credited to Gartner; C4 (v2.5.0): attribution a courtesy for the notation, C4-PlantUML MIT notice only if vendored |
 
-## 10. Changes from revision 1 (review findings)
+## 11. Change log of this plan
 
-| Finding (reviewer) | Change |
-|--------------------|--------|
-| `uses` actor → asset is not a core pair and raises E010 (feasibility, modelling) | new influence verb `interacts with`; core links stay 24 |
-| no "extension verb" category; `precedes` undefined; `exchanges` duplicates `transfers` / `flows` (feasibility, modelling) | all new verbs are influence verbs; integrations use `transfers`; order is input order |
-| data as Object contradicts the Asset tags in `vocabulary.md` (modelling) | data = Asset `{kind: data}` |
-| `reads` / `updates` clash with core `creates`, no CRUD matrix (modelling) | one verb `accesses {crud:}` + CRUD matrix |
-| model has no element-to-element relationships; version is already 1.8 (feasibility) | F0 / F5: `relationships[]`, arrays for actors, schema 1.9 |
-| each page has its own parser (feasibility) | F0 document graph, Sprint 21 |
-| `pages:` already reserved; `via` already an option (feasibility) | `expand:`; `{container: …}` |
-| nested `c4:` block does not fit the parser; values split on commas (feasibility) | flat C4 page syntax; quote-aware options |
-| new attributes print on the cards (feasibility) | reserved keys |
-| linter sees only XML, C4 pages would trip E009 / W102 / W105 (feasibility) | style markers; W124–W127 as parser / QA checks; EDGY rules off on C4 pages |
-| C006 used twice (modelling) | mixing notations is C007 |
-| C4 uses *technology*, not *protocol*; Person mapping; grey scope; bus as hub (modelling) | F4 rewritten accordingly |
-| `kind: saas` mixes kind and hosting (modelling) | `hosting:` attribute; optional criticality badge |
-| capability view missed `product → capability: requires`; "people perform" is not a core link (modelling) | five bands; actors = organisation has / performs; outcomes opt-in via `hops: 2` |
-| "+1 area" placement is arbitrary (modelling) | primary area via `{primary: true}` on the `requires` link |
-| draw.io cell ids are sequential; no model id in the file (presenter) | `edgyId` style marker, no UserObject wrappers |
-| renderer output is flat; style values unescaped → XSS (presenter) | specified grouping, attribute hardening, CSP, hostile-input tests |
-| Playwright never runs in CI (presenter) | `#selftest` with headless Chrome `--dump-dom` |
-| View Transitions cannot zoom inside SVG and blur vectors (presenter) | `viewBox` spring tween + cross-fade; FLIP for the current → target morph |
-| dark theme conflicts with hard-coded renderer colours (presenter) | dark chrome, diagrams on a light paper card |
-| effects: cut label fading, limit flowing dashes; add edge draw-in, spotlight, impact trace, presenter window (presenter) | F6 table |
-| presenter could come earlier; estimate too low (presenter, feasibility) | presenter core is Sprint 22; 30–36 days over six sprints |
-| *Round 2:* relationship options are a fixed whitelist (`edgy_parser.py` ~823) | F0 relationship attributes |
-| *Round 2:* elements resolve by name only; `{id:}` optional | F0 id lookup, ids required on derived views, slug fallback |
-| *Round 2:* a second label line breaks W105 / E010 | linter reads the first line as the verb |
-| *Round 2:* several edges on one pair are merged, first options win | merged `transfers` list every data name |
-| *Round 2:* schema has no `people` type; `organisation` is an object | `people` added; `organisation` `oneOf` object / array |
-| *Round 2:* reserved keys incomplete; one badge slot only | keys added; second badge slot in Sprint 23 |
-| *Round 2:* fi / fr / de verb spellings could equal core `uses` | spelling-collision check |
-| *Round 2:* `--dump-dom` dumps before the self-test ends | `--virtual-time-budget`, `--no-sandbox` |
-| *Round 2:* Sprint 21 listed views that ship later; W126 contradicted "level never typed twice" | `--views` framework only in Sprint 21; W126 checks bands |
+**Revision 4 — repository boundary and external reviews (Vibe, Codex;
+three boundary agents).**
+
+| Finding (source) | Change |
+|------------------|--------|
+| C4 and the full presenter are a different product / notation (Vibe, Codex) | §0: C4 → `edgy-c4` skill in this repo, v2.5.0; presenter split into F6a (core, v2.4.0) and F6b (deferred) |
+| Separate repos cost a second registry, paired tags, four adapters, duplicated CI, a forked renderer (boundary agents) | separate skill, not separate repo; companion repo possible for F6b only |
+| README "no code" sentence is already untrue (boundary agents) | corrected in v2.4.0 rather than used as a scope argument |
+| Existing bug: cross-skill import works only in a repo checkout (split-design agent, verified) | F0 script location + install test |
+| Extensions need a published interface (split-design agent) | F0 extension contract, graph JSON schema, contract test; E012 foreign-notation hook in core |
+| Shared application placed by input order (Codex 1) | Shared strip without `{primary}` |
+| S013 cannot infer an error from a name (Codex 2) | S013 is a review question |
+| W127 must separate missing evidence from a real gap (Codex 3) | `model_gaps[]` with four statuses |
+| Heat colour wash breaks the facet-fill rule (Codex 4) | overlays enlarge badges and add an outline ring |
+| C4 "per building block" does not fit product-independent building blocks (Codex 5) | conditional: only applications in decided building blocks, v2.5.0 |
+| organisation object → array needs a migration contract; validator has no `oneOf` (Codex 6, verified) | F0 migration contract |
+| W124 noisy in outside-in assessments (Vibe) | info by default, warning with `ownership: required` |
+| Resource band only for applications (Codex) | band shows every required asset |
+| Presenter scope that still impresses (user-value agent) | five effects in F6a |
+
+**Revision 3 — second review round (9 findings):** relationship options
+are a whitelist; elements resolve by name only; a second label line broke
+W105 / E010; edges on one pair are merged; no `people` type in the schema;
+reserved keys incomplete; one badge slot; fi / fr / de spellings could equal
+core `uses`; `--dump-dom` dumped before the self-test ended; Sprint 21 scope
+and W126 corrected.
+
+**Revision 2 — first review round (22 findings):** `uses` actor → asset
+raises E010 → `interacts with`; no extension-verb category, no `precedes`,
+`exchanges` duplicated `transfers`; data as Object contradicted the Asset
+tags; `reads` / `updates` → `accesses {crud}`; model had no
+element-to-element relationships; each page had its own parser; `pages:`
+and `via` were taken; nested `c4:` block did not fit the parser; new
+attributes printed on cards; the linter sees only XML; C4 *technology* not
+*protocol*, Person mapping, grey scope; `kind: saas` mixed kind and
+hosting; capability view missed `product → capability: requires`; draw.io
+cell ids are sequential; renderer output flat and style values unescaped;
+Playwright never runs in CI; View Transitions cannot zoom inside SVG; dark
+theme conflicts with renderer colours; effects trimmed; estimate too low.
 
 ## Appendix A. Example inputs to add (all fictional)
 
-| File | Content |
-|------|---------|
-| `examples/application-map.txt` | 18 applications in 4 domains × 3 layers, TIME badges, 14 integrations (bus) |
-| `examples/process-chain-map.txt` | 5 L1 / 14 L2 processes (plan → sell → operate → inform → settle) in management / core / support bands |
-| `examples/process-swimlane-map.txt` | ticket refund process, 4 actors, application chips |
-| `examples/capability-view.txt` | `focus: CAP-05` and `expand: per-capability` variants, CRUD matrix page |
-| `examples/c4-fare-engine.txt` | L1 + L2 for one application |
-| `examples/eval/architecture-views.txt` | the eval model in §7 |
-| `examples/presentation/tour.txt` | five-step tour over the eval model |
+| File | Release | Content |
+|------|---------|---------|
+| `examples/application-map.txt` | v2.4.0 | 18 applications in 4 domains × 3 layers, Shared strip, TIME badges, 14 integrations (bus) |
+| `examples/process-chain-map.txt` | v2.4.0 | 5 L1 / 14 L2 processes in management / core / support bands |
+| `examples/process-swimlane-map.txt` | v2.4.0 | ticket refund process, 4 actors, asset chips |
+| `examples/capability-view.txt` | v2.4.0 | `focus: CAP-05`, `expand: per-capability`, `gaps:` statuses, CRUD matrix page |
+| `examples/eval/architecture-views.txt` | v2.4.0 | the eval model in §8 |
+| `skills/documentation/edgy-c4/examples/c4-fare-engine.txt` | v2.5.0 | L1 + L2 for one application |
