@@ -1,0 +1,49 @@
+# Generated from edgy-model.json by edgy_model_to_txt.py — do not edit by hand; edit the model.
+# company: Globex Oy · assessed_at: 2026-04-25T10:00:00
+facet: all
+language: fi
+
+elements:
+  - purpose: "Digimuutoskumppani kasvuyrityksille - Globex auttaa pk-yrityksiä kasvamaan digitaalisen transformaation ja räätälöidyn ohjelmistokehityksen avulla." [growth, transformation, b2b] {id: PUR-01}
+  - story: "Suomalainen tekijä, kansainvälinen kasvu - Globex on perustettu 2015 Helsingissä. Yritys on kasvanut 15 henkilöstä yli 80:aan, laajentuu Ruotsiin 2026. Tarinan ytimessä on käytännönläheinen, asiakaslähtöinen kulttuuri." [founded-2015, growth-story, expansion] {id: STO-01}
+  - content: "Ajatusjohtajuus ja case-sisällöt - Globex julkaisee blogia, case-kertomuksia ja osallistuu alan tapahtumiin. Sisältö on teknologiapainotteista eikä aina vastaa tarkoituksen kasvuyhtiö-narratiivia." [blog, cases, events] {id: CON-01}
+  - capability: "Cloud-arkkitehtuuri (AWS/Azure) - Monipilavisessa ympäristössä toimiva suunnittelu- ja toteutuskyvykkyys. Sertifioituja arkkitehteja 12 kpl." [core, strategic] {id: CAP-01}
+  - capability: "Räätälöity ohjelmistokehitys - Full-stack-kehitys React/TypeScript + .NET/Python. Suurin henkilöstöryhmä (45 kehittäjää)." [core, operational] {id: CAP-02}
+  - capability: "DevOps ja jatkuva toimitus - CI/CD-putkistot, Kubernetes-orkestraatio. Sisäisessä käytössä; asiakasprojekteissa vaihteleva käyttöaste." [enabling, operational] {id: CAP-03}
+  - capability: "Myynti ja asiakkuudenhallinta (Ruotsi) - Uusi kyvykkyys: Tukholmaan rekrytoitu Sales Manager Q1/2026. Prosessit kesken, playbook puuttuu." [enabling, strategic] {id: CAP-04}
+  - asset: "Kehittäjätiimi (80 hlö) - Pääasiallinen tuotannollinen resurssi. Korkea senioriteetti (65% senior/lead). Kasvu 20 rekrytointia 2026." {id: ASS-01}
+  - asset: "Azure-partneriasema (Gold) - Microsoft Gold Partner -status avaa enterprise-asiakkaita ja alennettuja lisenssejä." {id: ASS-02}
+  - asset: "Asiakasreferenssit - 12 julkista case-kertomusta, 3 Suomen top-50-yritystä referenssinä." {id: ASS-03}
+  - process: "Projektitoimitusmalli (agile) - 2-viikon sprintit, asiakas mukana sprint review -sessioissa. Toimii hyvin olemassaolevilla asiakkailla." {id: PRO-01}
+  - process: "Myyntiprosessi - Inbound-painotteinen, ei dokumentoitua outbound-playbooka. Ruotsin markkinalla prosessi puuttuu kokonaan." {id: PRO-02}
+  - process: "Rekrytointiprosessi - HR-tiimi 3 hlö + ulkoinen headhunter isoihin rekrytointeihin. Tavoite: 20 rekrytointia 2026." {id: PRO-03}
+  - task: "Teknologiastrategian muotoilu - Asiakkaan CTO/CPO arvioi teknologiavaihtoehtoja ja -arkkitehtuuria. Globex tukee workshopeilla ja arkkitehtipalveluilla." {id: TAS-01}
+  - task: "Ohjelmistokehitysprojektin käynnistys - Asiakkaan projektitiimi kilpailuttaa toimittajia, arvioi tarjouksia, aloittaa yhteistyön." {id: TAS-02}
+  - task: "Jatkuva kehitys ja ylläpito - Olemassaoleva asiakas tilaa jatkuvaa kapasiteettia tai ylläpitosopimuksen." {id: TAS-03}
+  - channel: "Verkkosivut + blogi - Pääasiallinen inbound-kanava. 3500 kuukausikävijää. Konversio heikko (0.8%)." {id: CHA-01}
+  - channel: "LinkedIn - Aktiivinen, 4800 seuraajaa. Pääasiassa rekrytointi- ja thought leadership -sisältö." {id: CHA-02}
+  - channel: "Suora myynti / referrallit - 60% liideistä tulee referralleista. Tukholmassa ei vielä verkostoa." {id: CHA-03}
+  - journey: "Digimuutoskumppanin valinta - Asiakkaan matka tarpeesta toimittajaksi." {id: JOU-01}
+  # intersection elements
+  - organisation: "Globex Oy organisaatio - Toiminnallinen rakenne: Kehitys (45), Arkkitehtuuri & Konsultointi (15), Myynti & Markkinointi (10), HR & Hallinto (10). Ruotsin toimisto perustetaan Q2/2026. Ei erillistä tuote-/palveluomistajuutta." {id: ORG-01}
+  - product: "Projektitoimitus (time & material) - Yleisin sopimusmalli. Asiakas maksaa käytetystä kapasiteetista." {id: PRD-01}
+  - product: "Jatkuva kehitys -sopimus - Kuukausipohjainen kapasiteettisopimus. Arvo asiakkaalle: ennakoitavuus." {id: PRD-02}
+  - product: "Arkkitehtuuri­konsultointi - Kiinteähintainen arkkitehtuurikatselmus tai -suunnittelu. Myydään usein projektin esipalveluna." {id: PRD-03}
+  - brand: "Globex — Käytännönläheinen digimuutoskumppani - Brändi viestii asiantuntemuksesta ja luotettavuudesta. Ei erotu selkeästi toimiala- tai segmenttiosaamisella. Ruotsissa täysin tuntematon." {id: BRA-01}
+
+relationships:
+  - "Suomalainen tekijä, kansainvälinen kasvu" -> "Digimuutoskumppani kasvuyrityksille": "kontekstualisoi"
+  - "Ajatusjohtajuus ja case-sisällöt" -> "Digimuutoskumppani kasvuyrityksille": "ilmaisee"
+  - "Globex — Käytännönläheinen digimuutoskumppani" -> "Digimuutoskumppani kasvuyrityksille": "edustaa"
+  - "Globex Oy organisaatio" -> "Digimuutoskumppani kasvuyrityksille": "tavoittelee"
+  - "Globex Oy organisaatio" -> "Suomalainen tekijä, kansainvälinen kasvu": "kirjoittaa"
+  - "Globex Oy organisaatio" -> "Cloud-arkkitehtuuri (AWS/Azure)": "omistaa"
+  - "Globex Oy organisaatio" -> "Projektitoimitusmalli (agile)": "suorittaa"
+  - "Globex Oy organisaatio" -> "Globex — Käytännönläheinen digimuutoskumppani": "rakentaa"
+  - "Globex Oy organisaatio" -> "Projektitoimitus (time & material)": "valmistaa"
+  - "Projektitoimitusmalli (agile)" -> "Cloud-arkkitehtuuri (AWS/Azure)": "toteuttaa"
+  - "Projektitoimitusmalli (agile)" -> "Projektitoimitus (time & material)": "luo"
+  - "Projektitoimitus (time & material)" -> "Cloud-arkkitehtuuri (AWS/Azure)": "vaatii"
+  - "Projektitoimitus (time & material)" -> "Teknologiastrategian muotoilu": "palvelee"
+  - "Teknologiastrategian muotoilu" -> "Verkkosivut + blogi": "käyttää"
+  - "Globex — Käytännönläheinen digimuutoskumppani" -> "Teknologiastrategian muotoilu": "tukee"

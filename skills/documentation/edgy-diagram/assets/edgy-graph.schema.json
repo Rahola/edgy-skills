@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Rahola/edgy-skills/skills/documentation/edgy-diagram/assets/edgy-graph.schema.json",
+  "title": "EDGY document graph (extension contract 1)",
+  "description": "Written by edgy_generator.py --graph and embedded by edgy_present.py. One element per model id with every occurrence (page + draw.io cell), and the relationships of the whole document. See references/extension-contract.md.",
+  "type": "object",
+  "required": ["contract", "elements", "relationships"],
+  "properties": {
+    "contract": {"type": "integer", "minimum": 1, "maximum": 1},
+    "elements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "id_source", "type", "name", "occurrences"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"},
+          "id_source": {"type": "string", "enum": ["explicit", "slug"]},
+          "type": {"type": "string", "enum": ["purpose", "content", "story", "capability", "asset", "process", "task", "channel", "journey", "brand", "product", "organisation", "people", "activity", "outcome", "object"]},
+          "name": {"type": "string", "minLength": 1},
+          "description": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+          "kind": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+          "attributes": {"type": "object"},
+          "change": {"anyOf": [{"type": "string", "enum": ["keep", "new", "change", "replace", "remove", "decide"]}, {"type": "null"}]},
+          "tags": {"type": "array", "items": {"type": "string"}},
+          "occurrences": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["page", "page_id", "cell"],
+              "properties": {
+                "page": {"type": "string"},
+                "page_id": {"type": "string", "minLength": 1},
+                "cell": {"anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}]}
+              }
+            }
+          }
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source", "target", "verb"],
+        "properties": {
+          "source": {"type": "string", "minLength": 1},
+          "target": {"type": "string", "minLength": 1},
+          "verb": {"type": "string", "minLength": 1},
+          "kind": {"anyOf": [{"type": "string", "enum": ["link", "flow", "tree", "influence"]}, {"type": "null"}]},
+          "attributes": {"type": "object"},
+          "page": {"type": "string"}
+        }
+      }
+    }
+  }
+}

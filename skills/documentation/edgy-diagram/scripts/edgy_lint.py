@@ -30,6 +30,9 @@ Rules
   E009 EDGY 23 legend missing (title + ≥ 3 colour chips + ≥ 1 line sample)
   E010 core-link verb on a non-core pair
   E011 non-core verb drawn with core-link style
+  E012 EDGY elements and cells of another notation (edgyNotation=…) on one page
+  E013 notation without a registered, installed handler (edgy_notation.py) — fail
+       closed: only a registered handler switches the EDGY rules off for its page
   W101 text does not fit the element (estimate)
   W102 fill colour is not an EDGY 23 palette colour
   W103 intersection element (brand/product/organisation) not a rectangle
@@ -184,7 +187,7 @@ def edge_verb(edge, lower=True):
 
 
 def shape_of(st):
-    if st.get('edgyRole') in ('badge', 'badge-key'):
+    if st.get('edgyRole') in ('badge', 'badge-key', 'chip', 'matrix', 'header'):
         return 'decoration'          # status badge (extension) and its legend key: not EDGY elements
     shape = st.get('shape', '')
     if 'arrows2.arrow' in shape:
@@ -268,6 +271,8 @@ def classify_cells(cells):
             continue
         if c.get('vertex') != '1':
             continue
+        if st.get('edgyNotation'):
+            continue                 # a cell of another notation: its handler validates it (extension contract 1)
         label = strip_html(c.get('value') or '').strip().lower()
         if st.get('container') == '1' or 'swimlane' in (c.get('style') or ''):
             containers.add(i)
@@ -322,6 +327,38 @@ def line_index(path):
     except OSError:
         pass
     return idx
+
+
+def notation_findings(path, page, lines, cells, elements):
+    """E013 for a notation without a registered, installed handler; E012 for EDGY and foreign cells
+    on one page; the handler's own lint_page findings for a registered notation."""
+    out = []
+    by_notation = {}
+    for i, c in cells.items():
+        n = style_dict(c.get('style')).get('edgyNotation')
+        if n:
+            by_notation.setdefault(n.lower(), []).append(i)
+    if not by_notation:
+        return out
+    try:
+        import edgy_notation
+    except Exception:  # pragma: no cover — lint standalone without the registry: every notation is unsupported
+        edgy_notation = None
+    for n, ids in sorted(by_notation.items()):
+        mod = edgy_notation.load_module(n) if edgy_notation else None
+        if mod is None:
+            msg = edgy_notation.unsupported_message(n) if edgy_notation else f"E013 unsupported notation '{n}'"
+            out.append(Finding('ERROR', 'E013', msg.split(' ', 1)[1] if msg.startswith('E013 ') else msg, path,
+                               lines.get(ids[0]), ids[0], page))
+            continue
+        if hasattr(mod, 'lint_page'):
+            for level, rule, msg, cell in mod.lint_page({i: cells[i] for i in cells}, page) or []:
+                out.append(Finding(level, rule, msg, path, lines.get(cell) if cell else None, cell, page))
+    if elements:
+        first = next(iter(sorted(by_notation.values())))[0]
+        out.append(Finding('ERROR', 'E012', f"EDGY elements and {', '.join(sorted(by_notation))} cells on one page — "
+                                            f"draw each notation on its own page", path, lines.get(first), first, page))
+    return out
 
 
 def lint_model(path, page, model, lines, opts):
@@ -384,7 +421,7 @@ def lint_model(path, page, model, lines, opts):
         val = c.get('value') or ''
         if ENTITY_RE.search(val):
             add('WARNING', 'W107', f'double-escaped HTML entity in label ({ENTITY_RE.search(val).group(0)}) — write UTF-8 text and escape only & < > " once', i)
-        if i in elements or i in containers or 'text' in st or shape_of(st) == 'decoration':
+        if i in elements or i in containers or 'text' in st or shape_of(st) == 'decoration' or st.get('edgyNotation'):
             continue
         fill = st.get('fillColor', '').lower()
         is_lane = st.get('strokeColor') == 'none' and st.get('verticalAlign') == 'top'
@@ -507,6 +544,9 @@ def lint_model(path, page, model, lines, opts):
             smaller = max(min(aw * ah, bw * bh), 1)
             if inter / smaller > 0.30:
                 add('ERROR', 'E008', f'overlaps element {ib} by {100*inter/smaller:.0f} % of its area', ia)
+
+    # E012 / E013 pages of another notation — fail closed (extension contract 1, edgy_notation.py)
+    F.extend(notation_findings(path, page, lines, cells, elements))
 
     # E009 legend
     if elements and not legend_seen and not opts.no_legend:

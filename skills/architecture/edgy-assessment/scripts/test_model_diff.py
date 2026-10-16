@@ -47,7 +47,8 @@ def test_renamed_by_id_and_by_similarity():
     cur, tgt = _models()
     tgt = copy.deepcopy(tgt)
     tgt["elements"]["capability"][0]["name"] = "Ticketing and validation"        # same id CAP-05
-    tgt["elements"]["organisation"]["name"] = "Platform teams"                    # no id, similar name
+    md_orgs = md.m2t._as_list(tgt["elements"]["organisation"])                   # object (1.8) or array (1.9)
+    md_orgs[0]["name"] = "Platform teams"                                         # no id, similar name
     result = md.compare(cur, tgt, "architecture")
     details = {(t, (b or a)["name"]): (c, d) for t, pairs in result["elements"].items() for c, a, b, d in pairs}
     assert details[("capability", "Ticketing and validation")][0] == "change"

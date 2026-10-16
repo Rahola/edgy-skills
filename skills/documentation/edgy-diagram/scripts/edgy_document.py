@@ -119,6 +119,8 @@ def parse_document(text: str, with_graph: bool = False):
     graph = edgy_graph.build_graph([(n, p) for n, p, _ in parsed if p is not None])
     result: List[Tuple[str, EDGYParser]] = []
     for name, parser, page_text in parsed:
+        if parser is not None and parser.notation:
+            attach_notation(parser, page_text, graph)
         if parser is not None:
             if edgy_views.is_derived(parser):
                 edgy_views.materialize(parser, graph)
@@ -148,6 +150,24 @@ def parse_document(text: str, with_graph: bool = False):
     if not result:
         raise ValueError("no page to draw — every page has draw: false")
     return (result, graph) if with_graph else result
+
+
+def load_graph(text: str):
+    """The document graph of an input (extension contract 1, entry point)."""
+    return parse_document(text, with_graph=True)[1]
+
+
+def attach_notation(parser: EDGYParser, page_text: str, graph) -> None:
+    """A `notation: X` page is drawn by the registered handler of X (extension contract 1).
+    Unknown or not installed → E013 on the page (fail closed: never drawn as EDGY)."""
+    import edgy_notation
+    mod = edgy_notation.load_module(parser.notation)
+    if mod is None or not hasattr(mod, 'generate_page'):
+        msg = edgy_notation.unsupported_message(parser.notation)
+        parser.warnings.append(msg)
+        parser.errors.append(msg)
+        return
+    parser.foreign = (mod, page_text, graph)
 
 
 def _strip_declaration(xml: str) -> str:

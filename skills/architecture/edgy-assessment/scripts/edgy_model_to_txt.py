@@ -177,6 +177,90 @@ def build(model, facet, lang, layout="default"):
     return "\n".join(body) + "\n"
 
 
+# ---- architecture views (model format 1.9) ---------------------------------------------------------
+# --views writes one multi-page TXT: a `draw: false` model page with every element (by id) and every
+# relationships[] entry, then one or more view pages that edgy-diagram 2.8.0 derives from that graph.
+MODEL_TYPES = IDENTITY + ARCHITECTURE + EXPERIENCE + ["organisation", "product", "brand", "people"]
+ATTRIBUTE_KEYS_19 = ("kind", "hosting", "owner", "criticality", "time", "master")
+VIEW_WRITERS = {}     # view name → function(model, lang) -> list of page blocks; registered by the view sprints
+
+
+def register_view(name):
+    def deco(fn):
+        VIEW_WRITERS[name] = fn
+        return fn
+    return deco
+
+
+def model_elements(model):
+    """[(type, element dict, id)] for every element of the model, ids generated where missing."""
+    out = []
+    elems = model.get("elements") or {}
+    for t in MODEL_TYPES:
+        for i, e in enumerate(_as_list(elems.get(t))):
+            if isinstance(e, dict) and e.get("name"):
+                out.append((t, e, e.get("id") or f"{id_prefix(t)}-{i + 1:02d}"))
+    return out
+
+
+def _opt(value):
+    v = _clean(value)
+    return f'"{v}"' if ("," in v or ":" in v) else v
+
+
+def model_page(model, lang, name="Model"):
+    """The `draw: false` model page: in the document graph, not drawn."""
+    lines = [f'  - name: "{name}"', "    draw: false", "    elements:"]
+    for t, e, eid in model_elements(model):
+        desc = _clean(e.get("description"))
+        value = f"{_clean(e['name'])} - {desc}" if desc else _clean(e["name"])
+        opts = {"id": eid}
+        for k in ATTRIBUTE_KEYS_19:
+            if k in e and e[k] not in (None, ""):
+                opts[k] = str(e[k]).lower() if isinstance(e[k], bool) else e[k]
+        tags = [_clean(x) for x in e.get("tags", []) if _clean(x)]
+        tag_part = f" [{', '.join(tags)}]" if tags else ""
+        lines.append(f'      - {t}: "{value}"{tag_part} {{' + ", ".join(f"{k}: {_opt(v)}" for k, v in opts.items()) + "}")
+    lines.append("    relationships:")
+    for r in model.get("relationships") or []:
+        if not isinstance(r, dict):
+            continue
+        attrs = r.get("attributes") or {}
+        parts = []
+        for k in ("crud", "technology", "container", "change"):
+            if attrs.get(k):
+                parts.append(f"{k}: {_opt(attrs[k])}")
+        if attrs.get("primary") is True:
+            parts.append("primary: true")
+        if attrs.get("data"):
+            parts.append('data: "' + "; ".join(_clean(x) for x in attrs["data"]) + '"')
+        tail = " {" + ", ".join(parts) + "}" if parts else ""
+        lines.append(f'      - "{_clean(r["source_id"])}" -> "{_clean(r["target_id"])}": "{_clean(r["verb"])}"{tail}')
+    return lines
+
+
+def build_views(model, views, lang):
+    """One multi-page TXT: the model page and the requested view pages."""
+    unknown = [v for v in views if v not in VIEW_WRITERS]
+    if unknown:
+        raise ValueError(f"unknown view(s): {', '.join(unknown)} (known: {', '.join(sorted(VIEW_WRITERS)) or 'none yet'})")
+    if not isinstance(model.get("relationships"), list) or not model["relationships"]:
+        raise ValueError("the architecture views need model format 1.9 with relationships[] between element ids")
+    head = [f"# Generated from edgy-model.json by edgy_model_to_txt.py --views — do not edit by hand; edit the model.",
+            f"# company: {_clean(model.get('company'))} · assessed_at: {_clean(model.get('assessed_at'))}",
+            f"language: {lang if lang in VERB_KEY else 'en'}"]
+    opts = model.get("layout") if isinstance(model.get("layout"), dict) else {}
+    for key in LAYOUT_KEYS:
+        if key in opts and opts[key] is not None and key not in ("title", "footnote"):
+            value = opts[key]
+            head.append(f"{key}: {str(value).lower() if isinstance(value, bool) else _clean(value)}")
+    body = head + ["", "pages:"] + model_page(model, lang)
+    for v in views:
+        for block in VIEW_WRITERS[v](model, lang):
+            body += [""] + block
+    return "\n".join(body) + "\n"
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="edgy-model.json → four facet TXT inputs")
     ap.add_argument("model")
@@ -185,11 +269,24 @@ def main(argv=None):
     ap.add_argument("--language", choices=list(VERB_KEY), help="verb language (default: model.language)")
     ap.add_argument("--layout", choices=["default", "triad"], default="default",
                     help="triad = planned ring with Further panels (map_type: triad in every file)")
+    ap.add_argument("--views", help="comma-separated architecture views (model format 1.9): writes "
+                                    "<prefix>-views.txt — a draw: false model page and the view pages — instead of "
+                                    "the four facet files")
     args = ap.parse_args(argv)
     model = json.loads(Path(args.model).read_text(encoding="utf-8"))
     lang = args.language or model.get("language", "en")
     prefix = args.prefix or "".join(c if c.isalnum() else "-" for c in model.get("company", "edgy").lower()).strip("-")
     os.makedirs(args.out, exist_ok=True)
+    if args.views:
+        try:
+            text = build_views(model, [v.strip() for v in args.views.split(",") if v.strip()], lang)
+        except ValueError as e:
+            print(f"edgy_model_to_txt: {e}", file=sys.stderr)
+            return 2
+        path = Path(args.out) / f"{prefix}-views.txt"
+        path.write_text(text, encoding="utf-8")
+        print(path)
+        return 0
     for facet in ("identity", "architecture", "experience", "all"):
         name = f"{prefix}-{'all-facets' if facet == 'all' else facet}.txt"
         path = Path(args.out) / name

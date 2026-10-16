@@ -382,6 +382,7 @@ class EDGYParser:
         self.view = {}               # view keys of the architecture views (focus, expand, process_view, …)
         self.draw = True             # draw: false — a model page: in the document graph, not in the output
         self.cell_of = {}            # element id → draw.io cell id (after generate_xml)
+        self.foreign = None          # (handler module, page text, graph) of a notation: page (edgy_notation)
 
     def parse_input(self, input_text: str) -> None:
         """Jäsennä käyttäjän syöte EDGY-elementeiksi"""
@@ -1462,6 +1463,14 @@ class EDGYParser:
         """
         import math as _math
 
+        if self.foreign is not None:
+            # a page of another notation: its registered handler draws it (extension contract 1)
+            mod, page_text, graph = self.foreign
+            return mod.generate_page(page_text, graph)
+        if self.notation:
+            # no handler (E013 is already an input error): an empty page, never an EDGY drawing of foreign input
+            return ('<?xml version="1.0" encoding="utf-8"?>\n<mxGraphModel pageWidth="1200" pageHeight="900">'
+                    '<root><mxCell id="0"/><mxCell id="1" parent="0"/></root></mxGraphModel>')
         abs_pos = self._calculate_layout()              # kaikkien elementtien absoluuttiset sijainnit
         group_pos = self._group_positions               # ryhmien/kaistojen sijainnit
         sizes = {eid: self._get_element_size(self.elements[eid]) for eid in self.elements}

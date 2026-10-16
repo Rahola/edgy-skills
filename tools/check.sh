@@ -8,7 +8,7 @@
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
 # edgy-tests, edgy-geometry-tests, edgy-lint-tests, edgy-render-tests,
 # edgy-structure-tests, edgy-tool-tests, edgy-model, edgy-model-diff-tests, edgy-archimate-tests,
-# edgy-graph-tests, edgy-examples-golden, edgy-official-shapes, edgy-eval, edgy-lint,
+# edgy-graph-tests, edgy-examples-golden, edgy-contract, edgy-model-compat, edgy-official-shapes, edgy-eval, edgy-lint,
 # edgy-lint-strict, edgy-series, edgy-qa,
 # privacy-scan.
 #
@@ -210,9 +210,11 @@ run_step "edgy-tool-tests" python3 tools/test_edgy_tools.py
 run_step "edgy-model-tests" python3 skills/architecture/edgy-assessment/scripts/test_model_to_txt.py
 run_step "edgy-model-diff-tests" python3 skills/architecture/edgy-assessment/scripts/test_model_diff.py
 run_step "edgy-archimate-tests" python3 skills/architecture/edgy-assessment/scripts/test_model_to_archimate.py
+run_step "edgy-model-compat" python3 tools/test_model_compat.py
 run_step "edgy-semantic-tests" python3 "$EDGY_SCRIPTS/test_semantic.py"
 run_step "edgy-graph-tests" python3 "$EDGY_SCRIPTS/test_graph.py"
 run_step "edgy-examples-golden" python3 "$EDGY_SCRIPTS/test_examples.py"
+run_step "edgy-contract" python3 "$EDGY_SCRIPTS/test_contract.py"
 
 # --- Vaihe 3c2: edgy-model.json-skeema + malli → TXT ------------------------
 # Jokaisen repoon kuuluvan *model*.json-esimerkin on vastattava skeemaa, ja

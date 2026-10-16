@@ -1,0 +1,27 @@
+# Generated from edgy-model.json by edgy_model_to_txt.py — do not edit by hand; edit the model.
+# company: Acme Transit (fictional) · assessed_at: 2026-09-01
+facet: all
+language: en
+
+elements:
+  - purpose: "Effortless everyday travel - Public transport is the easy choice for every trip in the region." [analytical] {id: PUR-01}
+  - story: "From timetable to travel account - Travel without knowing fares or zones in advance." {id: STO-01}
+  - content: "Clear fares - Simple, published prices for every trip." {id: CON-01}
+  - capability: "Ticketing - sell and validate fares" [core, operational] {id: CAP-05}
+  - asset: "Legacy fare engine - zone-based fare calculation" {id: AST-01}
+  - asset: "Card personalisation service - prints personal travel cards" {id: AST-03}
+  - process: "Fare change - define and publish" {id: PRO-01}
+  - task: "Buy a ticket - get a valid ticket before boarding" {id: TSK-01}
+  - channel: "Mobile app - tickets and journey planning" {id: CHA-01}
+  - journey: "Daily commute - home to work and back" {id: JOU-01}
+  # intersection elements
+  - organisation: "Platform team - owns the ticketing platform" {id: ORG-01}
+  - product: "Acme app - ticket purchase in the app" {id: PRD-01}
+  - brand: "Acme Transit - regional public transport brand" {id: BRA-01}
+
+relationships:
+  - "Ticketing" -> "Legacy fare engine": "requires"
+  - "Fare change" -> "Ticketing": "realises"
+  - "Platform team" -> "Ticketing": "has"
+  - "Buy a ticket" -> "Mobile app": "uses"
+  - "Buy a ticket" -> "Daily commute": "is part of"

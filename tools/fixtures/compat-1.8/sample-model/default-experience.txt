@@ -1,0 +1,23 @@
+# Generated from edgy-model.json by edgy_model_to_txt.py — do not edit by hand; edit the model.
+# company: Globex Oy · assessed_at: 2026-04-25T10:00:00
+facet: experience
+language: fi
+
+elements:
+  - task: "Teknologiastrategian muotoilu - Asiakkaan CTO/CPO arvioi teknologiavaihtoehtoja ja -arkkitehtuuria. Globex tukee workshopeilla ja arkkitehtipalveluilla." {id: TAS-01}
+  - task: "Ohjelmistokehitysprojektin käynnistys - Asiakkaan projektitiimi kilpailuttaa toimittajia, arvioi tarjouksia, aloittaa yhteistyön." {id: TAS-02}
+  - task: "Jatkuva kehitys ja ylläpito - Olemassaoleva asiakas tilaa jatkuvaa kapasiteettia tai ylläpitosopimuksen." {id: TAS-03}
+  - channel: "Verkkosivut + blogi - Pääasiallinen inbound-kanava. 3500 kuukausikävijää. Konversio heikko (0.8%)." {id: CHA-01}
+  - channel: "LinkedIn - Aktiivinen, 4800 seuraajaa. Pääasiassa rekrytointi- ja thought leadership -sisältö." {id: CHA-02}
+  - channel: "Suora myynti / referrallit - 60% liideistä tulee referralleista. Tukholmassa ei vielä verkostoa." {id: CHA-03}
+  - journey: "Digimuutoskumppanin valinta - Asiakkaan matka tarpeesta toimittajaksi." {id: JOU-01}
+  # intersection elements
+  - brand: "Globex — Käytännönläheinen digimuutoskumppani - Brändi viestii asiantuntemuksesta ja luotettavuudesta. Ei erotu selkeästi toimiala- tai segmenttiosaamisella. Ruotsissa täysin tuntematon." {id: BRA-01}
+  - product: "Projektitoimitus (time & material) - Yleisin sopimusmalli. Asiakas maksaa käytetystä kapasiteetista." {id: PRD-01}
+  - product: "Jatkuva kehitys -sopimus - Kuukausipohjainen kapasiteettisopimus. Arvo asiakkaalle: ennakoitavuus." {id: PRD-02}
+  - product: "Arkkitehtuuri­konsultointi - Kiinteähintainen arkkitehtuurikatselmus tai -suunnittelu. Myydään usein projektin esipalveluna." {id: PRD-03}
+
+relationships:
+  - "Projektitoimitus (time & material)" -> "Teknologiastrategian muotoilu": "palvelee"
+  - "Teknologiastrategian muotoilu" -> "Verkkosivut + blogi": "käyttää"
+  - "Globex — Käytännönläheinen digimuutoskumppani" -> "Teknologiastrategian muotoilu": "tukee"

@@ -1,0 +1,170 @@
+{
+  "facet": "all",
+  "language": "en",
+  "elements": {
+    "purpose": [
+      {
+        "change": "keep",
+        "current": "Effortless everyday travel",
+        "target": "Effortless everyday travel",
+        "detail": ""
+      }
+    ],
+    "story": [
+      {
+        "change": "keep",
+        "current": "From timetable to travel account",
+        "target": "From timetable to travel account",
+        "detail": ""
+      }
+    ],
+    "content": [
+      {
+        "change": "keep",
+        "current": "Clear fares",
+        "target": "Clear fares",
+        "detail": ""
+      }
+    ],
+    "capability": [
+      {
+        "change": "keep",
+        "current": "Ticketing",
+        "target": "Ticketing",
+        "detail": ""
+      },
+      {
+        "change": "new",
+        "current": null,
+        "target": "Account-based travel",
+        "detail": ""
+      }
+    ],
+    "asset": [
+      {
+        "change": "new",
+        "current": null,
+        "target": "Account-based ticketing platform",
+        "detail": ""
+      },
+      {
+        "change": "new",
+        "current": null,
+        "target": "Open-loop payment gateway",
+        "detail": ""
+      },
+      {
+        "change": "remove",
+        "current": "Legacy fare engine",
+        "target": null,
+        "detail": ""
+      },
+      {
+        "change": "remove",
+        "current": "Card personalisation service",
+        "target": null,
+        "detail": ""
+      }
+    ],
+    "process": [
+      {
+        "change": "change",
+        "current": "Fare change",
+        "target": "Fare change",
+        "detail": "description changed"
+      }
+    ],
+    "task": [
+      {
+        "change": "keep",
+        "current": "Buy a ticket",
+        "target": "Buy a ticket",
+        "detail": ""
+      }
+    ],
+    "channel": [
+      {
+        "change": "keep",
+        "current": "Mobile app",
+        "target": "Mobile app",
+        "detail": ""
+      }
+    ],
+    "journey": [
+      {
+        "change": "keep",
+        "current": "Daily commute",
+        "target": "Daily commute",
+        "detail": ""
+      }
+    ],
+    "organisation": [
+      {
+        "change": "keep",
+        "current": "Platform team",
+        "target": "Platform team",
+        "detail": ""
+      }
+    ],
+    "product": [
+      {
+        "change": "change",
+        "current": "Acme app",
+        "target": "Acme app",
+        "detail": "description changed"
+      }
+    ],
+    "brand": [
+      {
+        "change": "keep",
+        "current": "Acme Transit",
+        "target": "Acme Transit",
+        "detail": ""
+      }
+    ]
+  },
+  "links": [
+    {
+      "change": "keep",
+      "source": "capability",
+      "target": "asset",
+      "verb": "requires",
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source": "process",
+      "target": "capability",
+      "verb": "realises",
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source": "organisation",
+      "target": "capability",
+      "verb": "has",
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source": "task",
+      "target": "channel",
+      "verb": "uses",
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source": "task",
+      "target": "journey",
+      "verb": "is part of",
+      "detail": ""
+    },
+    {
+      "change": "new",
+      "source": "product",
+      "target": "capability",
+      "verb": "requires",
+      "detail": ""
+    }
+  ]
+}

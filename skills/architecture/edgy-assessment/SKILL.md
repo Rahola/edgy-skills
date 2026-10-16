@@ -202,6 +202,15 @@ This file is the context object for `edgy-deep-dive` follow-up analyses.
 }
 ```
 
+`organisation` is one object (format 1.8, above). Format **1.9** (optional, for the
+architecture views of edgy-diagram 2.8.0) adds: `organisation` as an object **or an
+array**, `elements.people`, asset `kind` (application / platform / integration / data),
+`hosting`, `owner`, `time` (Gartner TIME), and `relationships[]` between element ids
+(`{"source_id": "CAP-05", "target_id": "AST-02", "verb": "requires"}`). A model that uses
+any of these must say `"schema_version": "1.9"` — the validator rejects 1.9 structures in an
+older model, and every 1.8 model keeps producing byte-identical TXT, diff and ArchiMate
+output (tools/test_model_compat.py).
+
 **Validate the model** before continuing — the schema lives in
 `assets/edgy-model.schema.json`, the validator needs only the standard library:
 

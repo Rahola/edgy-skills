@@ -279,6 +279,9 @@ def main():
                        help='Write <output>.qa.json next to the .drawio: counts, lint, visual / layout / language '
                             'checks, preview sizes and the approval fields a person fills in (on by default with --preview)')
     parser.add_argument('--no-qa', dest='qa', action='store_false', help='Do not write the qa.json manifest')
+    parser.add_argument('--graph', metavar='PATH',
+                       help='Also write the document graph as JSON (model ids, occurrences with page and cell, '
+                            'relationships) — assets/edgy-graph.schema.json, extension contract 1')
     parser.add_argument('--no-layout-quality', action='store_true',
                        help='qa.json: run the lint without the layout-quality rules W117–W120 (recorded in the manifest)')
 
@@ -312,7 +315,7 @@ def main():
 
     # Jäsennä EDGY (yksi tai useampi sivu)
     try:
-        pages = parse_document(input_content)
+        pages, graph = parse_document(input_content, with_graph=True)
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(2)
@@ -401,6 +404,12 @@ def main():
 
     temp_drawio_path = output_path if fmt == 'drawio' else output_path.replace(f'.{fmt}', '.drawio')
     write_drawio_file(xml_content, temp_drawio_path)
+    if args.graph:
+        import json as _json
+        with open(args.graph, 'w', encoding='utf-8') as f:
+            _json.dump(graph.to_json(), f, ensure_ascii=False, indent=1)
+            f.write('\n')
+        print(f"Document graph: {args.graph}")
 
     def write_qa(previews, manifest=None):
         # qa.json: samat luvut evalille, assessmentin Phase 5:lle ja katselmoijalle; hyväksyntäkentät jäävät null.
