@@ -1,6 +1,6 @@
 # EDGY skills development plan (2026-10, part 4): architecture views and an interactive presenter
 
-**Revision 4 (2026-10-16) — proposal, not implemented. Scope decided:
+**Revision 5 (2026-10-16) — proposal, not implemented. Scope decided:
 v2.4.0 = foundations, application / process / capability views and a
 presenter-lite in core; v2.5.0 = a separate `edgy-c4` skill in this repo;
 presenter effects only after workshop demand.** Revisions 1–3 were
@@ -8,7 +8,8 @@ reviewed by four reviewer agents (generator feasibility, EDGY / C4
 modelling, presenter front-end, adversarial second round); revision 3 by
 two external agents (Vibe by Mistral, Codex) on PR #7 and by three more
 agents on the repository boundary (case for keeping, split design,
-finding verification). Every accepted finding was checked against `main`;
+finding verification); revision 4 by Vibe and Codex again (both support
+the scope; revision 5 settles the contracts they asked for). Every accepted finding was checked against `main`;
 §10 maps each one to its change. Follow-up to
 [`development-plan-2026-10-coverage.md`](development-plan-2026-10-coverage.md)
 (v2.3.0: edgy-diagram 2.7.0, edgy-assessment 1.9.0, edgy-framework 1.6.0,
@@ -113,7 +114,7 @@ de):
 |------|------|-------|
 | `stores` | asset (application) → asset (data) | system of record |
 | `accesses` `{crud: R \| CU \| CRUD}` | process → asset (data) | one verb with an attribute, so a CRUD matrix can be drawn |
-| `interacts with` | people / organisation → asset (application) | actor uses an application; not `uses`, which is core for task → channel only (E010) |
+| `interacts with` | people / organisation → asset (application) | actor uses an application; not `uses`, which is core for task → channel only (E010). A working name: a sharper verb may replace it in Sprint 21a if it passes the core-spelling collision check |
 
 Integrations reuse the flow verb **`transfers`** (asset → asset) with
 `{data: AST-xx, technology: "REST"}`; the data name sits on a second label
@@ -134,16 +135,33 @@ edge only for non-linear steps.
 - **Page expansion.** `expand: per-capability | per-application` (not
   `pages:`, the existing multi-page key), optionally `where: highlight` or
   a list of ids.
-- **Id lookup.** Lookup by `{id:}`; on derived views an element without
-  `{id:}` is an error; `edgyId` falls back to a slug of type + name.
+- **Identity: model id vs. occurrence.** Lookup by `{id:}`. The *model id*
+  (`edgyId`) is canonical; each drawn *occurrence* has its own identity
+  `edgyOcc=<page>/<cell>` that points to it. Rules in the document graph:
+  - cross-view identity (derived views, highlight, diff, graph merge)
+    **requires an explicit `{id:}`** — a missing id there is an error;
+  - the type + name slug fallback is allowed only on standalone,
+    single-page output, and is marked `edgyIdSource=slug` so no consumer
+    treats it as stable;
+  - the same id on several pages is normal (several occurrences);
+  - the same id with conflicting type or name across pages → **E014**;
+  - a duplicate id within one page → **E014**;
+  - a relationship to an id that does not exist → **E015** (dangling);
+  - a rename keeps the id and is reported by the diff as a rename, never
+    as remove + add.
 - **Model ids in the output.** The generator writes
   `edgyId=…;edgyType=…;edgyKind=…;edgyFacet=…` into each cell's style
   (draw.io keeps unknown style keys) and `edgyNotation=<name>` on pages of
   another notation. No `<UserObject>` wrappers (renderer and linter read
   `root.findall('mxCell')`).
-- **Foreign-notation pages.** On a page with `edgyNotation` set, the EDGY
-  rules E009 (legend), W102 (colours) and W105 (verbs) are off, and
-  **E012** flags EDGY and foreign cells on one page. This is the hook
+- **Foreign-notation pages — fail closed.** The EDGY rules E009 (legend),
+  W102 (colours) and W105 (verbs) are switched off only for `edgyNotation`
+  values with a **registered notation handler** (a skill that declares the
+  notation under the extension contract and is installed). An unknown
+  value, or a known notation whose handler is not installed, gives **E013
+  unsupported notation** — never a clean pass. **E012** flags EDGY and
+  foreign cells on one page. A foreign-only page is validated by its
+  handler; core reports which handler validated it. This is the hook
   `edgy-c4` uses in v2.5.0.
 - **Options.** Quote-aware `{…}` splitting (values are split on every comma
   today, ~451 / ~831); relationship attributes `primary`, `crud`, `data`,
@@ -160,24 +178,40 @@ edge only for non-linear steps.
   target_id, verb, attributes}`; `people` as a new element type;
   `organisation` as object **or** array; `id` required on elements
   referenced by `relationships[]`; `elements.asset[].kind`.
-- **Migration contract.** The validator gains `oneOf` / `anyOf` (it skips
-  unknown keywords today, so `organisation` would go unvalidated); readers
-  normalise with `_as_list` (already used by `edgy_model_to_txt.py`,
-  `edgy_model_diff.py`, `edgy_model_to_archimate.py`); writers emit an
-  array only with `schema_version "1.9"`; compatibility fixtures check that
-  every shipped 1.8 model gives byte-identical output from to_txt, diff and
-  ArchiMate export; tests that index `["organisation"]["name"]`
-  (`test_model_diff.py` ~50) use the normaliser; the assessment template
-  and deep-dive text say "object or array".
+- **Migration contract — two separate promises.**
+  - *Old input is accepted.* The validator gains `oneOf` / `anyOf` (it
+    skips unknown keywords today, so `organisation` would go
+    unvalidated); readers normalise with `_as_list` (already used by
+    `edgy_model_to_txt.py`, `edgy_model_diff.py`,
+    `edgy_model_to_archimate.py`); every shipped 1.8 model gives
+    **byte-identical** TXT, diff and ArchiMate output (these outputs carry
+    no style markers). Tests that index `["organisation"]["name"]`
+    (`test_model_diff.py` ~50) use the normaliser; the assessment template
+    and deep-dive text say "object or array".
+  - *Old writers stay old.* Writers emit 1.9-only structures (arrays,
+    `relationships[]`, `people`) only with `schema_version "1.9"`; a test
+    asserts that a 1.8 write contains none of them.
+  - *draw.io output does change — once, and only in style attributes.*
+    The new markers (`edgyId`, `edgyOcc`, `edgyType`, …) land in every
+    generated cell, so all `expected-*.drawio` examples are regenerated
+    in Sprint 21a. A test compares old and new examples with the `edgy*`
+    style keys removed and requires them to be identical — geometry,
+    labels and every other style key unchanged (the coverage plan
+    regenerated the box-legend examples the same way).
 - **Extension contract** (new):
   `skills/documentation/edgy-diagram/references/extension-contract.md`
   with `assets/edgy-graph.schema.json` (document graph JSON) — style-marker
   grammar, `edgyNotation` values and which rules switch off, the SVG
   `data-*` / `class` / `data-role` attributes and their sanitising rules,
   the import entry points (`edgy_document.load_graph()`,
-  `edgy_render.page_to_svg()`), and a contract number (`contract: 1`).
-  Core CI runs a fixture-based contract test, so a break shows up here, not
-  in an extension.
+  `edgy_render.page_to_svg()`), notation-handler registration (for E013),
+  and a contract number (`contract: 1`). Core CI runs a fixture-based
+  contract test, so a break shows up here, not in an extension.
+  **Designed against two consumers** before it is frozen: `edgy-c4` (needs
+  graph, ids, notation registration, shape hook) and the deferred F6b
+  presenter (needs SVG `data-*`, occurrences, paired states). The contract
+  document has a section "changed because of the second consumer", so the
+  contract is not shaped by `edgy-c4` alone.
 - `edgy_model_to_txt.py --views` framework; each view adds itself.
 
 ### F1 Application map (`map_type: application`) — P0
@@ -295,14 +329,19 @@ impact per line of code:
 | Card wall → zoom | all views as facet-coloured cards; a click tweens the SVG `viewBox` with a spring into the full view (crisp vector at every frame); *back* reverses |
 | Cross-view highlight | hover / tap highlights an element and its 1-hop neighbours, dims the rest, and puts counter badges on the other views' cards where the same `edgyId` appears |
 | Search | ⌘K / Ctrl+K palette over all elements and ids; jumps with the zoom |
-| Current → target | `T` cross-fades the transition overlay; change badges pulse once |
+| Current ↔ target (change annotations) | `T` switches a filter over the page's `{change:}` annotations with a cross-fade: *current* hides elements marked `new`, *target* hides elements marked `remove` (`replace` shows both, `decide` stays with a "?" badge); change badges pulse once. The `{change:}` overlay is a stroke colour on **one** diagram — there is no target model or target geometry — so the toggle is labelled "change annotations", never "target model", and does nothing on a page without annotations |
 | Paging | ← / → step through pages in order (an implicit tour), `F` full-screen, deep links `#/view/<page>/<id>`, print stylesheet (one view per page) |
 
 Overlays keep the facet fill: maturity / TIME / rating are shown by
 enlarging the existing badges and adding a coloured outline ring (SKILL.md:
 "a heat map keeps the facet fill"; W102). Light / dark **chrome**;
 diagrams stay on a light paper card. `prefers-reduced-motion` turns every
-animation into a cut. Keyboard-focusable elements with `aria-label`.
+animation into a cut.
+
+**Effects cap.** These five are the whole F6a scope; a sixth effect goes to
+F6b, no exceptions (a PR review check). F6a has its own acceptance (§9):
+if it slips, it moves out of v2.4.0 without changing any graph or view
+deliverable — no core feature depends on it. Keyboard-focusable elements with `aria-label`.
 System font stack `Helvetica, Arial, "Liberation Sans", sans-serif`.
 
 ## 4. v2.5.0 and later (outside the v2.4.0 cut)
@@ -337,8 +376,9 @@ transitive install in the adapters (Sprint 25).
 
 ### F6b Presenter effects (deferred)
 
-Edge draw-in, spotlight mask, impact trace between two elements, FLIP morph
-for current → target, minimap, guided `tour:` file with captions, presenter
+Edge draw-in, spotlight mask, impact trace between two elements, a real
+**two-state morph** (current and target pages paired with `{state: current
+| target}` and matched by model id, FLIP to the target geometry), minimap, guided `tour:` file with captions, presenter
 window (`window.open` + `postMessage`). A v2.5.0 plan only if workshops on
 real engagements show demand; built against `contract: 1`, so it can also
 live in a companion repo.
@@ -371,16 +411,18 @@ No breaking changes for 1.8 inputs (migration contract in F0);
 
 | Sprint | Content | Estimate |
 |--------|---------|----------|
-| **21 — Foundations** | document graph, id lookup, `expand:`, style markers, foreign-notation hook + E012, quote-aware options, relationship attributes, reserved keys, influence verbs (4 languages, collision check), first-line edge verb, script-location fix + install test, schema 1.9 + migration contract + validator `oneOf`, extension contract + contract test, `--views` framework | 7–8 d |
+| **21a — Parser and graph** | document graph, identity rules (model id vs. occurrence, E014 / E015), `expand:`, style markers + one-time example regeneration with the style-only diff test, quote-aware options, relationship attributes, reserved keys, influence verbs (4 languages, collision check), first-line edge verb, script-location fix + install test | 5–6 d |
+| **21b — Schema and contract** | schema 1.9, migration contract (validator `oneOf`, 1.8 byte-identical fixtures, 1.8-writer test), extension contract against two consumers + contract test, notation registration, E012 / E013 fail-closed, `--views` framework | 3–4 d |
 | **22 — Presenter-lite** | renderer groups, `data-*`, hardening; `edgy_present.py`, CSP, the five effects, overlays as badges, chrome themes, print, `#selftest` — over today's map types | 5–6 d |
 | **23 — Application and process maps** | F1 (domains × layers, Shared strip, TIME preset, second badge slot, integrations, W124 info/warning, W125, S013), F2 (chain, bands, swimlane, chips, W126), examples | 6–7 d |
 | **24 — Capability view and release** | F3 (five bands, `hops`, matrices, W127 + `model_gaps[]`), F5 diff / ArchiMate mapping, eval set, skill instructions, README correction, CHANGELOG, **v2.4.0** | 5–6 d |
 | *25 — edgy-c4 (v2.5.0)* | skill scaffold, `requires:` in validator / registry / adapters, renderer shape hook, L1 derivation, L2 layout, C001–C006, C4-PlantUML, target-state conditional | 6–7 d |
 | *26 — Presenter effects (conditional)* | F6b items that workshops asked for | 4–5 d |
 
-**v2.4.0 ≈ 23–27 working days**; v2.5.0 adds 6–7 days for C4 and up to 5
-for effects. The presenter-lite comes in Sprint 22, so there is a visible
-result after the second sprint.
+**v2.4.0 ≈ 24–28 working days**; v2.5.0 adds 6–7 days for C4 and up to 5
+for effects. 21a and 21b are independent work packages, each reviewable on
+its own; Sprint 22 needs only 21a. The presenter-lite comes in Sprint 22,
+so there is a visible result after the second sprint.
 
 ## 8. Tests to add (v2.4.0)
 
@@ -388,13 +430,21 @@ result after the second sprint.
   options; relationship attributes kept; reserved keys not printed;
   derived lanes, bands and levels; Shared strip; bus threshold; `edgyId` on
   every element cell.
-- `test_lint.py`: E012; EDGY rules silent on `edgyNotation` pages; new
-  influence verbs accepted; `uses` on actor → asset still E010; first-line
-  verb.
+- `test_lint.py`: E012; EDGY rules silent only on pages with a registered
+  notation; **E013** for an unknown notation and for a known notation
+  without its handler installed; new influence verbs accepted; `uses` on
+  actor → asset still E010; first-line verb.
+- Identity: same id on two pages → one model element, two occurrences;
+  conflicting definitions and duplicate ids on a page → E014; dangling
+  relationship → E015; slug ids marked `edgyIdSource=slug` and rejected
+  for cross-view use; rename reported as a rename by the diff.
 - Parser / QA: W124 (info vs. `ownership: required`), W125–W127,
   `model_gaps[]` statuses; `test_semantic.py`: S013 as a question.
 - Model tools: validator `oneOf`; 1.8 fixtures byte-identical through
-  to_txt, diff and ArchiMate; 1.9 arrays round-trip.
+  to_txt, diff and ArchiMate; a 1.8 write contains no 1.9-only structure;
+  1.9 arrays round-trip.
+- Examples: every regenerated `expected-*.drawio` equals its previous
+  version once the `edgy*` style keys are removed.
 - Install: copy `edgy-assessment` and `edgy-diagram` as the adapters do and
   run `edgy_model_to_txt.py` from the copy.
 - Contract: fixture-based test of the style markers, graph JSON schema and
@@ -409,7 +459,11 @@ result after the second sprint.
   the result and the `window.onerror` count to a DOM sentinel, run with
   `edgy_render.find_chromium()` and `--headless --no-sandbox
   --virtual-time-budget=15000 --dump-dom file://…#selftest` (GitHub's
-  `ubuntu-latest` ships Chrome; CI installs only `pyyaml`).
+  `ubuntu-latest` ships Chrome; CI installs only `pyyaml`). **No silent
+  skip:** without Chrome the `check.sh` step prints a visible SKIP and
+  exits 2 (the existing environment-warning code) locally, and fails with
+  exit 1 in CI. The self-test also checks that `T` does nothing on a page
+  without `{change:}` annotations.
 - `tools/edgy-eval.py`: `eval/architecture-views.txt` (Acme Transit:
   12 capabilities, 18 applications, 10 data assets, 6 actors); every view
   with 0 errors and 0 visual findings; `check.sh` step
@@ -422,13 +476,17 @@ result after the second sprint.
    capability, a capability × application and a CRUD matrix.
 2. All pass `edgy_lint.py` with 0 errors; W108 / W111 / W113 = 0 in the
    eval set.
-3. `presentation.html` passes `#selftest` in headless Chrome in CI and
-   shows the five effects; with reduced motion there are no animations.
-   Firefox and Safari: manual release checklist.
-4. Renaming an application changes every view and the presenter after one
-   regeneration.
-5. Every shipped 1.8 model gives byte-identical output; the installed-skill
-   test passes.
+3. Renaming an application changes every view after one regeneration, and
+   the diff reports it as a rename.
+4. Every shipped 1.8 model gives byte-identical TXT, diff and ArchiMate
+   output; regenerated draw.io examples differ only in `edgy*` style keys;
+   the installed-skill test passes; E013 fires for unregistered notations.
+5. **Presenter-lite, separate acceptance** (F6a can be moved out of v2.4.0
+   without touching 1–4): `presentation.html` passes `#selftest` in
+   headless Chrome in CI and shows exactly the five effects; the
+   current ↔ target toggle filters only annotated changes; with reduced
+   motion there are no animations; Firefox and Safari on the manual
+   release checklist.
 6. `check.sh` and privacy scan green (privacy scan also scans HTML);
    CHANGELOG, README (including the corrected code sentence) updated.
 
@@ -448,6 +506,23 @@ result after the second sprint.
 | Licences | TIME credited to Gartner; C4 (v2.5.0): attribution a courtesy for the notation, C4-PlantUML MIT notice only if vendored |
 
 ## 11. Change log of this plan
+
+**Revision 5 — follow-up reviews of revision 4 (Vibe, Codex).** Both
+support the revision 4 scope; these are the contract details they asked to
+settle before implementation.
+
+| Finding (source) | Change |
+|------------------|--------|
+| Sprint 21 overloaded with two independent packages (Vibe 1) | split into 21a (parser and graph) and 21b (schema and contract) |
+| Contract written against one consumer becomes consumer-shaped (Vibe 2) | contract designed against `edgy-c4` and F6b, with a "changed because of the second consumer" section |
+| Effects may creep one at a time (Vibe 3) | explicit cap: a sixth effect goes to F6b; F6a has its own acceptance and can slip without touching the views (also Codex) |
+| `interacts with` is vague (Vibe 4) | kept as a working name; a sharper verb may replace it in 21a if it passes the collision check |
+| Self-test must not skip silently without Chrome (Vibe 5) | visible SKIP + exit 2 locally, exit 1 in CI |
+| Slug fallback vs. required ids; same id on several pages, conflicts, duplicates, dangling links, renames undefined (Codex 1) | identity rules: model id vs. occurrence (`edgyOcc`), slug only on standalone output and marked, E014 / E015, rename kept as rename |
+| Byte-identical 1.8 output contradicts the new style markers (Codex 2) | two promises: old input accepted (TXT / diff / ArchiMate byte-identical) and old writers stay old; draw.io examples regenerated once with a style-only diff test |
+| Current → target cross-fade has no data contract (Codex 3, verified: `{change:}` is a stroke overlay on one diagram) | F6a toggles a filter over change annotations, labelled as such; the real two-state morph with paired pages moves to F6b |
+| Foreign-notation exemption could pass unknown notations (Codex 4) | fail closed: exemption only for registered handlers, E013 otherwise |
+| Estimate | v2.4.0 ≈ 24–28 days |
 
 **Revision 4 — repository boundary and external reviews (Vibe, Codex;
 three boundary agents).**
