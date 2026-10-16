@@ -24,6 +24,12 @@ Matching, per element type, in this order:
   5. only in the current state               → remove
 Two elements whose ids are both given and differ are never paired by name
 (steps 2 and 3): they are a `remove` and a `new`.
+Model format 1.9 adds asset attributes (kind, hosting, owner, time,
+criticality, master — compared like description) and relationships[]
+between element ids: a (source, target, verb) only in the target is `new`,
+only in the current state `remove`, other attributes (crud, primary …) a
+`change`; they are written between the element ids. A 1.8 comparison keeps
+its exact 1.8 output.
 Core links are type-level in the model: a pair present only in the target is
 `new`, only in the current state `remove`, a different verb `change`. Kept,
 changed and new links are drawn between the target's primary elements (the
@@ -47,7 +53,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import edgy_model_to_txt as m2t  # noqa: E402
 
-ATTRS = ("description", "nature", "level")
+ATTRS = ("description", "nature", "level",
+         # model format 1.9 (architecture views): absent in a 1.8 model on both sides, so never a difference there
+         "kind", "hosting", "owner", "time", "criticality", "master")
 RENAME_RATIO = 0.8
 
 
@@ -144,18 +152,52 @@ def diff_links(current, target, lang):
     return out
 
 
-def facet_types(facet):
+def diff_relationships(current, target):
+    """Model format 1.9 relationships[] between element ids: [(change, (source_id, target_id, verb), attrs, detail)].
+    A relationship is its (source, target, verb); different attributes (crud, primary, data …) are a change."""
+    def index(model):
+        out = {}
+        for r in model.get("relationships") or []:
+            if isinstance(r, dict) and r.get("source_id") and r.get("target_id") and r.get("verb"):
+                out.setdefault((r["source_id"], r["target_id"], _norm(r["verb"])), r.get("attributes") or {})
+        return out
+    cur, tgt = index(current), index(target)
+    out = []
+    for key, attrs in tgt.items():
+        if key not in cur:
+            out.append(("new", key, attrs, ""))
+        elif cur[key] != attrs:
+            was = ", ".join(f"{k}: {v}" for k, v in sorted(cur[key].items())) or "none"
+            out.append(("change", key, attrs, f"attributes were {was}"))
+        else:
+            out.append(("keep", key, attrs, ""))
+    for key, attrs in cur.items():
+        if key not in tgt:
+            out.append(("remove", key, attrs, ""))
+    return out
+
+
+def _has_19(current, target):
+    return any(isinstance(m.get("relationships"), list) or m.get("elements", {}).get("people") for m in (current, target))
+
+
+def facet_types(facet, extra=()):
     if facet == "all":
-        return m2t.IDENTITY + m2t.ARCHITECTURE + m2t.EXPERIENCE + ["organisation", "product", "brand"]
+        return m2t.IDENTITY + m2t.ARCHITECTURE + m2t.EXPERIENCE + ["organisation", "product", "brand"] + list(extra)
     main, inter = m2t.FACETS[facet]
     return main + inter
 
 
 def compare(current, target, facet="all", lang="en"):
-    types = facet_types(facet)
+    v19 = _has_19(current, target)
+    types = facet_types(facet, ["people"] if v19 else [])
     elements = {t: diff_type(current, target, t) for t in types}
     links = [l for l in diff_links(current, target, lang) if l[1][0] in types and l[1][1] in types]
-    return {"facet": facet, "language": lang, "elements": elements, "links": links}
+    result = {"facet": facet, "language": lang, "elements": elements, "links": links}
+    if v19:                                   # a 1.8 comparison keeps its exact 1.8 shape
+        ids = {e.get("id") for pairs in elements.values() for _c, a, b, _d in pairs for e in (a, b) if e and e.get("id")}
+        result["relationships"] = [r for r in diff_relationships(current, target) if r[1][0] in ids and r[1][1] in ids]
+    return result
 
 
 def _line(t, change, e, index, primary=False):
@@ -204,6 +246,10 @@ def to_txt(result, current, target, layout="default"):
         ends = old_primary if change == "remove" else primary
         if s in ends and t in ends and verb:
             lines.append(f'  - "{ends[s]}" -> "{ends[t]}": "{verb}" {{change: {change}}}')
+    for change, (s, t, verb), attrs, _detail in result.get("relationships", []):
+        extra = "".join(f", {k}: {m2t._clean(str(v).lower() if isinstance(v, bool) else v)}"
+                        for k, v in sorted(attrs.items()) if k in ("crud", "primary", "data", "technology"))
+        lines.append(f'  - "{s}" -> "{t}": "{verb}" {{change: {change}{extra}}}')
     return "\n".join(lines) + "\n"
 
 
@@ -216,6 +262,10 @@ def to_report(result):
     rows += ["", "| Core link | Verb | Change | Detail |", "|-----------|------|--------|--------|"]
     for change, (s, t), verb, detail in result["links"]:
         rows.append(f"| {s} → {t} | {verb or ''} | {change} | {detail} |")
+    if "relationships" in result:
+        rows += ["", "| Relationship | Verb | Change | Detail |", "|--------------|------|--------|--------|"]
+        for change, (s, t, verb), _attrs, detail in result["relationships"]:
+            rows.append(f"| {s} → {t} | {verb} | {change} | {detail} |")
     counts = {}
     for pairs in result["elements"].values():
         for change, *_ in pairs:
@@ -251,7 +301,10 @@ def main(argv=None):
                                                        "detail": d} for c, a, b, d in pairs]
                                                   for t, pairs in result["elements"].items()},
                           "links": [{"change": c, "source": s, "target": t, "verb": v, "detail": d}
-                                    for c, (s, t), v, d in result["links"]]}, ensure_ascii=False, indent=2))
+                                    for c, (s, t), v, d in result["links"]],
+                          **({"relationships": [{"change": c, "source_id": s, "target_id": t, "verb": v, "attributes": a,
+                                                 "detail": d} for c, (s, t, v), a, d in result["relationships"]]}
+                             if "relationships" in result else {})}, ensure_ascii=False, indent=2))
         return 0
     txt = to_txt(result, current, target, args.layout)
     if args.out:

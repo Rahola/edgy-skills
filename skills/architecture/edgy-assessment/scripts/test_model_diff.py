@@ -153,6 +153,30 @@ def test_removed_link_keeps_its_current_endpoints():
     assert '"Fare change" -> "Other": "realises" {change: keep}' in txt, "kept links use the target's primary"
 
 
+def test_model_19_attributes_and_relationships():
+    """1.9: asset attributes and relationships[] between ids are compared; a 1.8 pair keeps its 1.8 shape."""
+    cur = json.loads((HERE.parent / "examples" / "architecture-model.json").read_text(encoding="utf-8"))
+    tgt = copy.deepcopy(cur)
+    app = next(a for a in tgt["elements"]["asset"] if a.get("id") == "APP-06")
+    app["time"] = "eliminate"
+    tgt["relationships"] = [r for r in tgt["relationships"] if (r["source_id"], r["target_id"]) != ("CAP-06", "APP-06")]
+    acc = next(r for r in tgt["relationships"] if r["verb"] == "accesses")
+    acc["attributes"] = {"crud": "R"}
+    tgt["relationships"].append({"source_id": "CAP-06", "target_id": "APP-05", "verb": "requires"})
+    result = md.compare(cur, tgt)
+    assert _changes(result)[("asset", "Inspection app")] == "change"
+    rels = {(s, t, v): c for c, (s, t, v), _a, _d in result["relationships"]}
+    assert rels[("CAP-06", "APP-05", "requires")] == "new"
+    assert rels[("CAP-06", "APP-06", "requires")] == "remove"
+    assert rels[(acc["source_id"], acc["target_id"], "accesses")] == "change"
+    txt = md.to_txt(result, cur, tgt)
+    assert '"CAP-06" -> "APP-05": "requires" {change: new}' in txt
+    assert "{change: change, crud: R}" in txt
+    assert "| CAP-06 → APP-06 | requires | remove |" in md.to_report(result)
+    old_cur, old_tgt = _models()
+    assert "relationships" not in md.compare(old_cur, old_tgt)
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

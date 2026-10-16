@@ -206,7 +206,8 @@ def expansion_of(page_text: str) -> Optional[Tuple[str, Optional[str]]]:
 
 
 def expand_targets(graph: DocumentGraph, mode: str, where: Optional[str]) -> Tuple[List[dict], List[str]]:
-    """(nodes that get a page, problems). `where: highlight` keeps highlighted elements, `where: A, B` a list of ids."""
+    """(nodes that get a page, problems). `where: highlight` keeps highlighted elements, `where: top` the tops of
+    the contains hierarchy (L1 processes), `where: A, B` a list of ids."""
     problems: List[str] = []
     if mode not in EXPAND_TARGETS:
         return [], [f"expand: {mode} is not known (known: {', '.join(EXPAND_TARGETS)})"]
@@ -215,6 +216,11 @@ def expand_targets(graph: DocumentGraph, mode: str, where: Optional[str]) -> Tup
     if where:
         if where.lower() == 'highlight':
             nodes = [n for n in nodes if _highlighted(graph, n)]
+        elif where.lower() == 'top':
+            # the top of each hierarchy: not contained by another element of the same type (L1 processes)
+            inner = {e['target'] for e in graph.edges if e['verb'] == 'contains'
+                     and (graph.get(e['source']) or {}).get('type') == etype}
+            nodes = [n for n in nodes if n['id'] not in inner]
         else:
             ids = [x.strip() for x in where.split(',') if x.strip()]
             wanted = {i.lower() for i in ids}

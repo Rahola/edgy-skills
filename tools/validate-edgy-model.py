@@ -60,10 +60,11 @@ def validate(instance, schema, root, path, out):
                     out.append(f"{path or '/'}: matches none of the {key} alternatives ({best[0] if best else 'no detail'})")
     t = schema.get("type")
     if t:
-        py = TYPES[t]
-        ok = isinstance(instance, py) and not (t in ("integer", "number") and isinstance(instance, bool))
+        kinds = t if isinstance(t, list) else [t]
+        ok = any(isinstance(instance, TYPES[k]) and not (k in ("integer", "number") and isinstance(instance, bool))
+                 for k in kinds)
         if not ok:
-            out.append(f"{path or '/'}: expected {t}, got {type(instance).__name__}")
+            out.append(f"{path or '/'}: expected {' or '.join(kinds)}, got {type(instance).__name__}")
             return
     if "enum" in schema and instance not in schema["enum"]:
         out.append(f"{path or '/'}: {instance!r} is not one of {schema['enum']}")

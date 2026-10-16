@@ -228,16 +228,78 @@ def test_views_from_the_model_end_to_end():
     text = open(os.path.join(tmp, 'acme-views.txt'), encoding='utf-8').read()
     assert 'draw: false' in text and text.count('  - name: ') == 4
     pages, graph = parse_document(text, with_graph=True)
-    assert [n for n, _ in pages] == ['Application map', 'Process landscape', 'Process swimlanes']
+    names = [n for n, _ in pages]
+    assert names[:2] == ['Application map', 'Process landscape'], names
+    swims = [n for n in names[2:] if n.startswith('Process swimlanes · PRO-')]
+    assert swims and len(swims) == len(names) - 2, names       # one swimlane page per L1 process (where: top)
     assert all(not p.errors for _, p in pages), [p.errors for _, p in pages]
     xml = build_mxfile([(n, p.generate_xml()) for n, p in pages])
     assert not _lint(xml), _lint(xml)
     occ = {o['page'] for e in graph.to_json()['elements'] if e['id'] == 'APP-07' for o in e['occurrences']}
     assert occ == {'Application map'}, occ          # a derived page is an occurrence (presenter counters)
-    swim = pages[2][1]
-    assert not [g for g in swim.groups.values() if g['name'] == 'No performer'], 'leaf steps all have performers'
+    for _n, swim in pages[2:]:
+        assert not [g for g in swim.groups.values() if g['name'] == 'No performer'], 'leaf steps all have performers'
+    sell = dict(pages)['Process swimlanes · PRO-20 Sell travel']
+    procs = {e.get('ref') for e in sell.elements.values() if e['type'] == 'process'}
+    assert procs <= {'PRO-20', 'PRO-21', 'PRO-22'} and {'PRO-21', 'PRO-22'} <= procs, procs
     bad = subprocess.run([sys.executable, m2t, model, '--views', 'nope', '--out', tmp], capture_output=True, text=True)
     assert bad.returncode == 2 and 'unknown view' in bad.stderr
+
+
+def test_capability_view_bands_gaps_and_matrices():
+    pages, xml = _xml(_example('capability-view-map.txt'))
+    assert [n for n, _ in pages] == ['Capability · CAP-05 Sales in every channel',
+                                     'Capability · CAP-06 Validation and inspection', 'Capability × application', 'CRUD']
+    assert not _lint(xml), _lint(xml)
+    cap = pages[0][1]
+    assert cap.model_gaps == [{'rule': 'W127', 'element_id': 'CAP-05', 'band': 'products', 'status': 'out_of_scope'}]
+    assert not cap.warnings and any('W127' in n for n in cap.notes)   # a known gap is a note, not a warning
+    first = build_mxfile([(pages[0][0], pages[0][1].generate_xml())])
+    c = _cells(first)
+    centre = c['Sales in every channel']
+    assert c['Fares team'][1] < centre[1], 'actors above the capability'
+    assert c['Sell in every channel'][0] < centre[0], 'processes left of the capability'
+    assert c['Fare engine'][0] > centre[0], 'resources right of the capability'
+    assert c['Sales ledger'][1] > centre[1], 'data below the capability'
+    assert 'Inspect tickets' not in c, 'only the focus capability\'s neighbourhood is drawn'
+    cells = re.findall(r'value="([^"]{1,4})"[^>]*edgyRole=matrix', xml)
+    assert cells == ['●', '◉', '●', '●', 'R', 'CU', 'C', 'R'], cells
+
+
+def test_capability_view_unknown_gap_warns_and_qa_records_it():
+    text = _example('capability-view-map.txt').replace('gaps: "products=out_of_scope"}', '}', 1)
+    pages, _xml_ = _xml(text)
+    cap = pages[0][1]
+    assert cap.model_gaps[0]['status'] == 'not_investigated'
+    assert any(w.startswith('W127') for w in cap.warnings), cap.warnings
+    tmp = tempfile.mkdtemp()
+    src = os.path.join(tmp, 'cv.txt')
+    open(src, 'w', encoding='utf-8').write(text)
+    r = subprocess.run([sys.executable, os.path.join(HERE, 'edgy_generator.py'), src, '--output',
+                        os.path.join(tmp, 'cv.drawio'), '--qa'], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    qa = json.load(open(os.path.join(tmp, 'cv.qa.json'), encoding='utf-8'))
+    assert ('CAP-05', 'products', 'not_investigated') in {(g['element_id'], g['band'], g['status']) for g in qa['model_gaps']}
+    assert any('matrix:' in n for n in qa['generator_notes'])
+    val = os.path.join(REPO, 'tools', 'validate-edgy-model.py')
+    schema = os.path.join(SKILL, 'assets', 'qa.schema.json')
+    v = subprocess.run([sys.executable, val, os.path.join(tmp, 'cv.qa.json'), '--schema', schema],
+                       capture_output=True, text=True)
+    assert v.returncode == 0, v.stdout + v.stderr
+
+
+def test_capability_views_from_the_model():
+    m2t = os.path.join(REPO, 'skills', 'architecture', 'edgy-assessment', 'scripts', 'edgy_model_to_txt.py')
+    model = os.path.join(REPO, 'skills', 'architecture', 'edgy-assessment', 'examples', 'architecture-model.json')
+    tmp = tempfile.mkdtemp()
+    r = subprocess.run([sys.executable, m2t, model, '--views', 'capability,capability-matrix,crud-matrix',
+                        '--out', tmp, '--prefix', 'acme'], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    pages = parse_document(open(os.path.join(tmp, 'acme-views.txt'), encoding='utf-8').read())
+    names = [n for n, _ in pages]
+    assert sum(n.startswith('Capability · ') for n in names) >= 2 and names[-2:] == ['Capability × application', 'Process × data (CRUD)'], names
+    xml = build_mxfile([(n, p.generate_xml()) for n, p in pages])
+    assert not [f for f in _lint(xml) if f[1] == 'error'], _lint(xml)
 
 
 def main():

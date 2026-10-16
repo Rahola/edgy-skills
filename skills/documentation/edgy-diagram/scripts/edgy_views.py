@@ -15,9 +15,9 @@ Standard library only.
 
 from typing import List
 
-DERIVED_MAP_TYPES = set()   # always derived (capability-view, capability-matrix — Sprint 24)
+DERIVED_MAP_TYPES = {'capability-view'}   # always derived from the graph (focus: <capability id>)
 # derived when the page has no elements of its own: the view is drawn from the document graph
-FILLED_WHEN_EMPTY = {'application', 'process'}
+FILLED_WHEN_EMPTY = {'application', 'process', 'capability-matrix'}
 APP_KINDS = ('application', 'platform', 'integration')
 
 
@@ -31,7 +31,8 @@ def materialize(parser, graph) -> None:
     if graph is None:
         return
     mt = parser.map_type or ''
-    fill = {'application': _application, 'process': _process}.get(mt) if mt in FILLED_WHEN_EMPTY else None
+    fill = {'application': _application, 'process': _process, 'capability-matrix': _matrix}.get(mt) \
+        if mt in FILLED_WHEN_EMPTY else None
     fill = fill or _DERIVED.get(mt)
     if fill is None:
         return
@@ -65,11 +66,15 @@ def _application(parser, graph):
     apps = [n for n in graph.of_type('asset') if n.get('kind') in APP_KINDS and n['explicit']]
     ids = {n['id'] for n in apps}
     extra = []
+    # capabilities only become the areas of group_by: capability; on a domain map they would be cards
+    # wired to every application (a requires spaghetti), so they stay off it
+    pulled = ('capability', 'organisation') if (parser.view.get('group_by') or '').lower() == 'capability' \
+        else ('organisation',)
     for e in graph.edges:
         src, tgt = graph.get(e['source']), graph.get(e['target'])
         if not src or not tgt:
             continue
-        if tgt['id'] in ids and src['type'] in ('capability', 'organisation') and src['id'] not in ids:
+        if tgt['id'] in ids and src['type'] in pulled and src['id'] not in ids:
             extra.append(src)
             ids.add(src['id'])
         if e['verb'] == 'transfers' and src['id'] in ids:
@@ -84,6 +89,17 @@ def _application(parser, graph):
 
 def _process(parser, graph):
     procs = [n for n in graph.of_type('process') if n['explicit']]
+    focus = graph.get(parser.view.get('focus') or '')
+    if focus is not None and focus['type'] == 'process':
+        # focus: one process and what it contains (expand: per-process, where: top → one page per L1 process)
+        keep, frontier = {focus['id']}, [focus['id']]
+        while frontier:
+            cur = frontier.pop()
+            for e in graph.edges:
+                if e['source'] == cur and e['verb'] == 'contains' and e['target'] not in keep:
+                    keep.add(e['target'])
+                    frontier.append(e['target'])
+        procs = [n for n in procs if n['id'] in keep]
     ids = {n['id'] for n in procs}
     extra = []
     swim = (parser.view.get('process_view') or '').lower() == 'swimlane'
@@ -122,6 +138,7 @@ def element_line(node: dict, extra: dict = None, indent: str = '  ') -> str:
     if node.get('rating'):
         opts['rating'] = node['rating']
     opts.update(extra or {})
+    opts.update(node.get('_extra') or {})
     body = ', '.join(f"{k}: {_val(v)}" for k, v in opts.items() if v not in (None, ''))
     tags = [t for t in node.get('tags') or [] if t]
     tag_s = f" [{', '.join(tags)}]" if tags else ''
@@ -145,3 +162,117 @@ def relationship_line(source: str, target: str, verb: str, options: dict = None,
         parts.append("data: " + _val('; '.join(opts['data'])))
     tail = f" {{{', '.join(parts)}}}" if parts else ''
     return f"{indent}- {quote(source)} -> {quote(target)}: {quote(verb)}{tail}"
+
+
+def _matrix(parser, graph):
+    crud = (parser.view.get('matrix') or 'requires').lower() == 'crud'
+    verb = 'accesses' if crud else 'requires'
+    rows, cols, rels = [], [], []
+    seen = set()
+    for e in graph.edges:
+        if e['verb'] != verb:
+            continue
+        src, tgt = graph.get(e['source']), graph.get(e['target'])
+        if not src or not tgt:
+            continue
+        if crud and not (src['type'] == 'process' and tgt['type'] == 'asset' and tgt.get('kind') == 'data'):
+            continue
+        if not crud and not (src['type'] == 'capability' and tgt['type'] == 'asset' and tgt.get('kind') in APP_KINDS):
+            continue
+        for n, bucket in ((src, rows), (tgt, cols)):
+            if n['id'] not in seen:
+                seen.add(n['id'])
+                bucket.append(n)
+        rels.append(e)
+    order = {m: i for i, m in enumerate(graph.order)}
+    rows.sort(key=lambda n: order[n['id']])
+    cols.sort(key=lambda n: order[n['id']])
+    return rows + cols, rels
+
+
+def _capability_view(parser, graph):
+    """One capability (focus) and five bands from the graph; hops: 2 adds context, dimmed."""
+    focus = graph.get(parser.view.get('focus') or '')
+    if focus is None or focus['type'] != 'capability':
+        msg = f"capability view: focus {parser.view.get('focus') or '(none)'} is not a capability of the document"
+        parser.warnings.append(msg)
+        parser.errors.append(msg)
+        return [], []
+    if not focus['explicit']:
+        msg = f"capability view: {focus['name']} has no explicit {{id:}} — a derived view needs one"
+        parser.warnings.append(msg)
+        parser.errors.append(msg)
+        return [], []
+    picked = {focus['id']: (focus, {'highlight': 'yes'})}
+    rels = []
+
+    def add(node, band, extra=None):
+        if node is None or node['id'] in picked:
+            return
+        opts = {'vband': band}
+        opts.update(extra or {})
+        picked[node['id']] = (node, opts)
+
+    fid = focus['id']
+    procs = []
+    for e in graph.in_edges(fid, ['realises']):
+        n = graph.get(e['source'])
+        if n and n['type'] == 'process':
+            add(n, 'processes')
+            procs.append(n['id'])
+            rels.append(e)
+    for e in graph.out_edges(fid, ['requires']):
+        n = graph.get(e['target'])
+        if n and n['type'] == 'asset':
+            add(n, 'resources')
+            rels.append(e)
+    for e in graph.in_edges(fid, ['has']):
+        n = graph.get(e['source'])
+        if n and n['type'] == 'organisation':
+            add(n, 'actors')
+            rels.append(e)
+    for pid in procs:
+        for e in graph.in_edges(pid, ['performs']):
+            n = graph.get(e['source'])
+            if n and n['type'] in ('organisation', 'people'):
+                add(n, 'actors')
+                rels.append(e)
+        for e in graph.out_edges(pid, ['accesses']):
+            n = graph.get(e['target'])
+            if n and n['type'] == 'asset' and n.get('kind') == 'data':
+                add(n, 'data')
+                rels.append(e)
+    for e in graph.in_edges(fid, ['requires']):
+        n = graph.get(e['source'])
+        if n and n['type'] == 'product':
+            add(n, 'products')
+            rels.append(e)
+    if str(parser.view.get('hops') or '1').strip() == '2':
+        apps = [m for m, (n, o) in picked.items() if o.get('vband') == 'resources']
+        for a in apps:
+            for e in graph.out_edges(a, ['stores']):
+                n = graph.get(e['target'])
+                if n and n['id'] not in picked:
+                    add(n, 'context', {'dim': 'yes'})
+                    rels.append(e)
+            for e in graph.out_edges(a, ['transfers']) + graph.in_edges(a, ['transfers']):
+                other = graph.get(e['target'] if e['source'] == a else e['source'])
+                if other and other['id'] not in picked:
+                    add(other, 'context', {'dim': 'yes'})
+                    rels.append(e)
+        for e in graph.out_edges(fid, ['contributes to']):
+            n = graph.get(e['target'])
+            if n:
+                add(n, 'context', {'dim': 'yes'})
+                rels.append(e)
+    # relationships among the chosen elements only (a context element may link back to a band element)
+    rels = [e for e in rels if e['source'] in picked and e['target'] in picked]
+    nodes = []
+    for mid, (node, opts) in picked.items():
+        n = dict(node)
+        n['_extra'] = opts
+        nodes.append(n)
+    return nodes, rels
+
+
+_DERIVED['capability-view'] = _capability_view

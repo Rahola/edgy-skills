@@ -79,6 +79,29 @@ def test_no_views_option_and_language():
     assert root.find(f"{NS}name").get("{http://www.w3.org/XML/1998/namespace}lang") == "fi"
 
 
+def test_model_19_applications_data_access_and_flow():
+    model, root = _export(HERE.parent / "examples" / "architecture-model.json")
+    elements = {e.get("identifier"): e for e in root.iter(f"{NS}element")}
+    by_name = {e.find(f"{NS}name").text: e.get(XSI_TYPE) for e in elements.values()}
+    assert by_name["Fare engine"] == "ApplicationComponent"
+    assert all(t in ma.ARCHIMATE_ELEMENT_TYPES for t in by_name.values())
+    data = [a["name"] for a in model["elements"]["asset"] if a.get("kind") == "data"]
+    assert data and all(by_name[n] == "DataObject" for n in data)
+    rels = list(root.iter(f"{NS}relationship"))
+    kinds = {r.get(XSI_TYPE) for r in rels}
+    assert {"Access", "Flow", "Association"} <= kinds, kinds
+    for r in rels:
+        if r.get(XSI_TYPE) == "Access":
+            assert elements[r.get("target")].get(XSI_TYPE) == "DataObject"
+            assert r.get("accessType") in (None, "Read", "Write", "ReadWrite")
+    assert ma.access_type("R") == "Read" and ma.access_type("CU") == "Write" and ma.access_type("CRUD") == "ReadWrite"
+    assert ma.access_type(None) is None
+    pd_names = [p.find(f"{NS}name").text for p in root.iter(f"{NS}propertyDefinition")]
+    assert "edgy:time" in pd_names
+    _m, old = _export(MODELS[0])
+    assert "edgy:time" not in [p.find(f"{NS}name").text for p in old.iter(f"{NS}propertyDefinition")]
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

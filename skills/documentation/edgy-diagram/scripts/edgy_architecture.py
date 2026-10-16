@@ -41,6 +41,7 @@ Process maps — `map_type: process` (the default stays the sequence row)
 Standard library only.
 """
 
+import re
 from typing import Dict, List, Optional, Tuple
 
 APPLICATION_KINDS = ('application', 'platform', 'integration')
@@ -111,6 +112,8 @@ def reset(p) -> None:
         r.pop('suppressed', None)
     p._suppressed_note = None
     p._arch_layout = None
+    p._matrix_cells = []
+    p.model_gaps = []
 
 
 def prepare(p) -> None:
@@ -119,6 +122,10 @@ def prepare(p) -> None:
     apply_time_badges(p)
     if p.map_type == 'application':
         prepare_application(p)
+    elif p.map_type == 'capability-view':
+        prepare_capability_view(p)
+    elif p.map_type == 'capability-matrix':
+        prepare_matrix(p)
     elif p.map_type == 'process':
         view = (p.view.get('process_view') or '').lower()
         if view == 'chain':
@@ -569,3 +576,200 @@ def prepare_swimlane(p) -> None:
             p._hidden.add(a)
         if chipped:
             _once(p, f"swimlane: {len(chipped)} asset(s) shown as chips under the steps that require them", note=True)
+
+
+# ---- capability view (plan F3) ------------------------------------------------------------------------------
+
+CAPVIEW_BANDS = ('actors', 'processes', 'resources', 'data', 'products')
+CAPVIEW_TITLES = {
+    'en': {'actors': 'Actors — has / performs', 'processes': 'Processes — realise', 'resources': 'Resources — required',
+           'data': 'Data — accessed (CRUD)', 'products': 'Products — require', 'context': 'Context (hops: 2)'},
+    'fi': {'actors': 'Toimijat — omistaa / suorittaa', 'processes': 'Prosessit — toteuttavat',
+           'resources': 'Resurssit — vaaditaan', 'data': 'Data — käsitellään (CRUD)', 'products': 'Tuotteet — vaativat',
+           'context': 'Konteksti (hops: 2)'},
+    'fr': {'actors': 'Acteurs — possède / exécute', 'processes': 'Processus — réalisent', 'resources': 'Ressources — requises',
+           'data': 'Données — accès (CRUD)', 'products': 'Produits — requièrent', 'context': 'Contexte (hops: 2)'},
+    'de': {'actors': 'Akteure — besitzt / führt aus', 'processes': 'Prozesse — realisieren',
+           'resources': 'Ressourcen — erforderlich', 'data': 'Daten — Zugriff (CRUD)', 'products': 'Produkte — erfordern',
+           'context': 'Kontext (hops: 2)'},
+}
+GAP_STATUSES = ('not_investigated', 'out_of_scope', 'unknown', 'confirmed_absent')
+
+
+def parse_gaps(raw: Optional[str]) -> Dict[str, str]:
+    """{gaps: "processes=out_of_scope; data=confirmed_absent"} → {band: status}."""
+    out: Dict[str, str] = {}
+    for part in re.split(r'[;,|]', raw or ''):
+        if '=' in part:
+            k, v = part.split('=', 1)
+            out[k.strip().lower()] = v.strip().lower()
+    return out
+
+
+def prepare_capability_view(p) -> None:
+    focus_id = (p.view.get('focus') or '').strip()
+    focus = next((eid for eid, e in p.elements.items() if (e.get('ref') or '').lower() == focus_id.lower()), None)
+    if focus is None:
+        _once(p, f"capability view: focus {focus_id or '(none)'} is not on the page — write focus: <capability id>")
+        return
+    bands: Dict[str, List[str]] = {b: [] for b in CAPVIEW_BANDS}
+    context: List[str] = []
+    for eid, e in p.elements.items():
+        if eid == focus:
+            continue
+        band = (e.get('attrs') or {}).get('vband')
+        if band in bands:
+            bands[band].append(eid)
+        elif band == 'context':
+            context.append(eid)
+    lang = _lang(p)
+    gaps = parse_gaps((p.elements[focus].get('attrs') or {}).get('gaps'))
+    p.model_gaps = []
+    for band in CAPVIEW_BANDS:
+        if bands[band]:
+            continue
+        status = gaps.get(band, 'not_investigated')
+        if status not in GAP_STATUSES:
+            _once(p, f"gaps: {band}={status} is not a status ({', '.join(GAP_STATUSES)}) — not_investigated")
+            status = 'not_investigated'
+        p.model_gaps.append({'rule': 'W127', 'element_id': p.elements[focus].get('ref'), 'band': band, 'status': status})
+        msg = (f"W127 {p.elements[focus].get('ref')} {p.elements[focus]['name']}: no {band} — {status.replace('_', ' ')}"
+               f"{' (a model gap, not a layout error; set {gaps: ' + band + '=…} once it is known)' if status in ('not_investigated', 'unknown') else ''}")
+        if status in ('not_investigated', 'unknown'):
+            _once(p, msg)
+        else:
+            _once(p, msg, note=True)
+    p._arch_layout = ('capview', focus, bands, context)
+
+
+def layout_capability_view(p, items: List[str]) -> Dict[str, Tuple[int, int]]:
+    """Actors on top, processes left, the capability in the centre, resources right, data and products below."""
+    _, focus, bands, context = p._arch_layout
+    lang = _lang(p)
+    titles = CAPVIEW_TITLES[lang]
+    sizes = {i: p._size_of(i) for i in items}
+    positions: Dict[str, Tuple[int, int]] = {}
+    present = set(items)
+    left = [i for i in bands['processes'] if i in present]
+    right = sorted([i for i in bands['resources'] if i in present],
+                   key=lambda i: (0 if is_application(p.elements[i]) else 1, list(p.elements).index(i)))
+    top = [i for i in bands['actors'] if i in present]
+    bottom = [i for i in bands['data'] if i in present]
+    lowest = [i for i in bands['products'] if i in present]
+    ctx = [i for i in context if i in present]
+    GAP, BAND_GAP, HEADER = 24, 110, 34
+    col_l = max([sizes[i][0] for i in left] + [0])
+    col_r = max([sizes[i][0] for i in right] + [0])
+    fw, fh = sizes[focus]
+    x_l = 60
+    x_c = x_l + (col_l + BAND_GAP if left else 0)
+    x_r = x_c + fw + BAND_GAP
+    p._chain_headers = []
+    y = 60 + HEADER
+    if top:
+        row_w = sum(sizes[i][0] for i in top) + GAP * (len(top) - 1)
+        x = x_c + fw / 2 - row_w / 2
+        for i in top:
+            positions[i] = (x, y)
+            x += sizes[i][0] + GAP
+        p._chain_headers.append((titles['actors'], top[0], 0, max(row_w, 200), -HEADER))
+        y += max(sizes[i][1] for i in top) + BAND_GAP
+    stack_h = lambda ids: sum(sizes[i][1] for i in ids) + GAP * (len(ids) - 1) if ids else 0  # noqa: E731
+    mid_h = max(fh, stack_h(left), stack_h(right))
+    y_mid = y + HEADER
+    positions[focus] = (x_c, y_mid + mid_h / 2 - fh / 2)
+    for ids, x, key in ((left, x_l, 'processes'), (right, x_r, 'resources')):
+        yy = y_mid + mid_h / 2 - stack_h(ids) / 2
+        for i in ids:
+            positions[i] = (x, yy)
+            yy += sizes[i][1] + GAP
+        if ids:
+            p._chain_headers.append((titles[key], ids[0], 0, max(sizes[i][0] for i in ids), -HEADER))
+    y = y_mid + mid_h + BAND_GAP
+    import edgy_text
+    for ids, key in ((bottom, 'data'), (lowest, 'products'), (ctx, 'context')):
+        if not ids:
+            continue
+        # rows below the capability: the header stands left of the row, never above it — edges arrive
+        # at these cards from above and must not cross the header text
+        hw = int(edgy_text.measure(titles[key], 12, bold=True)) + 16
+        row_w = sum(sizes[i][0] for i in ids) + GAP * (len(ids) - 1)
+        x = max(60 + hw + 20, x_c + fw / 2 - row_w / 2)
+        for i in ids:
+            positions[i] = (x, y)
+            x += sizes[i][0] + GAP
+        first = ids[0]
+        p._chain_headers.append((titles[key], first, -(hw + 20), hw, int(sizes[first][1] / 2) - 4))
+        y += max(sizes[i][1] for i in ids) + BAND_GAP
+    rest = [i for i in items if i not in positions]
+    x = 60
+    for i in rest:
+        positions[i] = (x, y)
+        x += sizes[i][0] + 40
+    p._layout_handles_tree = True
+    return positions
+
+
+# ---- matrices (capability × application, CRUD) -------------------------------------------------------------
+
+MATRIX_MARKS = {'requires': '●', 'primary': '◉'}
+
+
+def prepare_matrix(p) -> None:
+    kind = (p.view.get('matrix') or 'requires').lower()
+    if kind not in ('requires', 'crud'):
+        _once(p, f"matrix: {kind} is not known (requires, crud) — requires")
+        kind = 'requires'
+    if kind == 'requires':
+        rows = [eid for eid, e in p.elements.items() if e['type'] == 'capability']
+        cols = [eid for eid, e in p.elements.items() if is_application(e)]
+        verb = 'requires'
+    else:
+        rows = [eid for eid, e in p.elements.items() if e['type'] == 'process']
+        cols = [eid for eid, e in p.elements.items() if e['type'] == 'asset' and e.get('kind') == 'data']
+        verb = 'accesses'
+    cells: Dict[Tuple[str, str], str] = {}
+    rs, cs = set(rows), set(cols)
+    for r in p.relationships:
+        if r['source'] in rs and r['target'] in cs and _verb_is(r['label'], verb):
+            opts = r.get('options') or {}
+            mark = (opts.get('crud') or '·') if kind == 'crud' else (
+                MATRIX_MARKS['primary'] if opts.get('primary') else MATRIX_MARKS['requires'])
+            cells[(r['source'], r['target'])] = mark
+            r['suppressed'] = True
+    for eid in p.elements:
+        if eid not in rs and eid not in cs:
+            p._hidden.add(eid)
+    if not rows or not cols:
+        _once(p, f"capability matrix ({kind}): needs {'capabilities and applications' if kind == 'requires' else 'processes and data assets'} on the page")
+    n = sum(1 for r in p.relationships if r.get('suppressed'))
+    if n:
+        _once(p, f"matrix: {n} {verb} link(s) shown in the cells", note=True)
+    p._arch_layout = ('matrix', kind, rows, cols, cells)
+    if not p._legend_explicit:
+        p.legend = 'strip'        # the cells are decorations: a box legend in the corner could cover one
+
+
+def layout_matrix(p, items: List[str]) -> Dict[str, Tuple[int, int]]:
+    _, kind, rows, cols, cells = p._arch_layout
+    sizes = {i: p._size_of(i) for i in rows + cols}
+    positions: Dict[str, Tuple[int, int]] = {}
+    row_w = max([sizes[r][0] for r in rows] + [120])
+    col_h = max([sizes[c][1] for c in cols] + [60])
+    GAP = 24          # ≥ 20 px: the collision sweep never moves a header card
+    x0, y0 = 60, 60
+    x = x0 + row_w + GAP * 2
+    for c in cols:
+        positions[c] = (x, y0)
+        x += sizes[c][0] + GAP
+    y = y0 + col_h + GAP * 2
+    for r in rows:
+        positions[r] = (x0, y)
+        y += sizes[r][1] + GAP
+    p._matrix_cells = [(mark, c, r) for (r, c), mark in cells.items()]
+    p._matrix_grid = (rows, cols)
+    legend = {'requires': '● requires   ◉ requires (primary area)', 'crud': 'C create · R read · U update · D delete'}[kind]
+    if rows:
+        p._chain_headers = [(legend, rows[-1], 0, 360, sizes[rows[-1]][1] + 24)]
+    p._layout_handles_tree = True
+    return positions

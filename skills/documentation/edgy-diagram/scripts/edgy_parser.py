@@ -136,8 +136,9 @@ VALID_MAP_TYPES = {
     # EDGY extensions (not EDGY 23 map types): layered reference architecture, stakeholder summary,
     # planned ring of one primary element per type ("Further …" panels for the rest)
     'reference', 'summary', 'triad',
-    # Architecture views (2.8.0): application landscape (Assets of kind application / platform / integration)
-    'application',
+    # Architecture views (2.8.0): application landscape (Assets of kind application / platform / integration),
+    # one capability with its processes, resources, data, actors and products; capability × application / CRUD matrix
+    'application', 'capability-view', 'capability-matrix',
 }
 
 # Karttatyyppi → layout-strategia
@@ -160,6 +161,8 @@ MAP_TYPE_LAYOUT = {
     'task': 'grid',
     'reference': 'reference',
     'application': 'grid',
+    'capability-view': 'grid',
+    'capability-matrix': 'grid',
     'summary': 'summary',
     'triad': 'triad',
 }
@@ -280,7 +283,7 @@ LEGEND_TITLES = {lang: t['title'] for lang, t in LEGEND_TEXT.items()}   # lint p
 RESERVED_METRIC_KEYS = {'id', 'change', 'size', 'highlight', 'primary', 'stage', 'column', 'row', 'maturity', 'rating'}
 # Attributes of the architecture views (2.8.0): kept on the element (element['attrs']), never printed on the card
 ATTRIBUTE_KEYS = {'kind', 'hosting', 'master', 'owner', 'technology', 'crud', 'type', 'criticality', 'data',
-                  'container', 'time', 'gaps', 'band', 'state'}
+                  'container', 'time', 'gaps', 'band', 'state', 'vband', 'dim'}
 RESERVED_METRIC_KEYS |= ATTRIBUTE_KEYS
 # Asset kinds (architecture views): an application, a platform, an integration or a data asset; other kinds are free text
 ASSET_KINDS = ('application', 'platform', 'integration', 'data')
@@ -390,7 +393,9 @@ class EDGYParser:
         self._arch_layout = None     # edgy_architecture: ('chain', roots, children, banded) for process_view: chain
         self._arch_stages = None     # stages: before an architecture view replaced them (restored on the next layout)
         self._arch_removed_groups = None
-        self._chain_headers = []     # band headers of a banded value chain: (text, x, y, w)
+        self._chain_headers = []     # band headers (value chain, capability view, matrix key): (text, anchor, dx, w[, dy])
+        self.model_gaps = []         # W127: empty capability-view bands with their evidence status (qa.json model_gaps[])
+        self._matrix_cells = []      # capability matrix: (mark, column element, row element)
         self._no_stage_headers = False   # swimlane: the stage columns are the steps themselves — no header row
         self._suppressed_note = None
 
@@ -1417,6 +1422,8 @@ class EDGYParser:
         elif element.get('highlight'):
             stroke, stroke_width = '#555555', 4
 
+        if (element.get('attrs') or {}).get('dim'):
+            extra += 'opacity=55;textOpacity=70;'      # capability view hops: 2 — context, not the subject
         base = f"whiteSpace=wrap;html=1;fillColor={fill};strokeColor={stroke};strokeWidth={stroke_width};{extra}"
         if shape == 'rounded_rect':
             return f"rounded=1;{base}arcSize=10;verticalAlign=middle;fontStyle=1;fontSize=14;"
@@ -1486,7 +1493,7 @@ class EDGYParser:
         mode = (self.view.get('route') or '').lower()
         if mode in ('auto', 'none'):
             return mode == 'auto'
-        return self.map_type == 'application'
+        return self.map_type in ('application', 'capability-view')
 
     def model_id(self, element: dict) -> Tuple[str, bool]:
         """(model id, explicit?) — the {id:} of the element, else its type + name slug."""
@@ -1526,7 +1533,8 @@ class EDGYParser:
     def _edge_detail(self, details: dict) -> str:
         data = [self._data_name(d) for d in details.get('data') or []]
         tech = details.get('technology') or []
-        return ' · '.join(x for x in (', '.join(data), ', '.join(tech)) if x)
+        crud = details.get('crud') or []
+        return ' · '.join(x for x in (', '.join(crud), ', '.join(data), ', '.join(tech)) if x)
 
     def generate_xml(self) -> str:
         """Generoi draw.io XML EDGY-elementeistä. Sivukoko skaalautuu sisällön mukaan.
@@ -1616,10 +1624,12 @@ class EDGYParser:
 
         # 1b) Vaiheotsikot kaistojen yläpuolelle (edgyRole=header: lint lukee ne sisällöksi)
         lanes = [g for g in self.groups.values() if g['kind'] == 'lane' and g['id'] in group_pos]
-        for text, anchor_eid, dx, hw in self._chain_headers:
+        for header in self._chain_headers:
+            text, anchor_eid, dx, hw = header[:4]
+            dy = header[4] if len(header) > 4 else 8
             if anchor_eid not in abs_pos:
                 continue
-            hx, hy = abs_pos[anchor_eid][0] + dx, abs_pos[anchor_eid][1]
+            hx, hy = abs_pos[anchor_eid][0] + dx, abs_pos[anchor_eid][1] + dy - 8
             cell = ET.SubElement(mx_root, "mxCell", {
                 "id": str(next_id), "value": html.escape(text),
                 "style": "text;html=1;align=left;verticalAlign=top;fontSize=12;fontStyle=1;fontColor=#333333;whiteSpace=wrap;edgyRole=header;",
@@ -1686,6 +1696,20 @@ class EDGYParser:
                     bx += bw + 6
                     next_id += 1
 
+        # 2b) Matriisin solut (capability-matrix): koriste-solut rivi- ja sarakekorttien leikkauksissa
+        for mark, col, row in self._matrix_cells:
+            if col not in abs_pos or row not in abs_pos:
+                continue
+            cw, rh = sizes[col][0], sizes[row][1]
+            cell = ET.SubElement(mx_root, "mxCell", {
+                "id": str(next_id), "value": html.escape(mark),
+                "style": ("rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#f3f4f6;strokeColor=#d0d4dc;"
+                          "fontSize=14;fontStyle=1;fontColor=#1f3d99;edgyRole=matrix;"),
+                "vertex": "1", "parent": "1"})
+            ET.SubElement(cell, "mxGeometry", {"x": str(int(abs_pos[col][0] + 6)), "y": str(int(abs_pos[row][1] + 6)),
+                                               "width": str(int(cw - 12)), "height": str(int(rh - 12)), "as": "geometry"})
+            next_id += 1
+
         # 3) Relaatiot — yhdistä saman parin useat relaatiot yhdeksi reunaksi ("a / b")
         merged: Dict[Tuple[str, str], dict] = {}
         order: List[Tuple[str, str]] = []
@@ -1701,7 +1725,7 @@ class EDGYParser:
                     m['labels'].append(rel['label'])
                 if rel.get('kind') == 'link':
                     m['kind'] = 'link'
-                for extra in ('data', 'technology'):      # merged integrations keep every data name and technology
+                for extra in ('data', 'technology', 'crud'):   # merged edges keep every data name, technology and CRUD
                     for v in ([rel['options'][extra]] if isinstance(rel.get('options', {}).get(extra), str)
                               else rel.get('options', {}).get(extra) or []):
                         if v not in m['details'][extra]:
@@ -1710,7 +1734,8 @@ class EDGYParser:
             else:
                 opts = dict(rel.get('options', {}))
                 details = {'data': list(opts.get('data') or []),
-                           'technology': [opts['technology']] if opts.get('technology') else []}
+                           'technology': [opts['technology']] if opts.get('technology') else [],
+                           'crud': [opts['crud']] if opts.get('crud') else []}
                 merged[key] = {'source': key[0], 'target': key[1], 'labels': [rel['label']],
                                'kind': rel.get('kind'), 'options': opts, 'details': details}
                 order.append(key)
@@ -1721,6 +1746,12 @@ class EDGYParser:
             boxes = {eid: (abs_pos[eid][0], abs_pos[eid][1], sizes[eid][0], sizes[eid][1])
                      for eid in element_mapping if eid in self.elements and eid not in self._hidden}
             obstacles = list(boxes.values())
+            for header in self._chain_headers:      # band headers are text the routes must not cross
+                text, anchor_eid, dx, hw = header[:4]
+                dy = header[4] if len(header) > 4 else 8
+                if anchor_eid in abs_pos:
+                    obstacles.append((abs_pos[anchor_eid][0] + dx, abs_pos[anchor_eid][1] + dy,
+                                      min(hw, _text.measure(text, 12, bold=True) + 12), 24))
             used: List = []
             label_boxes: List = []
             self._route_ctx = (boxes, obstacles, [])          # labels are placed again on the generator's own path
@@ -1732,12 +1763,34 @@ class EDGYParser:
                 detail = self._edge_detail(rel.get('details') or {})
                 lw = max(_text.measure(verb, 11), _text.measure(detail, 9) if detail else 0) + 8
                 lh = 11 * 1.3 + (9 * 1.3 if detail else 0)
-                r = edgy_route.route(boxes[key[0]], boxes[key[1]], obstacles, used, label_size=(lw, lh),
-                                     labels=label_boxes)
+                r = edgy_route.route(boxes[key[0]], boxes[key[1]], obstacles, [], label_size=(lw, lh))
                 if r:
-                    rel['options'] = {**rel['options'], 'from': r[0], 'to': r[1], 'via': r[2]}
+                    rel['options'] = {**rel['options'], 'from': r[0], 'to': r[1]}
+                    rel['_route_size'] = (lw, lh)
+            # second pass: the sides are known, so the generator's port distribution is too — route again
+            # from exactly those ports (no jog at a shared side) and place the labels
+            out_by, in_by = {}, {}
+            for key in order:
+                o = merged[key]['options']
+                if '_route_size' in merged[key] and 'via' not in o:
+                    out_by.setdefault((key[0], o['from']), []).append(key)
+                    in_by.setdefault((key[1], o['to']), []).append(key)
+            for key in order:
+                rel = merged[key]
+                if '_route_size' not in rel:
+                    continue
+                o = rel['options']
+                outs, ins = out_by[(key[0], o['from'])], in_by[(key[1], o['to'])]
+                ef = _geo.distribute(len(outs), outs.index(key))
+                nf = _geo.distribute(len(ins), ins.index(key))
+                r = edgy_route.route(boxes[key[0]], boxes[key[1]], obstacles, used, label_size=rel['_route_size'],
+                                     labels=label_boxes, exit_port=(o['from'], ef), entry_port=(o['to'], nf))
+                if r:
+                    rel['options'] = {**o, 'via': r[2]}
                     if 'label' not in rel['options']:
                         rel['options']['label_at'] = r[3][0] if isinstance(r[3], tuple) else r[3]
+                else:
+                    rel['options'] = {k: v for k, v in o.items() if k not in ('from', 'to')}
 
         from collections import defaultdict
         outgoing_by_side = defaultdict(list)
@@ -3087,6 +3140,12 @@ class EDGYParser:
         if self._arch_layout and self._arch_layout[0] == 'chain' and not containers:
             import edgy_architecture
             return edgy_architecture.layout_chain(self, items)
+        if self._arch_layout and self._arch_layout[0] == 'capview':
+            import edgy_architecture
+            return edgy_architecture.layout_capability_view(self, items)
+        if self._arch_layout and self._arch_layout[0] == 'matrix':
+            import edgy_architecture
+            return edgy_architecture.layout_matrix(self, items)
         if containers and all(self.groups[c].get('synthetic') == 'stage' for c in containers):
             # Tehtäväkartan vaihesarakkeet: yksi rivi, tasakorkeat sarakkeet; vaiheettomat tehtävät alle
             cols = self.group_columns or len(containers)

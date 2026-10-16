@@ -143,6 +143,10 @@ def build_manifest(drawio_path, pages, input_path=None, preset=None, previews=No
         'outputs': outputs,
         'preset': preset,
         'generator_warnings': list(generator_warnings or []),
+        'generator_notes': [n for _name, p in pages for n in getattr(p, 'notes', [])],
+        # W127 (capability view): empty bands with their evidence status. Only confirmed_absent is a finding
+        # for the report; not_investigated / unknown are open questions; out_of_scope is neither.
+        'model_gaps': [{**g, 'page': name} for name, p in pages for g in getattr(p, 'model_gaps', [])],
         'pages': per_page,
         'totals': {'elements': sum(sum(pg['elements'].values()) for pg in per_page),
                    'edges': sum(pg['edges'] for pg in per_page),

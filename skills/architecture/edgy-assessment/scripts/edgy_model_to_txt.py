@@ -181,7 +181,7 @@ def build(model, facet, lang, layout="default"):
 # --views writes one multi-page TXT: a `draw: false` model page with every element (by id) and every
 # relationships[] entry, then one or more view pages that edgy-diagram 2.8.0 derives from that graph.
 MODEL_TYPES = IDENTITY + ARCHITECTURE + EXPERIENCE + ["organisation", "product", "brand", "people"]
-ATTRIBUTE_KEYS_19 = ("kind", "hosting", "owner", "criticality", "time", "master")
+ATTRIBUTE_KEYS_19 = ("kind", "hosting", "owner", "criticality", "time", "master", "gaps")
 VIEW_WRITERS = {}     # view name → function(model, lang) -> list of page blocks; registered by the view sprints
 
 
@@ -257,7 +257,27 @@ def _process_chain_view(model, lang):
 
 @register_view("process-swimlane")
 def _process_swimlane_view(model, lang):
-    return [_view_page("Process swimlanes", [("map_type", "process"), ("process_view", "swimlane")])]
+    """One swimlane page per L1 process (the top of the contains hierarchy): its steps in the lanes of their
+    performers — one page for every process at once would be a staircase of unrelated steps."""
+    return [_view_page("Process swimlanes", [("expand", "per-process"), ("where", "top"), ("map_type", "process"),
+                                             ("process_view", "swimlane"), ("legend", "strip")])]
+
+
+@register_view("capability")
+def _capability_view(model, lang):
+    """One capability view per capability: processes, resources, data (CRUD), actors, products."""
+    return [_view_page("Capability", [("expand", "per-capability"), ("map_type", "capability-view"),
+                                      ("legend", "strip")])]
+
+
+@register_view("capability-matrix")
+def _capability_matrix_view(model, lang):
+    return [_view_page("Capability × application", [("map_type", "capability-matrix")])]
+
+
+@register_view("crud-matrix")
+def _crud_matrix_view(model, lang):
+    return [_view_page("Process × data (CRUD)", [("map_type", "capability-matrix"), ("matrix", "crud")])]
 
 
 def build_views(model, views, lang):
@@ -290,7 +310,7 @@ def main(argv=None):
     ap.add_argument("--language", choices=list(VERB_KEY), help="verb language (default: model.language)")
     ap.add_argument("--layout", choices=["default", "triad"], default="default",
                     help="triad = planned ring with Further panels (map_type: triad in every file)")
-    ap.add_argument("--views", help="comma-separated architecture views (model format 1.9): writes "
+    ap.add_argument("--views", help="comma-separated architecture views, or all (model format 1.9): writes "
                                     "<prefix>-views.txt — a draw: false model page and the view pages — instead of "
                                     "the four facet files")
     args = ap.parse_args(argv)
@@ -300,7 +320,10 @@ def main(argv=None):
     os.makedirs(args.out, exist_ok=True)
     if args.views:
         try:
-            text = build_views(model, [v.strip() for v in args.views.split(",") if v.strip()], lang)
+            views = [v.strip() for v in args.views.split(",") if v.strip()]
+            if views == ["all"]:
+                views = list(VIEW_WRITERS)
+            text = build_views(model, views, lang)
         except ValueError as e:
             print(f"edgy_model_to_txt: {e}", file=sys.stderr)
             return 2
