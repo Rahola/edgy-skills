@@ -20,6 +20,30 @@ perustelut.
 
 ---
 
+### 2026-10-17 — Claude Code (v2.5.0 phase 3: development)
+
+Sprints 25a–29 of the locked plan on the v2.5.0 branch (draft PR #8):
+model format 1.10, adapters with dependencies, the realisation trace and
+its presenter drill-through, notation pages in the core (F4-core), the new
+edgy-c4 skill, the C4 badge on trace cards, version bumps and docs.
+
+- **Why the trace is one hop per page.** A transitive chain on one page is
+  unreadable past three levels; one hop with links makes the reader walk
+  the chain and needs no cycle handling.
+- **Why notation handlers run at parse time.** Their errors must stop the
+  run before a file exists; at draw time a handler exception was a
+  traceback in the middle of writing the output.
+- **Why C4 cells carry no `edgyId`.** C4 containers are not EDGY
+  elements; without the marker they stay out of the graph, the search and
+  the highlight, and the C4 system links to the EDGY asset by its page id.
+- **Why `examples-vs-v2.4.0` reads the tag's goldens.** They are the tag's
+  generator output for the same inputs with the same glyph tables; running
+  the old generator again would test the same thing more slowly.
+- Deviations and as-built choices: plan §11.
+
+All `check.sh` steps pass, including the browser self-test. Testing
+(phase 4) follows the test plan with the agents named there.
+
 ### 2026-10-17 — Claude Code (showcase, F7 plan, principles audit)
 
 **Showcase of v2.4.0** (outputs in the session only, not committed: a

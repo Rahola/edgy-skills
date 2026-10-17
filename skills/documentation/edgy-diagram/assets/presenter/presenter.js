@@ -181,11 +181,12 @@
       });
       if (linkOf(g) !== null) { addDrillBadge(g, e); }
     });
-    $$('g.deco[data-link]', svg).forEach(function (d) {      // "+N more" → the band's list page
+    $$('g.deco[data-link]', svg).forEach(function (d) {      // "+N more" → list page; "C4" badge → C4 page
       if (!has(pageIndex, d.getAttribute('data-link'))) { return; }
+      var to = views[pageIndex[d.getAttribute('data-link')]];
       d.setAttribute('tabindex', '0');
       d.setAttribute('role', 'link');
-      d.setAttribute('aria-label', 'Show every card of this band');
+      d.setAttribute('aria-label', to.trace === 'list' ? 'Show every card of this band' : 'Open ' + to.name);
       d.classList.add('linked');
       function go() { openLink(d.getAttribute('data-link')); }
       d.addEventListener('click', function (ev) { ev.stopPropagation(); go(); });
@@ -250,7 +251,13 @@
       var path = tracePath.length && tracePath[tracePath.length - 1] === v.focus ? tracePath : [v.focus];
       return goTrace(path, v.band, true);
     }
-    return v.trace === 'page' ? drill(v.focus) : openView(pageIndex[pid]);
+    if (v.trace === 'page') { return drill(v.focus); }
+    // another page (the C4 badge, Q3): a history entry of its own, so back returns to the trace
+    var h = '#/view/' + pid;
+    lastHash = h;
+    try { history.pushState(null, '', h); } catch (e) { /* file:// in some browsers */ }
+    navPromise = openView(pageIndex[pid]);
+    return navPromise;
   }
   function traceTarget(path, band) {
     if (!path.length) { return band ? undefined : traceIndex; }
@@ -805,6 +812,26 @@
       var bad = ['#/trace/%E0%A4%A', '#/trace/NOPE', '#/trace/..%2F..', '#/view/', '#/trace/+below/x', '#/trace//'];
       check('route-malformed', bad.every(function (h) { return route(h) === false && current === before; }) &&
                                $('#toast').textContent === 'Not found in this presentation' && cspViolations === 0);
+      // Q3: on a trace page with a "C4" badge, the card drills and the badge opens the C4 page; back returns
+      var withBadge = views.filter(function (v) {
+        return v.trace === 'page' && /<g class="deco"[^>]*data-link="(?!trace-)/.test(svgText(v.index));
+      })[0];
+      if (!withBadge) { return null; }
+      return goTrace([withBadge.focus], null, true).then(function () {
+        var badge = $$('g.deco[data-link]', svg).filter(function (d) {
+          return !views[pageIndex[d.getAttribute('data-link')]].trace;
+        })[0];
+        var target = pageIndex[badge.getAttribute('data-link')];
+        badge.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        return navPromise.then(function () { return target; });
+      }).then(function (target) {
+        check('card-vs-badge', current === target && !views[current].trace);
+        var p = waitNav(2000);
+        history.back();
+        return p;
+      }).then(function () {
+        check('return-to-trace', views[current].trace === 'page' && views[current].focus === withBadge.focus);
+      });
     });
   }
 

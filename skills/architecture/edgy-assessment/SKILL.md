@@ -1,6 +1,6 @@
 ---
 name: edgy-assessment
-version: "1.10.0"
+version: "1.11.0"
 description: >
   Comprehensive EDGY 23 Enterprise Design assessment: analysis, diagrams, and recommendations.
   Orchestrating skill that chains edgy-framework and edgy-diagram skills into a unified workflow.
@@ -533,7 +533,7 @@ it; never type them a second time:
 
 ```bash
 python3 skills/architecture/edgy-assessment/scripts/edgy_model_to_txt.py <company>-edgy-model.json \
-    --prefix <company> --views all          # or: application,process-chain,process-swimlane,capability,capability-matrix,crud-matrix
+    --prefix <company> --views all          # or: application,process-chain,process-swimlane,capability,capability-matrix,crud-matrix,trace
 python3 skills/documentation/edgy-diagram/scripts/edgy_generator.py <company>-views.txt \
     --output <company>-views.drawio --preview [--present <company>-presentation.html]
 ```
@@ -547,6 +547,18 @@ capability-view band is a **model gap** with an evidence status — report
 `not_investigated` / `unknown` as open questions, `confirmed_absent` as a
 finding, never the reverse. W124 (application without an owner) is a note;
 set `ownership: required` on the view page when ownership is in scope.
+
+**Realisation trace (opt-in, edgy-diagram 2.9.0).** `--views trace` adds the
+trace pages: an index (journeys | organisations) and one page per element
+with an id, from the journey down through tasks and channels, products,
+capabilities, processes, assets and people to the organisations, and back
+up; every card links to its own page, and in the presenter the trace is one
+Trace card with drill-through. It is not part of `--views all`, because a
+large model gives many pages (`where:` narrows them on a hand-written page).
+It needs the Experience links (format 1.10, *Migration 1.9 → 1.10* above):
+when you extract a 1.10 model, emit *serves*, *features in* and *offers*
+together with *is part of*, *traverses* and *uses*. An empty band below an
+element is **W129** with the same evidence statuses as W127.
 `--present` writes one offline HTML of every view for a workshop; it carries
 the model, so it stays in the engagement folder with the `.drawio`.
 

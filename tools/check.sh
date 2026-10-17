@@ -8,7 +8,7 @@
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
 # edgy-tests, edgy-geometry-tests, edgy-lint-tests, edgy-render-tests,
 # edgy-structure-tests, edgy-tool-tests, edgy-model, edgy-model-diff-tests, edgy-archimate-tests,
-# edgy-graph-tests, edgy-examples-golden, edgy-contract, edgy-notation-core, edgy-c4, edgy-architecture, trace-fixtures, edgy-present, edgy-model-compat, adapter-install, edgy-official-shapes, edgy-eval, edgy-lint,
+# edgy-graph-tests, edgy-examples-golden, edgy-contract, edgy-notation-core, edgy-c4, edgy-architecture, trace-fixtures, examples-vs-v2.4.0, edgy-present, edgy-model-compat, adapter-install, edgy-official-shapes, edgy-eval, edgy-lint,
 # edgy-lint-strict, edgy-series, edgy-qa,
 # privacy-scan.
 #
@@ -227,6 +227,8 @@ run_step "edgy-c4" python3 "$REPO_ROOT/skills/documentation/edgy-c4/scripts/test
 run_step "edgy-architecture" python3 "$EDGY_SCRIPTS/test_architecture.py"
 # Realisation trace (v2.5.0 F7): the §3.0 fixtures, page ids, links, bands, W129, crowded bands
 run_step "trace-fixtures" python3 "$EDGY_SCRIPTS/test_trace.py"
+# Every v2.4.0 example unchanged unless listed in tools/fixtures/v2.5.0-example-exceptions.txt (test plan G05)
+run_step "examples-vs-v2.4.0" python3 tools/examples-vs-tag.py --tag v2.4.0
 # Every architecture view from the shipped 1.9 model (--views all) and from the eval model
 # (examples/eval/architecture-views.txt): lint 0/0, visual 0, layout 0
 edgy_architecture_views() {

@@ -1,6 +1,6 @@
 ---
 name: edgy-diagram
-version: "2.8.0"
+version: "2.9.0"
 description: >
   Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML
   source and export them to PNG/SVG/PDF. Generator-first workflow
@@ -240,6 +240,16 @@ edgy_generator.py in.txt --output out.drawio --graph graph.json            # doc
 edgy_generator.py in.txt --output out.drawio --present presentation.html   # self-contained offline presentation
 edgy_present.py out.drawio [-o presentation.html] [--graph graph.json]     # same, from an existing file
 ```
+
+**Realisation trace (2.9.0).** A page `map_type: trace` + `expand: trace`
+writes a clickable trace: an index and one page per element with an id,
+from journeys through tasks / channels, products, capabilities,
+processes / assets / people to organisations, each card linking to its own
+page; W129 reports an empty band below an element with the W127 evidence
+statuses. Read `references/architecture-views.md` (*Realisation trace*);
+example `examples/trace-map.txt`; from a model, `edgy_model_to_txt.py
+--views trace`. In the presenter the trace is one Trace card with
+drill-through, breadcrumb and browser back.
 
 `--present` writes one HTML file with every page (card wall → zoom,
 cross-view highlight, ⌘K search, current ↔ target over `{change:}`

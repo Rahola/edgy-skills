@@ -299,7 +299,10 @@ def materialize(parser, graph):
         nbs = [x for x in nbs if x['band'] != 'below']
     if only:
         nbs = [x for x in nbs if x['band'] == only]
-    nodes = [dict(focus, _extra={'highlight': 'yes', 'tband': 'focus'})]
+    focus_extra = {'highlight': 'yes', 'tband': 'focus'}
+    if notation_page(graph, focus):
+        focus_extra['tc4'] = notation_page(graph, focus)
+    nodes = [dict(focus, _extra=focus_extra)]
     rels, hidden = [], 0
     per_band: Dict[str, int] = {}
     unlinked = 0
@@ -321,6 +324,8 @@ def materialize(parser, graph):
             extra['tlink'] = page_id(o['id'])
         else:
             unlinked += 1
+        if notation_page(graph, o):
+            extra['tc4'] = notation_page(graph, o)
         nodes.append(dict(o, _extra=extra))
         rels.extend(x['edges'])
     parents, parts = chips(graph, focus['id'])
@@ -328,6 +333,18 @@ def materialize(parser, graph):
     parser.trace_unlinked = unlinked
     parser.trace_hidden = hidden
     return nodes, rels
+
+
+def notation_page(graph, node) -> Optional[str]:
+    """Q3: the page id of the C4 system context of an application, when the document has one (a notation
+    prepass index with pages[('context', id)]). The trace card keeps its own link; this is a second action."""
+    if node.get('type') != 'asset' or (node.get('kind') or '') != 'application':
+        return None
+    for index in (getattr(graph, 'notation_index', None) or {}).values():
+        pages = index.get('pages') if isinstance(index, dict) else None
+        if isinstance(pages, dict) and pages.get(('context', node['id'])):
+            return pages[('context', node['id'])]
+    return None
 
 
 # ---- layout (called from EDGYParser through edgy_architecture.prepare / the layout dispatch) ----------------

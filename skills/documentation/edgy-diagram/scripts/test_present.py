@@ -61,6 +61,10 @@ DEMO = '''pages:
   - name: "Trace"
     map_type: trace
     expand: trace
+  - name: "Fare engine context"
+    notation: c4
+    level: context
+    system: AST-02
 '''
 
 
@@ -103,7 +107,7 @@ def test_graph_and_views_are_embedded():
     views = json.loads(re.search(r'<script type="application/json" id="edgy-views">(.*?)</script>', html, re.S).group(1))
     assert graph['contract'] == 1 and {e['id'] for e in graph['elements']} >= {'CAP-05', 'AST-02', 'AST-07'}
     plain = [v for v in views if not v.get('trace')]
-    assert [v['name'] for v in plain] == ['Capabilities', 'Applications', 'Journey']
+    assert [v['name'] for v in plain] == ['Capabilities', 'Applications', 'Journey', 'Fare engine context']
     assert len(re.findall(r'<template id="view-\d+">', html)) == len(views)
     assert views[0]['changes'] and not views[1]['changes']
     cap = next(e for e in graph['elements'] if e['id'] == 'CAP-05')
@@ -210,7 +214,8 @@ def browser_selftest():
         return f'fail: result={m.group(1)} errors={m.group(2)} steps={m.group(3)}'
     for step in ('wall', 'wall-cards', 'view', 'highlight', 'zoom', 'search-jump', 'state-noop', 'state-current', 'state-target', 'paging',
                  'trace-card', 'drill', 'card-first-click', 'card-second-click', 'breadcrumb', 'breadcrumb-jump',
-                 'history-back', 'forward', 'deeplink-restore', 'route-malformed', 'back', 'no-errors'):
+                 'history-back', 'forward', 'deeplink-restore', 'route-malformed', 'card-vs-badge', 'return-to-trace',
+                 'back', 'no-errors'):
         if f'{step}:ok' not in m.group(3):
             return f'fail: step {step} missing ({m.group(3)})'
     return 'pass'

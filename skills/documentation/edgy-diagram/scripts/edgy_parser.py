@@ -286,7 +286,7 @@ LEGEND_TITLES = {lang: t['title'] for lang, t in LEGEND_TEXT.items()}   # lint p
 RESERVED_METRIC_KEYS = {'id', 'change', 'size', 'highlight', 'primary', 'stage', 'column', 'row', 'maturity', 'rating'}
 # Attributes of the architecture views (2.8.0): kept on the element (element['attrs']), never printed on the card
 ATTRIBUTE_KEYS = {'kind', 'hosting', 'master', 'owner', 'technology', 'crud', 'type', 'criticality', 'data',
-                  'container', 'time', 'gaps', 'band', 'state', 'vband', 'dim', 'tband', 'tlevel', 'tlink'}
+                  'container', 'time', 'gaps', 'band', 'state', 'vband', 'dim', 'tband', 'tlevel', 'tlink', 'tc4'}
 RESERVED_METRIC_KEYS |= ATTRIBUTE_KEYS
 # Asset kinds (architecture views): an application, a platform, an integration or a data asset; other kinds are free text
 ASSET_KINDS = ('application', 'platform', 'integration', 'data')
@@ -2035,6 +2035,20 @@ class EDGYParser:
         for cell in mx_root.findall('mxCell'):
             if cell.get('id') in marks:
                 cell.set('style', (cell.get('style') or '') + f"edgyTrace={marks[cell.get('id')]};")
+        # Q3: an application card with a C4 system context gets a separate "C4" badge (top-left corner; the
+        # presenter's "→" drill badge sits top-right) linking there — the card keeps its trace link
+        for eid, e in self.elements.items():
+            target = (e.get('attrs') or {}).get('tc4')
+            if not target or eid not in self.cell_of:
+                continue
+            badge = ET.SubElement(mx_root, "mxCell", {
+                "id": str(next_id), "value": "C4",
+                "style": ("rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1168bd;"
+                          "strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1168bd;edgyRole=link;"),
+                "vertex": "1", "parent": self.cell_of[eid], "edgyLink": target})
+            ET.SubElement(badge, "mxGeometry", {"x": "4", "y": "4", "width": "26", "height": str(BADGE_H),
+                                                "as": "geometry"})
+            next_id += 1
         links = {self.cell_of[eid]: (e.get('attrs') or {}).get('tlink') for eid, e in self.elements.items()
                  if (e.get('attrs') or {}).get('tlink') and eid in self.cell_of}
         for cell in list(mx_root.findall('mxCell')):

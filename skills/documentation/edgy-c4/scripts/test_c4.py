@@ -220,6 +220,28 @@ def test_k09_legend_and_register():
     assert 'in use' in c4.split('\n')[0] and 'PlantUML' not in c4.replace('C4-PlantUML output is planned for 0.2.0', '')
 
 
+def test_k10_q3_badge_on_the_trace_card():
+    """Q3: with a C4 context page, the APP-01 card on its trace page keeps its trace link and gets a separate
+    "C4" badge linking to c4-context-app-01; without it, no badge. No link points to a missing page."""
+    fpath = open(os.path.join(CORE, 'scripts', 'fixtures', 'trace', 'f-path.txt'), encoding='utf-8').read()
+    c4 = '  - name: "Booking system context"\n    notation: c4\n    level: context\n    system: APP-01\n'
+    for with_c4 in (True, False):
+        text = fpath.rstrip('\n') + '\n' + (c4 if with_c4 else '')
+        pages = parse_document(text)
+        xml = build_mxfile([(n, p.generate_xml()) for n, p in pages], page_ids=page_ids_of(pages))
+        ids = set(re.findall(r'<diagram id="([^"]+)"', xml))
+        assert set(re.findall(r'link="data:page/id,([^"]+)"', xml)) <= ids          # every link resolves
+        page = xml[xml.index('id="trace-cap-01"'):]
+        page = page[:page.index('</diagram>')]
+        assert 'link="data:page/id,trace-app-01"' in page                              # the card's trace link
+        has_badge = 'link="data:page/id,c4-context-app-01"' in page
+        assert has_badge == with_c4, (with_c4, has_badge)
+        if with_c4:
+            badge = re.search(r'<UserObject id="(\d+)" label="C4" link="data:page/id,c4-context-app-01">\s*'
+                              r'<mxCell style="[^"]*edgyRole=link;[^"]*" vertex="1" parent="(\d+)"', page)
+            assert badge, page[:2000]
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

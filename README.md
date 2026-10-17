@@ -21,7 +21,8 @@ language.
 | Skill | Category | What it does |
 |-------|----------|--------------|
 | [`edgy-framework`](skills/architecture/edgy-framework/) | architecture | Challenge reframing, facet intersection analysis, element identification from natural language. |
-| [`edgy-diagram`](skills/documentation/edgy-diagram/) | documentation | Render EDGY diagrams as draw.io XML or PlantUML and export to PNG/SVG/PDF; architecture views (application, process, capability view, matrices) from one model and an offline presentation. |
+| [`edgy-diagram`](skills/documentation/edgy-diagram/) | documentation | Render EDGY diagrams as draw.io XML or PlantUML and export to PNG/SVG/PDF; architecture views (application, process, capability view, matrices) from one model, a click-through realisation trace from journey to organisation, and an offline presentation. |
+| [`edgy-c4`](skills/documentation/edgy-c4/) | documentation | C4 model (Simon Brown) for one application: the L1 system context derived from the EDGY model, L2 container pages; a notation handler for `edgy-diagram` (needs it; claude-code and generic installs). |
 | [`edgy-assessment`](skills/architecture/edgy-assessment/) | architecture | Orchestrator — chains `edgy-framework` + `edgy-diagram` into a full assessment with a locked PDF report layout. |
 | [`edgy-deep-dive`](skills/architecture/edgy-deep-dive/) | architecture | Targeted analysis of a specific element pair / facet combination from an existing assessment model. |
 | [`edgy-target-state`](skills/architecture/edgy-target-state/) | architecture | Internal target-state architecture work: purpose map, capability map and cards, guardrails, building-block hypothesis with a current → target overlay, work packages, role model, stakeholder summary. |
@@ -76,6 +77,22 @@ installers and usage guides:
 The adapters point at `Rahola/edgy-skills` by default; set `EDGY_SKILLS_REPO`
 to use a fork.
 
+**What each adapter installs (v2.5.0).** A skill can need its whole
+directory (scripts, assets, `notation.json`) and other skills
+(`requires:` in its SKILL.md). The adapters install dependencies first, from
+the same ref, and say so when they overwrite an older copy. A failed skill
+fails the run (exit 1, named), as does an empty or unreadable skill list.
+
+| Adapter | Installs | Skills that need their directory (`install: directory`, e.g. `edgy-c4`) |
+|---------|----------|---------------------------------------------------------------------------|
+| claude-code (local checkout) | the whole skill directory, dependencies first | installed |
+| generic | the whole skill directory, dependencies first | installed |
+| claude-code `--source=curl` | SKILL.md only | refused with a message |
+| Mistral Vibe | SKILL.md only | refused; `--all` skips them and names them |
+| Cursor | SKILL.md text merged into `.cursorrules` | refused; `--all` skips them and names them |
+
+`EDGY_SKILLS_REGISTRY=<file>` points an adapter at another registry (tests).
+
 ### Versions
 
 Releases are git tags (`v1.0.0`, `v2.0.0`, …); see [CHANGELOG.md](CHANGELOG.md).
@@ -89,6 +106,7 @@ EDGY_SKILLS_REF=v2.1.0 bash adapters/claude-code/install.sh --all   # + visual l
 EDGY_SKILLS_REF=v2.2.0 bash adapters/claude-code/install.sh --all   # + semantic review, layout quality, qa.json
 EDGY_SKILLS_REF=v2.3.0 bash adapters/claude-code/install.sh --all   # + official map shapes, badges, model diff, ArchiMate export
 EDGY_SKILLS_REF=v2.4.0 bash adapters/claude-code/install.sh --all   # + architecture views from one model, presenter-lite
+EDGY_SKILLS_REF=v2.5.0 bash adapters/claude-code/install.sh --all   # + realisation trace, edgy-c4, model format 1.10
 ```
 
 When an adapter runs from a local clone it installs that checkout, so use
@@ -170,7 +188,7 @@ description with `edgy-diagram`.
 ## Repository layout
 
 ```
-skills/            # the 5 EDGY skills (SKILL.md + assets/examples)
+skills/            # the 6 EDGY skills (SKILL.md + assets/examples)
 skills/_shared/    # edgy-core-links.yaml — single source of the relationship vocabulary
 tools/             # validator, registry updater, core-links renderer, privacy scanner, git hooks
 docs/              # development plan / review notes
@@ -204,7 +222,8 @@ customer journey to organisation in v2.5.0 — is
 (shipped in v2.4.0). The v2.5.0 plan — `edgy-c4`, the realisation trace
 and how far the presenter goes — is
 [`docs/development-plan-2026-10-v2.5.0.md`](docs/development-plan-2026-10-v2.5.0.md)
-(in review).
+(locked; implemented on the v2.5.0 branch, in testing — test plan
+[`docs/testing/v2.5.0-agent-test-plan.md`](docs/testing/v2.5.0-agent-test-plan.md)).
 
 ## Contributing
 

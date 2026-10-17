@@ -4,6 +4,85 @@ Releases of the edgy-skills bundle are git tags. Each skill also carries its
 own semantic version in its `SKILL.md` front matter and in `registry.yaml`.
 Install a release with `EDGY_SKILLS_REF=<tag>` (see README → Versions).
 
+## v2.5.0 — 2026-10 (in testing; tagged after phase 5)
+
+A click-through **realisation trace** from the customer's journey down to
+the organisations and back up, **C4** diagrams for one application as a
+separate `edgy-c4` skill, notation pages done properly in the core, model
+format **1.10** and adapters that install dependencies and report failures.
+Background: `docs/development-plan-2026-10-v2.5.0.md` (revision 4, locked;
+§11 records the clarifications) and the test plan
+`docs/testing/v2.5.0-agent-test-plan.md`.
+
+| Skill | v2.4.0 | v2.5.0 |
+|-------|--------|--------|
+| edgy-diagram | 2.8.0 | **2.9.0** |
+| edgy-assessment | 1.10.0 | **1.11.0** |
+| edgy-framework | 1.7.0 | **1.8.0** |
+| edgy-target-state | 1.2.0 | **1.3.0** |
+| edgy-deep-dive | 1.1.1 | **1.1.2** |
+| edgy-c4 | — | **0.1.0** (new; claude-code and generic) |
+
+No breaking changes. Every v2.4.0 example regenerates byte-identically
+(`check.sh` step `examples-vs-v2.4.0`, against the pinned tag), and every
+1.9 and 1.8 model gives byte-identical TXT, diff and ArchiMate output
+(`compat-1.9`, `compat-1.8`).
+
+**edgy-diagram 2.9.0**
+- **Realisation trace** (`map_type: trace`, `expand: trace`): levels
+  journey → task / channel → product → capability → process / asset /
+  people → organisation; one page per element with an id plus a trace
+  index, each card linking to its own page (draw.io
+  `UserObject link="data:page/id,…"`, unwrapped by the linter, the
+  renderer and the presenter). One hop per page, bands by level,
+  deterministic order, stable page ids `trace-<id>`; `where: ids |
+  highlight | from X`, `trace_direction: both | down | up`; "+N more" list
+  pages above 12 cards, edge-less crowded rows with the verbs in the row
+  header, mixed rows split by type; **W129** empty band below an element
+  with the W127 evidence statuses (`model_gaps[]`). Example
+  `examples/trace-map.txt`; the eval model gains an Experience part.
+- **Presenter drill-through** (inside effect 5 — still five effects): one
+  Trace card on the wall, the "→" badge or a second click opens a card's
+  trace page, `#/trace/<id>/…` routes with the browser history, a
+  breadcrumb, "not found" for malformed routes; new self-test steps.
+- **Notation pages done properly (F4-core):** a `notation:` page keeps only
+  its header keys in the EDGY parser and never enters the document graph;
+  `expand:` reaches the handler (E013 on one page without it); handlers may
+  return findings `(severity, rule, message, subject)`, run a prepass over
+  all their pages (`graph.notation_index`) and give pages fixed ids; a
+  handler failure is one E013 error, no traceback, no file.
+- **C4 badge (Q3):** an application card on the trace pages gets a separate
+  "C4" badge linking to its C4 system context when the delivery has one;
+  the card keeps its trace link.
+- `edgyTrace` marker and SVG `data-link` / `data-trace` (extension
+  contract 1, additive).
+
+**edgy-c4 0.1.0 (new)** — C4 L1 derived from the EDGY graph (Persons,
+inferred Persons dashed, partner systems, `[external]` grey), L2 container
+pages written by hand with boundary crossings from `{container:}` on EDGY
+transfers, rules C001–C006, static shapes, legend "C4 model (Simon Brown,
+CC BY 4.0)", page ids `c4-<level>-<system>`, L1 ↔ L2 links. draw.io only.
+
+**edgy-assessment 1.11.0** — model format **1.10**: `journey` as an object
+or an array with ids, `gaps` on the chain types with per-type keys, a
+version gate; `--views trace` (opt-in, not in `--views all`); migration
+notes 1.9 → 1.10 and the Experience links to emit.
+
+**edgy-framework 1.8.0** — modelling journeys, tasks and channels with ids
+and links for the trace. **edgy-target-state 1.3.0** — C4 only for
+applications in decided building blocks. **edgy-deep-dive 1.1.2** — reads
+a journey array.
+
+**Adapters and tools** — `requires:` and `install: directory` in SKILL.md
+front matter, the registry, the validator and `lookup-skill.py` (install
+order, cycle and missing-dependency errors, ids validated first);
+claude-code and generic install dependencies first from the same ref;
+Vibe, Cursor and curl mode refuse directory skills (`--all` skips and names
+them); every adapter exits 1 on a failed skill or an empty / unreadable
+list; Vibe added to the agents of the five SKILL.md-only skills. New
+`check.sh` steps: `adapter-install`, `trace-fixtures`, `edgy-notation-core`,
+`edgy-c4`, `examples-vs-v2.4.0`.
+
 ## v2.4.0 — 2026-10
 
 Architecture views: an application map, a value chain and swimlane process

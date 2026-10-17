@@ -677,3 +677,22 @@ test.
 | Offline adapter tests | The Vibe and Cursor adapters get `--source=local` in sprint 25b, as claude-code has, so `adapter-install` needs no network (Vibe V9). |
 | Install metadata (sprint 25b) | Besides `requires:`, a skill may declare `install: directory`: it works only when its whole directory is installed. SKILL.md-only installs (Vibe, Cursor, curl mode) refuse such a skill with "<id> needs the claude-code or generic install". `agents:` stays the list of adapters the skill supports. Vibe joins the `agents:` lists of the five existing skills, because Vibe used them in v2.4.0 and the adapters now enforce the list. `EDGY_SKILLS_REGISTRY=<file>` overrides the registry on every adapter, for tests and local registries. |
 | New `check.sh` steps | `adapter-install`, `trace-fixtures` and `examples-vs-v2.4.0`. The last one compares against the pinned tag, with an exceptions list and a negative control. |
+
+**Implementation notes (phase 3, sprints 25a–29).** Choices made while
+building, for the testers to check against; none changes a promise of §8.
+
+| Area | As built |
+|------|----------|
+| Notation page header | The EDGY parser sees only the `key: value` lines at the page's own indent plus the document header (`language:` …); every section and its body stays out. |
+| Handler timing | `generate_page` runs at parse time, so findings and failures are input messages that stop the run before any file is written. Optional handler functions: `prepass(pages, graph)`, `page_id(page_text, graph)`. An `expand:` template counts in the prepass as the pages it becomes. |
+| Prepass findings | A prepass finding may carry the page name as a fifth item; C001 is reported on the first drawn page when its EDGY page is a `draw: false` model page. |
+| Invalid C4 container id | Pattern or length > 64: reported as **C001** (the container cannot be referenced), not a new rule. |
+| Missing Person | A note with the rule label `C4-L1`, not a C-rule. |
+| Inferred Person | Lighter fill and a dashed dark border (a white dashed border was invisible on the dark fill). Person → system labels are "uses" / "uses (inferred)": the long verb phrases of several Persons overlapped (W113); the card says how. |
+| L2 layout | Containers in rows by relationship direction; the containers that cross the boundary sit in the last row, with their external systems below them; containers joined inside a row are neighbours and the gap fits the label. |
+| C4 badge | `edgyRole=link`, white with a blue border (an EDGY palette fill), top-left of the card; the presenter's "→" drill badge is top-right. |
+| Trace rows | A level row of more than 5 cards of several types becomes one row per type (W120 on the eval journey page). |
+| Presenter steps | The history step is `history-back` (v2.4.0 already has `back`, the return to the wall); also `trace-card`, `card-first-click`, `card-second-click`, `breadcrumb-jump`. |
+| `examples-vs-v2.4.0` | Compares the tag's committed `expected-*.drawio` with today's (both generated with the canonical tables; the golden test keeps today's current) instead of running the tag's generator; the CI checkout fetches tags (`fetch-depth: 0`). |
+| `--views trace` | Opt-in: never part of `--views all`. |
+

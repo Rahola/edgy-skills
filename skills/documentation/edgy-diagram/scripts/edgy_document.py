@@ -120,7 +120,12 @@ def parse_document(text: str, with_graph: bool = False):
         parser.parse_input(header_only(page_text) if notation_of(page_text) else page_text)
         parsed.append((name or default_page_name(parser), parser, page_text))
     graph = edgy_graph.build_graph([(n, p) for n, p, _ in parsed if p is not None])
-    prepass_errors = notation_prepass([(n, t) for n, _p, t in parsed if notation_of(t)], graph)
+    notation_pages = []
+    for n, p, t in parsed:
+        if notation_of(t):
+            # an expand: template counts as the pages it becomes, so the index knows every system's page
+            notation_pages.extend(_notation_targets(n or 'view', t, graph) if p is None else [(n, t)])
+    prepass_errors = notation_prepass(notation_pages, graph)
     result: List[Tuple[str, EDGYParser]] = []
     for name, parser, page_text in parsed:
         if parser is not None and parser.notation:
@@ -336,6 +341,16 @@ def attach_notation(parser: EDGYParser, page_text: str, graph, name: str = None)
         parser.fixed_page_id = str(pid)
 
 
+def _notation_targets(base: str, page_text: str, graph) -> List[Tuple[str, str]]:
+    """[(page name, page text)] of a notation page with expand: — one per target, with `focus: <id>`."""
+    import edgy_graph
+    mode, where = edgy_graph.expansion_of(page_text)
+    nodes, _problems = edgy_graph.expand_targets(graph, mode, where)
+    stripped = textwrap.dedent(edgy_graph.EXPAND_RE.sub('', edgy_graph.WHERE_RE.sub('', page_text)))
+    stripped = re.sub(r'^(focus|system):.*$\n?', '', stripped, flags=re.M)
+    return [(f"{base} · {n['id']} {n['name']}", f"focus: {n['id']}\n" + stripped) for n in nodes]
+
+
 def _expand_notation(base: str, page_text: str, mode: str, where, graph) -> List[Tuple[str, EDGYParser]]:
     """expand: on a notation page reaches the handler: one page per target, each with `focus: <id>`. Without a
     handler it is E013 on one holder page — never an empty page per target (the fail-open case of 2.8.0)."""
@@ -349,15 +364,11 @@ def _expand_notation(base: str, page_text: str, mode: str, where, graph) -> List
         holder.warnings.append(msg)
         holder.errors.append(msg)
         return [(base, holder)]
-    nodes, problems = edgy_graph.expand_targets(graph, mode, where)
-    stripped = textwrap.dedent(edgy_graph.EXPAND_RE.sub('', edgy_graph.WHERE_RE.sub('', page_text)))
-    stripped = re.sub(r'^(focus|system):.*$\n?', '', stripped, flags=re.M)
+    _nodes, problems = edgy_graph.expand_targets(graph, mode, where)
     out: List[Tuple[str, EDGYParser]] = []
-    for node in nodes:
-        text = f"focus: {node['id']}\n" + stripped
+    for page_name, text in _notation_targets(base, page_text, graph):
         p = EDGYParser()
         p.parse_input(header_only(text))
-        page_name = f"{base} · {node['id']} {node['name']}"
         attach_notation(p, text, graph, page_name)
         out.append((page_name, p))
     if problems or not out:

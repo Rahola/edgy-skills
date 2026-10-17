@@ -1,6 +1,6 @@
 ---
 name: edgy-deep-dive
-version: "1.1.1"
+version: "1.1.2"
 description: >
   Targeted EDGY 23 deep-dive analysis of a specific element pair or facet combination.
   Requires an existing edgy-model.json produced by the edgy-assessment skill.
@@ -132,7 +132,9 @@ Do not skip phases. Every phase is required to produce a complete, grounded anal
    run `edgy-assessment` in `extract-model` mode. Never invent elements that
    the model does not contain.
 1. Read the `model` file (edgy-model.json). `elements.organisation` is one object (format 1.8)
-   or an array (1.9) — treat a single object as a list of one.
+   or an array (1.9), and so is `elements.journey` from format 1.10 (one object, or an array of
+   journeys with ids) — treat a single object as a list of one. With several journeys, analyse
+   the ones the focus names, or each in turn; never merge them into one.
 2. Extract the entries for all `focus_elements` from `elements`.
 3. Note the coherence scores from `coherence` for any intersection elements in the focus.
 4. Check `suggested_deep_dives` — if this exact pair was suggested, note its rationale and priority.
