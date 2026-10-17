@@ -744,7 +744,9 @@ def _band_boxes(cells):
             continue
         st = style_dict(c.get('style'))
         is_lane = st.get('strokeColor') == 'none' and st.get('verticalAlign') == 'top' and 'text' not in st
-        if is_lane or st.get('edgyRole') == 'header':
+        # a notation page's own cells (C4 boxes, boundary) are its content too; its legend is not
+        foreign = bool(st.get('edgyNotation')) and st.get('edgyRole') != 'legend'
+        if is_lane or st.get('edgyRole') == 'header' or foreign:
             g = c.find('mxGeometry')
             if g is not None and c.get('parent') == '1':
                 out[i] = tuple(float(g.get(k, 0) or 0) for k in ('x', 'y', 'width', 'height'))

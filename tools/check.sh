@@ -8,7 +8,7 @@
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
 # edgy-tests, edgy-geometry-tests, edgy-lint-tests, edgy-render-tests,
 # edgy-structure-tests, edgy-tool-tests, edgy-model, edgy-model-diff-tests, edgy-archimate-tests,
-# edgy-graph-tests, edgy-examples-golden, edgy-contract, edgy-notation-core, edgy-architecture, trace-fixtures, edgy-present, edgy-model-compat, adapter-install, edgy-official-shapes, edgy-eval, edgy-lint,
+# edgy-graph-tests, edgy-examples-golden, edgy-contract, edgy-notation-core, edgy-c4, edgy-architecture, trace-fixtures, edgy-present, edgy-model-compat, adapter-install, edgy-official-shapes, edgy-eval, edgy-lint,
 # edgy-lint-strict, edgy-series, edgy-qa,
 # privacy-scan.
 #
@@ -222,6 +222,8 @@ run_step "edgy-examples-golden" python3 "$EDGY_SCRIPTS/test_examples.py"
 run_step "edgy-contract" python3 "$EDGY_SCRIPTS/test_contract.py"
 # F4-core (2.9.0): notation page isolation, expand: with / without a handler, findings channel, prepass
 run_step "edgy-notation-core" python3 "$EDGY_SCRIPTS/test_notation_core.py"
+# edgy-c4 0.1.0: L1 / L2, C001–C006, prepass, static shapes, legend; the C4 L1 of every eval application
+run_step "edgy-c4" python3 "$REPO_ROOT/skills/documentation/edgy-c4/scripts/test_c4.py"
 run_step "edgy-architecture" python3 "$EDGY_SCRIPTS/test_architecture.py"
 # Realisation trace (v2.5.0 F7): the §3.0 fixtures, page ids, links, bands, W129, crowded bands
 run_step "trace-fixtures" python3 "$EDGY_SCRIPTS/test_trace.py"

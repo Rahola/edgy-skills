@@ -38,6 +38,17 @@ skills:
     description: >
       Internal target-state architecture workflow on EDGY 23: strategy → purpose map, capability map and cards, guardrails, building-block hypothesis with transition overlay, work packages, decision records (via an external ADR skill), role model and a stakeholder summary. Orchestrates edgy-framework (target-state mode) and edgy-diagram (generator, lint, preview). Complements edgy-assessment, which is the outside-in assessment of a company from public sources.
 
+  - id: edgy-c4
+    path: skills/documentation/edgy-c4
+    version: 0.1.0
+    category: documentation
+    tags: [diagram, drawio, c4, software-architecture, documentation, edgy, en]
+    agents: [claude-code, generic]
+    requires: [edgy-diagram]
+    install: directory
+    description: >
+      C4 model diagrams (Simon Brown) for one application of an EDGY architecture, as pages of an edgy-diagram delivery: the L1 system context derived from the EDGY document graph (Persons, partner systems) and L2 container pages written by hand, linked to the EDGY model by the application's id. A notation handler for edgy-diagram (extension contract 1): draw.io output, static shapes, rules C001–C006. Use it only for applications in a decided building block.
+
   - id: edgy-diagram
     path: skills/documentation/edgy-diagram
     version: 2.8.0

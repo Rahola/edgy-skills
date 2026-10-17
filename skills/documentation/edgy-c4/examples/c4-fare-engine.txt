@@ -1,0 +1,46 @@
+# C4 for one application (edgy-c4 0.1.0): the Fare engine of Acme Transit (fictional).
+# The EDGY model page is the source of the L1 system context (Persons, partner systems); the
+# L2 page lists the containers by hand. The {container:} keys on the EDGY transfers name where
+# a transfer crosses into the system. Generate with edgy-diagram:
+#   python3 <edgy-diagram>/scripts/edgy_generator.py c4-fare-engine.txt --output c4.drawio --preview
+language: en
+
+pages:
+  - name: "Model"
+    draw: false
+    elements:
+      - asset: "Fare engine - Prices and fare rules for every channel" {id: APP-07, kind: application}
+      - asset: "Ticket shop - Web and app sales" {id: APP-05, kind: application}
+      - asset: "Validators - Ticket checks on board" {id: APP-06, kind: application}
+      - asset: "Payment gateway - Card payments" [external] {id: APP-09, kind: application}
+      - asset: "Fare rules" {id: DAT-01, kind: data}
+      - process: "Price fare products" {id: PRO-21}
+      - organisation: "Fares team" {id: ORG-02}
+      - people: "Fare analyst" {id: PEO-02}
+    relationships:
+      - "PEO-02" -> "APP-07": "interacts with"
+      - "ORG-02" -> "PRO-21": "performs"
+      - "PRO-21" -> "APP-07": "requires"
+      - "APP-07" -> "DAT-01": "stores"
+      - "APP-07" -> "APP-05": "transfers" {data: DAT-01, technology: REST, container: C-FARE-API}
+      - "APP-07" -> "APP-06": "transfers" {data: DAT-01, technology: MQTT, container: C-FARE-PUB}
+      - "APP-05" -> "APP-09": "transfers" {technology: REST}
+
+  - name: "Fare engine — system context"
+    notation: c4
+    level: context
+    system: APP-07
+
+  - name: "Fare engine — containers"
+    notation: c4
+    level: container
+    system: APP-07
+    elements:
+      - container: "Fare API - Answers price queries" {id: C-FARE-API, technology: Kotlin}
+      - container: "Rule editor - Where analysts maintain fares" {id: C-FARE-UI, technology: React}
+      - container: "Fare publisher - Pushes fare tables to devices" {id: C-FARE-PUB, technology: Go}
+      - container: "Fare rules store - Fare products and prices" {id: C-FARE-DB, technology: PostgreSQL}
+    relationships:
+      - "C-FARE-UI" -> "C-FARE-API": "edits fare rules through" {technology: REST}
+      - "C-FARE-API" -> "C-FARE-DB": "reads and writes fare rules" {technology: JDBC}
+      - "C-FARE-PUB" -> "C-FARE-DB": "reads fare tables" {technology: JDBC}

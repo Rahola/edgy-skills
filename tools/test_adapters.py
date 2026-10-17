@@ -191,6 +191,48 @@ def test_install_root_is_never_left():
     assert not (REPO / "SENTINEL").exists()
 
 
+def test_real_registry_edgy_c4():
+    """A1, A6, A10, A12–A16 on the real registry: edgy-c4 brings edgy-diagram along on claude-code and
+    generic, and runs from the temporary install with the checkout hidden; Vibe, Cursor and curl mode refuse
+    it by name, and --all skips it."""
+    reg = REPO / "registry.yaml"
+    rc, out = lookup("requires", "edgy-c4", str(reg))
+    assert rc == 0 and out.split() == ["edgy-diagram", "edgy-c4"], out
+    example = "c4-fare-engine.txt"
+    with tempfile.TemporaryDirectory() as home:
+        rc, out = claude(["edgy-c4"], reg, home)
+        skills = Path(home) / ".claude" / "skills"
+        assert rc == 0 and sorted(p.name for p in skills.iterdir()) == ["edgy-c4", "edgy-diagram"], out
+        assert (skills / "edgy-c4" / "notation.json").is_file() and (skills / "edgy-c4" / "scripts" / "edgy_c4.py").is_file()
+        # the installed handler draws the installed example; nothing resolves to the checkout
+        work = Path(home) / "work"
+        work.mkdir()
+        rc, out = run([sys.executable, str(skills / "edgy-diagram" / "scripts" / "edgy_generator.py"),
+                       str(skills / "edgy-c4" / "examples" / example), "--output", str(work / "c4.drawio")],
+                      home=home, cwd=work)
+        assert rc == 0 and (work / "c4.drawio").is_file(), out
+        xml = (work / "c4.drawio").read_text(encoding="utf-8")
+        assert 'id="c4-context-app-07"' in xml and "edgyNotation=c4" in xml
+        rc, out = run([sys.executable, "-c", "import sys; sys.path.insert(0, sys.argv[1]); import edgy_notation; "
+                       "print(edgy_notation.handler('c4')['dir'])", str(skills / "edgy-diagram" / "scripts")],
+                      home=home, cwd=work)
+        assert rc == 0 and out.strip() == str(skills / "edgy-c4"), out
+    with tempfile.TemporaryDirectory() as tmp:
+        outdir = Path(tmp) / "out"
+        rc, out = generic(["--skill", "edgy-c4", "--output", str(outdir)], reg, tmp)
+        assert rc == 0 and sorted(p.name for p in outdir.iterdir()) == ["edgy-c4", "edgy-diagram"], out
+    for name, fn in (("vibe", vibe), ("cursor", cursor)):
+        with tempfile.TemporaryDirectory() as home:
+            rc, out = fn(["edgy-c4"], reg, home)
+            assert rc == 1 and "edgy-c4 needs the claude-code or generic install" in out, (name, out)
+        with tempfile.TemporaryDirectory() as home:
+            rc, out = fn(["--all"], reg, home)
+            assert rc == 0 and "edgy-c4" in out and "needs the claude-code or generic install" in out, (name, out)
+    with tempfile.TemporaryDirectory() as home:
+        rc, out = run(["bash", str(ADAPTERS / "claude-code" / "install.sh"), "--source=curl", "edgy-c4"], reg, home)
+        assert rc == 1 and "edgy-c4 needs the claude-code or generic install" in out, out
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     for t in tests:

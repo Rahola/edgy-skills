@@ -240,19 +240,27 @@ def load_graph(text: str):
     return parse_document(text, with_graph=True)[1]
 
 
-NOTATION_RE = re.compile(r'^notation:\s*([A-Za-z0-9-]+)\s*$', re.M)
-_HEADER_RE = re.compile(r'^([A-Za-z_][A-Za-z0-9_]*):\s*(\S.*)$')
+NOTATION_RE = re.compile(r'^([ \t]*)notation:\s*([A-Za-z0-9-]+)\s*$', re.M)
+_HEADER_RE = re.compile(r'^([ \t]*)([A-Za-z_][A-Za-z0-9_]*):\s*(\S.*)$')
 
 
 def notation_of(page_text: str) -> Optional[str]:
-    m = NOTATION_RE.search(textwrap.dedent(page_text or ''))
-    return m.group(1).lower() if m else None
+    m = NOTATION_RE.search(page_text or '')
+    return m.group(2).lower() if m else None
 
 
 def header_only(page_text: str) -> str:
-    """The `key: value` lines at the page's own indent (notation, level, system, focus, title, language …): what
-    the EDGY parser may see of a notation page. Sections (`elements:`, `containers:`) and their bodies stay out."""
-    return '\n'.join(ln for ln in textwrap.dedent(page_text or '').split('\n') if _HEADER_RE.match(ln))
+    """The `key: value` lines at the page's own indent (notation, level, system, focus, title …) and the document
+    header lines (language …): what the EDGY parser may see of a notation page. Sections (`elements:`,
+    `containers:`) and their bodies stay out."""
+    m = NOTATION_RE.search(page_text or '')
+    indents = {'', m.group(1)} if m else {''}
+    keep = []
+    for ln in (page_text or '').split('\n'):
+        h = _HEADER_RE.match(ln)
+        if h and h.group(1) in indents:
+            keep.append(ln.strip())
+    return '\n'.join(keep)
 
 
 def _apply_finding(parser: EDGYParser, finding) -> None:

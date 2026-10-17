@@ -54,17 +54,17 @@ An external standard is added only when all of these hold:
 | **Limits** | A judgement, not a measurement. A report states its basis (interviews, cost data, technical review). A maturity or rating badge takes the same slot, and the generator warns when TIME is hidden. |
 | **Source and licence** | Gartner, Inc. (application portfolio management, "TIME" model). Only the four category names and their meaning are used; no Gartner material is reproduced. Credited in the legend. |
 
-### C4 model — software architecture diagrams (planned, `edgy-c4` 0.1.0, v2.5.0)
+### C4 model — software architecture diagrams (in use, `edgy-c4` 0.1.0, v2.5.0)
 
 | | |
 |---|---|
 | **What** | Simon Brown's C4 model: hierarchical diagrams of a software system (Context, Containers, Components, Code). |
-| **Where** | Planned as the separate `edgy-c4` skill: C4 levels 1–2 for one application (plan `docs/development-plan-2026-10-architecture-views.md`, §0 and §4). Not in v2.4.0; `notation: c4` is E013 until that skill is installed. |
+| **Where** | The separate `edgy-c4` skill (v2.5.0): C4 levels 1–2 for one application — L1 derived from the EDGY graph, L2 from container pages — as draw.io pages of an edgy-diagram delivery (plan `docs/development-plan-2026-10-v2.5.0.md`, §4 F4). Without the skill installed, `notation: c4` is E013. |
 | **Question it answers** | What an application is made of and how its parts talk to each other. EDGY stops at the Asset: an application is one card. Teams that build or buy the application need the next level. |
 | **Why this one** | Widely adopted and lightweight, and notation-independent (it defines abstractions, not shapes), so it can be drawn with its own shapes beside EDGY. It also has a known text-to-diagram tradition. |
 | **Alternatives considered** | The ArchiMate application layer: heavier, and already covered by the one-way export. UML component and deployment diagrams: too detailed for an architecture conversation. Drawing containers as EDGY Assets: rejected, because it would blur the EDGY Asset and break principle 4. |
 | **How it stays subordinate to EDGY** | A separate skill and a separate notation page. E012 forbids mixing C4 and EDGY cells on one page. A C4 system is linked to its EDGY Asset by the same id, so the views connect without merging the notations. C4 is drawn only for applications in decided building blocks (plan §4). |
-| **Source and licence** | c4model.com, Simon Brown; published under Creative Commons Attribution 4.0. Attribution in the `edgy-c4` skill and its legend. C4-PlantUML (MIT) only if it is vendored, with its notice. |
+| **Source and licence** | c4model.com, Simon Brown; published under Creative Commons Attribution 4.0. Attribution in the `edgy-c4` skill and in the legend of every C4 page ("C4 model (Simon Brown, CC BY 4.0)"). Output is draw.io only, with static shapes; nothing is vendored. |
 
 ### ArchiMate 3.1 Open Exchange Format — export (in use, edgy-assessment)
 
