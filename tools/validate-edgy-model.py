@@ -11,7 +11,12 @@ Beyond the schema (model format 1.9, edgy-assessment 1.10.0):
   * a model that uses a 1.9 structure (relationships[], elements.people,
     organisation as an array, asset kind / hosting / owner / time /
     criticality / master) must declare schema_version 1.9 or later — an old
-    writer stays an old writer.
+    writer stays an old writer;
+  * model format 1.10 (edgy-assessment 1.11.0): a journey array or `gaps` on
+    a realisation-trace type other than the capability (or the capability's
+    `organisation` key) needs schema_version 1.10. A single journey with an id
+    stays valid 1.9. Each type may use only its own `gaps` keys
+    (GAP_KEYS; the plan's §4a table).
 
 Usage:
   python3 tools/validate-edgy-model.py <model.json> [more.json ...]
@@ -117,6 +122,7 @@ def validate_model(model, schema):
         if not any(k in link for k in ("verb_en", "verb_fi", "verb_fr", "verb_de")):
             out.append(f"/core_links/{i}: at least one verb_<lang> is required")
     out.extend(_relationship_ids(model, elems))
+    out.extend(_gap_keys(elems))
     out.extend(_version_gate(model, elems))
     dives = model.get("suggested_deep_dives")
     for i, dd in enumerate(dives if isinstance(dives, list) else []):
@@ -130,6 +136,17 @@ def validate_model(model, schema):
 
 
 ASSET_19_KEYS = ("kind", "hosting", "owner", "time", "criticality", "master")
+# 1.10: the gaps keys each realisation-trace type may use (development plan v2.5.0, §4a)
+GAP_KEYS = {
+    "journey": ("tasks", "channels", "products"),
+    "task": ("products", "channels"),
+    "channel": ("products",),
+    "product": ("capabilities", "processes", "organisation"),
+    "capability": ("actors", "processes", "resources", "data", "products", "organisation"),
+    "process": ("resources", "organisation"),
+    "asset": ("organisation",),
+    "people": ("organisation",),
+}
 
 
 def _element_items(elems):
@@ -180,12 +197,52 @@ def structures_19(model):
     return found
 
 
+def _gap_keys(elems):
+    """Each type may use only its own gaps keys; a key of another type is the additionalProperties error at its
+    JSON pointer (the schema's trace_gaps allows the union of all keys)."""
+    out = []
+    for t, v in elems.items():
+        items = v if isinstance(v, list) else [v]
+        for i, e in enumerate(items):
+            gaps = e.get("gaps") if isinstance(e, dict) else None
+            if not isinstance(gaps, dict):
+                continue
+            allowed = GAP_KEYS.get(t, ())
+            base = f"/elements/{t}/{i}" if isinstance(v, list) else f"/elements/{t}"
+            for k in gaps:
+                if k not in allowed:
+                    out.append(f"{base}/gaps/{k}: additionalProperties — '{k}' is not a gaps key of {t} "
+                               f"(allowed: {', '.join(allowed) or 'none'})")
+    return out
+
+
+def structures_110(model):
+    """The 1.10 structures a model uses (empty for a 1.9 or older model)."""
+    elems = model.get("elements") if isinstance(model.get("elements"), dict) else {}
+    found = []
+    if isinstance(elems.get("journey"), list):
+        found.append("journey as an array")
+    gap_types = sorted({t for t, v in elems.items() if t != "capability"
+                        for e in (v if isinstance(v, list) else [v]) if isinstance(e, dict) and "gaps" in e})
+    if gap_types:
+        found.append("gaps on " + " / ".join(gap_types))
+    if any(isinstance(e, dict) and isinstance(e.get("gaps"), dict) and "organisation" in e["gaps"]
+           for e in (elems.get("capability") or [])):
+        found.append("capability gaps.organisation")
+    return found
+
+
 def _version_gate(model, elems):
+    out = []
     used = structures_19(model)
     if used and _version(model) < (1, 9):
-        return [f"/schema_version: the model uses 1.9 structures ({', '.join(used)}) but declares "
-                f"{model.get('schema_version') or 'no version (1.8)'} — set schema_version to \"1.9\""]
-    return []
+        out.append(f"/schema_version: the model uses 1.9 structures ({', '.join(used)}) but declares "
+                   f"{model.get('schema_version') or 'no version (1.8)'} — set schema_version to \"1.9\"")
+    used = structures_110(model)
+    if used and _version(model) < (1, 10):
+        out.append(f"/schema_version: the model uses 1.10 structures ({', '.join(used)}) but declares "
+                   f"{model.get('schema_version') or 'no version (1.8)'} — set schema_version to \"1.10\"")
+    return out
 
 
 def main(argv=None):

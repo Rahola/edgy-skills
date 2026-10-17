@@ -1,0 +1,17 @@
+# Generated from edgy-model.json by edgy_model_to_txt.py — do not edit by hand; edit the model.
+# company: Acme Transit (fictional) · assessed_at: 2026-10-16
+facet: identity
+language: en
+
+elements:
+  - purpose: "Everyone can travel without a car - Public transport as the default choice in the region" {id: PUR-01}
+  - story: "Your city, on time - Reliable everyday travel" {id: STO-01}
+  - content: "Live departures - Real-time information in every channel" {id: CON-01}
+  # intersection elements
+  - brand: "Acme Transit" {id: BRA-01}
+  - organisation: "Transit authority - Owns the network" {id: ORG-01}
+  - organisation: "Fares team - Fare products and sales" {id: ORG-02}
+  - organisation: "Platform team - Shared digital platforms" {id: ORG-03}
+  - organisation: "Inspection unit - Ticket inspection" {id: ORG-04}
+
+relationships:

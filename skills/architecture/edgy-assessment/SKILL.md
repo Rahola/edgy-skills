@@ -214,6 +214,41 @@ any of these must say `"schema_version": "1.9"` — the validator rejects 1.9 st
 older model, and every 1.8 model keeps producing byte-identical TXT, diff and ArchiMate
 output (tools/test_model_compat.py).
 
+Format **1.10** (optional, for the realisation trace of edgy-diagram 2.9.0) adds:
+- `journey` as an object **or an array** of journeys, each with an `id`;
+- `gaps` on the realisation-trace types, with these keys:
+
+  | Type | `gaps` keys |
+  |------|-------------|
+  | journey | `tasks`, `channels`, `products` |
+  | task | `products`, `channels` |
+  | channel | `products` |
+  | product | `capabilities`, `processes`, `organisation` |
+  | capability | the five above, plus `organisation` |
+  | process | `resources`, `organisation` |
+  | asset, people | `organisation` |
+
+A model that uses a journey array or one of these gaps must say
+`"schema_version": "1.10"`. A single journey with an `id` is still valid 1.9.
+
+**Migration 1.9 → 1.10.** Change these together:
+1. Turn `"journey": {…}` into `"journey": [{…, "id": "JRN-01"}, …]`. Keep
+   the existing journey and its relationships, and give every journey an id.
+2. Add the Experience links the trace walks to `relationships[]`:
+   - task → journey *is part of*;
+   - journey → channel *traverses*;
+   - task → channel *uses*;
+   - product → task *serves*;
+   - product → journey *features in*;
+   - product → channel *offers*;
+   - organisation → product *makes*;
+   - process → product *creates*.
+3. Record what you know is missing as `gaps` (the statuses as above).
+4. Set `"schema_version": "1.10"` and validate.
+
+1.9 and 1.8 models keep producing byte-identical output: the
+`compat-1.9` and `compat-1.8` fixtures check this.
+
 **Validate the model** before continuing — the schema lives in
 `assets/edgy-model.schema.json`, the validator needs only the standard library:
 

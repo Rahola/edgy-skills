@@ -1,0 +1,835 @@
+{
+  "facet": "all",
+  "language": "en",
+  "elements": {
+    "purpose": [
+      {
+        "change": "keep",
+        "current": "Everyone can travel without a car",
+        "target": "Everyone can travel without a car",
+        "detail": ""
+      }
+    ],
+    "story": [
+      {
+        "change": "keep",
+        "current": "Your city, on time",
+        "target": "Your city, on time",
+        "detail": ""
+      }
+    ],
+    "content": [
+      {
+        "change": "keep",
+        "current": "Live departures",
+        "target": "Live departures",
+        "detail": ""
+      }
+    ],
+    "capability": [
+      {
+        "change": "keep",
+        "current": "Fare product definition",
+        "target": "Fare product definition",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Sales in every channel",
+        "target": "Sales in every channel",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Validation and inspection",
+        "target": "Validation and inspection",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Timetable planning",
+        "target": "Timetable planning",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Real-time passenger information",
+        "target": "Real-time passenger information",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Revenue settlement",
+        "target": "Revenue settlement",
+        "detail": ""
+      }
+    ],
+    "asset": [
+      {
+        "change": "keep",
+        "current": "Fare engine",
+        "target": "Fare engine",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Ticket shop",
+        "target": "Ticket shop",
+        "detail": ""
+      },
+      {
+        "change": "change",
+        "current": "Inspection app",
+        "target": "Inspection app",
+        "detail": "hosting changed; time changed"
+      },
+      {
+        "change": "keep",
+        "current": "Timetable planner",
+        "target": "Timetable planner",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Passenger info hub",
+        "target": "Passenger info hub",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Settlement system",
+        "target": "Settlement system",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Integration platform",
+        "target": "Integration platform",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Fare rules",
+        "target": "Fare rules",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Trip events",
+        "target": "Trip events",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Timetable",
+        "target": "Timetable",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Sales ledger",
+        "target": "Sales ledger",
+        "detail": ""
+      }
+    ],
+    "process": [
+      {
+        "change": "keep",
+        "current": "Plan services",
+        "target": "Plan services",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Plan the network",
+        "target": "Plan the network",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Publish timetables",
+        "target": "Publish timetables",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Sell travel",
+        "target": "Sell travel",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Price fare products",
+        "target": "Price fare products",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Sell in every channel",
+        "target": "Sell in every channel",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Run services",
+        "target": "Run services",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Inspect tickets",
+        "target": "Inspect tickets",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Settle revenue",
+        "target": "Settle revenue",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Allocate revenue to operators",
+        "target": "Allocate revenue to operators",
+        "detail": ""
+      }
+    ],
+    "task": [
+      {
+        "change": "keep",
+        "current": "Buy a ticket",
+        "target": "Buy a ticket",
+        "detail": ""
+      }
+    ],
+    "channel": [
+      {
+        "change": "keep",
+        "current": "Mobile app",
+        "target": "Mobile app",
+        "detail": ""
+      }
+    ],
+    "journey": [
+      {
+        "change": "keep",
+        "current": "Daily commute",
+        "target": "Daily commute",
+        "detail": ""
+      }
+    ],
+    "organisation": [
+      {
+        "change": "keep",
+        "current": "Transit authority",
+        "target": "Transit authority",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Fares team",
+        "target": "Fares team",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Platform team",
+        "target": "Platform team",
+        "detail": ""
+      },
+      {
+        "change": "keep",
+        "current": "Inspection unit",
+        "target": "Inspection unit",
+        "detail": ""
+      }
+    ],
+    "product": [
+      {
+        "change": "keep",
+        "current": "Season ticket",
+        "target": "Season ticket",
+        "detail": ""
+      }
+    ],
+    "brand": [
+      {
+        "change": "keep",
+        "current": "Acme Transit",
+        "target": "Acme Transit",
+        "detail": ""
+      }
+    ],
+    "people": [
+      {
+        "change": "keep",
+        "current": "Ticket inspector",
+        "target": "Ticket inspector",
+        "detail": ""
+      }
+    ]
+  },
+  "links": [
+    {
+      "change": "keep",
+      "source": "organisation",
+      "target": "capability",
+      "verb": "has",
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source": "capability",
+      "target": "asset",
+      "verb": "requires",
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source": "process",
+      "target": "capability",
+      "verb": "realises",
+      "detail": ""
+    }
+  ],
+  "relationships": [
+    {
+      "change": "keep",
+      "source_id": "CAP-05",
+      "target_id": "APP-05",
+      "verb": "requires",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "CAP-05",
+      "target_id": "APP-07",
+      "verb": "requires",
+      "attributes": {
+        "primary": true
+      },
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "CAP-06",
+      "target_id": "APP-06",
+      "verb": "requires",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "CAP-08",
+      "target_id": "APP-11",
+      "verb": "requires",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "CAP-09",
+      "target_id": "APP-17",
+      "verb": "requires",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "CAP-10",
+      "target_id": "APP-20",
+      "verb": "requires",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "CAP-05",
+      "target_id": "APP-16",
+      "verb": "requires",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "CAP-09",
+      "target_id": "APP-16",
+      "verb": "requires",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "APP-07",
+      "target_id": "DAT-01",
+      "verb": "stores",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "APP-06",
+      "target_id": "DAT-02",
+      "verb": "stores",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "APP-11",
+      "target_id": "DAT-03",
+      "verb": "stores",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "APP-05",
+      "target_id": "DAT-04",
+      "verb": "stores",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "APP-07",
+      "target_id": "APP-05",
+      "verb": "transfers",
+      "attributes": {
+        "data": [
+          "DAT-01"
+        ],
+        "technology": "REST"
+      },
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "APP-06",
+      "target_id": "APP-20",
+      "verb": "transfers",
+      "attributes": {
+        "data": [
+          "DAT-02"
+        ],
+        "technology": "Kafka"
+      },
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "APP-11",
+      "target_id": "APP-17",
+      "verb": "transfers",
+      "attributes": {
+        "data": [
+          "DAT-03"
+        ],
+        "technology": "GTFS"
+      },
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "APP-05",
+      "target_id": "APP-20",
+      "verb": "transfers",
+      "attributes": {
+        "data": [
+          "DAT-04"
+        ],
+        "technology": "REST"
+      },
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-10",
+      "target_id": "PRO-11",
+      "verb": "contains",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-10",
+      "target_id": "PRO-12",
+      "verb": "contains",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-20",
+      "target_id": "PRO-21",
+      "verb": "contains",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-20",
+      "target_id": "PRO-22",
+      "verb": "contains",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-30",
+      "target_id": "PRO-32",
+      "verb": "contains",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-50",
+      "target_id": "PRO-51",
+      "verb": "contains",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-11",
+      "target_id": "CAP-08",
+      "verb": "realises",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-12",
+      "target_id": "CAP-08",
+      "verb": "realises",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-21",
+      "target_id": "CAP-04",
+      "verb": "realises",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-22",
+      "target_id": "CAP-05",
+      "verb": "realises",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-32",
+      "target_id": "CAP-06",
+      "verb": "realises",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-51",
+      "target_id": "CAP-10",
+      "verb": "realises",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-21",
+      "target_id": "DAT-01",
+      "verb": "accesses",
+      "attributes": {
+        "crud": "CRUD"
+      },
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-22",
+      "target_id": "DAT-01",
+      "verb": "accesses",
+      "attributes": {
+        "crud": "R"
+      },
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-22",
+      "target_id": "DAT-04",
+      "verb": "accesses",
+      "attributes": {
+        "crud": "CU"
+      },
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-32",
+      "target_id": "DAT-02",
+      "verb": "accesses",
+      "attributes": {
+        "crud": "C"
+      },
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-51",
+      "target_id": "DAT-04",
+      "verb": "accesses",
+      "attributes": {
+        "crud": "R"
+      },
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-12",
+      "target_id": "DAT-03",
+      "verb": "accesses",
+      "attributes": {
+        "crud": "RU"
+      },
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-02",
+      "target_id": "PRO-21",
+      "verb": "performs",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-02",
+      "target_id": "PRO-22",
+      "verb": "performs",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-04",
+      "target_id": "PRO-32",
+      "verb": "performs",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-01",
+      "target_id": "PRO-51",
+      "verb": "performs",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-03",
+      "target_id": "PRO-12",
+      "verb": "performs",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-01",
+      "target_id": "PRO-11",
+      "verb": "performs",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-21",
+      "target_id": "APP-07",
+      "verb": "requires",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-22",
+      "target_id": "APP-05",
+      "verb": "requires",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-32",
+      "target_id": "APP-06",
+      "verb": "requires",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-51",
+      "target_id": "APP-20",
+      "verb": "requires",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-12",
+      "target_id": "APP-11",
+      "verb": "requires",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRO-11",
+      "target_id": "APP-11",
+      "verb": "requires",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-02",
+      "target_id": "CAP-04",
+      "verb": "has",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-02",
+      "target_id": "CAP-05",
+      "verb": "has",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-04",
+      "target_id": "CAP-06",
+      "verb": "has",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-03",
+      "target_id": "CAP-08",
+      "verb": "has",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-03",
+      "target_id": "CAP-09",
+      "verb": "has",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-01",
+      "target_id": "CAP-10",
+      "verb": "has",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PEO-01",
+      "target_id": "APP-06",
+      "verb": "interacts with",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "PRD-01",
+      "target_id": "CAP-05",
+      "verb": "requires",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-02",
+      "target_id": "APP-07",
+      "verb": "manages",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-02",
+      "target_id": "APP-05",
+      "verb": "manages",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-03",
+      "target_id": "APP-11",
+      "verb": "manages",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-03",
+      "target_id": "APP-17",
+      "verb": "manages",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-03",
+      "target_id": "APP-16",
+      "verb": "manages",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-04",
+      "target_id": "APP-06",
+      "verb": "manages",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "keep",
+      "source_id": "ORG-01",
+      "target_id": "APP-20",
+      "verb": "manages",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "new",
+      "source_id": "CAP-04",
+      "target_id": "APP-06",
+      "verb": "requires",
+      "attributes": {},
+      "detail": ""
+    },
+    {
+      "change": "remove",
+      "source_id": "CAP-04",
+      "target_id": "APP-07",
+      "verb": "requires",
+      "attributes": {},
+      "detail": ""
+    }
+  ]
+}

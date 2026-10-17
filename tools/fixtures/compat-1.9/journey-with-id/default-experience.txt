@@ -1,0 +1,14 @@
+# Generated from edgy-model.json by edgy_model_to_txt.py — do not edit by hand; edit the model.
+# company: Acme Transit (fictional) · assessed_at: 2026-10-16
+facet: experience
+language: en
+
+elements:
+  - task: "Buy a ticket" {id: TAS-01}
+  - channel: "Mobile app" {id: CHA-01}
+  - journey: "Daily commute" {id: JRN-01}
+  # intersection elements
+  - brand: "Acme Transit" {id: BRA-01}
+  - product: "Season ticket" {id: PRD-01}
+
+relationships:

@@ -24,7 +24,7 @@
         "footnote": {"type": "string"}
       }
     },
-    "schema_version": {"type": "string", "pattern": "^\\d+\\.\\d+$", "description": "1.8 = the assessment model; 1.9 adds relationships[] between element ids, elements.people, organisation as an array and asset kinds. A model that uses a 1.9 structure must say 1.9 or later — tools/validate-edgy-model.py rejects 1.9 structures in an older model, so an old writer stays an old writer."},
+    "schema_version": {"type": "string", "pattern": "^\\d+\\.\\d+$", "description": "1.8 = the assessment model; 1.9 adds relationships[] between element ids, elements.people, organisation as an array and asset kinds; 1.10 adds journeys as an array and gaps on the realisation-trace types. A model that uses a 1.9 (1.10) structure must say 1.9 (1.10) or later — tools/validate-edgy-model.py rejects 1.9 structures in an older model, so an old writer stays an old writer."},
     "elements": {
       "type": "object",
       "required": ["purpose", "story", "content", "capability", "asset", "process", "task", "channel", "journey", "organisation", "product", "brand"],
@@ -37,7 +37,7 @@
         "process": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/element"}},
         "task": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/element"}},
         "channel": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/element"}},
-        "journey": {"$ref": "#/$defs/journey"},
+        "journey": {"description": "1.8 / 1.9: one journey; 1.10: one or several (array). Readers normalise with edgy_model_to_txt._as_list.", "oneOf": [{"$ref": "#/$defs/journey"}, {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/journey"}}]},
         "organisation": {"description": "1.8: one organisation; 1.9: one or several (array). Readers normalise with edgy_model_to_txt._as_list.", "oneOf": [{"$ref": "#/$defs/element"}, {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/element"}}]},
         "people": {"type": "array", "items": {"$ref": "#/$defs/element"}, "description": "1.9: roles and personas (EDGY People) — the actors of the architecture views"},
         "product": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/element"}},
@@ -75,7 +75,7 @@
               "crud": {"type": "string", "pattern": "^C?R?U?D?$"},
               "data": {"type": "array", "items": {"type": "string"}},
               "technology": {"type": "string"},
-              "container": {"type": "string"},
+              "container": {"type": "string", "description": "1.10: the id of the C4 container on the endpoint system that owns it, or two ids \"C-A; C-B\" (edgy-c4). Passed through to the TXT and the graph; the EDGY drawing and the ArchiMate export ignore it."},
               "primary": {"type": "boolean"},
               "change": {"type": "string", "enum": ["keep", "new", "change", "replace", "remove", "decide"]}
             }
@@ -123,7 +123,8 @@
         "primary": {"type": "boolean", "description": "Carries the type's core links in a triad diagram; default: the first element of the type"},
         "provenance": {"type": "string", "enum": ["confirmed", "analytical", "proposed"], "description": "confirmed = public source, analytical = this analysis's interpretation, proposed = suggestion; written as a tag into the TXT and read by edgy_semantic_review.py"},
         "tags": {"type": "array", "items": {"type": "string"}},
-        "band": {"type": "string", "enum": ["management", "core", "support"], "description": "1.9, processes: the value-chain band of an L1 process (edgy-diagram process_view: chain)"}
+        "band": {"type": "string", "enum": ["management", "core", "support"], "description": "1.9, processes: the value-chain band of an L1 process (edgy-diagram process_view: chain)"},
+        "gaps": {"$ref": "#/$defs/trace_gaps"}
       }
     },
     "asset": {
@@ -141,7 +142,8 @@
         "master": {"type": "boolean", "description": "1.9: kind data — master data"},
         "primary": {"type": "boolean", "description": "Carries the type's core links in a triad diagram; default: the first element of the type"},
         "provenance": {"type": "string", "enum": ["confirmed", "analytical", "proposed"]},
-        "tags": {"type": "array", "items": {"type": "string"}}
+        "tags": {"type": "array", "items": {"type": "string"}},
+        "gaps": {"$ref": "#/$defs/trace_gaps"}
       }
     },
     "capability": {
@@ -155,7 +157,7 @@
         "level": {"type": "string", "enum": ["Strategic", "Operational", "Foundational"]},
         "primary": {"type": "boolean", "description": "Carries the type's core links in a triad diagram; default: the first capability"},
         "provenance": {"type": "string", "enum": ["confirmed", "analytical", "proposed"]},
-        "gaps": {"type": "object", "additionalProperties": false, "description": "1.9: evidence status of an empty capability-view band (W127, qa.json model_gaps[]); only confirmed_absent is a finding", "properties": {"actors": {"type": "string", "enum": ["not_investigated", "out_of_scope", "unknown", "confirmed_absent"]}, "processes": {"type": "string", "enum": ["not_investigated", "out_of_scope", "unknown", "confirmed_absent"]}, "resources": {"type": "string", "enum": ["not_investigated", "out_of_scope", "unknown", "confirmed_absent"]}, "data": {"type": "string", "enum": ["not_investigated", "out_of_scope", "unknown", "confirmed_absent"]}, "products": {"type": "string", "enum": ["not_investigated", "out_of_scope", "unknown", "confirmed_absent"]}}},
+        "gaps": {"type": "object", "additionalProperties": false, "description": "1.9: evidence status of an empty capability-view band (W127, qa.json model_gaps[]); only confirmed_absent is a finding. 1.10 adds organisation (realisation trace, W129)", "properties": {"actors": {"$ref": "#/$defs/gap_status"}, "processes": {"$ref": "#/$defs/gap_status"}, "resources": {"$ref": "#/$defs/gap_status"}, "data": {"$ref": "#/$defs/gap_status"}, "products": {"$ref": "#/$defs/gap_status"}, "organisation": {"$ref": "#/$defs/gap_status"}}},
         "tags": {"type": "array", "items": {"type": "string"}}
       }
     },
@@ -165,9 +167,16 @@
       "properties": {
         "name": {"type": "string", "minLength": 1},
         "description": {"type": "string"},
-        "stages": {"type": "array", "items": {"type": "string"}}
+        "stages": {"type": "array", "items": {"type": "string"}},
+        "id": {"type": "string"},
+        "primary": {"type": "boolean"},
+        "provenance": {"type": "string", "enum": ["confirmed", "analytical", "proposed"]},
+        "tags": {"type": "array", "items": {"type": "string"}},
+        "gaps": {"$ref": "#/$defs/trace_gaps"}
       }
     },
+    "gap_status": {"type": "string", "enum": ["not_investigated", "out_of_scope", "unknown", "confirmed_absent"]},
+    "trace_gaps": {"type": "object", "additionalProperties": false, "description": "1.10: evidence status of an empty realisation-trace band (W129, qa.json model_gaps[]). Which keys a type may use is checked by tools/validate-edgy-model.py (journey: tasks, channels, products; task: products, channels; channel: products; product: capabilities, processes, organisation; process: resources, organisation; asset and people: organisation)", "properties": {"tasks": {"$ref": "#/$defs/gap_status"}, "channels": {"$ref": "#/$defs/gap_status"}, "products": {"$ref": "#/$defs/gap_status"}, "capabilities": {"$ref": "#/$defs/gap_status"}, "processes": {"$ref": "#/$defs/gap_status"}, "resources": {"$ref": "#/$defs/gap_status"}, "actors": {"$ref": "#/$defs/gap_status"}, "data": {"$ref": "#/$defs/gap_status"}, "organisation": {"$ref": "#/$defs/gap_status"}}},
     "coherence": {
       "type": "object",
       "required": ["alignment"],
