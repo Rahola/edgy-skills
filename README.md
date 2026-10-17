@@ -32,6 +32,34 @@ company (it calls `edgy-framework` and `edgy-diagram` internally), then
 organisation's target architecture run `edgy-target-state` instead.
 `edgy-framework` and `edgy-diagram` also work standalone.
 
+## Principles
+
+1. **EDGY 23 first.** Every map is valid EDGY: its element types, the
+   facet colour as the fill, and the 24 core links. The linter enforces
+   this; for example, E010 flags a core-link verb on a pair EDGY does not
+   link, and W102 flags a fill outside the EDGY palette.
+2. **Extensions are visible and opt-in.** Anything EDGY does not define is
+   drawn only when the input asks for it, and only as a badge, stroke,
+   layout or matrix cell. Examples are TIME, CRUD and the transition
+   overlay. Its legend section is marked "(extension)", and the delivery
+   says it is an extension.
+3. **An external standard needs a register entry.** The entry in
+   [`external-standards.md`](skills/documentation/edgy-diagram/references/external-standards.md)
+   says what the standard answers that EDGY cannot, why it was chosen,
+   what the alternatives were, and gives its source and licence.
+4. **Another notation is another skill.** C4 is the planned `edgy-c4`
+   skill, and ArchiMate is a one-way export. Neither is drawn with EDGY
+   shapes on an EDGY page.
+5. **Gaps are evidence, not guesses.** An empty part of a view is recorded
+   as a model gap with an evidence status. It becomes a finding only when
+   the absence is confirmed.
+6. **Offline and dependency-free.** The scripts use only the Python
+   standard library and never use the network. A generated presentation
+   cannot send its model anywhere.
+7. **No client material in the repository.** Examples are fictional, and a
+   generated deliverable stays with the client
+   (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+
 ## Using the skills
 
 Each `SKILL.md` is agent-agnostic — you can always just paste its content into
@@ -170,7 +198,8 @@ ArchiMate export) — is
 (shipped in v2.3.0). The next plan — application map, process map,
 capability view (processes, applications, data, actors) and an interactive
 single-page presenter for v2.4.0, then C4 diagrams per application as a
-separate `edgy-c4` skill in v2.5.0 — is
+separate `edgy-c4` skill and a click-through realisation trace from
+customer journey to organisation in v2.5.0 — is
 [`docs/development-plan-2026-10-architecture-views.md`](docs/development-plan-2026-10-architecture-views.md)
 (v2.4.0 part implemented; `edgy-c4` and the further presenter effects
 follow).

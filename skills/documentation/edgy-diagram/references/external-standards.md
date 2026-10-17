@@ -128,6 +128,39 @@ An external standard is added only when all of these hold:
 | **How it stays subordinate to EDGY** | Second badge slot, with its own legend section "(extension)". |
 | **Source and licence** | Common terms, no owner. |
 
+### Capability classification — nature, level, sourcing (in use, edgy-framework / edgy-assessment)
+
+| | |
+|---|---|
+| **What** | Common capability-mapping attributes: **nature** (core, enabling, management; or differentiating, commodity), **level** (strategic, operational, foundational) and **sourcing** (in-house, outsourced). |
+| **Where** | Model fields `nature` and `level` on a capability (`edgy-model.json`); the capability card and helper question 7 in edgy-framework; `[tags]` or `{rating:}` on the map. |
+| **Question it answers** | Where to differentiate and where to buy. EDGY has Capabilities, but it does not classify them. |
+| **Why this one** | Capability maps in enterprise architecture practice use these words, and management audiences already know them. They are written as attributes and tags, not as notation. |
+| **How it stays subordinate to EDGY** | Card text, a tag or a rating badge. The fill stays the facet colour. |
+| **Limits** | Two classifications share the field `nature`: core / enabling / management describes the role, differentiating / commodity the competitive value. A model picks one of them per delivery and says which. `level` is not the depth of the capability map; the card's "Level: 2" is the map depth. |
+| **Source and licence** | Common practice, no owner. |
+
+### Building blocks, work packages and waves (in use, edgy-target-state)
+
+| | |
+|---|---|
+| **What** | Planning units of target-state work. A **building block** is a product-independent part of the target architecture. A **work package** is one change to one block. **Waves** are the order of the changes. The terms are common in enterprise architecture and derive from TOGAF's building blocks and work packages. |
+| **Where** | edgy-target-state Phases 4–5: building-block hypothesis, mirror table, work-package cards, wave matrix. |
+| **Question it answers** | How a target state is split into decisions and changes. EDGY describes the enterprise, not the change programme. |
+| **Why this one** | Widely known to architects and IT. The terms are used as plain words, not as a method. |
+| **How it stays subordinate to EDGY** | Blocks are drawn as EDGY elements on the reference map with the transition overlay. Work packages and waves are cards and a matrix layout. No TOGAF notation, metamodel or phase (ADM) is used. |
+| **Source and licence** | Common practice. TOGAF® is a registered trademark of The Open Group. Only the general terms are used; no TOGAF text is reproduced. |
+
+### Strategy vocabulary — mission, vision, focus areas, KPIs (in use, edgy-framework / edgy-target-state)
+
+| | |
+|---|---|
+| **What** | The usual words of strategy documents. |
+| **Where** | Purpose map: mission and vision become Purposes, focus areas sub-Purposes, KPIs Outcomes (`measures`), initiatives Activities. |
+| **Why** | Strategy material arrives in these words. The skills map the words onto EDGY elements and draw nothing new. |
+| **How it stays subordinate to EDGY** | A mapping table onto EDGY elements; the map is pure EDGY. |
+| **Source and licence** | Common terms, no owner. |
+
 ### Architecture decision records (in use, edgy-framework / edgy-target-state)
 
 | | |
@@ -142,6 +175,14 @@ An external standard is added only when all of these hold:
 The following were designed in this repository and are documented in
 `SKILL.md`: the transition overlay (`{change: …}`, stroke only), the
 `reference`, `summary` and `triad` layouts, the status badge mechanism, the
-application, process and capability-view layouts, and the presenter. They
-follow the same principles: the map stays valid EDGY, and the extension is
-labelled in the legend and the delivery.
+application, process and capability-view layouts, the presenter, and the
+planned realisation trace (v2.5.0: it walks EDGY core links only). The
+following analysis constructs are also the skills' own:
+
+- the assessment's coherence scores and High / Medium / Low priorities;
+- the four deep-dive lenses (dependency, alignment, gaps, opportunities);
+- guardrails and the building-block mirror table;
+- the model-gap statuses (W127).
+
+They follow the same principles: the map stays valid EDGY, and the
+extension is labelled in the legend and the delivery.

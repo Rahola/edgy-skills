@@ -790,7 +790,7 @@ When producing an EDGY analysis in `identify` mode, the following minimum requir
 | Identity | Purpose | 1 | At least 2 sentences + analysis |
 | Identity | Story | 1 | At least 2 sentences + analysis |
 | Identity | Content | 1 | At least 2 sentences + analysis |
-| Architecture | Capability | 3 | Table: nature (differentiating/commodity) + level (core/supporting) |
+| Architecture | Capability | 3 | Table: nature (core / enabling / management, or differentiating / commodity — say which) + level (strategic / operational / foundational), as the model fields `nature` and `level` |
 | Architecture | Asset | 2 | Description + ownership + strategic significance |
 | Architecture | Process | 2 | Description + how it realises capabilities |
 | Experience | Task | 3 | Description + customer segment |

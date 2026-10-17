@@ -90,7 +90,13 @@ contract 1 (`edgyId`, `edgyType`, `edgyOcc` …) and every legend cell
   swimlane layout, maturity / hosting badges, ArchiMate export, C4 planned)
   with what it answers, why it was chosen, alternatives, how it stays
   subordinate to EDGY, and its source and licence. CONTRIBUTING: no external
-  standard without an entry; NOTICE names the third parties.
+  standard without an entry; NOTICE names the third parties. An audit of
+  every skill added the capability classification (nature, level,
+  sourcing), the building-block / work-package terms (TOGAF-derived) and
+  the strategy vocabulary, and lists the skills' own analysis constructs.
+- **README: Principles** — EDGY 23 first, visible opt-in extensions, the
+  register, another notation as another skill, gaps as evidence, offline,
+  no client material.
 
 **edgy-assessment 1.10.0**
 - Model format **1.9** (additive): `relationships[]` between element ids,
@@ -115,6 +121,8 @@ contract 1 (`edgyId`, `edgyType`, `edgyOcc` …) and every legend cell
 - *Modelling applications, data and actors*: applications and data as
   Assets of a kind, owners and performers, primary capability, master data,
   integrations, TIME — and model gaps vs findings.
+- Fix: the identify-mode capability table used other values for `nature`
+  and `level` than the model schema; it now uses the schema's values.
 
 **edgy-target-state 1.2.0**
 - Optional application landscape and capability × application matrix from

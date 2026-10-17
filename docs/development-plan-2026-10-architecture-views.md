@@ -2,7 +2,7 @@
 
 **Revision 5 (2026-10-16) — LOCKED. Approved by the maintainer after the Vibe and Codex follow-up reviews on PR #7; implementation of v2.4.0 (Sprints 21a–24) has started on this branch. Deviations found during implementation are recorded in `AGENT_LOG.md` and in §12. Scope:
 v2.4.0 = foundations, application / process / capability views and a
-presenter-lite in core; v2.5.0 = a separate `edgy-c4` skill in this repo;
+presenter-lite in core; v2.5.0 = a separate `edgy-c4` skill in this repo and the realisation trace (F7, revision 6);
 presenter effects only after workshop demand.** Revisions 1–3 were
 reviewed by four reviewer agents (generator feasibility, EDGY / C4
 modelling, presenter front-end, adversarial second round); revision 3 by
@@ -383,10 +383,129 @@ window (`window.open` + `postMessage`). A v2.5.0 plan only if workshops on
 real engagements show demand; built against `contract: 1`, so it can also
 live in a companion repo.
 
+### F7 Realisation trace — click from a journey to the organisation and back (v2.5.0)
+
+**Source: owner request, 2026-10-17** (after the v2.4.0 showcase). Start from a
+customer journey or task, click an element and open a view of the elements
+that make the clicked element possible: products and services, then
+capabilities, then processes, assets and actors, and last the organisation.
+The same pages read the other way: from an organisation up to the journeys
+it serves. Owner decisions: channels are included; processes, assets and
+actors share one level; both directions are built.
+
+**EDGY only.** The trace walks the EDGY 23 core links and the influence
+verbs v2.4.0 added. It uses no external standard (principle 1 of
+`references/external-standards.md`), so it needs no register entry; it is
+listed there among the skills' own extensions. "Realises" is an EDGY link
+only from a process to a capability; the other steps are *serves*,
+*requires*, *performs*, *has* and *makes*. The view is therefore called the
+**realisation trace** (fi *toteutusketju*), and every edge on it carries
+its real EDGY verb in the EDGY direction, whichever way the reader clicks.
+
+**Levels.** Each type of element in the chain has a level:
+
+| Level | Elements | Name in the view (en / fi) |
+|-------|----------|----------------------------|
+| 1 | Journey | Journeys / Asiakaspolut |
+| 2 | Task, Channel | Tasks and channels / Tehtävät ja kanavat |
+| 3 | Product (products and services) | Products / Tuotteet ja palvelut |
+| 4 | Capability | Capabilities / Kyvykkyydet |
+| 5 | Process, Asset, People | Realisers / Toteuttajat (processes, assets, actors) |
+| 6 | Organisation | Organisation / Organisaatio |
+
+**Links used** (source → target, verb; everything else, flows such as
+`transfers` included, is left out):
+
+| Between levels | Links |
+|----------------|-------|
+| 1 ↔ 2 | task → journey *is part of*; journey → channel *traverses* |
+| 2 ↔ 2 | task → channel *uses* (shown beside the focus) |
+| 3 → 1, 2 | product → task *serves*; product → journey *features in* |
+| 3 → 4 | product → capability *requires* |
+| 5 → 3 | process → product *creates* |
+| 5 → 4 | process → capability *realises*; capability → asset *requires* |
+| 5 ↔ 5 | process → asset *requires*; process → asset (data) *accesses*; people → asset *interacts with* (influence verbs from v2.4.0) |
+| 5, 6 → 5 | organisation / people → process *performs* (people as in the v2.4.0 swimlane) |
+| 6 → 3, 4, 5 | organisation → product *makes*; organisation → capability *has*; organisation → asset *manages* (or `{owner:}`); organisation *contains* people |
+| within a type | *contains* (journey stages, process levels, organisation units) as parent / parts chips on the focus card, not as bands |
+
+**Page.** `map_type: trace`, `focus: TSK-03`. One page per element:
+
+- **above:** the directly linked elements of a lower level number (what
+  the focus serves), smaller and dimmed;
+- **centre:** the focus card, with the chips *part of* / *parts* and, on
+  the same row, the directly linked elements of its own level (a task's
+  channels, a process's assets and actors);
+- **below:** the directly linked elements of a higher level number (what
+  realises the focus), grouped by level with the level name as a band
+  header. A product page therefore shows its capabilities, the processes
+  that create it and the organisation that makes it, each under its level.
+
+`trace_direction: both | down | up` (default `both`) leaves out the
+*above* or *below* band, for a workshop that reads only one way. More than
+12 cards in a band are shown as 11 cards and a "+N more" card that opens a
+list page.
+
+**Pages from the graph.** `expand: trace` writes one trace page for every
+element in the chain that has an explicit id (`where:` as in v2.4.0, plus
+`where: from JRN-01` = only the elements reachable from that journey) and a
+**trace index** page first: journeys as the entry points for the downward
+direction, organisations for the upward one. `edgy_model_to_txt.py --views
+trace` writes the same from a model.
+
+**Clicking.**
+
+- **draw.io:** every card that has its own trace page links to it
+  (`link="data:page/id,…"`, a native draw.io page link). The pages work
+  without the presenter, in draw.io and in its exported PDF. Cards
+  without a page are not linked, and the generator reports how many.
+- **Presenter:** a click on a linked card zooms into its page. A
+  breadcrumb keeps the path the reader took (journey → task → product → …),
+  with a deep link `#/trace/JRN-01/TSK-03/PRD-02` and *back* to return. It
+  computes no layout: every page is drawn by the generator.
+
+This is a presenter effect beyond the F6a cap. The owner asked for it, so
+it is part of F7 and not a conditional F6b item. The draw.io page links
+carry the deliverable if the presenter part slips.
+
+**Gaps.** An empty *below* band on the way down is a model gap, never a
+layout error. Examples: a task that no product serves, a product that
+requires no capability, a capability with no realiser. It is **W129**
+with the same evidence statuses as W127 (`not_investigated`, `unknown`,
+`out_of_scope`, `confirmed_absent`), written to `qa.json` `model_gaps[]`.
+On the way up, an element that serves nothing (an asset no capability
+requires) is a `Note:`, because an orphan is a finding to check, not a
+missing link.
+
+**Model format 1.10** (edgy-assessment). `journey` becomes one journey or an
+array of journeys with `id` (in 1.9 it is one object without an id; the
+change uses the same `oneOf` contract as `organisation` in 1.9), so that
+every element type of the chain has ids. `gaps` on every chain type,
+with the level names as keys (`{products: confirmed_absent}` on a task).
+The migration contract stays: 1.9 input gives byte-identical TXT, diff and
+ArchiMate output.
+
+**With C4 (F4).** When `edgy-c4` is installed, an application asset card on
+a trace page also links to its C4 Level 1 page, through the extension
+contract. The trace then reaches from the customer journey to the
+containers of one application.
+
+**Tests.**
+
+- traversal unit tests: levels, both directions, only the listed links, flows excluded;
+- every page link resolves to an existing page;
+- `trace_direction`, and the "+N more" list page;
+- W129 and `model_gaps[]` for each status;
+- 1.10 schema and migration fixtures;
+- a presenter self-test of the breadcrumb and deep link;
+- an eval run with lint, visual and layout findings at 0 / 0 / 0 on the eval model;
+- a pixel review of the trace from one journey to the organisation and back.
+
 ## 5. Scope decisions
 
 - **v2.4.0 in:** F0, F1, F2, F3, F5, F6a, README correction.
-- **v2.5.0:** `edgy-c4`; F6b if demanded.
+- **v2.5.0:** `edgy-c4`; F7 realisation trace (owner request 2026-10-17);
+  F6b if demanded.
 - **Out:** live editing in the presenter; themable diagram colours; C4
   Level 4, deployment and dynamic diagrams; any hosted service.
 - **No external runtime dependency**; generator and presenter stay
@@ -397,8 +516,8 @@ live in a companion repo.
 
 | Skill | v2.3.0 | v2.4.0 | v2.5.0 |
 |-------|--------|--------|--------|
-| edgy-diagram | 2.7.0 | **2.8.0** — F0 (graph, ids, expansion, foreign-notation hook, contract), application / process / capability-view / matrix layouts, presenter-lite | 2.9.0 — shape hook for extensions |
-| edgy-assessment | 1.9.0 | **1.10.0** — schema 1.9 + migration contract, views from the model, script-location fix, optional `presentation.html` | — |
+| edgy-diagram | 2.7.0 | **2.8.0** — F0 (graph, ids, expansion, foreign-notation hook, contract), application / process / capability-view / matrix layouts, presenter-lite | 2.9.0 — shape hook for extensions; `map_type: trace`, `expand: trace`, W129, page links, presenter breadcrumb (F7) |
+| edgy-assessment | 1.9.0 | **1.10.0** — schema 1.9 + migration contract, views from the model, script-location fix, optional `presentation.html` | 1.11.0 — model format 1.10 (ids and `gaps` on every chain type), `--views trace` (F7) |
 | edgy-framework | 1.6.0 | **1.7.0** — modelling guidance for applications, data, actors | 1.8.0 — deriving C4 from the Architecture facet |
 | edgy-target-state | 1.1.0 | **1.2.0** — optional application landscape when the model has `kind: application` assets; `ownership: required` | 1.3.0 — C4 L1/L2 for applications in decided building blocks |
 | edgy-deep-dive | 1.1.0 | 1.1.1 — "organisation: object or array" | — |
@@ -418,6 +537,7 @@ No breaking changes for 1.8 inputs (migration contract in F0);
 | **24 — Capability view and release** | F3 (five bands, `hops`, matrices, W127 + `model_gaps[]`), F5 diff / ArchiMate mapping, eval set, skill instructions, README correction, CHANGELOG, **v2.4.0** | 5–6 d |
 | *25 — edgy-c4 (v2.5.0)* | skill scaffold, `requires:` in validator / registry / adapters, renderer shape hook, L1 derivation, L2 layout, C001–C006, C4-PlantUML, target-state conditional | 6–7 d |
 | *26 — Presenter effects (conditional)* | F6b items that workshops asked for | 4–5 d |
+| *27 — Realisation trace (v2.5.0)* | F7: traversal over levels, `map_type: trace` layout (above / centre / below bands), `expand: trace` + index page, draw.io page links, W129 + `model_gaps[]`, model format 1.10 + migration fixtures, `--views trace`, presenter breadcrumb and deep link, example and eval | 6–7 d |
 
 **v2.4.0 ≈ 24–28 working days**; v2.5.0 adds 6–7 days for C4 and up to 5
 for effects. 21a and 21b are independent work packages, each reviewable on
@@ -506,6 +626,12 @@ so there is a visible result after the second sprint.
 | Licences | TIME credited to Gartner; C4 (v2.5.0): attribution a courtesy for the notation, C4-PlantUML MIT notice only if vendored |
 
 ## 11. Change log of this plan
+
+**Revision 6 (2026-10-17) — v2.5.0 scope only.** The owner added F7,
+the realisation trace (§4), after the v2.4.0 showcase. The decisions:
+channels are included; processes, assets and actors share one level; the
+trace works in both directions. Nothing in the v2.4.0 scope, its
+acceptance or its tests changes.
 
 **Revision 5 — follow-up reviews of revision 4 (Vibe, Codex).** Both
 support the revision 4 scope; these are the contract details they asked to
@@ -603,3 +729,4 @@ nothing of it is in the v2.4.0 PR.
 | `examples/capability-view.txt` | v2.4.0 | `focus: CAP-05`, `expand: per-capability`, `gaps:` statuses, CRUD matrix page |
 | `examples/eval/architecture-views.txt` | v2.4.0 | the eval model in §8 |
 | `skills/documentation/edgy-c4/examples/c4-fare-engine.txt` | v2.5.0 | L1 + L2 for one application |
+| `examples/trace-map.txt` | v2.5.0 | journey "Buy a season ticket": 3 tasks, 2 channels, 2 products, 4 capabilities, their processes, assets and actors, 3 organisations; one `gaps:` status of each kind |

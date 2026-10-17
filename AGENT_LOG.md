@@ -20,6 +20,40 @@ perustelut.
 
 ---
 
+### 2026-10-17 — Claude Code (showcase, F7 plan, principles audit)
+
+**Showcase of v2.4.0** (outputs in the session only, not committed: a
+generated presentation is a deliverable). Pixel review found four defects,
+fixed with tests:
+
+- edges ran through group title text and shared one bend point, so they
+  read as a false link: the router now adds a junction cost and a soft
+  title cost;
+- Finnish view pages had English page names;
+- one label sat on a card under Pillow text metrics: the label fallback
+  now also weighs spots just beside the path;
+- transition labels showed the 1.9 `data` list as `['DAT-02']`.
+
+**F7 realisation trace** (owner request): added to the v2.5.0 scope as
+plan revision 6. Owner decisions: channels are in; processes, assets and
+actors share one level; both directions. It walks EDGY links only, so it
+needs no register entry.
+
+**Principles audit:** every SKILL.md, template and reference was searched
+for classifications from outside EDGY.
+
+- Three were in use without an entry, and were added to the register: the
+  capability nature / level / sourcing classification, the
+  building-block / work-package terms (TOGAF-derived), and the strategy
+  vocabulary.
+- The edgy-framework identify table used other `nature` / `level` values
+  than the model schema; it was fixed to the schema.
+- The skills' own analysis constructs are now listed.
+- README gained a Principles section that points to the register instead
+  of repeating it.
+
+---
+
 ### 2026-10-16 — Claude Code (Sprints 21a–24: architecture views, v2.4.0)
 
 **Assignment:** `docs/development-plan-2026-10-architecture-views.md`
