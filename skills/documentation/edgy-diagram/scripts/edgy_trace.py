@@ -71,6 +71,8 @@ W129_KEYS = {'journey': ('tasks',), 'task': ('products',), 'channel': ('products
 GAP_STATUSES = ('not_investigated', 'out_of_scope', 'unknown', 'confirmed_absent')
 LIST_COLUMNS = 5     # cards per row on a list page
 EDGE_ROW_MAX = 8     # a row with more cards: its edges are shown by position, the verb in the row header
+EDGE_BAND_MAX = 8    # a band with more cards (all its rows): the same for the whole band — ten links converging on
+                     # one focus from several rows are a bundle of parallel lines nobody can follow
 MAX_BAND = 12          # more cards than this in a band: MAX_BAND - 1 cards and a "+N more" card
 SOFT_CAP_PAGES = 100   # above this many trace pages a note suggests a narrower where:
 
@@ -300,6 +302,8 @@ def materialize(parser, graph):
     if only:
         nbs = [x for x in nbs if x['band'] == only]
     focus_extra = {'highlight': 'yes', 'tband': 'focus'}
+    if only and focus['id'] in links:
+        focus_extra['tlink'] = page_id(focus['id'])     # a list page's focus card leads back to its trace page
     if notation_page(graph, focus):
         focus_extra['tc4'] = notation_page(graph, focus)
     nodes = [dict(focus, _extra=focus_extra)]
@@ -395,8 +399,9 @@ def prepare(p) -> None:
     p.trace_row_verbs = {}
     listing = bool(p.view.get('trace_list'))
     for band, by_level in bands.items():
+        band_total = sum(len(ids) for ids in by_level.values()) + (1 if band in (p.trace_more or {}) else 0)
         for lvl, ids in by_level.items():
-            if not listing and len(ids) <= EDGE_ROW_MAX:
+            if not listing and len(ids) <= EDGE_ROW_MAX and (band == 'centre' or band_total <= EDGE_BAND_MAX):
                 continue
             members = set(ids)
             verbs = []
@@ -408,7 +413,8 @@ def prepare(p) -> None:
             p.trace_row_verbs[(band, lvl)] = verbs
             if verbs:
                 arch._once(p, f"trace: {len(ids)} {LEVEL_TITLES[lang][lvl].lower()} "
-                              f"{'listed' if listing else 'in one row'} — their links ({', '.join(verbs)}) are shown by "
+                              f"{'listed' if listing else 'in one row' if len(ids) > EDGE_ROW_MAX else 'in a crowded band'}"
+                              f" — their links ({', '.join(verbs)}) are shown by "
                               f"position and named in the row header, not drawn", note=True)
     unlinked = getattr(p, 'trace_unlinked', 0)
     if unlinked:
@@ -436,19 +442,15 @@ def layout(p, items: List[str]) -> Dict[str, Tuple[int, int]]:
     centre: List[str] = []
     if (p.view.get('trace_list') or ''):
         # list page: the focus, then the whole band as a grid of LIST_COLUMNS (one long row breaks W120)
+        # one row group per level, each with its own header (a list of capabilities and processes under one
+        # "Products" header misleads); the focus stays on its side, as on the trace page
         band = p.view['trace_list'].lower()
-        listed = [i for lvl in sorted(bands.get(band, {})) for i in bands[band][lvl] if i in present]
-        rows.append(('centre', None, [focus]))
-        lvl0 = min(bands.get(band) or [None]) if bands.get(band) else None
-        for k in range(0, len(listed), LIST_COLUMNS):
-            rows.append(('list', None, listed[k:k + LIST_COLUMNS]))
-        if listed and lvl0 is not None:
-            verbs = (getattr(p, 'trace_row_verbs', {}) or {}).get((band, lvl0)) or []
-            for lv in sorted(bands[band]):
-                verbs += [v for v in (getattr(p, 'trace_row_verbs', {}) or {}).get((band, lv)) or [] if v not in verbs]
-            list_header = (LEVEL_TITLES[lang][lvl0] + (f" — {' / '.join(verbs)}" if verbs else '')
-                           + f" ({len(listed)})", listed[0])
-        bands = {'above': {}, 'centre': {}, 'below': {}}
+        groups = []
+        for lvl in sorted(bands.get(band, {})):
+            ids = [i for i in bands[band][lvl] if i in present]
+            groups += [(band, lvl, ids[k:k + LIST_COLUMNS]) for k in range(0, len(ids), LIST_COLUMNS)]
+        rows = groups + [('centre', None, [focus])] if band == 'above' else [('centre', None, [focus])] + groups
+        bands = {b: (bands.get(b, {}) if b == band else {}) for b in ('above', 'centre', 'below')}
     else:
         for lvl in sorted(bands['above']):
             rows += _split_by_type(p, 'above', lvl, [i for i in bands['above'][lvl] if i in present])
@@ -461,7 +463,8 @@ def layout(p, items: List[str]) -> Dict[str, Tuple[int, int]]:
 
     def row_title(band, lvl):
         verbs = row_verbs.get((band, lvl))
-        return titles[lvl] + (f" — {' / '.join(verbs)}" if verbs else '')
+        count = f" ({len(bands[band][lvl])})" if p.view.get('trace_list') and lvl in bands.get(band, {}) else ''
+        return titles[lvl] + (f" — {' / '.join(verbs)}" if verbs else '') + count
     header_w = {}
     for band, lvl, ids in rows:
         if lvl is not None and ids:
@@ -519,9 +522,6 @@ def layout(p, items: List[str]) -> Dict[str, Tuple[int, int]]:
     dx = x_left - min(x for x, _ in positions.values())
     positions = {i: (x + dx, yy) for i, (x, yy) in positions.items()}
     p.trace_more_pos = {b: (x + dx, yy, w, h) for b, (x, yy, w, h) in p.trace_more_pos.items()}
-    if (p.view.get('trace_list') or '') and 'list_header' in locals():
-        text, first = list_header
-        p._chain_headers.append((text, first, 0, int(edgy_text.measure(text, 12, bold=True)) + 16, -34))
     for text, first, hw in level_headers:
         # the level header stands left of its row, right-aligned to the card column (edges come from above / below)
         p._chain_headers.append((text, first, (x_left - hw - 20) - positions[first][0], hw,

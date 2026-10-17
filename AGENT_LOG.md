@@ -20,6 +20,21 @@ perustelut.
 
 ---
 
+### 2026-10-17 — Claude Code (v2.5.0 phase 4: first test findings)
+
+Claude sub-agent 1 (T10, Q01) found trace pages that passed QA 0/0/0 but
+could not be read: on organisation pages about fourteen edges converged on
+the focus from three rows, and a "+N more" card had edges through it.
+
+- **Crowded band, not just a crowded row.** When a band holds more than
+  eight cards in all its rows, its links to the focus are shown by
+  position and named in the row headers, as for a single row of more than
+  eight. A bundle of parallel lines into one card is not information.
+- **List pages: one header per level**, with the count, and the focus on
+  the side its band is on. One "Products" header over capabilities and
+  processes misled. The focus card links back to its trace page.
+- The "+N more" card counts as page content, so the page grows to hold it.
+
 ### 2026-10-17 — Claude Code (v2.5.0 phase 3: development)
 
 Sprints 25a–29 of the locked plan on the v2.5.0 branch (draft PR #8):

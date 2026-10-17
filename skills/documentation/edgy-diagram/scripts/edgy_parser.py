@@ -1594,6 +1594,8 @@ class EDGYParser:
                 hx, hy = abs_pos[anchor_eid][0] + dx, abs_pos[anchor_eid][1] + dy
                 boxes.append((hx + hw, hy + 24))
                 header_bottoms.append(hy + 24)
+        for mx, my, mw, mh in (getattr(self, 'trace_more_pos', None) or {}).values():
+            boxes.append((mx + mw, my + mh))           # the "+N more" card of a trace page is content too
         if boxes:
             max_x = max(bx for bx, _ in boxes)
             max_y = max(by for _, by in boxes)
