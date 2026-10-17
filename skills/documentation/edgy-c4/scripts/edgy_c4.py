@@ -160,6 +160,9 @@ def prepass(pages: List[Tuple[str, str]], graph):
         level = (h.get('level') or 'context').lower()
         system = _system_of(h)
         if system:
+            if (level, system) in index['pages']:
+                findings.append(('error', 'C006', f"a second {level} page for {system} — one page per level and "
+                                 f"system (its page id would repeat)", system, name))
             index['pages'][(level, system)] = page_id(text)
         if level != 'container':
             continue
@@ -250,6 +253,14 @@ def _wrap(text: str, width: float, size: float, bold: bool = False) -> List[str]
     return lines
 
 
+def legend_width(entries: List[Tuple[str, str, bool]]) -> float:
+    """The legend's natural width: the page is centred on max(content, legend), never on the content alone."""
+    w = 12 + _measure(LEGEND_TITLE, 11, True) + 16 + 8
+    for label, _kind, _dashed in entries:
+        w += 22 + _measure(label, 10) + 12 + 14
+    return w + 8
+
+
 class Drawing:
     def __init__(self):
         self.cells: List[str] = []
@@ -315,14 +326,15 @@ class Drawing:
         style = (f"edgeStyle=none;html=1;endArrow=classic;endFill=1;strokeColor=#707070;fontSize=11;"
                  f"fontColor=#333333;labelBackgroundColor=#ffffff;{'dashed=1;' if dashed else ''}"
                  f"edgyNotation={NOTATION};")
-        self.cells.append(f'<mxCell id="{self._id()}" value="{html.escape(label, quote=True)}" style="{style}" '
+        # html=1: the label is HTML, so its text is escaped once as HTML and once for the attribute
+        self.cells.append(f'<mxCell id="{self._id()}" value="{html.escape(html.escape(label), quote=True)}" style="{style}" '
                           f'edge="1" source="{src}" target="{tgt}" parent="1">'
                           f'<mxGeometry relative="1" as="geometry"/></mxCell>')
 
     def legend(self, entries: List[Tuple[str, str, bool]], y: float):
         """Legend at the bottom: the attribution title and one swatch per kind drawn on the page."""
         x = 40
-        w = max(self.max_x - 40, 640)
+        w = max(self.max_x - 40, legend_width(entries))
         rows = 1
         style = (f"rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#fafafa;strokeColor=#e5e5e5;"
                  f"edgyNotation={NOTATION};edgyRole=legend;")
@@ -343,7 +355,7 @@ class Drawing:
             cx += 22 + lw + 14
         self.max_x = max(self.max_x, cx + 20)
 
-    def xml(self) -> str:
+    def xml(self) -> str:  # noqa: D401
         pw, ph = int(self.max_x + 60), int(self.max_y + 60)
         return ('<?xml version="1.0" encoding="utf-8"?>\n'
                 f'<mxGraphModel dx="{pw}" dy="{ph}" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" '
@@ -387,6 +399,12 @@ def generate_page(page_text: str, graph):
         d.text(problem, 40, 40, 640, 40)
         d.legend([], 120)
         return d.xml(), [('error', 'C004', problem, system or None)]
+    if level not in ('context', 'container'):
+        msg = f"level: {level} is not drawn by edgy-c4 0.1.0 (context, container)"
+        d = Drawing()
+        d.text(msg, 40, 40, 640, 40)
+        d.legend([], 120)
+        return d.xml(), [('error', 'C004', msg, system or None)]
     if level == 'container':
         return _container_page(page_text, graph, system)
     return _context_page(page_text, graph, system)
@@ -444,8 +462,19 @@ def _context_page(page_text: str, graph, system: str):
     d = Drawing()
     title = f"System context — {node['name']} [{system}]"
     persons = [{'key': m, 'w': PERSON_W} for m in observed + [m for m in inferred if m not in observed]]
-    rows_w = [len(persons) * (PERSON_W + GAP_X), len(partners) * (BOX_W + GAP_X), BOX_W + GAP_X]
-    centre = 40 + max(rows_w) / 2
+    def is_ext(mid):
+        return 'external' in [t.lower() for t in (graph.get(mid) or {}).get('tags') or []]
+    entries = [('Person', 'person', False)] if observed else []
+    if any(m not in observed for m in inferred):
+        entries.append((INFERRED_TEXT, 'person', True))
+    entries.append(('Software System', 'system', False))
+    if is_ext(system) or any(is_ext(p) for p in partners):
+        entries.append(('External system', 'external', False))
+    note = 'No Person in the model: nobody interacts with this system or performs a process that requires it.'
+    note_w = _measure(note, 11) + 24
+    rows_w = [len(persons) * (PERSON_W + GAP_X) - GAP_X, len(partners) * (BOX_W + GAP_X) - GAP_X, BOX_W,
+              legend_width(entries), 0 if persons else note_w]
+    centre = 40 + max(rows_w) / 2           # the legend counts: a narrow diagram is centred on the page
     d.text(title, 40, 20, max(_measure(title, 14, True) + 20, 300), 28, size=14, bold=True)
     y = 80
     cells = {}
@@ -463,9 +492,13 @@ def _context_page(page_text: str, graph, system: str):
     else:
         findings.append(('note', 'C4-L1', f"no Person for {system}: no people interact with it and no process that "
                          f"requires it is performed — add an 'interacts with' or 'performs' link", system))
+        d.text(note, centre - note_w / 2, y, note_w, 40, size=11)   # said on the page, not only on the console
+        y += 40 + 40
     l2 = index['pages'].get(('container', system))
     name, desc = _label(node)
-    sid, sh = d.box('system', name, '[Software System]', desc, centre - BOX_W / 2, y, link=l2)
+    sid, sh = d.box('external' if is_ext(system) else 'system', name,
+                    '[Software System, external]' if is_ext(system) else '[Software System]', desc,
+                    centre - BOX_W / 2, y, link=l2)
     cells[system] = sid
     y += sh + ROW_GAP
     if partners:
@@ -486,12 +519,6 @@ def _context_page(page_text: str, graph, system: str):
     for (s, t), labels in links.items():
         if s in cells and t in cells:
             d.edge(cells[s], cells[t], '; '.join(labels))
-    entries = [('Person', 'person', False)] if observed else []
-    if any(m not in observed for m in inferred):
-        entries.append((INFERRED_TEXT, 'person', True))
-    entries.append(('Software System', 'system', False))
-    if any('external' in [t.lower() for t in graph.get(p).get('tags') or []] for p in partners):
-        entries.append(('External system', 'external', False))
     d.legend(entries, d.max_y + 50)
     return d.xml(), findings
 
@@ -522,10 +549,16 @@ def _container_page(page_text: str, graph, system: str):
             findings.append(('warning', 'C003', f"boundary crossing {r['source']} → {r['target']} has no "
                              f"{{technology:}} on its EDGY transfers", f"{r['source']} -> {r['target']}"))
     externals = []
+    person_ids = {p['id'] for p in persons}
     for r in rels + cross:
         for end in (r['source'], r['target']):
-            if end not in own and end not in externals and end not in {p['id'] for p in persons} and graph.get(end):
+            if end not in own and end not in externals and end not in person_ids and graph.get(end):
                 externals.append(end)
+    for r in rels:                                  # an endpoint nobody declared is never dropped in silence
+        for end in (r['source'], r['target']):
+            if end not in own and end not in person_ids and graph.get(end) is None:
+                findings.append(('error', 'C001', f"relationship {r['source']} → {r['target']}: {end} is not a "
+                                 f"container or person of this page, nor an element of the model", end))
     d = Drawing()
     title = f"Containers — {node['name']} [{system}]"
     d.text(title, 40, 20, max(_measure(title, 14, True) + 20, 300), 28, size=14, bold=True)
@@ -542,7 +575,10 @@ def _container_page(page_text: str, graph, system: str):
         return max([GAP_X] + [_measure(t, 11) + 40 for t in labels])
     gaps = [row_gap(r) for r in rows_of]
     inner_w = max([len(r) * BOX_W + (len(r) - 1) * g for r, g in zip(rows_of, gaps)] + [BOX_W])
-    total_w = max(inner_w + 80, len(externals) * (BOX_W + GAP_X), len(persons) * (PERSON_W + GAP_X))
+    entries = [('Person', 'person', False)] if persons else []
+    entries += [('Container', 'container', False), ('Software System', 'system', False)]
+    total_w = max(inner_w + 80, len(externals) * (BOX_W + GAP_X), len(persons) * (PERSON_W + GAP_X),
+                  legend_width(entries))
     centre = 40 + total_w / 2
     y = 100
     cells = {}
@@ -589,8 +625,6 @@ def _container_page(page_text: str, graph, system: str):
         if r['source'] in cells and r['target'] in cells:
             label = (r['description'] or '') + (f" [{r['technology']}]" if r['technology'] else '')
             d.edge(cells[r['source']], cells[r['target']], label.strip())
-    entries = [('Person', 'person', False)] if persons else []
-    entries += [('Container', 'container', False), ('Software System', 'system', False)]
     d.legend(entries, d.max_y + 50)
     return d.xml(), findings
 

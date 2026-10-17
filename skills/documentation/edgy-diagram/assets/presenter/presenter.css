@@ -181,3 +181,4 @@ g.drill:focus-visible circle, g.drill:hover circle { fill: #0052cc; stroke: #ffb
 g.deco.linked { cursor: pointer; }
 g.deco.linked:focus { outline: none; }
 g.deco.linked:focus-visible > :first-child, g.deco.linked:hover > :first-child { stroke: #0052cc; stroke-width: 2; }
+g.deco.linked:focus-visible > :first-child { stroke: #ffb000; stroke-width: 3; }

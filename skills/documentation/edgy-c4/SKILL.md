@@ -112,12 +112,12 @@ added to the derived ones; such a hand-written page must list its own `system:` 
 
 | Rule | Severity | Checks |
 |------|----------|--------|
-| C001 | error | `{container:}` names an unknown or invalid container, or one of neither endpoint |
+| C001 | error | `{container:}` names an unknown or invalid container, or one of neither endpoint; an L2 relationship names an undeclared id |
 | C002 | warning | a relationship without a description |
 | C003 | warning | an L2 relationship (or boundary crossing) without a technology |
-| C004 | error | `system:` is not an application asset, or is a platform / integration kind |
+| C004 | error | `system:` is not an application asset, or is a platform / integration kind; `level:` is not `context` or `container` |
 | C005 | warning | `system:` is not drawn on its hand-written L1 page |
-| C006 | error | a container id declared twice |
+| C006 | error | a container id declared twice, or two pages for the same level and system |
 
 An error stops the generator (exit 2, no file). C001 and C006 are checked in the notation
 prepass over all C4 pages, so page order never matters.

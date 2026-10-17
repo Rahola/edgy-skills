@@ -696,3 +696,6 @@ building, for the testers to check against; none changes a promise of §8.
 | `examples-vs-v2.4.0` | Compares the tag's committed `expected-*.drawio` with today's (both generated with the canonical tables; the golden test keeps today's current) instead of running the tag's generator; the CI checkout fetches tags (`fetch-depth: 0`). |
 | `--views trace` | Opt-in: never part of `--views all`. |
 | `where: from X` (phase 4, S02) | The closure also walks **same-level** links (process *requires* asset, task *uses* channel, people *interacts with* asset). Without them the chain broke inside level 5: an upward trace from an organisation never reached the processes that require its applications. The T05 row is updated. |
+| C-rules widened (phase 4) | C001 also covers an L2 relationship to an undeclared id; C004 an unsupported `level:` (0.1.0 draws context and container); C006 a second page for the same level and system. All three were silent before (exit 0, a wrong page or a dropped edge). |
+| Presenter pointer (phase 4) | Linked decorations and drill badges are exempt from the pan's pointer capture (a mouse click on the C4 badge or "+N more" did nothing); new self-test step `badge-no-pan` sends the real pointer sequence. |
+

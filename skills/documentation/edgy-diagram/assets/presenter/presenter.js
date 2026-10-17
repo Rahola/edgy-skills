@@ -188,6 +188,7 @@
       d.setAttribute('role', 'link');
       d.setAttribute('aria-label', to.trace === 'list' ? 'Show every card of this band' : 'Open ' + to.name);
       d.classList.add('linked');
+      addHitArea(d);
       function go() { openLink(d.getAttribute('data-link')); }
       d.addEventListener('click', function (ev) { ev.stopPropagation(); go(); });
       d.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); go(); } });
@@ -202,6 +203,22 @@
     var l = g.getAttribute('data-link');
     return l && has(pageIndex, l) && views[pageIndex[l]].trace === 'page' ? l : null;
   }
+  function cssUnit() {                                    // SVG units per CSS pixel at the view's full size
+    var w = svg && svg.getBoundingClientRect().width;
+    return w && home ? Math.max(1, home[2] / w) : 1;
+  }
+  function addHitArea(d) {                                // a small link (the C4 badge) gets a 24 px target
+    var b = d.getBBox(), u = cssUnit(), w = Math.max(b.width, 24 * u), h = Math.max(b.height, 24 * u);
+    if (w === b.width && h === b.height) { return; }
+    var hit = document.createElementNS(SVGNS, 'rect');
+    hit.setAttribute('x', String(b.x + b.width / 2 - w / 2));
+    hit.setAttribute('y', String(b.y + b.height / 2 - h / 2));
+    hit.setAttribute('width', String(w));
+    hit.setAttribute('height', String(h));
+    hit.setAttribute('fill', 'transparent');
+    hit.setAttribute('class', 'hit');
+    d.appendChild(hit);
+  }
   function addDrillBadge(g, e) {
     var b = g.getBBox();
     var badge = document.createElementNS(SVGNS, 'g');
@@ -209,15 +226,16 @@
     badge.setAttribute('tabindex', '0');
     badge.setAttribute('role', 'link');
     badge.setAttribute('aria-label', 'Open the trace of ' + (e ? e.name : g.getAttribute('data-id')));
+    var r = Math.max(11, 12 * cssUnit());                // at least 24 CSS px across, also on a phone
     var c = document.createElementNS(SVGNS, 'circle');
     c.setAttribute('cx', String(b.x + b.width - 2));
     c.setAttribute('cy', String(b.y + 2));
-    c.setAttribute('r', '11');
+    c.setAttribute('r', String(r));
     var t = document.createElementNS(SVGNS, 'text');
     t.setAttribute('x', String(b.x + b.width - 2));
-    t.setAttribute('y', String(b.y + 7));
+    t.setAttribute('y', String(b.y + 2 + r * 0.45));
     t.setAttribute('text-anchor', 'middle');
-    t.setAttribute('font-size', '14');
+    t.setAttribute('font-size', String(r * 1.25));
     t.setAttribute('font-weight', 'bold');
     t.textContent = '→';
     badge.appendChild(c);
@@ -429,7 +447,9 @@
       s.setAttribute('viewBox', [nx, ny, w, h].map(function (x) { return x.toFixed(1); }).join(' '));
     }, { passive: false });
     s.addEventListener('pointerdown', function (ev) {
-      if (ev.target.closest && ev.target.closest('g.el')) { return; }
+      // cards, drill badges and linked decorations ("+N more", the C4 badge, C4 page links) keep their click:
+      // capturing the pointer for panning would retarget it to the <svg>
+      if (ev.target.closest && ev.target.closest('g.el, g.drill, g.deco.linked')) { return; }
       drag = { x: ev.clientX, y: ev.clientY, v: parseBox(s.getAttribute('viewBox')) };
       s.classList.add('panning');
       s.setPointerCapture && s.setPointerCapture(ev.pointerId);
@@ -822,7 +842,14 @@
           return !views[pageIndex[d.getAttribute('data-link')]].trace;
         })[0];
         var target = pageIndex[badge.getAttribute('data-link')];
-        badge.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        // the pointer sequence a mouse sends: a pan must not capture it (a synthetic click alone hid that bug)
+        var r = badge.getBoundingClientRect();
+        var at = { bubbles: true, cancelable: true, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2,
+                   pointerId: 1, pointerType: 'mouse', isPrimary: true, button: 0 };
+        badge.dispatchEvent(new PointerEvent('pointerdown', at));
+        check('badge-no-pan', !svg.classList.contains('panning'));
+        badge.dispatchEvent(new PointerEvent('pointerup', at));
+        badge.dispatchEvent(new MouseEvent('click', at));
         return navPromise.then(function () { return target; });
       }).then(function (target) {
         check('card-vs-badge', current === target && !views[current].trace);

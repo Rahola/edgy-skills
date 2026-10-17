@@ -214,7 +214,8 @@ def browser_selftest():
         return f'fail: result={m.group(1)} errors={m.group(2)} steps={m.group(3)}'
     for step in ('wall', 'wall-cards', 'view', 'highlight', 'zoom', 'search-jump', 'state-noop', 'state-current', 'state-target', 'paging',
                  'trace-card', 'drill', 'card-first-click', 'card-second-click', 'breadcrumb', 'breadcrumb-jump',
-                 'history-back', 'forward', 'deeplink-restore', 'route-malformed', 'card-vs-badge', 'return-to-trace',
+                 'history-back', 'forward', 'deeplink-restore', 'route-malformed', 'badge-no-pan', 'card-vs-badge',
+                 'return-to-trace',
                  'back', 'no-errors'):
         if f'{step}:ok' not in m.group(3):
             return f'fail: step {step} missing ({m.group(3)})'

@@ -20,6 +20,25 @@ perustelut.
 
 ---
 
+### 2026-10-17 — Claude Code (v2.5.0 phase 4: presenter and edgy-c4 findings)
+
+- **Blocker: a mouse click on the "C4" badge or the "+N more" card did
+  nothing.** The pan handler captured the pointer for everything that was
+  not a card, so the click landed on the `<svg>`. The self-test fired
+  synthetic clicks and missed it. Linked decorations and drill badges are
+  now exempt, and the self-test sends the real pointer sequence
+  (`badge-no-pan`, shown to fail without the fix). Badges get a 24 px
+  target at phone width.
+- **edgy-c4:**
+  - Edge labels are escaped as HTML (`html=1`), so `</template><script>`
+    shows as text.
+  - A second page for the same level and system is C006.
+  - `level: component` is C004 (0.1.0 draws L1 and L2 only).
+  - An L2 relationship to an undeclared id is C001, never dropped silently.
+  - L1 pages centre on the content and the legend.
+  - A system without a Person says so on the page.
+  - An `[external]` system is grey on its own L1.
+
 ### 2026-10-17 — Claude Code (v2.5.0 phase 4: skill-use findings)
 
 Claude sub-agent 4 used the installed skills as a user's agent (S01–S09).

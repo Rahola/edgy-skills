@@ -242,6 +242,28 @@ def test_k10_q3_badge_on_the_trace_card():
             assert badge, page[:2000]
 
 
+def test_phase4_findings():
+    """Phase 4 (Claude C4 tester): hostile labels stay text, and three wrong inputs are no longer silent."""
+    hostile = (BASE % '') + l2('L2', 'APP-07', [('C-API', 'API'), ('C-DB', 'DB')],
+                              '      - "C-API" -> "C-DB": "</template><script>alert(1)</script>" {technology: JDBC}\n')
+    pages = parse_document(hostile)
+    xml = next(p for _, p in pages if p.page_id == 'c4-container-app-07').generate_xml()
+    import xml.etree.ElementTree as ET
+    values = [c.get('value') or '' for c in ET.fromstring(xml).iter('mxCell') if c.get('edge') == '1']
+    assert any('&lt;script&gt;' in v for v in values), values               # html=1 shows it as text
+    two = (BASE % '') + ('  - name: "A"\n    notation: c4\n    level: context\n    system: APP-07\n'
+                         '  - name: "B"\n    notation: c4\n    level: context\n    system: APP-07\n')
+    found, _ = findings(two)
+    assert [(r, sev) for r, sev, *_ in found] == [('C006', 'error')], found
+    comp = (BASE % '') + '  - name: "L3"\n    notation: c4\n    level: component\n    system: APP-07\n'
+    found, _ = findings(comp)
+    assert [(r, sev) for r, sev, *_ in found] == [('C004', 'error')], found
+    ghost = (BASE % '') + l2('L2', 'APP-07', [('C-API', 'API')],
+                             '      - "C-API" -> "C-GHOST": "reads" {technology: JDBC}\n')
+    found, _ = findings(ghost)
+    assert [(r, sev) for r, sev, *_ in found] == [('C001', 'error')] and 'C-GHOST' in next(iter(found))[3], found
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

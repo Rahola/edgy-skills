@@ -723,7 +723,7 @@ extensions (transition overlay, `reference`, `summary`).
 **External standards.** EDGY 23 is the language of every map. Classifications
 from outside EDGY — Gartner TIME, CRUD, the management / core / support
 process bands, the swimlane layout, maturity and hosting badges, the
-ArchiMate export, and C4 (planned, separate skill) — are registered with
+ArchiMate export, and C4 (the separate edgy-c4 skill) — are registered with
 their rationale, limits and source in `references/external-standards.md`.
 Name the ones a delivery uses, credit the source (the legends do), and never
 use a classification that is not in the register: propose an entry instead.
