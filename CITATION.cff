@@ -5,6 +5,7 @@ type: software
 authors:
   - family-names: Ahola
     given-names: Roope
+    email: roope.ahola@live.com
 version: 2.5.1
 date-released: 2026-10-17
 license: Apache-2.0
