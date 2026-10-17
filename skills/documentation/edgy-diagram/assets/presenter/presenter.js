@@ -578,6 +578,8 @@
     var pick = null;
     Promise.resolve().then(function () {
       check('wall', $$('.card').length === views.length && views.length > 0);
+      // a card is never flattened: its 16:10 thumbnail and title stay whole (row sizing bug seen on phones)
+      check('wall-cards', $$('.card').every(function (c) { return c.offsetHeight >= c.offsetWidth * 0.62; }));
       return openView(0, null, $('.card'));
     }).then(function () {
       check('view', !!svg && current === 0);

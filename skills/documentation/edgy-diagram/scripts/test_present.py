@@ -176,7 +176,8 @@ def browser_selftest():
     if not chrome:
         return 'skip: no Chromium / Chrome found (set EDGY_CHROMIUM=<binary>)'
     _html, _stats, out, _d = _build()
-    cmd = [chrome, '--headless', '--no-sandbox', '--disable-gpu', '--virtual-time-budget=15000', '--dump-dom',
+    # a narrow window (one column, the cards taller than the wall) is where flattened cards showed up
+    cmd = [chrome, '--headless', '--no-sandbox', '--disable-gpu', '--window-size=500,700', '--virtual-time-budget=15000', '--dump-dom',
            'file://' + out + '#selftest']
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
@@ -187,7 +188,7 @@ def browser_selftest():
         return f'fail: no self-test sentinel in the DOM (exit {r.returncode})'
     if m.group(1) != 'pass' or m.group(2) != '0':
         return f'fail: result={m.group(1)} errors={m.group(2)} steps={m.group(3)}'
-    for step in ('wall', 'view', 'highlight', 'zoom', 'search-jump', 'state-noop', 'state-current', 'state-target', 'paging', 'back'):
+    for step in ('wall', 'wall-cards', 'view', 'highlight', 'zoom', 'search-jump', 'state-noop', 'state-current', 'state-target', 'paging', 'back'):
         if f'{step}:ok' not in m.group(3):
             return f'fail: step {step} missing ({m.group(3)})'
     return 'pass'

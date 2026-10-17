@@ -61,7 +61,10 @@ contract 1 (`edgyId`, `edgyType`, `edgyOcc` …) and every legend cell
   HTML of every view — card wall → zoom, cross-view highlight, ⌘K search,
   current ↔ target filter over `{change:}` annotations, paging, deep links,
   print; CSP with sha256 hashes and `connect-src 'none'`; browser self-test
-  in CI. `*presentation*.html` is git-ignored outside `examples/`.
+  in CI. `*presentation*.html` is git-ignored outside `examples/`. The card
+  wall sizes its rows by content and has a phone layout (one column, the
+  top bar wraps); the self-test checks in a narrow window that no card is
+  flattened.
 - **Extension contract 1** (`references/extension-contract.md`): style
   markers, graph JSON, SVG `data-*` groups (renderer hardened against
   attribute break-out), notation handlers that fail closed (**E013**

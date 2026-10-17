@@ -53,17 +53,26 @@ main { position: relative; flex: 1; min-height: 0; }
 .wall {
   position: absolute; inset: 0; overflow: auto; padding: 28px clamp(16px, 4vw, 48px) 40px;
   display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 22px; align-content: start;
+  /* a card clips (overflow: hidden), so its automatic minimum height is 0: with auto rows the wall's fixed height
+     was shared out between the rows and every card came up ~30 px tall until something forced a relayout */
+  grid-auto-rows: max-content;
 }
 .card {
   border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius); padding: 0;
   text-align: left; cursor: pointer; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column;
+  min-width: 0; width: 100%;
   translate: 0 14px; opacity: 0; transition: transform .45s var(--ease), box-shadow .2s, border-color .2s;
   animation: rise .6s var(--ease) forwards; animation-delay: calc(var(--i, 0) * 55ms);
 }
 .card:hover { transform: translateY(-3px); border-color: var(--accent); }
 @keyframes rise { to { translate: 0 0; opacity: 1; } }
-.thumb { aspect-ratio: 16 / 10; background: var(--paper); display: grid; place-items: center; border-bottom: 1px solid var(--line); }
-.thumb img { width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+/* the thumbnail keeps its 16:10 box whatever the image's own size: out of flow, the image cannot widen the grid
+   column or let the flex column shrink the box flat before it has decoded (seen on phones) */
+.thumb {
+  aspect-ratio: 16 / 10; flex: none; width: 100%; position: relative;
+  background: var(--paper); border-bottom: 1px solid var(--line);
+}
+.thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 10px; }
 .meta { padding: 12px 16px 14px; display: grid; gap: 4px; position: relative; }
 .meta h2 { font-size: 15px; margin: 0; }
 .meta p { margin: 0; color: var(--ink-2); font-size: 13px; }
@@ -93,6 +102,13 @@ main { position: relative; flex: 1; min-height: 0; }
 .inspector li button { border: 0; background: none; padding: 2px 0; cursor: pointer; color: var(--accent); text-align: left; }
 .inspector .empty { color: var(--ink-2); font-size: 13px; }
 @media (max-width: 900px) { .inspector { display: none; } }
+@media (max-width: 640px) {
+  .bar { flex-wrap: wrap; gap: 8px 12px; padding: 8px 12px; }
+  .brand { flex-basis: 100%; }
+  .actions { flex-wrap: wrap; }
+  .btn kbd { display: none; }
+  .wall { grid-template-columns: 1fr; padding: 16px; gap: 16px; }
+}
 
 /* filmstrip of views with counters */
 .strip {
