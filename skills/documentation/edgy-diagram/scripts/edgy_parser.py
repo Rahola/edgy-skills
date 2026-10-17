@@ -412,7 +412,7 @@ class EDGYParser:
         self.trace_chips = ([], [])
         self.trace_unlinked = 0
         self.trace_hidden = 0
-        self.foreign = None          # (handler module, page text, graph) of a notation: page (edgy_notation)
+        self.foreign_xml = None      # the mxGraphModel XML a notation handler wrote for this page (edgy_document)
         self.notes = []              # information for the reader (printed as Note:, never an error) — W124 by default
         self._arch_layout = None     # edgy_architecture: ('chain', roots, children, banded) for process_view: chain
         self._arch_stages = None     # stages: before an architecture view replaced them (restored on the next layout)
@@ -1570,10 +1570,9 @@ class EDGYParser:
         """
         import math as _math
 
-        if self.foreign is not None:
-            # a page of another notation: its registered handler draws it (extension contract 1)
-            mod, page_text, graph = self.foreign
-            return mod.generate_page(page_text, graph)
+        if self.foreign_xml is not None:
+            # a page of another notation: its registered handler drew it at parse time (extension contract 1)
+            return self.foreign_xml
         if self.notation:
             # no handler (E013 is already an input error): an empty page, never an EDGY drawing of foreign input
             return ('<?xml version="1.0" encoding="utf-8"?>\n<mxGraphModel pageWidth="1200" pageHeight="900">'

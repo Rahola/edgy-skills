@@ -23,6 +23,7 @@ desktop, draw.io online and most wiki plugins expect.
 """
 
 import re
+import textwrap
 import xml.etree.ElementTree as ET
 from typing import Optional, List, Tuple
 
@@ -114,13 +115,16 @@ def parse_document(text: str, with_graph: bool = False):
             parsed.append((name, None, page_text))
             continue
         parser = EDGYParser()
-        parser.parse_input(page_text)
+        # a notation: page keeps only its header keys here: its body is the handler's, never EDGY elements in the
+        # document graph (no containers, C4 edges, E014 on a repeated id, vocabulary warnings) — F4-core, 2.9.0
+        parser.parse_input(header_only(page_text) if notation_of(page_text) else page_text)
         parsed.append((name or default_page_name(parser), parser, page_text))
     graph = edgy_graph.build_graph([(n, p) for n, p, _ in parsed if p is not None])
+    prepass_errors = notation_prepass([(n, t) for n, _p, t in parsed if notation_of(t)], graph)
     result: List[Tuple[str, EDGYParser]] = []
     for name, parser, page_text in parsed:
         if parser is not None and parser.notation:
-            attach_notation(parser, page_text, graph)
+            attach_notation(parser, page_text, graph, name)
         if parser is not None:
             if edgy_views.is_derived(parser):
                 edgy_views.materialize(parser, graph)
@@ -129,6 +133,9 @@ def parse_document(text: str, with_graph: bool = False):
                 result.append((name, parser))
             continue
         mode, where = edgy_graph.expansion_of(page_text)
+        if notation_of(page_text):
+            result.extend(_expand_notation(name or 'view', page_text, mode, where, graph))
+            continue
         if mode == 'trace':
             result.extend(_expand_trace(name or 'Trace', page_text, where, graph))
             continue
@@ -151,7 +158,12 @@ def parse_document(text: str, with_graph: bool = False):
                 holder.errors.append(msg)
             if not result:
                 result.append((base, holder))
-    # fixed ids first (realisation trace: trace-<id>), then the slugs of the other pages around them
+    for page, finding in prepass_errors:
+        holder = next((p for n, p in result if n == page), result[0][1] if result else None)
+        if holder is not None:
+            _apply_finding(holder, finding)
+    # fixed ids first (realisation trace: trace-<id>, notation pages: their handler's page_id), then the slugs of
+    # the other pages around them
     fixed = {p.fixed_page_id for _, p in result if getattr(p, 'fixed_page_id', None)}
     rest = [(n, p) for n, p in result if not getattr(p, 'fixed_page_id', None)]
     for (_, parser), slug in zip(rest, unique_slugs([n for n, _ in rest], reserved=fixed)):
@@ -228,9 +240,73 @@ def load_graph(text: str):
     return parse_document(text, with_graph=True)[1]
 
 
-def attach_notation(parser: EDGYParser, page_text: str, graph) -> None:
+NOTATION_RE = re.compile(r'^notation:\s*([A-Za-z0-9-]+)\s*$', re.M)
+_HEADER_RE = re.compile(r'^([A-Za-z_][A-Za-z0-9_]*):\s*(\S.*)$')
+
+
+def notation_of(page_text: str) -> Optional[str]:
+    m = NOTATION_RE.search(textwrap.dedent(page_text or ''))
+    return m.group(1).lower() if m else None
+
+
+def header_only(page_text: str) -> str:
+    """The `key: value` lines at the page's own indent (notation, level, system, focus, title, language …): what
+    the EDGY parser may see of a notation page. Sections (`elements:`, `containers:`) and their bodies stay out."""
+    return '\n'.join(ln for ln in textwrap.dedent(page_text or '').split('\n') if _HEADER_RE.match(ln))
+
+
+def _apply_finding(parser: EDGYParser, finding) -> None:
+    """A handler finding (severity, rule, message, subject[, page]) as a warning, note or error of the page."""
+    sev, rule, msg, subject = (list(finding) + [None] * 4)[:4]
+    text = f"{rule} {msg}" + (f" ({subject})" if subject not in (None, '') else '')
+    sev = str(sev or '').lower()
+    if sev == 'error':
+        parser.errors.append(text)
+    elif sev == 'note':
+        parser.notes.append(text)
+    else:
+        parser.warnings.append(text)
+
+
+def _split_output(out):
+    """generate_page / prepass may return the value alone (the v2.4.0 form) or (value, findings)."""
+    if isinstance(out, tuple) and len(out) == 2 and isinstance(out[1], (list, tuple)):
+        return out[0], list(out[1])
+    return out, []
+
+
+def notation_prepass(pages: List[Tuple[str, str]], graph) -> List[Tuple[str, tuple]]:
+    """Before any notation page is drawn, each notation's handler sees all its pages at once
+    (`prepass(pages, graph)`, optional): what it returns becomes graph.notation_index[notation] — pages by
+    level and system, containers by id — so page order never matters. Returns [(page name, finding)]."""
+    import edgy_notation
+    graph.notation_index = getattr(graph, 'notation_index', None) or {}
+    findings: List[Tuple[str, tuple]] = []
+    by_notation: dict = {}
+    for name, text in pages:
+        by_notation.setdefault(notation_of(text), []).append((name, text))
+    for notation, group in by_notation.items():
+        mod = edgy_notation.load_module(notation)
+        if mod is None or not hasattr(mod, 'prepass'):
+            continue                                   # E013 (no handler) is reported on each page itself
+        try:
+            index, found = _split_output(mod.prepass(group, graph))
+        except Exception as e:                         # a broken handler fails closed, without a traceback
+            findings.append((group[0][0], ('error', 'E013', f"notation handler '{notation}' failed in the prepass: "
+                                                            f"{type(e).__name__}: {e}", None)))
+            continue
+        graph.notation_index[notation] = index if index is not None else {}
+        for f in found:
+            f = tuple(f)
+            findings.append((f[4] if len(f) > 4 and f[4] else group[0][0], f[:4]))
+    return findings
+
+
+def attach_notation(parser: EDGYParser, page_text: str, graph, name: str = None) -> None:
     """A `notation: X` page is drawn by the registered handler of X (extension contract 1).
-    Unknown or not installed → E013 on the page (fail closed: never drawn as EDGY)."""
+    Unknown or not installed → E013 on the page (fail closed: never drawn as EDGY). The handler runs here, at
+    parse time, so its findings — (severity, rule, message, subject) — and its failures are input messages that
+    stop the run before any file is written; `page_id(page_text, graph)` (optional) gives the page a fixed id."""
     import edgy_notation
     mod = edgy_notation.load_module(parser.notation)
     if mod is None or not hasattr(mod, 'generate_page'):
@@ -238,7 +314,52 @@ def attach_notation(parser: EDGYParser, page_text: str, graph) -> None:
         parser.warnings.append(msg)
         parser.errors.append(msg)
         return
-    parser.foreign = (mod, page_text, graph)
+    try:
+        xml, findings = _split_output(mod.generate_page(page_text, graph))
+        pid = mod.page_id(page_text, graph) if hasattr(mod, 'page_id') else None
+    except Exception as e:
+        parser.errors.append(f"E013 notation handler '{parser.notation}' failed on page '{name or 'page'}': "
+                             f"{type(e).__name__}: {e}")
+        return
+    for f in findings:
+        _apply_finding(parser, f)
+    parser.foreign_xml = xml if isinstance(xml, str) else None
+    if pid and re.match(r'^[a-z0-9][a-z0-9-]*$', str(pid)):
+        parser.fixed_page_id = str(pid)
+
+
+def _expand_notation(base: str, page_text: str, mode: str, where, graph) -> List[Tuple[str, EDGYParser]]:
+    """expand: on a notation page reaches the handler: one page per target, each with `focus: <id>`. Without a
+    handler it is E013 on one holder page — never an empty page per target (the fail-open case of 2.8.0)."""
+    import edgy_graph
+    import edgy_notation
+    notation = notation_of(page_text)
+    if edgy_notation.load_module(notation) is None:
+        holder = EDGYParser()
+        holder.parse_input(header_only(edgy_graph.EXPAND_RE.sub('', edgy_graph.WHERE_RE.sub('', page_text))))
+        msg = edgy_notation.unsupported_message(notation)
+        holder.warnings.append(msg)
+        holder.errors.append(msg)
+        return [(base, holder)]
+    nodes, problems = edgy_graph.expand_targets(graph, mode, where)
+    stripped = textwrap.dedent(edgy_graph.EXPAND_RE.sub('', edgy_graph.WHERE_RE.sub('', page_text)))
+    stripped = re.sub(r'^(focus|system):.*$\n?', '', stripped, flags=re.M)
+    out: List[Tuple[str, EDGYParser]] = []
+    for node in nodes:
+        text = f"focus: {node['id']}\n" + stripped
+        p = EDGYParser()
+        p.parse_input(header_only(text))
+        page_name = f"{base} · {node['id']} {node['name']}"
+        attach_notation(p, text, graph, page_name)
+        out.append((page_name, p))
+    if problems or not out:
+        holder = out[-1][1] if out else EDGYParser()
+        for msg in problems or [f"expand: {mode} on a notation: {notation} page found no target"]:
+            holder.warnings.append(msg)
+            holder.errors.append(msg)
+        if not out:
+            out.append((base, holder))
+    return out
 
 
 def _strip_declaration(xml: str) -> str:

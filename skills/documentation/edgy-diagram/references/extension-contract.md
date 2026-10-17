@@ -90,6 +90,36 @@ def generate_page(page_text: str, graph) -> str: ...      # mxGraphModel XML of 
 def lint_page(cells: dict, page_name: str) -> list: ...   # [(level, rule, message, cell_id)]
 ```
 
+Optional additions in edgy-diagram 2.9.0, still `contract: 1` (a v2.4.0
+handler keeps working unchanged):
+
+```python
+def generate_page(page_text, graph) -> (str, list): ...   # (xml, [(severity, rule, message, subject)])
+def prepass(pages: list, graph) -> dict | (dict, list): ...  # every page of the notation, before any is drawn
+def page_id(page_text: str, graph) -> str: ...            # a fixed draw.io page id, e.g. c4-context-app-07
+```
+
+- **Findings channel.** `severity` is `error`, `warning` or `note`. An
+  error stops the run (exit 2, no file); a warning is printed and recorded
+  in `qa.json`. A prepass finding may carry the page name as a fifth item.
+- **Failures.** An exception in `generate_page` or `prepass` is one E013
+  error naming the page (or the prepass) and the handler: exit 2, no file,
+  no traceback.
+- **Prepass and index.** `prepass([(page name, page text)], graph)` runs
+  once per notation, before any of its pages is drawn; what it returns is
+  `graph.notation_index[notation]` (pages by level and system, containers
+  by id), so page order never matters.
+- **Isolation.** The EDGY parser sees only the header keys of a
+  `notation:` page (`notation`, `level`, `system`, `focus`, `title` …).
+  Its body goes to the handler alone and never enters the document graph:
+  no foreign elements or edges, no vocabulary warnings, no E014.
+- **`expand:`** on a notation page calls the handler once per target, each
+  page text starting with `focus: <id>`; without a handler it is E013 on
+  one page, never an empty page per target.
+- **Drawing.** A handler writes static styled cells (rectangles and the
+  existing `person` shape). The preview, the presenter and the linter draw
+  them through the generic renderer: there is no shape hook.
+
 A TXT page says `notation: c4`; the handler writes `edgyNotation=c4` on every
 cell. **Fail closed:** the EDGY rules E009, W102 and W105 are off only on the
 cells of a registered *and installed* handler. An unknown notation, or a
@@ -121,6 +151,6 @@ not shaped by one of them:
 |------|------------------|--------------------------|-----------------------------------------|
 | Model ids | system / container ids across pages | cross-view highlight, morph | `edgyOcc` (page + cell) instead of an id alone: the presenter needs *where* an element is drawn, not only *which* it is |
 | Graph | L1 context derivation | impact trace, counters on view cards | `occurrences` in the JSON; `kind` on relationships |
-| SVG | C4 shapes through a shape hook (v2.5.0) | `data-*` groups, decorations separated | `data-role` decorations, so effects never animate a legend or badge as if it were an element |
+| SVG | C4 pages as static styled cells, drawn by the generic renderer (no shape hook) | `data-*` groups, decorations separated | `data-role` decorations, so effects never animate a legend or badge as if it were an element |
 | Notation | `notation.json`, `generate_page`, `lint_page`, E012 / E013 | must ignore foreign pages it does not understand | `edgyNotation` on every foreign cell, so a consumer can skip a page without loading its handler |
 | Change state | — | current ↔ target filter, later the paired-page morph | `data-change` on elements and edges; the paired-page morph (`{state: current \| target}`) stays outside contract 1 until F6b is built |
