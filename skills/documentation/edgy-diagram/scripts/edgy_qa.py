@@ -179,7 +179,7 @@ def approval_status(manifest):
         if is_approval(value):
             return value.strip()
         return 'NOT APPROVED (null)' if value is None else f'NOT APPROVED (expected "<name>, YYYY-MM-DD", got {value!r})'
-    lines = [f"lint: {t['lint_errors']} error(s), {t['lint_warnings']} warning(s); visual W111–W114: {t['visual']}; "
+    lines = [f"lint: {t['lint_errors']} error(s), {t['lint_warnings']} warning(s); visual W111–W114, W130, W131: {t['visual']}; "
              f"layout W117–W120: {t['layout_quality']}",
              f"visual approval: {show(manifest.get('visual_approval'))}",
              f"semantic approval: {show(manifest.get('semantic_approval'))}"]

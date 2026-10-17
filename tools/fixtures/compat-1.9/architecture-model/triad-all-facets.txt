@@ -1,0 +1,52 @@
+# Generated from edgy-model.json by edgy_model_to_txt.py — do not edit by hand; edit the model.
+# company: Acme Transit (fictional) · assessed_at: 2026-10-16
+facet: all
+language: en
+map_type: triad
+
+elements:
+  - purpose: "Everyone can travel without a car - Public transport as the default choice in the region" {id: PUR-01}
+  - story: "Your city, on time - Reliable everyday travel" {id: STO-01}
+  - content: "Live departures - Real-time information in every channel" {id: CON-01}
+  - capability: "Fare product definition - Design fare products and prices" {id: CAP-04}
+  - capability: "Sales in every channel - Sell travel rights wherever passengers are" {id: CAP-05}
+  - capability: "Validation and inspection - Check that every trip is paid" {id: CAP-06}
+  - capability: "Timetable planning - Plan the network and the timetables" {id: CAP-08}
+  - capability: "Real-time passenger information - Tell passengers what happens now" {id: CAP-09}
+  - capability: "Revenue settlement - Allocate revenue to operators" {id: CAP-10}
+  - asset: "Fare engine - Prices and fare rules" {id: APP-07}
+  - asset: "Ticket shop - Web and app sales" {id: APP-05}
+  - asset: "Inspection app - Ticket inspection on board" {id: APP-06}
+  - asset: "Timetable planner - Network and timetable planning" {id: APP-11}
+  - asset: "Passenger info hub - Real-time information distribution" {id: APP-17}
+  - asset: "Settlement system - Revenue allocation" {id: APP-20}
+  - asset: "Integration platform - APIs and events" {id: APP-16}
+  - asset: "Fare rules - Products, zones and prices" {id: DAT-01}
+  - asset: "Trip events - Validations and inspections" {id: DAT-02}
+  - asset: "Timetable - Planned services" {id: DAT-03}
+  - asset: "Sales ledger - Sold travel rights" {id: DAT-04}
+  - process: "Plan services" {id: PRO-10}
+  - process: "Plan the network" {id: PRO-11}
+  - process: "Publish timetables" {id: PRO-12}
+  - process: "Sell travel" {id: PRO-20}
+  - process: "Price fare products" {id: PRO-21}
+  - process: "Sell in every channel" {id: PRO-22}
+  - process: "Run services" {id: PRO-30}
+  - process: "Inspect tickets" {id: PRO-32}
+  - process: "Settle revenue" {id: PRO-50}
+  - process: "Allocate revenue to operators" {id: PRO-51}
+  - task: "Buy a ticket" {id: TAS-01}
+  - channel: "Mobile app" {id: CHA-01}
+  - journey: "Daily commute" {id: JOU-01}
+  # intersection elements
+  - organisation: "Transit authority - Owns the network" {id: ORG-01}
+  - organisation: "Fares team - Fare products and sales" {id: ORG-02}
+  - organisation: "Platform team - Shared digital platforms" {id: ORG-03}
+  - organisation: "Inspection unit - Ticket inspection" {id: ORG-04}
+  - product: "Season ticket" {id: PRD-01}
+  - brand: "Acme Transit" {id: BRA-01}
+
+relationships:
+  - "Transit authority" -> "Fare product definition": "has"
+  - "Fare product definition" -> "Fare engine": "requires"
+  - "Plan services" -> "Fare product definition": "realises"

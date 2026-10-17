@@ -1,0 +1,45 @@
+version: "fixture"
+updated: "2026-10-17"
+
+skills:
+  - id: fx-base
+    path: tools/fixtures/skills/fx-base
+    version: 0.0.1
+    category: documentation
+    tags: [fixture]
+    agents: [claude-code, cursor, vibe, generic]
+  - id: fx-sec0
+    path: tools/fixtures/skills/fx-sec0
+    version: 0.0.1
+    category: documentation
+    tags: [fixture]
+    agents: [claude-code, cursor, vibe, generic]
+    requires: ["../../etc"]
+  - id: fx-sec1
+    path: tools/fixtures/skills/fx-sec1
+    version: 0.0.1
+    category: documentation
+    tags: [fixture]
+    agents: [claude-code, cursor, vibe, generic]
+    requires: ["/tmp/x"]
+  - id: fx-sec2
+    path: tools/fixtures/skills/fx-sec2
+    version: 0.0.1
+    category: documentation
+    tags: [fixture]
+    agents: [claude-code, cursor, vibe, generic]
+    requires: ["a;touch SENTINEL"]
+  - id: fx-sec3
+    path: tools/fixtures/skills/fx-sec3
+    version: 0.0.1
+    category: documentation
+    tags: [fixture]
+    agents: [claude-code, cursor, vibe, generic]
+    requires: ["$(touch SENTINEL)"]
+  - id: fx-sec4
+    path: tools/fixtures/skills/fx-sec4
+    version: 0.0.1
+    category: documentation
+    tags: [fixture]
+    agents: [claude-code, cursor, vibe, generic]
+    requires: ["`id`"]

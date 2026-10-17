@@ -1,6 +1,6 @@
 ---
 name: edgy-target-state
-version: "1.2.0"
+version: "1.3.0"
 description: >
   Internal target-state architecture workflow on EDGY 23: strategy → purpose map,
   capability map and cards, guardrails, building-block hypothesis with transition
@@ -14,6 +14,7 @@ languages: [fi, en]
 agents:
   - claude-code
   - cursor
+  - vibe
   - generic
 inputs:
   - name: programme
@@ -163,6 +164,14 @@ removed. Guardrails are tested in Phase 4, not negotiated there.
    (`{time: …}`) are the current lifecycle judgement; the transition overlay
    stays the place for the target. The diff (`edgy_model_diff.py`) compares
    asset kind, owner, TIME and `relationships[]` too.
+6. **C4 for decided blocks only (optional, edgy-c4).** When a building block
+   is *decided* (no open `decide` on it, its ADR accepted) and the team that
+   builds or buys it needs the next level, draw C4 for its applications with
+   the edgy-c4 skill: an L1 page per application (`notation: c4`,
+   `level: context`, derived from the model) and an L2 page only when the
+   containers are known. Never for a block whose future is still open: C4
+   describes how a system is built, and drawing it for an undecided block
+   presents a choice as made. Requires the claude-code or generic install.
 
 ### Phase 5 — Work packages
 
@@ -231,6 +240,7 @@ and tone for a fictional organisation.
 - [ ] Every role has an actor and every actor a role, or the gap is a finding
 - [ ] Summary ≤ 200 words, ≤ 4 boxes per row
 - [ ] All diagrams: `edgy_lint.py` 0 errors, preview looked at, overlay declared as an extension
+- [ ] C4 pages (if any) only for applications in decided building blocks
 - [ ] Nothing written to external systems without an explicit request
 
 ## Anti-patterns
@@ -241,6 +251,7 @@ and tone for a fictional organisation.
 - DO NOT give a work package two Outcomes, or none
 - DO NOT write to a wiki or tracker before being asked
 - DO NOT pad any artefact to a length
+- DO NOT draw C4 for an application in an undecided building block
 
 ## Dependencies
 

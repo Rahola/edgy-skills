@@ -41,6 +41,7 @@ generator changes with `bash tools/regen-examples.sh`, never edit by hand).
 | `task-stakeholder-map.txt` | `expected-task-stakeholder.drawio` | `map_type: task` in two pages: stakeholder **inventory** (lanes × `stages:` columns, no edges) and **path** (tasks → journey / channels) |
 | `reference-architecture-map.txt` | `expected-reference-architecture.drawio` | `reference` layout (extension) |
 | `summary-map.txt` | `expected-summary.drawio` | `summary` layout (extension) |
+| `trace-map.txt` | `expected-trace.drawio` | realisation trace (2.9.0): `expand: trace` from one "Buy a season ticket" model page — the index and one linked page per element, journey → organisation |
 | `archimate-positioned.txt` | `expected-archimate-positioned.drawio` | `layout_from:` positions from an ArchiMate view (`current-state.archimate`) |
 
 Larger fictional inputs for the eval set are in `eval/`; `official/` holds the

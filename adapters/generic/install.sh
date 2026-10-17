@@ -12,6 +12,7 @@ set -euo pipefail
 # Lataa jaettu lähdestrategia
 ADAPTER_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${ADAPTER_SCRIPT_DIR}/../_shared/source.sh"
+source "${ADAPTER_SCRIPT_DIR}/../_shared/deps.sh"
 
 log_info()  { echo -e "${GREEN}✓${NC} $1"; }
 log_warn()  { echo -e "${YELLOW}⚠${NC} $1"; }
@@ -64,7 +65,7 @@ fi
 source_detect
 log_info "Lähde: ${SOURCE_MODE}"
 
-registry_file=$(source_fetch_registry) || exit 1
+registry_file=$(deps_registry_override) || registry_file=$(source_fetch_registry) || exit 1
 
 # Lista-moodi
 if [[ "$LIST_MODE" == true ]]; then
@@ -75,11 +76,14 @@ fi
 
 [[ -z "$SKILL_ID" ]] && usage
 
-# Validoi skill-id
-if [[ ! "$SKILL_ID" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-  log_error "Virheellinen skill-id: '${SKILL_ID}'"
-  exit 1
-fi
+# Asennusjärjestys: riippuvuudet (requires) ensin. lookup-skill.py tarkistaa jokaisen id:n.
+order=$(deps_install_order "$SKILL_ID" "$registry_file") || exit 1
+mode="directory"
+[[ "$SOURCE_MODE" == "curl" ]] && mode="skillmd"
+while IFS= read -r sid; do
+  [[ -z "$sid" ]] && continue
+  deps_supports "$sid" "$registry_file" "generic" "$mode" || exit 1
+done <<< "$order"
 
 skill_path=$(python3 "$LOOKUP_TOOL" path "$SKILL_ID" "$registry_file") || exit 1
 
@@ -92,15 +96,20 @@ if [[ "$FORMAT" == "url" ]]; then
   exit 0
 fi
 
-# Lataa tiedosto(t)
+# Lataa tiedosto(t): riippuvuudet ensin, sitten pyydetty skill
+while IFS= read -r sid; do
+  [[ -z "$sid" ]] && continue
+  sid_path=$(python3 "$LOOKUP_TOOL" path "$sid" "$registry_file") || exit 1
+  target_dir="${OUTPUT_DIR}/${sid}"
+  [[ "$sid" != "$SKILL_ID" ]] && log_info "${SKILL_ID} requires ${sid} — installing it first"
+  [[ -e "$target_dir" ]] && log_warn "overwriting ${sid} from $([[ "$SOURCE_MODE" == local ]] && echo 'the local checkout' || echo "$REGISTRY_BRANCH")"
+  if ! source_fetch_skill_dir "$sid_path" "$target_dir"; then
+    log_error "Lataaminen epäonnistui (skill: ${sid})"
+    exit 1
+  fi
+  log_info "Skill '${sid}' ladattu → ${target_dir}"
+done <<< "$order"
 target_dir="${OUTPUT_DIR}/${SKILL_ID}"
-
-if ! source_fetch_skill_dir "$skill_path" "$target_dir"; then
-  log_error "Lataaminen epäonnistui (skill: ${SKILL_ID})"
-  exit 1
-fi
-
-log_info "Skill '${SKILL_ID}' ladattu → ${target_dir}"
 echo ""
 echo "Käyttö agentissasi:"
 echo "  Lisää seuraava rivi promptiisi tai konfiguraatioosi:"

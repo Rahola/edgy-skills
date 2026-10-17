@@ -18,7 +18,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL = os.path.dirname(HERE)
 REPO = os.path.abspath(os.path.join(SKILL, '..', '..', '..'))
 sys.path.insert(0, HERE)
-from edgy_document import parse_document, build_mxfile, load_graph  # noqa: E402
+from edgy_document import parse_document, build_mxfile, load_graph, unwrap_links  # noqa: E402
 import edgy_lint  # noqa: E402
 import edgy_notation  # noqa: E402
 
@@ -48,6 +48,8 @@ def test_markers_on_every_shipped_example_follow_the_grammar():
             continue
         root = ET.parse(os.path.join(SKILL, 'examples', path)).getroot()
         for d in root.iter('diagram'):
+            for m in d.iter('mxGraphModel'):
+                unwrap_links(m)         # a linked card (trace pages) carries its id on the UserObject wrapper
             for c in d.iter('mxCell'):
                 st = _style(c.get('style'))
                 if 'edgyType' not in st:

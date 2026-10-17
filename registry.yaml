@@ -1,10 +1,10 @@
 version: "2026-10"
-updated: "2026-10-16"
+updated: "2026-10-17"
 
 skills:
   - id: edgy-assessment
     path: skills/architecture/edgy-assessment
-    version: 1.10.0
+    version: 1.11.0
     category: architecture
     tags: [edgy, enterprise-design, architecture, analysis, assessment, diagram, fi, en, fr, de]
     agents: [claude-code, cursor, vibe, generic]
@@ -13,37 +13,48 @@ skills:
 
   - id: edgy-deep-dive
     path: skills/architecture/edgy-deep-dive
-    version: 1.1.1
+    version: 1.1.2
     category: architecture
     tags: [edgy, enterprise-design, architecture, analysis, deep-dive, intersection, fi, en]
-    agents: [claude-code, cursor, generic]
+    agents: [claude-code, cursor, vibe, generic]
     description: >
       Targeted EDGY 23 deep-dive analysis of a specific element pair or facet combination. Requires an existing edgy-model.json produced by the edgy-assessment skill. Analyses the chosen elements through one of four analytical lenses (dependency, alignment, gaps, opportunities) using both direct core links and 2-hop paths. Produces a focused markdown report and a pairwise draw.io diagram.
 
   - id: edgy-framework
     path: skills/architecture/edgy-framework
-    version: 1.7.0
+    version: 1.8.0
     category: architecture
     tags: [edgy, enterprise-design, architecture, analysis, reframing, fi, en, fr, de]
-    agents: [claude-code, cursor, generic]
+    agents: [claude-code, cursor, vibe, generic]
     description: >
       EDGY 23 enterprise design analysis: challenge reframing, facet intersection analysis, element identification from natural language, and modelling guidance for strategy documents (strategy → Purpose/Outcome mapping), capability formulation, the organisation role model, and applications, data and actors as EDGY elements.
 
   - id: edgy-target-state
     path: skills/architecture/edgy-target-state
-    version: 1.2.0
+    version: 1.3.0
     category: architecture
     tags: [edgy, enterprise-design, architecture, target-state, capability-map, roadmap, fi, en]
-    agents: [claude-code, cursor, generic]
+    agents: [claude-code, cursor, vibe, generic]
     description: >
       Internal target-state architecture workflow on EDGY 23: strategy → purpose map, capability map and cards, guardrails, building-block hypothesis with transition overlay, work packages, decision records (via an external ADR skill), role model and a stakeholder summary. Orchestrates edgy-framework (target-state mode) and edgy-diagram (generator, lint, preview). Complements edgy-assessment, which is the outside-in assessment of a company from public sources.
 
+  - id: edgy-c4
+    path: skills/documentation/edgy-c4
+    version: 0.1.0
+    category: documentation
+    tags: [diagram, drawio, c4, software-architecture, documentation, edgy, en]
+    agents: [claude-code, generic]
+    requires: [edgy-diagram]
+    install: directory
+    description: >
+      C4 model diagrams (Simon Brown) for one application of an EDGY architecture, as pages of an edgy-diagram delivery: the L1 system context derived from the EDGY document graph (Persons, partner systems) and L2 container pages written by hand, linked to the EDGY model by the application's id. A notation handler for edgy-diagram (extension contract 1): draw.io output, static shapes, rules C001–C007. Use it only for applications in a decided building block.
+
   - id: edgy-diagram
     path: skills/documentation/edgy-diagram
-    version: 2.8.0
+    version: 2.9.0
     category: documentation
     tags: [diagram, drawio, visualization, documentation, edgy, enterprise-design, fi, en, fr, de]
-    agents: [claude-code, cursor, generic]
+    agents: [claude-code, cursor, vibe, generic]
     description: >
       Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML source and export them to PNG/SVG/PDF. Generator-first workflow (edgy_generator.py) with core-link pair validation, an influence-verb vocabulary, a drawio linter (edgy_lint.py) and a CLI-free SVG/PNG preview (edgy_render.py) that the agent must look at before delivery. Uses the EDGY facet model with draw.io CLI or the plantuml-stdlib `<edgy/edgy>` library for rendering. Architecture views from one model (application map, value chain and swimlane process maps, capability view, capability × application and CRUD matrices) and a self-contained offline presentation of every view.
 

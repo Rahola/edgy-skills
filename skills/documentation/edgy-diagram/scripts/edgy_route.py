@@ -26,6 +26,7 @@ BEND = 60.0              # cost of a bend, in px of length
 REUSE = 2000.0           # running along a segment an earlier edge already uses: two edges on one line read as one (a false link), so only when nothing else exists
 JUNCTION = 400.0         # passing through a point where an earlier edge bends or ends
 SOFT = 600.0             # crossing a soft obstacle (group title text)
+LABEL_CROSS = 1500.0     # running under an earlier edge's label: the label then reads as this line's (W130)
 SIDES = ('right', 'left', 'bottom', 'top')
 LABEL_FS = 11.0          # edge label font size (px): the generator and the renderer use the same
 
@@ -73,6 +74,11 @@ def route(source: Box, target: Box, obstacles: Sequence[Box], used: Optional[Lis
     for x, y, w, h in list(others) + [source, target]:
         xs.update((x - margin, x + w + margin))
         ys.update((y - margin, y + h + margin))
+    # a second ring of channel lines beside each card: an edge can pass along a card's stub row without
+    # running on another edge's approach to that card (two lines on one row read as one, W131)
+    for x, y, w, h in list(others) + [source, target]:
+        xs.update((x - 2 * margin, x + w + 2 * margin))
+        ys.update((y - 2 * margin, y + h + 2 * margin))
     src_sides = [exit_port] if exit_port else [(s, 0.5) for s in SIDES]
     tgt_sides = [entry_port] if entry_port else [(s, 0.5) for s in SIDES]
     for box, sides in ((source, src_sides), (target, tgt_sides)):
@@ -93,6 +99,7 @@ def route(source: Box, target: Box, obstacles: Sequence[Box], used: Optional[Lis
         return any(ox < px < ox + ow and oy < py < oy + oh for ox, oy, ow, oh in obst + ends)
 
     corners = {p for seg in used for p in seg}
+    label_boxes = [(x + 2, y + 2, w - 4, h - 4) for x, y, w, h in (labels or []) if w > 4 and h > 4]
 
     def reuse_cost(a: Point, b: Point) -> float:
         extra = 0.0
@@ -100,6 +107,8 @@ def route(source: Box, target: Box, obstacles: Sequence[Box], used: Optional[Lis
             extra += JUNCTION       # through another edge's bend or port: the two lines read as one at that point
         if soft and _blocked(a, b, soft):
             extra += SOFT           # through a group title: allowed when nothing else exists (cards keep top exits)
+        if label_boxes and _blocked(a, b, label_boxes):
+            extra += LABEL_CROSS    # under an earlier label (W130)
         for (u1, u2) in used:
             if a[0] == b[0] == u1[0] == u2[0] and min(a[1], b[1]) < max(u1[1], u2[1]) and max(a[1], b[1]) > min(u1[1], u2[1]):
                 return REUSE + extra
@@ -174,13 +183,14 @@ def route(source: Box, target: Box, obstacles: Sequence[Box], used: Optional[Lis
         if not ((a[0] == b[0] == c[0]) or (a[1] == b[1] == c[1])):
             inner.append(b)
     bends = [path[1]] + inner + ([path[-2]] if len(path) > 3 else [])
+    earlier = list(used)
     for k in range(len(path) - 1):
         used.append((path[k], path[k + 1]))
-    return exit_side, entry, bends, _label_fraction(path, obstacles, label_size, labels)
+    return exit_side, entry, bends, _label_fraction(path, obstacles, label_size, labels, earlier)
 
 
 def _label_fraction(path: List[Point], obstacles: Sequence[Box], size: Optional[Tuple[float, float]],
-                    labels: Optional[List[Box]]):
+                    labels: Optional[List[Box]], lines: Sequence[Tuple[Point, Point]] = ()):
     lengths = [abs(b[0] - a[0]) + abs(b[1] - a[1]) for a, b in zip(path, path[1:])]
     total = sum(lengths) or 1.0
     w, h = size or (60.0, 16.0)
@@ -194,7 +204,10 @@ def _label_fraction(path: List[Point], obstacles: Sequence[Box], size: Optional[
         if box[0] < 0 or box[1] < 0:            # page coordinates start at 0: a label there leaves the page (W114)
             return False
         pad = (box[0] - 3, box[1] - 3, box[2] + 6, box[3] + 6)     # 3 px clearance: renderers differ slightly
-        return not any(_overlap(pad, o) > 0.05 * w * h for o in list(obstacles) + taken)
+        if any(_overlap(pad, o) > 0.05 * w * h for o in list(obstacles) + taken):
+            return False
+        # another edge's line under the label makes the label read as that line's (W130)
+        return not any(_blocked(a, b, [pad]) for a, b in lines)
 
     # the longest segment first, at any free position along it, before a shorter one: a label in the middle of
     # a long channel reads better than one squeezed beside a card at the end of a short stub. The preferred
@@ -232,7 +245,9 @@ def _label_fraction(path: List[Point], obstacles: Sequence[Box], size: Optional[
     # nothing is free: the on-page position, on the path or just beside it, that covers the least
     def cost(box):
         off = 1e9 if box[0] < 0 or box[1] < 0 else 0.0
-        return off + sum(_overlap(box, o) for o in list(obstacles) + taken)
+        # a label over a card hides the card's text: that weighs more than a line crossing the label
+        under = sum(1 for a, b in lines if _blocked(a, b, [box])) * 0.5 * w * h
+        return off + under + 3 * sum(_overlap(box, o) for o in obstacles) + sum(_overlap(box, o) for o in taken)
     box, frac = min(candidates, key=lambda c: cost(c[0]))
     taken.append(box)
     return frac

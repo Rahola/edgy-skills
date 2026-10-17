@@ -1,6 +1,6 @@
 ---
 name: edgy-deep-dive
-version: "1.1.1"
+version: "1.1.2"
 description: >
   Targeted EDGY 23 deep-dive analysis of a specific element pair or facet combination.
   Requires an existing edgy-model.json produced by the edgy-assessment skill.
@@ -13,6 +13,7 @@ languages: [fi, en]
 agents:
   - claude-code
   - cursor
+  - vibe
   - generic
 inputs:
   - name: model
@@ -125,13 +126,15 @@ Do not skip phases. Every phase is required to produce a complete, grounded anal
 ### Phase 1: Load Context
 
 0. **Validate the model** against the shared schema before reading it:
-   `python3 tools/validate-edgy-model.py <company>-edgy-model.json` (schema:
+   `python3 <edgy-assessment>/scripts/validate_edgy_model.py <company>-edgy-model.json` (schema:
    `skills/architecture/edgy-assessment/assets/edgy-model.schema.json`). A
    model that fails validation is not analysed — ask the user to fix it or to
    run `edgy-assessment` in `extract-model` mode. Never invent elements that
    the model does not contain.
 1. Read the `model` file (edgy-model.json). `elements.organisation` is one object (format 1.8)
-   or an array (1.9) — treat a single object as a list of one.
+   or an array (1.9), and so is `elements.journey` from format 1.10 (one object, or an array of
+   journeys with ids) — treat a single object as a list of one. With several journeys, analyse
+   the ones the focus names, or each in turn; never merge them into one.
 2. Extract the entries for all `focus_elements` from `elements`.
 3. Note the coherence scores from `coherence` for any intersection elements in the focus.
 4. Check `suggested_deep_dives` — if this exact pair was suggested, note its rationale and priority.

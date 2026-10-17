@@ -4,11 +4,12 @@ EDGY Generator - Pääskripti EDGY-kaavioiden generointiin
 """
 
 import os
+import re
 import sys
 import argparse
 from edgy_parser import EDGYParser
 from edgy_to_plantuml import generate_plantuml
-from edgy_document import parse_document, build_mxfile, unique_slugs
+from edgy_document import parse_document, build_mxfile, page_ids_of, unique_slugs
 import edgy_render
 import edgy_qa
 
@@ -317,6 +318,10 @@ def main():
     # Lue syöte
     if os.path.exists(args.input):
         input_content = read_input_file(args.input)
+    elif '\n' not in args.input and re.search(r'\.(txt|md|edgy)$', args.input.strip(), re.I):
+        # a file name that does not exist is a typo, never a one-line diagram (it drew an empty page, exit 0)
+        print(f"Error: input file not found: {args.input}", file=sys.stderr)
+        sys.exit(2)
     else:
         input_content = args.input
 
@@ -396,7 +401,8 @@ def main():
     if args.bare:
         xml_content = edgy_parser.generate_xml()
     else:
-        xml_content = build_mxfile([(name, p.generate_xml()) for name, p in pages])
+        xml_content = build_mxfile([(name, p.generate_xml()) for name, p in pages],
+                                   page_ids=page_ids_of(pages))
     report_layout_warnings(pages, before)
     if args.output:
         if fmt != 'drawio':

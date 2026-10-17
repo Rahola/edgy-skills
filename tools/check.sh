@@ -8,7 +8,7 @@
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
 # edgy-tests, edgy-geometry-tests, edgy-lint-tests, edgy-render-tests,
 # edgy-structure-tests, edgy-tool-tests, edgy-model, edgy-model-diff-tests, edgy-archimate-tests,
-# edgy-graph-tests, edgy-examples-golden, edgy-contract, edgy-architecture, edgy-present, edgy-model-compat, edgy-official-shapes, edgy-eval, edgy-lint,
+# edgy-graph-tests, edgy-examples-golden, edgy-contract, edgy-notation-core, edgy-c4, edgy-architecture, trace-fixtures, examples-vs-v2.4.0, edgy-present, edgy-model-compat, adapter-install, edgy-official-shapes, edgy-eval, edgy-lint,
 # edgy-lint-strict, edgy-series, edgy-qa,
 # privacy-scan.
 #
@@ -215,11 +215,20 @@ run_step "edgy-model-tests" python3 skills/architecture/edgy-assessment/scripts/
 run_step "edgy-model-diff-tests" python3 skills/architecture/edgy-assessment/scripts/test_model_diff.py
 run_step "edgy-archimate-tests" python3 skills/architecture/edgy-assessment/scripts/test_model_to_archimate.py
 run_step "edgy-model-compat" python3 tools/test_model_compat.py
+run_step "adapter-install" python3 tools/test_adapters.py
 run_step "edgy-semantic-tests" python3 "$EDGY_SCRIPTS/test_semantic.py"
 run_step "edgy-graph-tests" python3 "$EDGY_SCRIPTS/test_graph.py"
 run_step "edgy-examples-golden" python3 "$EDGY_SCRIPTS/test_examples.py"
 run_step "edgy-contract" python3 "$EDGY_SCRIPTS/test_contract.py"
+# F4-core (2.9.0): notation page isolation, expand: with / without a handler, findings channel, prepass
+run_step "edgy-notation-core" python3 "$EDGY_SCRIPTS/test_notation_core.py"
+# edgy-c4 0.1.0: L1 / L2, C001–C006, prepass, static shapes, legend; the C4 L1 of every eval application
+run_step "edgy-c4" python3 "$REPO_ROOT/skills/documentation/edgy-c4/scripts/test_c4.py"
 run_step "edgy-architecture" python3 "$EDGY_SCRIPTS/test_architecture.py"
+# Realisation trace (v2.5.0 F7): the §3.0 fixtures, page ids, links, bands, W129, crowded bands
+run_step "trace-fixtures" python3 "$EDGY_SCRIPTS/test_trace.py"
+# Every v2.4.0 example unchanged unless listed in tools/fixtures/v2.5.0-example-exceptions.txt (test plan G05)
+run_step "examples-vs-v2.4.0" python3 tools/examples-vs-tag.py --tag v2.4.0
 # Every architecture view from the shipped 1.9 model (--views all) and from the eval model
 # (examples/eval/architecture-views.txt): lint 0/0, visual 0, layout 0
 edgy_architecture_views() {

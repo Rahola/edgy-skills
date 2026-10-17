@@ -254,6 +254,7 @@ PAGE_NAMES = {  # view page names in the model's language (the generated labels 
     "Capability": {"fi": "Kyvykkyys", "fr": "Capacité", "de": "Fähigkeit"},
     "Capability × application": {"fi": "Kyvykkyys × sovellus", "fr": "Capacité × application", "de": "Fähigkeit × Anwendung"},
     "Process × data (CRUD)": {"fi": "Prosessi × tieto (CRUD)", "fr": "Processus × données (CRUD)", "de": "Prozess × Daten (CRUD)"},
+    "Trace": {"fi": "Toteutusketju", "fr": "Chaîne de réalisation", "de": "Realisierungskette"},
 }
 
 
@@ -296,6 +297,16 @@ def _capability_matrix_view(model, lang):
 @register_view("crud-matrix")
 def _crud_matrix_view(model, lang):
     return [_view_page(_page_name("Process × data (CRUD)", lang), [("map_type", "capability-matrix"), ("matrix", "crud")])]
+
+
+@register_view("trace")
+def _trace_view(model, lang):
+    """Realisation trace (edgy-diagram 2.9.0): an index page and one page per element with an id, linked by
+    click. Opt-in — `--views all` leaves it out, a large model gives many pages."""
+    return [_view_page(_page_name("Trace", lang), [("map_type", "trace"), ("expand", "trace"), ("legend", "strip")])]
+
+
+OPT_IN_VIEWS = {"trace"}    # never part of --views all
 
 
 def build_views(model, views, lang):
@@ -343,7 +354,7 @@ def main(argv=None):
                 # all = every view the model can fill: a matrix without its links would be an empty page
                 verbs = {r.get("verb") for r in model.get("relationships") or [] if isinstance(r, dict)}
                 skip = {"crud-matrix": "accesses", "capability-matrix": "requires"}
-                views = [v for v in VIEW_WRITERS if skip.get(v, "") == "" or skip[v] in verbs]
+                views = [v for v in VIEW_WRITERS if v not in OPT_IN_VIEWS and (skip.get(v, "") == "" or skip[v] in verbs)]
                 for v, verb in skip.items():
                     if verb not in verbs:
                         print(f"edgy_model_to_txt: --views all leaves out {v} — the model has no {verb} relationships",

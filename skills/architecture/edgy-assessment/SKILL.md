@@ -1,6 +1,6 @@
 ---
 name: edgy-assessment
-version: "1.10.0"
+version: "1.11.0"
 description: >
   Comprehensive EDGY 23 Enterprise Design assessment: analysis, diagrams, and recommendations.
   Orchestrating skill that chains edgy-framework and edgy-diagram skills into a unified workflow.
@@ -80,7 +80,7 @@ Phases 1 and 3–5 and:
    `coherence` from section 5 (Strong/Good/Weak + contradictions + gaps),
    `suggested_deep_dives` from section 10 if present — otherwise derive at
    least three from sections 5 and 7 and mark `"source_section"` accordingly.
-3. Validate: `python3 tools/validate-edgy-model.py <company>-edgy-model.json`.
+3. Validate: `python3 <edgy-assessment>/scripts/validate_edgy_model.py <company>-edgy-model.json`.
 4. Regenerate the TXT files from the model (`edgy_model_to_txt.py`) and diff
    them against the originals; differences are findings about the old
    delivery, not errors to hide.
@@ -214,12 +214,51 @@ any of these must say `"schema_version": "1.9"` — the validator rejects 1.9 st
 older model, and every 1.8 model keeps producing byte-identical TXT, diff and ArchiMate
 output (tools/test_model_compat.py).
 
+Format **1.10** (optional, for the realisation trace of edgy-diagram 2.9.0) adds:
+- `journey` as an object **or an array** of journeys, each with an `id`;
+- `gaps` on the realisation-trace types, with these keys:
+
+  | Type | `gaps` keys |
+  |------|-------------|
+  | journey | `tasks`, `channels`, `products` |
+  | task | `products`, `channels` |
+  | channel | `products` |
+  | product | `capabilities`, `processes`, `organisation` |
+  | capability | the five above, plus `organisation` |
+  | process | `resources`, `organisation` |
+  | asset, people | `organisation` |
+
+A model that uses a journey array or one of these gaps must say
+`"schema_version": "1.10"`. A single journey with an `id` is still valid 1.9.
+
+**Migration 1.9 → 1.10.** Change these together:
+1. Turn `"journey": {…}` into `"journey": [{…, "id": "JRN-01"}, …]`. Keep
+   the existing journey and its relationships, and give every journey an id.
+2. Add the Experience links the trace walks to `relationships[]`:
+   - task → journey *is part of*;
+   - journey → channel *traverses*;
+   - task → channel *uses*;
+   - product → task *serves*;
+   - product → journey *features in*;
+   - product → channel *offers*;
+   - organisation → product *makes*;
+   - process → product *creates*.
+3. Record what you know is missing as `gaps` (the statuses as above).
+4. Set `"schema_version": "1.10"` and validate.
+
+1.9 and 1.8 models keep producing byte-identical output: the
+`compat-1.9` and `compat-1.8` fixtures check this.
+
 **Validate the model** before continuing — the schema lives in
 `assets/edgy-model.schema.json`, the validator needs only the standard library:
 
 ```bash
-python3 tools/validate-edgy-model.py <company>-edgy-model.json     # must print "valid"
+python3 <edgy-assessment>/scripts/validate_edgy_model.py <company>-edgy-model.json     # must print "valid"
 ```
+
+`<edgy-assessment>` is this skill's directory: `~/.claude/skills/edgy-assessment`
+when installed, `skills/architecture/edgy-assessment` in a checkout. The same
+holds for the other `skills/…` script paths in this file.
 
 Rules:
 - `elements` must contain all 12 EDGY elements (Purpose, Story, Content, Capability, Asset, Process, Task, Channel, Journey, Organisation, Product, Brand)
@@ -498,7 +537,7 @@ it; never type them a second time:
 
 ```bash
 python3 skills/architecture/edgy-assessment/scripts/edgy_model_to_txt.py <company>-edgy-model.json \
-    --prefix <company> --views all          # or: application,process-chain,process-swimlane,capability,capability-matrix,crud-matrix
+    --prefix <company> --views all          # or: application,process-chain,process-swimlane,capability,capability-matrix,crud-matrix,trace
 python3 skills/documentation/edgy-diagram/scripts/edgy_generator.py <company>-views.txt \
     --output <company>-views.drawio --preview [--present <company>-presentation.html]
 ```
@@ -512,6 +551,18 @@ capability-view band is a **model gap** with an evidence status — report
 `not_investigated` / `unknown` as open questions, `confirmed_absent` as a
 finding, never the reverse. W124 (application without an owner) is a note;
 set `ownership: required` on the view page when ownership is in scope.
+
+**Realisation trace (opt-in, edgy-diagram 2.9.0).** `--views trace` adds the
+trace pages: an index (journeys | organisations) and one page per element
+with an id, from the journey down through tasks and channels, products,
+capabilities, processes, assets and people to the organisations, and back
+up; every card links to its own page, and in the presenter the trace is one
+Trace card with drill-through. It is not part of `--views all`, because a
+large model gives many pages (`where:` narrows them on a hand-written page).
+It needs the Experience links (format 1.10, *Migration 1.9 → 1.10* above):
+when you extract a 1.10 model, emit *serves*, *features in* and *offers*
+together with *is part of*, *traverses* and *uses*. An empty band below an
+element is **W129** with the same evidence statuses as W127.
 `--present` writes one offline HTML of every view for a workshop; it carries
 the model, so it stays in the engagement folder with the `.drawio`.
 

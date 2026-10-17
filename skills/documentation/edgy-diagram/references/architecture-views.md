@@ -127,6 +127,76 @@ finding unless `confirmed_absent`.
 The cells are decorations (`edgyRole=matrix`), the links they show are not
 drawn as edges (reported as a `Note:`), and the legend defaults to a strip.
 
+## Realisation trace — `expand: trace` (2.9.0)
+
+The trace answers *what realises this?* from the customer's journey down to
+the organisations, and *what does this serve?* back up. One page per element
+with an id, linked by click:
+
+```text
+  - name: "Trace"
+    map_type: trace
+    expand: trace            # where: JRN-01, CAP-05 | highlight | from JRN-01
+    legend: strip            # trace_direction: both (default) | down | up
+```
+
+| Level | Elements |
+|-------|----------|
+| 1 | Journey |
+| 2 | Task, Channel |
+| 3 | Product |
+| 4 | Capability |
+| 5 | Process, Asset, People |
+| 6 | Organisation |
+
+**A page** shows the focus and its **direct neighbours** (one hop) over the
+trace links: *above* the lower levels (dimmed), *beside* the same level,
+*below* the higher levels, grouped by level with a row header. Every edge
+keeps its EDGY verb and direction. Links walked: *is part of*, *traverses*,
+*uses*, *serves*, *features in*, *offers* (product → channel), *requires*,
+*creates*, *realises*, *accesses*, *interacts with*, *performs*, *makes*,
+*has*, *manages* and *contains* (people of an organisation; within one type,
+*contains* gives the *part of / parts* chips). Flows are not walked, and
+people → process is never drawn (E010).
+
+**Pages and links.** `expand: trace` writes a **trace index** (journeys |
+organisations) and one page per element with an id at levels 1–6; an element
+without an id is counted in a note. `where:` narrows the set: ids,
+`highlight`, or `from JRN-01` (everything reachable downwards; upwards with
+`trace_direction: up`). Page ids are stable: `trace-<id>` (plus six hex
+characters when the id has `/`, `:` or `.`), the index is `trace-index`. A
+card links to its page (draw.io `UserObject link="data:page/id,…"`) only
+when the page is in the document; the others are drawn without a link and
+counted in a note. Above 100 pages a note suggests a narrower `where:`.
+
+**Crowded bands.** More than 12 cards in a band: 11 cards and a "+N more"
+card that links to a list page (`<page>-more-above|below`, a grid of 5).
+A row of more than 8 cards draws no edges; the row header names the verbs
+instead. A level row of more than 5 cards of several types (tasks and
+channels) becomes one row per type.
+
+**Gaps.** An empty *below* band is **W129** with the W127 evidence statuses,
+set per element type with `{gaps: …}` and written to `qa.json`
+`model_gaps[]`:
+
+| Type | `gaps` keys | W129 checks |
+|------|-------------|-------------|
+| journey | tasks, channels, products | tasks |
+| task | products, channels | products |
+| channel | products | products |
+| product | capabilities, processes, organisation | capabilities |
+| capability | actors, processes, resources, data, products, organisation | processes, resources |
+| process, asset, people | organisation (process also resources) | organisation |
+
+W129 never runs on `up` pages or on organisations.
+
+**From a model.** `edgy_model_to_txt.py model.json --views trace` (format
+1.10 with the Experience links); it is not part of `--views all`.
+
+**C4 badge.** When the delivery has a C4 system context of an application
+(`notation: c4`, edgy-c4), its card on the trace pages gets a separate
+"C4" badge linking there; the card keeps its trace link.
+
 ## Presenter
 
 `edgy_generator.py … --present presentation.html` (or `edgy_present.py`)
@@ -134,6 +204,14 @@ writes one self-contained, offline HTML page of every view: card wall →
 zoom, cross-view highlight with occurrence counts, ⌘K search, current ↔
 target filter over `{change:}` annotations, paging, deep links and print.
 It inlines the native preview SVG and computes no layout.
+
+With a realisation trace the trace pages are **one Trace card** (the index).
+The first click on a card inspects it; the "→" badge or a second click opens
+its trace page. Routes are `#/trace/JRN-01/TSK-03/…` (each id
+`encodeURIComponent`-encoded) in the browser history, so *back*, *forward*,
+refresh and copied links work; a breadcrumb shows the path taken. A "C4"
+badge opens the C4 page, and *back* returns to the trace. Drill-through is
+part of effect 5 (paging and deep links): still five effects.
 
 ## Extension contract
 

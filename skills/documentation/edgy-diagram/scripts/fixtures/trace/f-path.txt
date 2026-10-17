@@ -1,0 +1,39 @@
+# F-PATH (test plan v2.5.0 §3.0): one six-level path holding every row of the F7 link table. Fictional.
+language: en
+pages:
+  - name: "Model"
+    draw: false
+    elements:
+      - journey: "Book a trip" {id: JRN-01}
+      - task: "Choose a fare" {id: TSK-01}
+      - channel: "App" {id: CH-01}
+      - product: "Booking" {id: PRD-01}
+      - capability: "Trip sales" {id: CAP-01}
+      - process: "Sell trips" {id: PRO-01}
+      - asset: "Booking system" {id: APP-01, kind: application}
+      - asset: "Fare rules" {id: DAT-01, kind: data}
+      - people: "Sales agent" {id: PPL-01}
+      - organisation: "Sales team" {id: ORG-01}
+    relationships:
+      - "TSK-01" -> "JRN-01": "is part of"
+      - "JRN-01" -> "CH-01": "traverses"
+      - "TSK-01" -> "CH-01": "uses"
+      - "PRD-01" -> "TSK-01": "serves"
+      - "PRD-01" -> "CH-01": "offers"
+      - "PRD-01" -> "CAP-01": "requires"
+      - "PRO-01" -> "CAP-01": "realises"
+      - "CAP-01" -> "APP-01": "requires"
+      - "PRO-01" -> "APP-01": "requires"
+      - "PPL-01" -> "APP-01": "interacts with"
+      - "ORG-01" -> "PRO-01": "performs"
+      - "ORG-01" -> "CAP-01": "has"
+      - "ORG-01" -> "APP-01": "manages"
+      - "ORG-01" -> "PRD-01": "makes"
+      - "ORG-01" -> "PPL-01": "contains"
+      - "PRD-01" -> "JRN-01": "features in"
+      - "PRO-01" -> "PRD-01": "creates"
+      - "PRO-01" -> "DAT-01": "accesses" {crud: R}
+      - "ORG-01" -> "DAT-01": "manages"
+  - name: "Trace"
+    map_type: trace
+    expand: trace

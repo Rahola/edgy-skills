@@ -171,3 +171,14 @@ g.pulse > :first-child { animation: pulse 1.1s var(--ease) 1; transform-box: fil
   .print h2 { font-size: 14pt; margin: 0 0 8pt; }
   .print svg { width: 100%; height: auto; max-height: 90vh; }
 }
+
+/* realisation trace (2.9.0): the "→" drill badge and the "+N more" card */
+g.drill { cursor: pointer; }
+g.drill circle { fill: #172b4d; stroke: #ffffff; stroke-width: 2; }
+g.drill text { fill: #ffffff; pointer-events: none; }
+g.drill:focus { outline: none; }
+g.drill:focus-visible circle, g.drill:hover circle { fill: #0052cc; stroke: #ffb000; stroke-width: 3; }
+g.deco.linked { cursor: pointer; }
+g.deco.linked:focus { outline: none; }
+g.deco.linked:focus-visible > :first-child, g.deco.linked:hover > :first-child { stroke: #0052cc; stroke-width: 2; }
+g.deco.linked:focus-visible > :first-child { stroke: #ffb000; stroke-width: 3; }

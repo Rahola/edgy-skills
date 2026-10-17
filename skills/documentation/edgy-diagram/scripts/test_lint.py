@@ -626,6 +626,28 @@ def test_w128_header_under_the_legend():
     assert 'W128' not in rules(run(HEAD + LEGEND + header + clear + TAIL))
 
 
+def test_w130_w131_lines_under_labels_and_shared_lines():
+    """v2.5.0 phase 4 (F4): a line under another edge's label, and two unrelated edges on one line."""
+    straight = 'edgeStyle=none;endArrow=classic;endFill=1;html=1;'
+    cards = (vertex(2, 'A', PURPOSE, 40, 200) + vertex(3, 'B', PURPOSE, 560, 200) +
+             vertex(4, 'C', PURPOSE, 300, 20) + vertex(5, 'D', PURPOSE, 300, 400))
+    # A → B horizontal with a two-line label in the middle; C → D vertical straight through that label
+    under = HEAD + cards + edge(10, 'contextualises&lt;br&gt;second line', straight, 2, 3) + \
+        edge(11, 'x', straight, 4, 5) + LEGEND + TAIL
+    assert 'W130' in rules(run(under))
+    clear = HEAD + cards + edge(10, 'contextualises&lt;br&gt;second line', straight, 2, 3) + LEGEND + TAIL
+    assert 'W130' not in rules(run(clear))
+    # E → F and G → H on one horizontal line (no end in common): W131
+    row = (vertex(6, 'E', PURPOSE, 40, 200) + vertex(7, 'F', PURPOSE, 640, 200) +
+           vertex(8, 'G', PURPOSE, 200, 120) + vertex(9, 'H', PURPOSE, 480, 120))
+    via = ('<mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="260" y="230"/>'
+           '<mxPoint x="540" y="230"/></Array></mxGeometry>')
+    shared = HEAD + row + edge(12, 'a', straight, 6, 7) + \
+        f'<mxCell id="13" value="b" style="{straight}" edge="1" source="8" target="9" parent="1">{via}</mxCell>' + \
+        LEGEND + TAIL
+    assert 'W131' in rules(run(shared))
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

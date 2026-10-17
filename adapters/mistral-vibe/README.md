@@ -77,7 +77,14 @@ Use the adapter's installer to download skills into `~/.mistral-vibe/skills/`:
 bash adapters/mistral-vibe/install.sh --list                 # list skills
 bash adapters/mistral-vibe/install.sh edgy-framework         # install one
 bash adapters/mistral-vibe/install.sh edgy-assessment edgy-diagram
+bash adapters/mistral-vibe/install.sh --all                  # every skill Vibe can use
 ```
+
+The Vibe install is **SKILL.md only**: dependencies (`requires:`) come
+first, but a skill that needs its whole directory (`install: directory`,
+e.g. `edgy-c4` with its notation handler) is refused with a message, and
+`--all` skips it and names it — use the claude-code or generic adapter for
+those. A failed skill, or an empty or unreadable skill list, exits 1.
 
 Then use the local file:
 

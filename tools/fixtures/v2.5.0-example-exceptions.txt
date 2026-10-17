@@ -1,0 +1,4 @@
+# Examples allowed to differ from v2.4.0 (tools/examples-vs-tag.py, check.sh step examples-vs-v2.4.0).
+# One line per example: <expected-file> <the v2.5.0 feature that changes it>. Reviewed in phase 4.
+# None: every v2.4.0 example is unchanged in v2.5.0 (new examples, e.g. expected-trace.drawio, are not compared).
+expected-capability-view.drawio F4 (phase 4): edge labels keep off other edges' lines (W130) and a route avoids the labels placed before it — one accesses path and its label moved

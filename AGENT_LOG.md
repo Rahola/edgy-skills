@@ -20,6 +20,145 @@ perustelut.
 
 ---
 
+### 2026-10-17 — Claude Code (v2.5.0 phase 4: Vibe findings)
+
+- **The missing M06 fixture** (`tools/fixtures/compat-1.10/experience-model.json`)
+  is now committed. A test runs it through the validator, `--views trace`
+  and the `--graph` JSON.
+- **A `{gaps:}` value that names no `band=status` pair is now a warning.**
+  A nested `{products: unknown}` used to fall back to `not_investigated`
+  in silence.
+- **The generator stops on a missing input file.** A typo'd `*.txt` path
+  used to be read as a one-line diagram and drew an empty page.
+- Two usage strings in `edgy-core-links.yaml` are quoted; their commas
+  had truncated the SKILL.md table since v2.4.0.
+- Doc clarifications:
+  - edgy-c4: an L1-only delivery and `{container:}`;
+  - test plan T02: the focus-incident wording.
+
+### 2026-10-17 — Claude Code (v2.5.0 phase 4: F4, the visual check's blind spot)
+
+Every tester found pictures that QA reported as 0/0/0 but that people
+could not read. Two new visual rules and three router changes close that
+gap.
+
+- **New rules.**
+  - **W130:** a line runs under another edge's label for more than 12 px.
+  - **W131:** two edges with no end in common share more than 20 px of
+    line.
+  - **W111** now also covers a "+N more" card and a route that runs back
+    through its own source or target.
+  - A fan out of one source, or into one target, with one verb is a bus,
+    as in W113.
+- **Why 12 px for W130.** A line straight across a one-line label is
+  10 px inside it: a crossing. Hand-positioned fixtures have those, and
+  they read fine. Longer than that, the label reads as the line's own.
+- **Router changes, so the rules have nothing to report on our own
+  output.**
+  - Label placement rejects a spot that another edge's line passes under,
+    and a label over a card weighs more than a crossing.
+  - A route avoids the labels already placed.
+  - A third pass re-routes an edge that runs under a label placed after
+    it.
+  - A second ring of channel lines beside each card lets an edge pass a
+    card's approach row without sharing it.
+- **Results.**
+  - The eval model went from 22 findings under the new rules to 0.
+  - One shipped example changed: the capability view moved one *accesses*
+    path. It is listed in the v2.5.0 example exceptions with this reason.
+
+### 2026-10-17 — Claude Code (v2.5.0 phase 4: Codex findings F1–F5)
+
+- **One page id, one destination.** An element with id `INDEX` took the
+  index's page id, and `CAP-X` and `cap-x` shared one page. `INDEX` now
+  gets the hash suffix. Ids that differ only in case stop the run: a hash
+  would make them unique, but readers could not tell the two pages apart.
+- **Model-page messages are reported.** A `draw: false` page is never
+  drawn, so its warnings (E010 on people → process *performs*) were lost.
+  They are now reported on the first drawn page, prefixed with their page.
+- **edgy-c4 fails closed on a line it cannot read (C007).** A missing
+  brace used to drop a container silently.
+- **The native SVG draws the dashed person outline.** The draw.io cell had
+  it, but the preview and the presenter did not.
+- **The presenter's indexes are null-prototype objects.** The model id
+  `constructor` used to write a key onto `Object`. New self-test step
+  `inert-keys`.
+
+### 2026-10-17 — Claude Code (v2.5.0 phase 4: presenter and edgy-c4 findings)
+
+- **Blocker: a mouse click on the "C4" badge or the "+N more" card did
+  nothing.** The pan handler captured the pointer for everything that was
+  not a card, so the click landed on the `<svg>`. The self-test fired
+  synthetic clicks and missed it. Linked decorations and drill badges are
+  now exempt, and the self-test sends the real pointer sequence
+  (`badge-no-pan`, shown to fail without the fix). Badges get a 24 px
+  target at phone width.
+- **edgy-c4:**
+  - Edge labels are escaped as HTML (`html=1`), so `</template><script>`
+    shows as text.
+  - A second page for the same level and system is C006.
+  - `level: component` is C004 (0.1.0 draws L1 and L2 only).
+  - An L2 relationship to an undeclared id is C001, never dropped silently.
+  - L1 pages centre on the content and the legend.
+  - A system without a Person says so on the page.
+  - An `[external]` system is grey on its own L1.
+
+### 2026-10-17 — Claude Code (v2.5.0 phase 4: skill-use findings)
+
+Claude sub-agent 4 used the installed skills as a user's agent (S01–S09).
+
+- **`where: from` walks same-level links.** An upward trace from IT stopped
+  at the applications: asset → process (*requires*) is a level-5 to
+  level-5 link, and the closure followed only lower levels. Same-level
+  links now count. The locked T05 oracle row changed with it (plan §11).
+- **The model validator ships with edgy-assessment**
+  (`scripts/validate_edgy_model.py`). The skills told the agent to run
+  `tools/validate-edgy-model.py`, which an install does not have, and the
+  schema alone misses the per-type `gaps` keys. `tools/` keeps a thin
+  entry point for the checkout and the tests.
+- **Previews prefer `headless_shell`.** A full Chrome in `--headless` has a
+  window frame, and the PNG lost its bottom ~90 px (the legend). A full
+  binary now gets a taller window and the PNG is cropped back.
+
+### 2026-10-17 — Claude Code (v2.5.0 phase 4: first test findings)
+
+Claude sub-agent 1 (T10, Q01) found trace pages that passed QA 0/0/0 but
+could not be read: on organisation pages about fourteen edges converged on
+the focus from three rows, and a "+N more" card had edges through it.
+
+- **Crowded band, not just a crowded row.** When a band holds more than
+  eight cards in all its rows, its links to the focus are shown by
+  position and named in the row headers, as for a single row of more than
+  eight. A bundle of parallel lines into one card is not information.
+- **List pages: one header per level**, with the count, and the focus on
+  the side its band is on. One "Products" header over capabilities and
+  processes misled. The focus card links back to its trace page.
+- The "+N more" card counts as page content, so the page grows to hold it.
+
+### 2026-10-17 — Claude Code (v2.5.0 phase 3: development)
+
+Sprints 25a–29 of the locked plan on the v2.5.0 branch (draft PR #8):
+model format 1.10, adapters with dependencies, the realisation trace and
+its presenter drill-through, notation pages in the core (F4-core), the new
+edgy-c4 skill, the C4 badge on trace cards, version bumps and docs.
+
+- **Why the trace is one hop per page.** A transitive chain on one page is
+  unreadable past three levels; one hop with links makes the reader walk
+  the chain and needs no cycle handling.
+- **Why notation handlers run at parse time.** Their errors must stop the
+  run before a file exists; at draw time a handler exception was a
+  traceback in the middle of writing the output.
+- **Why C4 cells carry no `edgyId`.** C4 containers are not EDGY
+  elements; without the marker they stay out of the graph, the search and
+  the highlight, and the C4 system links to the EDGY asset by its page id.
+- **Why `examples-vs-v2.4.0` reads the tag's goldens.** They are the tag's
+  generator output for the same inputs with the same glyph tables; running
+  the old generator again would test the same thing more slowly.
+- Deviations and as-built choices: plan §11.
+
+All `check.sh` steps pass, including the browser self-test. Testing
+(phase 4) follows the test plan with the agents named there.
+
 ### 2026-10-17 — Claude Code (showcase, F7 plan, principles audit)
 
 **Showcase of v2.4.0** (outputs in the session only, not committed: a

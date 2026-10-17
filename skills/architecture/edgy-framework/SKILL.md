@@ -1,6 +1,6 @@
 ---
 name: edgy-framework
-version: "1.7.0"
+version: "1.8.0"
 description: >
   EDGY 23 enterprise design analysis: challenge reframing, facet intersection analysis,
   element identification from natural language, and modelling guidance for strategy
@@ -12,6 +12,7 @@ languages: [fi, en, fr, de]
 agents:
   - claude-code
   - cursor
+  - vibe
   - generic
 inputs:
   - name: mode
@@ -408,6 +409,28 @@ cells.
 **Touchpoint matrix** — journey stages as columns, channels or people as
 rows, tasks in the cells: it shows which stage is served by which channel
 and where a person is left alone.
+
+**Journeys, tasks and channels as a model (v2.5.0).** When the Experience
+facet goes into an edgy-model.json (format 1.10) or a multi-page TXT, give
+every journey, task and channel an **id** (`JRN-01`, `TSK-03`, `CHA-02`) and
+link them with the core links, so the realisation trace can follow a journey
+down to the organisations behind it:
+
+| Link | Meaning |
+|------|---------|
+| task → journey *is part of* | the stage the task belongs to |
+| journey → channel *traverses*, task → channel *uses* | where it happens |
+| product → task *serves*, product → journey *features in* | what the organisation offers for it |
+| product → channel *offers* (influence) | where the product is available |
+| organisation → product *makes*, process → product *creates* | who and what produce it |
+
+Several journeys are an array (`elements.journey: [...]`); one journey may
+stay a single object. A missing link is a question, not a defect: when it is
+known that a task has no product, say so with `{gaps: products=confirmed_absent}`
+(or `out_of_scope`, `unknown`), so W129 reports a decision instead of a
+gap. Keep the model on the person's side: a task that only an employee would
+say is a process (S010), and a channel is where the person meets the
+organisation, not an internal system.
 
 **Outcome** — a verifiable result or changed state ("Shorter waiting times",
 "More night-train passengers"), never an action ("Implement CRM"). Give it a

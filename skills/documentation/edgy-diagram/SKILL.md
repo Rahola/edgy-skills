@@ -1,6 +1,6 @@
 ---
 name: edgy-diagram
-version: "2.8.0"
+version: "2.9.0"
 description: >
   Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML
   source and export them to PNG/SVG/PDF. Generator-first workflow
@@ -17,6 +17,7 @@ languages: [fi, en, fr, de]
 agents:
   - claude-code
   - cursor
+  - vibe
   - generic
 inputs:
   - name: facet
@@ -131,7 +132,7 @@ cannot run, and then only for diagrams under ~15 cells — still lint it later.
 ```bash
 python3 scripts/edgy_lint.py <name>.drawio                       # 0 errors required
 python3 scripts/edgy_lint.py --warnings-as-errors <name>.drawio  # strict (shipped examples)
-python3 scripts/edgy_lint.py --visual <name>.drawio              # W111–W114 only, JSON with coordinates
+python3 scripts/edgy_lint.py --visual <name>.drawio              # W111–W114, W130, W131 only, JSON with coordinates
 python3 scripts/edgy_lint.py --series a.drawio b.drawio c.drawio   # one delivery: W121 when the files differ in layout
 python3 scripts/edgy_lint.py --no-layout-quality <name>.drawio   # switch W117–W120 off for a run
 python3 scripts/edgy_qa.py --require-approvals <name>.qa.json     # the manifest: lint and approvals on separate lines
@@ -145,13 +146,16 @@ verb only on an allowed pair, non-core verb never in core-link style, verbs
 from the vocabulary). Exit 1 = fix before delivery; warnings do not block but
 must be read.
 
-**Visual rules (W111–W114)** run on the same resolved geometry the preview
+**Visual rules (W111–W114, W130, W131)** run on the same resolved geometry the preview
 draws (`edgy_geometry.py`: ports, orthogonal joins, waypoints, label boxes),
 so a clean structural lint is no longer mistaken for a readable picture:
 W111 an edge passes through an element that is not its source or target,
 W112 an edge label lies on an element, W113 a label lies on another label (a
 parent → children fan with one verb is one bus and is allowed), W114 a label
-or edge end leaves the page. They are warnings: fix them by moving the
+or edge end leaves the page, W130 a line runs under another edge's label
+(the label reads as that line's), W131 two edges with no common end share a
+stretch of line. W111 also covers a trace "+N more" card and a route back
+through its own end. They are warnings: fix them by moving the
 element, adding `via:` waypoints, changing `from:`/`to:`, or using `label:
 source|target`; `--visual` gives the cell ids and coordinates for a script to
 act on. A delivery should have none; `--warnings-as-errors` enforces that.
@@ -191,7 +195,7 @@ flagged.
 **QA manifest (`qa.json`).** `edgy_generator.py --qa` (on by default with
 `--preview`, `--no-qa` to skip) writes `<name>.qa.json` next to the
 `.drawio`: per page the element and edge counts, the structural lint
-(errors, warnings, rules), the visual rules W111–W114, the layout rules
+(errors, warnings, rules), the visual rules W111–W114, W130 and W131, the layout rules
 W117–W120 and whether they ran, the language check W116, the text-size check
 W115 at the preset's reference width, the preview image size and
 orientation, and the generator warnings. Three fields are never set by the
@@ -239,6 +243,16 @@ edgy_generator.py in.txt --output out.drawio --graph graph.json            # doc
 edgy_generator.py in.txt --output out.drawio --present presentation.html   # self-contained offline presentation
 edgy_present.py out.drawio [-o presentation.html] [--graph graph.json]     # same, from an existing file
 ```
+
+**Realisation trace (2.9.0).** A page `map_type: trace` + `expand: trace`
+writes a clickable trace: an index and one page per element with an id,
+from journeys through tasks / channels, products, capabilities,
+processes / assets / people to organisations, each card linking to its own
+page; W129 reports an empty band below an element with the W127 evidence
+statuses. Read `references/architecture-views.md` (*Realisation trace*);
+example `examples/trace-map.txt`; from a model, `edgy_model_to_txt.py
+--views trace`. In the presenter the trace is one Trace card with
+drill-through, breadcrumb and browser back.
 
 `--present` writes one HTML file with every page (card wall → zoom,
 cross-view highlight, ⌘K search, current ↔ target over `{change:}`
@@ -493,8 +507,8 @@ and the linter flag such edges and draw them as influence.
 | guides | ohjaa | guide | steuert | A steers or constrains B |
 | influences | vaikuttaa | influence | beeinflusst | generic influence when nothing more specific fits |
 | offers | tarjoaa | offre | bietet | A makes B available (non-core product/channel pairs) |
-| manages | hallinnoi | gère | verwaltet | A administers B (organisation → asset |
-| reflects | heijastaa | reflète | spiegelt | B mirrors A (content → brand |
+| manages | hallinnoi | gère | verwaltet | A administers B (organisation → asset, organisation → product portfolio) |
+| reflects | heijastaa | reflète | spiegelt | B mirrors A (content → brand, task → purpose) |
 | strengthens | vahvistaa | renforce | stärkt | A reinforces B |
 | defines | määrittelee | définit | definiert | A sets the scope or rules of B |
 | depends on | riippuu | dépend de | hängt ab von | A cannot exist without B (non-core pairs; core pairs use requires) |
@@ -626,9 +640,11 @@ or duplicate id, **E015** relationship to an unknown id, **W124** application
 without an owner, **W125** integration without a data asset, **W126** band
 mismatch on a value chain, **W127** empty capability-view band with its
 evidence status (`{gaps: band=status}`, written to `qa.json`
-`model_gaps[]`). Not supported yet: **C4** diagrams (planned as the separate `edgy-c4`
-skill, v2.5.0) — say so and offer the application map or a capability view;
-`notation: c4` is E013 until that skill is installed. Read
+`model_gaps[]`). **C4** diagrams of one application come from the separate `edgy-c4`
+skill (0.1.0, claude-code and generic installs): pages with `notation: c4`, `level: context`
+(derived from this document's graph) or `level: container`, drawn by its notation handler and
+kept out of the EDGY graph. Without edgy-c4 installed, `notation: c4` is E013 — say so and offer
+the application map or a capability view. Read
 `references/architecture-views.md` before drawing any of these maps; examples: `examples/application-map.txt`,
 `examples/application-by-capability-map.txt`,
 `examples/process-chain-map.txt`, `examples/process-swimlane-map.txt`,
@@ -710,7 +726,7 @@ extensions (transition overlay, `reference`, `summary`).
 **External standards.** EDGY 23 is the language of every map. Classifications
 from outside EDGY — Gartner TIME, CRUD, the management / core / support
 process bands, the swimlane layout, maturity and hosting badges, the
-ArchiMate export, and C4 (planned, separate skill) — are registered with
+ArchiMate export, and C4 (the separate edgy-c4 skill) — are registered with
 their rationale, limits and source in `references/external-standards.md`.
 Name the ones a delivery uses, credit the source (the legends do), and never
 use a classification that is not in the register: propose an entry instead.

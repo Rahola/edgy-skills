@@ -1,0 +1,16 @@
+version: "fixture"
+updated: "2026-10-17"
+
+skills:
+  - id: fx-base
+    path: tools/fixtures/skills/fx-base
+    version: 0.0.1
+    category: documentation
+    tags: [fixture]
+    agents: [claude-code, cursor, vibe, generic]
+  - id: fx-broken
+    path: tools/fixtures/skills/does-not-exist
+    version: 0.0.1
+    category: documentation
+    tags: [fixture]
+    agents: [claude-code, cursor, vibe, generic]

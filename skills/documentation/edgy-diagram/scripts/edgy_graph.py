@@ -47,6 +47,7 @@ class DocumentGraph:
         self.edges: List[dict] = []               # {source, target, verb, kind, options, page}
         self.order: List[str] = []                # model ids in first-seen order
         self._by_name: Dict[Tuple[str, str], List[str]] = {}
+        self.notation_index: Dict[str, object] = {}   # notation → what its handler's prepass returned (F4-core)
 
     # ---- lookup -----------------------------------------------------------
     def get(self, mid: str) -> Optional[dict]:

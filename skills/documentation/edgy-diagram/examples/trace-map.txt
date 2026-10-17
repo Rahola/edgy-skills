@@ -1,0 +1,70 @@
+# Realisation trace (edgy-diagram 2.9.0): "Buy a season ticket" from the journey down to the organisations.
+# One draw: false model page and the Trace page (expand: trace): an index page and one page per element with
+# an id; click a card to open its own trace page. In the presenter the trace is one Trace card. Fictional
+# (Acme Transit).
+language: en
+
+pages:
+  - name: "Model"
+    draw: false
+    elements:
+      - journey: "Buy a season ticket" {id: JRN-01}
+      - task: "Compare season passes" {id: TSK-01}
+      - task: "Pay for the pass" {id: TSK-02}
+      - task: "Load the pass on a card" {id: TSK-03}
+      - channel: "Mobile app" {id: CHA-01}
+      - channel: "Service desk" {id: CHA-02}
+      - product: "Season pass" {id: PRD-01}
+      - product: "Travel card" {id: PRD-02}
+      - capability: "Fare product definition" {id: CAP-01}
+      - capability: "Sales in every channel" {id: CAP-02}
+      - process: "Price fare products" {id: PRO-01}
+      - process: "Sell in every channel" {id: PRO-02}
+      - asset: "Fare engine" {id: APP-01, kind: application}
+      - asset: "Ticket shop" {id: APP-02, kind: application}
+      - asset: "Fare rules" {id: DAT-01, kind: data}
+      - people: "Desk clerk" {id: PEO-01}
+      - organisation: "Fares team" {id: ORG-01}
+      - organisation: "Customer service" {id: ORG-02}
+    relationships:
+      - "TSK-01" -> "JRN-01": "is part of"
+      - "TSK-02" -> "JRN-01": "is part of"
+      - "TSK-03" -> "JRN-01": "is part of"
+      - "JRN-01" -> "CHA-01": "traverses"
+      - "JRN-01" -> "CHA-02": "traverses"
+      - "TSK-01" -> "CHA-01": "uses"
+      - "TSK-02" -> "CHA-01": "uses"
+      - "TSK-03" -> "CHA-02": "uses"
+      - "PRD-01" -> "TSK-01": "serves"
+      - "PRD-01" -> "TSK-02": "serves"
+      - "PRD-02" -> "TSK-03": "serves"
+      - "PRD-01" -> "CHA-01": "offers"
+      - "PRD-02" -> "CHA-02": "offers"
+      - "PRD-01" -> "CAP-01": "requires"
+      - "PRD-01" -> "CAP-02": "requires"
+      - "PRD-02" -> "CAP-02": "requires"
+      - "PRO-01" -> "CAP-01": "realises"
+      - "PRO-02" -> "CAP-02": "realises"
+      - "CAP-01" -> "APP-01": "requires"
+      - "CAP-02" -> "APP-02": "requires"
+      - "PRO-01" -> "APP-01": "requires"
+      - "PRO-02" -> "APP-02": "requires"
+      - "PRO-01" -> "DAT-01": "accesses" {crud: CRUD}
+      - "PRO-02" -> "DAT-01": "accesses" {crud: R}
+      - "PEO-01" -> "APP-02": "interacts with"
+      - "PRO-02" -> "PRD-01": "creates"
+      - "ORG-01" -> "PRD-01": "makes"
+      - "ORG-02" -> "PRD-02": "makes"
+      - "ORG-01" -> "CAP-01": "has"
+      - "ORG-02" -> "CAP-02": "has"
+      - "ORG-01" -> "PRO-01": "performs"
+      - "ORG-02" -> "PRO-02": "performs"
+      - "ORG-01" -> "APP-01": "manages"
+      - "ORG-02" -> "APP-02": "manages"
+      - "ORG-01" -> "DAT-01": "manages"
+      - "ORG-02" -> "PEO-01": "contains"
+
+  - name: "Trace"
+    map_type: trace
+    expand: trace
+    legend: strip

@@ -57,6 +57,8 @@ def skill_to_registry_entry(skill_file: Path, skills_root: Path) -> dict | None:
         "tags": frontmatter.get("tags", []),
         "agents": frontmatter.get("agents", []),
         "description": str(frontmatter.get("description", "")).strip(),
+        **({"requires": list(frontmatter["requires"])} if frontmatter.get("requires") else {}),
+        **({"install": frontmatter["install"]} if frontmatter.get("install") else {}),
     }
 
 
@@ -148,6 +150,10 @@ def main():
             f.write(f"    tags: [{tags_str}]\n")
             agents_str = ", ".join(skill['agents'])
             f.write(f"    agents: [{agents_str}]\n")
+            if skill.get('requires'):
+                f.write(f"    requires: [{', '.join(skill['requires'])}]\n")
+            if skill.get('install'):
+                f.write(f"    install: {skill['install']}\n")
             if skill.get('description'):
                 # Kirjoita kuvaus multiline-muodossa jos pitkä
                 desc = skill['description'].replace('\n', ' ')

@@ -32,6 +32,8 @@ CLAUDE_MD="${HOME}/.claude/CLAUDE.md"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOCAL_REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LOOKUP_TOOL="${SCRIPT_DIR}/../../tools/lookup-skill.py"
+# Riippuvuudet (requires), adapterituki (agents / install) ja rekisterin korvaus (EDGY_SKILLS_REGISTRY)
+source "${SCRIPT_DIR}/../_shared/deps.sh"
 
 # Värit terminaalitulosteeseen
 RED='\033[0;31m'
@@ -110,6 +112,9 @@ _new_tmp() {
 
 # Hae registry.yaml polku/sisältö valitulla lähdetilalla
 fetch_registry() {
+  if deps_registry_override; then
+    return 0
+  fi
   case "$SOURCE_MODE" in
     local)
       echo "${LOCAL_REPO_ROOT}/registry.yaml"
@@ -243,28 +248,23 @@ fetch_curl() {
   log_warn "curl-tila lataa vain SKILL.md (ei examples/scripts/-alikansioita). Käytä --source=gh tai paikallista repoa täydelle asennukselle."
 }
 
-# Asenna yksittäinen skill
-install_skill() {
+# Asenna yksi skill-hakemisto (ilman riippuvuuksia)
+install_one() {
   local skill_id="$1"
   local registry_file="$2"
-
-  # Validoi skill_id – salli vain kirjaimet, numerot, viiva ja alaviiva
-  if [[ ! "$skill_id" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-    log_error "Virheellinen skill-id: '${skill_id}'. Sallittu: a-z, A-Z, 0-9, - ja _"
-    return 1
-  fi
-
-  echo "Asennetaan skill: ${skill_id}..."
 
   local skill_path
   if ! skill_path=$(get_skill_path "$skill_id" "$registry_file"); then
     log_error "Skilliä '${skill_id}' ei löydy registry.yaml:sta."
-    log_warn "Saatavilla olevat skillit:"
-    list_all_skills "$registry_file" | sed 's/^/  - /'
     return 1
   fi
 
   local target_dir="${SKILLS_DIR}/${skill_id}"
+  if [[ -e "$target_dir" ]]; then
+    local ref_desc="$REGISTRY_BRANCH"
+    [[ "$SOURCE_MODE" == "local" ]] && ref_desc="the local checkout"
+    log_warn "overwriting ${skill_id} from ${ref_desc}"
+  fi
 
   case "$SOURCE_MODE" in
     local) copy_local "$skill_path" "$target_dir" || return 1 ;;
@@ -273,10 +273,46 @@ install_skill() {
   esac
 
   log_info "Skill '${skill_id}' ladattu → ${target_dir}"
-
   update_claude_md "$skill_id"
-
   log_info "Skill '${skill_id}' asennettu onnistuneesti!"
+}
+
+# Tällä ajolla jo asennetut (riippuvuus asennetaan kerran, vaikka moni sitä tarvitsee)
+INSTALLED=" "
+
+# Asenna skill ja sen riippuvuudet (requires) asennusjärjestyksessä
+install_skill() {
+  local skill_id="$1"
+  local registry_file="$2"
+
+  echo "Asennetaan skill: ${skill_id}..."
+
+  local order
+  if ! order=$(deps_install_order "$skill_id" "$registry_file"); then
+    log_error "Skilliä '${skill_id}' ei voi asentaa (ks. virhe yllä)."
+    return 1
+  fi
+
+  local mode="directory"
+  [[ "$SOURCE_MODE" == "curl" ]] && mode="skillmd"
+  local sid
+  while IFS= read -r sid; do
+    [[ -z "$sid" ]] && continue
+    if ! deps_supports "$sid" "$registry_file" "claude-code" "$mode"; then
+      log_error "Skilliä '${skill_id}' ei voi asentaa tällä adapterilla."
+      return 1
+    fi
+  done <<< "$order"
+
+  while IFS= read -r sid; do
+    [[ -z "$sid" ]] && continue
+    [[ "$INSTALLED" == *" ${sid} "* ]] && continue
+    if [[ "$sid" != "$skill_id" ]]; then
+      log_info "${skill_id} requires ${sid} — installing it first"
+    fi
+    install_one "$sid" "$registry_file" || return 1
+    INSTALLED="${INSTALLED}${sid} "
+  done <<< "$order"
 }
 
 # --- Pääohjelma ---
@@ -321,19 +357,34 @@ mkdir -p "$SKILLS_DIR"
 # Hae registry
 registry_file=$(fetch_registry)
 
+FAILED=()
 if [[ "${ARGS[0]}" == "--all" ]]; then
   echo "Asennetaan kaikki skillit..."
+  if ! all_ids=$(deps_list_or_fail "$registry_file"); then
+    log_error "Rekisteristä ei saatu skillilistaa — mitään ei asennettu."
+    exit 1
+  fi
+  mode="directory"
+  [[ "$SOURCE_MODE" == "curl" ]] && mode="skillmd"
   while IFS= read -r skill_id; do
     skill_id="${skill_id%$'\r'}"
     [[ -z "$skill_id" ]] && continue
-    install_skill "$skill_id" "$registry_file" || true
-  done < <(list_all_skills "$registry_file")
+    if ! reason=$(deps_supports "$skill_id" "$registry_file" "claude-code" "$mode" 2>&1); then
+      log_warn "Ohitetaan ${skill_id}: ${reason}"
+      continue
+    fi
+    install_skill "$skill_id" "$registry_file" || FAILED+=("$skill_id")
+  done <<< "$all_ids"
 else
   for skill_id in "${ARGS[@]}"; do
     skill_id="${skill_id%$'\r'}"
-    install_skill "$skill_id" "$registry_file"
+    install_skill "$skill_id" "$registry_file" || FAILED+=("$skill_id")
   done
 fi
 
 echo ""
+if [[ ${#FAILED[@]} -gt 0 ]]; then
+  log_error "Asennus epäonnistui: ${FAILED[*]} (${#FAILED[@]} skilliä). Muut asennettiin."
+  exit 1
+fi
 log_info "Asennus valmis! Käynnistä Claude Code uudelleen nähdäksesi skillit."

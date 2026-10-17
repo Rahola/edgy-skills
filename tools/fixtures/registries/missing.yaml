@@ -1,0 +1,11 @@
+version: "fixture"
+updated: "2026-10-17"
+
+skills:
+  - id: fx-x
+    path: tools/fixtures/skills/fx-x
+    version: 0.0.1
+    category: documentation
+    tags: [fixture]
+    agents: [claude-code, cursor, vibe, generic]
+    requires: [nope]

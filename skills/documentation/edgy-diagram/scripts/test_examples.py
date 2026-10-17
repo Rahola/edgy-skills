@@ -18,7 +18,7 @@ os.environ['EDGY_TEXT_TABLE_ONLY'] = '1'   # the examples are written with the g
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
-from edgy_document import parse_document, build_mxfile  # noqa: E402
+from edgy_document import parse_document, build_mxfile, page_ids_of  # noqa: E402
 from edgy_to_plantuml import generate_plantuml  # noqa: E402
 
 
@@ -40,7 +40,7 @@ def test_every_expected_example_is_current():
         for txt in inputs:
             with redirect_stderr(io.StringIO()), redirect_stdout(io.StringIO()):
                 pages = parse_document(open(txt, encoding='utf-8').read())
-                xml = build_mxfile([(n, p.generate_xml()) for n, p in pages])
+                xml = build_mxfile([(n, p.generate_xml()) for n, p in pages], page_ids=page_ids_of(pages))
             target = expected_name(txt)
             if not os.path.exists(target) or open(target, encoding='utf-8').read() != xml:
                 stale.append(os.path.relpath(target, SKILL))

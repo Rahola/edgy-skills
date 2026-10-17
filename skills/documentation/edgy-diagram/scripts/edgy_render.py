@@ -277,8 +277,14 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
         x, y, w, h = box
         st = style_dict(c.get('style'))
         mid = _attr_id(st.get('edgyId'))
+        lm = re.match(r'^data:page/id,([a-z0-9-]+)$', c.get('link') or '')
+        link = f' data-link="{lm.group(1)}"' if lm else ''      # a draw.io page link (trace pages, 2.9.0)
         if mid and not st.get('edgyRole'):
             attrs = [f'data-id="{esc(mid)}"']
+            if lm:
+                attrs.append(link.strip())
+            if st.get('edgyTrace') in ('focus', 'list', 'index'):
+                attrs.append(f'data-trace="{st["edgyTrace"]}"')
             occ = st.get('edgyOcc')
             if occ and re.match(r'^[a-z0-9-]+/\d+$', occ):
                 attrs.append(f'data-occ="{esc(occ)}"')
@@ -291,12 +297,13 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
         else:
             owner = page.owner_id(cid)
             extra = f' data-for="{esc(owner)}"' if owner else ''
-            parts.append(f'<g class="deco" data-role="{deco_role(c, st)}"{extra}>')
+            parts.append(f'<g class="deco" data-role="{deco_role(c, st)}"{extra}{link}>')
         fill = st.get('fillColor', '#ffffff')
         stroke = st.get('strokeColor', '#000000')
         sw = st.get('strokeWidth', '1')
         dash = ' stroke-dasharray="6,4"' if st.get('dashed') == '1' else ''
-        opacity = ''
+        op = _num(st.get('opacity'), 100)
+        opacity = f' opacity="{op / 100:.2f}"' if op is not None and op < 100 else ''   # dimmed context cards
         if fill == 'none':
             fill = 'none'
         if stroke == 'none':
@@ -311,10 +318,10 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
             if 'arrows2.arrow' in shape:
                 n = min(_num(st.get('dx'), 20) or 20, w * 0.3)
                 pts = f'{x},{y} {x + w - n},{y} {x + w},{y + h / 2} {x + w - n},{y + h} {x},{y + h}'
-                parts.append(f'<polygon points="{pts}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"{dash}/>')
+                parts.append(f'<polygon points="{pts}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"{dash}{opacity}/>')
             elif 'person' in shape:
-                parts.append(f'<ellipse cx="{x + w / 2}" cy="{y + h * 0.22}" rx="{w * 0.22}" ry="{h * 0.2}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"/>'
-                             f'<path d="M{x},{y + h} v-{h * 0.35} a{w / 2},{h * 0.25} 0 0 1 {w},0 v{h * 0.35} z" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"/>')
+                parts.append(f'<ellipse cx="{x + w / 2}" cy="{y + h * 0.22}" rx="{w * 0.22}" ry="{h * 0.2}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"{dash}{opacity}/>'
+                             f'<path d="M{x},{y + h} v-{h * 0.35} a{w / 2},{h * 0.25} 0 0 1 {w},0 v{h * 0.35} z" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"{dash}{opacity}/>')
             else:
                 rx = 0.0
                 if st.get('rounded') == '1':
@@ -460,7 +467,15 @@ def find_chromium() -> Optional[str]:
     env = os.environ.get('EDGY_CHROMIUM')
     if env and os.path.isfile(env):
         return env
-    for name in ('chromium', 'chromium-browser', 'google-chrome', 'google-chrome-stable', 'chrome', 'headless_shell'):
+    # headless_shell first (no window frame: the screenshot is exactly the page), then a full browser
+    shells = [shutil.which('headless_shell')] + glob.glob(os.path.join(os.environ.get('PLAYWRIGHT_BROWSERS_PATH', '')
+                                                                     or '/nonexistent', '*', 'chrome-linux',
+                                                                     'headless_shell')) + \
+        glob.glob('/opt/pw-browsers/*/chrome-linux/headless_shell')
+    for hit in shells:
+        if hit and os.path.isfile(hit):
+            return hit
+    for name in ('chromium', 'chromium-browser', 'google-chrome', 'google-chrome-stable', 'chrome'):
         p = shutil.which(name)
         if p:
             return p
@@ -488,14 +503,33 @@ def svg_to_png(svg_path: str, png_path: str, width: int, height: int, chromium: 
     chromium = chromium or find_chromium()
     if not chromium:
         return False
+    w, h = max(int(width), 200), max(int(height), 200)
+    # the full Chrome binary in --headless keeps a window frame: its viewport is shorter than --window-size and
+    # the bottom of the page (the legend) was cut off. headless_shell has no frame. For any other binary the
+    # window is made taller and the PNG cropped back to the page (Pillow), or left with a white band without it.
+    full = 'headless_shell' not in os.path.basename(chromium)
+    pad = CHROME_FRAME_PAD if full else 0
     cmd = [chromium, '--headless', '--no-sandbox', '--disable-gpu', '--hide-scrollbars',
-           f'--force-device-scale-factor={scale}', f'--window-size={max(int(width), 200)},{max(int(height), 200)}',
+           f'--force-device-scale-factor={scale}', f'--window-size={w},{h + pad}',
            f'--screenshot={os.path.abspath(png_path)}', 'file://' + os.path.abspath(svg_path)]
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
     except (OSError, subprocess.TimeoutExpired):
         return False
-    return r.returncode == 0 and os.path.isfile(png_path)
+    ok = r.returncode == 0 and os.path.isfile(png_path)
+    if ok and pad:
+        try:
+            from PIL import Image
+            with Image.open(png_path) as im:
+                cropped = im.crop((0, 0, im.size[0], min(im.size[1], int(round(h * scale)))))
+                cropped.load()
+            cropped.save(png_path)
+        except Exception:          # no Pillow: the page is whole, with a white band below it
+            pass
+    return ok
+
+
+CHROME_FRAME_PAD = 200   # px added to the window height for a full Chrome binary (its frame is ~90 px)
 
 
 def render_file(path: str, out_dir: Optional[str] = None, png: bool = True, scale: float = 1.5,

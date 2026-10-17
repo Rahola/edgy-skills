@@ -1,0 +1,685 @@
+{
+ "company": "Acme Transit (fictional)",
+ "assessed_at": "2026-10-16",
+ "language": "en",
+ "schema_version": "1.9",
+ "elements": {
+  "purpose": {
+   "name": "Everyone can travel without a car",
+   "description": "Public transport as the default choice in the region",
+   "id": "PUR-01"
+  },
+  "story": {
+   "name": "Your city, on time",
+   "description": "Reliable everyday travel",
+   "id": "STO-01"
+  },
+  "content": {
+   "name": "Live departures",
+   "description": "Real-time information in every channel",
+   "id": "CON-01"
+  },
+  "capability": [
+   {
+    "name": "Fare product definition",
+    "description": "Design fare products and prices",
+    "id": "CAP-04",
+    "gaps": {
+     "products": "out_of_scope"
+    }
+   },
+   {
+    "name": "Sales in every channel",
+    "description": "Sell travel rights wherever passengers are",
+    "id": "CAP-05"
+   },
+   {
+    "name": "Validation and inspection",
+    "description": "Check that every trip is paid",
+    "id": "CAP-06"
+   },
+   {
+    "name": "Timetable planning",
+    "description": "Plan the network and the timetables",
+    "id": "CAP-08",
+    "gaps": {
+     "products": "out_of_scope"
+    }
+   },
+   {
+    "name": "Real-time passenger information",
+    "description": "Tell passengers what happens now",
+    "id": "CAP-09"
+   },
+   {
+    "name": "Revenue settlement",
+    "description": "Allocate revenue to operators",
+    "id": "CAP-10",
+    "gaps": {
+     "products": "out_of_scope"
+    }
+   }
+  ],
+  "asset": [
+   {
+    "name": "Fare engine",
+    "description": "Prices and fare rules",
+    "id": "APP-07",
+    "kind": "application",
+    "time": "invest",
+    "hosting": "cloud",
+    "owner": "ORG-02"
+   },
+   {
+    "name": "Ticket shop",
+    "description": "Web and app sales",
+    "id": "APP-05",
+    "kind": "application",
+    "time": "invest",
+    "hosting": "cloud",
+    "owner": "ORG-02"
+   },
+   {
+    "name": "Inspection app",
+    "description": "Ticket inspection on board",
+    "id": "APP-06",
+    "kind": "application",
+    "time": "migrate",
+    "hosting": "on-prem"
+   },
+   {
+    "name": "Timetable planner",
+    "description": "Network and timetable planning",
+    "id": "APP-11",
+    "kind": "application",
+    "time": "tolerate",
+    "hosting": "on-prem",
+    "owner": "ORG-03"
+   },
+   {
+    "name": "Passenger info hub",
+    "description": "Real-time information distribution",
+    "id": "APP-17",
+    "kind": "application",
+    "time": "invest",
+    "hosting": "cloud",
+    "owner": "ORG-03"
+   },
+   {
+    "name": "Settlement system",
+    "description": "Revenue allocation",
+    "id": "APP-20",
+    "kind": "application",
+    "time": "eliminate",
+    "hosting": "on-prem"
+   },
+   {
+    "name": "Integration platform",
+    "description": "APIs and events",
+    "id": "APP-16",
+    "kind": "integration",
+    "time": "invest",
+    "hosting": "cloud",
+    "owner": "ORG-03"
+   },
+   {
+    "name": "Fare rules",
+    "description": "Products, zones and prices",
+    "id": "DAT-01",
+    "kind": "data",
+    "master": true
+   },
+   {
+    "name": "Trip events",
+    "description": "Validations and inspections",
+    "id": "DAT-02",
+    "kind": "data"
+   },
+   {
+    "name": "Timetable",
+    "description": "Planned services",
+    "id": "DAT-03",
+    "kind": "data",
+    "master": true
+   },
+   {
+    "name": "Sales ledger",
+    "description": "Sold travel rights",
+    "id": "DAT-04",
+    "kind": "data"
+   }
+  ],
+  "process": [
+   {
+    "name": "Plan services",
+    "description": "",
+    "id": "PRO-10",
+    "band": "core"
+   },
+   {
+    "name": "Plan the network",
+    "description": "",
+    "id": "PRO-11"
+   },
+   {
+    "name": "Publish timetables",
+    "description": "",
+    "id": "PRO-12"
+   },
+   {
+    "name": "Sell travel",
+    "description": "",
+    "id": "PRO-20",
+    "band": "core"
+   },
+   {
+    "name": "Price fare products",
+    "description": "",
+    "id": "PRO-21"
+   },
+   {
+    "name": "Sell in every channel",
+    "description": "",
+    "id": "PRO-22"
+   },
+   {
+    "name": "Run services",
+    "description": "",
+    "id": "PRO-30",
+    "band": "core"
+   },
+   {
+    "name": "Inspect tickets",
+    "description": "",
+    "id": "PRO-32"
+   },
+   {
+    "name": "Settle revenue",
+    "description": "",
+    "id": "PRO-50",
+    "band": "support"
+   },
+   {
+    "name": "Allocate revenue to operators",
+    "description": "",
+    "id": "PRO-51"
+   }
+  ],
+  "task": [
+   {
+    "name": "Buy a ticket",
+    "description": "",
+    "id": "TAS-01"
+   }
+  ],
+  "channel": [
+   {
+    "name": "Mobile app",
+    "description": "",
+    "id": "CHA-01"
+   }
+  ],
+  "journey": {
+   "name": "Daily commute",
+   "description": "",
+   "stages": [
+    "Plan",
+    "Buy",
+    "Ride"
+   ],
+   "id": "JRN-01"
+  },
+  "organisation": [
+   {
+    "name": "Transit authority",
+    "description": "Owns the network",
+    "id": "ORG-01"
+   },
+   {
+    "name": "Fares team",
+    "description": "Fare products and sales",
+    "id": "ORG-02"
+   },
+   {
+    "name": "Platform team",
+    "description": "Shared digital platforms",
+    "id": "ORG-03"
+   },
+   {
+    "name": "Inspection unit",
+    "description": "Ticket inspection",
+    "id": "ORG-04"
+   }
+  ],
+  "people": [
+   {
+    "name": "Ticket inspector",
+    "description": "Checks tickets on board",
+    "id": "PEO-01"
+   }
+  ],
+  "product": [
+   {
+    "name": "Season ticket",
+    "description": "",
+    "id": "PRD-01"
+   }
+  ],
+  "brand": {
+   "name": "Acme Transit",
+   "description": "",
+   "id": "BRA-01"
+  }
+ },
+ "core_links": [
+  {
+   "source": "organisation",
+   "target": "capability",
+   "verb_en": "has"
+  },
+  {
+   "source": "capability",
+   "target": "asset",
+   "verb_en": "requires"
+  },
+  {
+   "source": "process",
+   "target": "capability",
+   "verb_en": "realises"
+  }
+ ],
+ "relationships": [
+  {
+   "source_id": "CAP-04",
+   "target_id": "APP-07",
+   "verb": "requires"
+  },
+  {
+   "source_id": "CAP-05",
+   "target_id": "APP-05",
+   "verb": "requires"
+  },
+  {
+   "source_id": "CAP-05",
+   "target_id": "APP-07",
+   "verb": "requires",
+   "attributes": {
+    "primary": true
+   }
+  },
+  {
+   "source_id": "CAP-06",
+   "target_id": "APP-06",
+   "verb": "requires"
+  },
+  {
+   "source_id": "CAP-08",
+   "target_id": "APP-11",
+   "verb": "requires"
+  },
+  {
+   "source_id": "CAP-09",
+   "target_id": "APP-17",
+   "verb": "requires"
+  },
+  {
+   "source_id": "CAP-10",
+   "target_id": "APP-20",
+   "verb": "requires"
+  },
+  {
+   "source_id": "CAP-05",
+   "target_id": "APP-16",
+   "verb": "requires"
+  },
+  {
+   "source_id": "CAP-09",
+   "target_id": "APP-16",
+   "verb": "requires"
+  },
+  {
+   "source_id": "APP-07",
+   "target_id": "DAT-01",
+   "verb": "stores"
+  },
+  {
+   "source_id": "APP-06",
+   "target_id": "DAT-02",
+   "verb": "stores"
+  },
+  {
+   "source_id": "APP-11",
+   "target_id": "DAT-03",
+   "verb": "stores"
+  },
+  {
+   "source_id": "APP-05",
+   "target_id": "DAT-04",
+   "verb": "stores"
+  },
+  {
+   "source_id": "APP-07",
+   "target_id": "APP-05",
+   "verb": "transfers",
+   "attributes": {
+    "data": [
+     "DAT-01"
+    ],
+    "technology": "REST"
+   }
+  },
+  {
+   "source_id": "APP-06",
+   "target_id": "APP-20",
+   "verb": "transfers",
+   "attributes": {
+    "data": [
+     "DAT-02"
+    ],
+    "technology": "Kafka"
+   }
+  },
+  {
+   "source_id": "APP-11",
+   "target_id": "APP-17",
+   "verb": "transfers",
+   "attributes": {
+    "data": [
+     "DAT-03"
+    ],
+    "technology": "GTFS"
+   }
+  },
+  {
+   "source_id": "APP-05",
+   "target_id": "APP-20",
+   "verb": "transfers",
+   "attributes": {
+    "data": [
+     "DAT-04"
+    ],
+    "technology": "REST"
+   }
+  },
+  {
+   "source_id": "PRO-10",
+   "target_id": "PRO-11",
+   "verb": "contains"
+  },
+  {
+   "source_id": "PRO-10",
+   "target_id": "PRO-12",
+   "verb": "contains"
+  },
+  {
+   "source_id": "PRO-20",
+   "target_id": "PRO-21",
+   "verb": "contains"
+  },
+  {
+   "source_id": "PRO-20",
+   "target_id": "PRO-22",
+   "verb": "contains"
+  },
+  {
+   "source_id": "PRO-30",
+   "target_id": "PRO-32",
+   "verb": "contains"
+  },
+  {
+   "source_id": "PRO-50",
+   "target_id": "PRO-51",
+   "verb": "contains"
+  },
+  {
+   "source_id": "PRO-11",
+   "target_id": "CAP-08",
+   "verb": "realises"
+  },
+  {
+   "source_id": "PRO-12",
+   "target_id": "CAP-08",
+   "verb": "realises"
+  },
+  {
+   "source_id": "PRO-21",
+   "target_id": "CAP-04",
+   "verb": "realises"
+  },
+  {
+   "source_id": "PRO-22",
+   "target_id": "CAP-05",
+   "verb": "realises"
+  },
+  {
+   "source_id": "PRO-32",
+   "target_id": "CAP-06",
+   "verb": "realises"
+  },
+  {
+   "source_id": "PRO-51",
+   "target_id": "CAP-10",
+   "verb": "realises"
+  },
+  {
+   "source_id": "PRO-21",
+   "target_id": "DAT-01",
+   "verb": "accesses",
+   "attributes": {
+    "crud": "CRUD"
+   }
+  },
+  {
+   "source_id": "PRO-22",
+   "target_id": "DAT-01",
+   "verb": "accesses",
+   "attributes": {
+    "crud": "R"
+   }
+  },
+  {
+   "source_id": "PRO-22",
+   "target_id": "DAT-04",
+   "verb": "accesses",
+   "attributes": {
+    "crud": "CU"
+   }
+  },
+  {
+   "source_id": "PRO-32",
+   "target_id": "DAT-02",
+   "verb": "accesses",
+   "attributes": {
+    "crud": "C"
+   }
+  },
+  {
+   "source_id": "PRO-51",
+   "target_id": "DAT-04",
+   "verb": "accesses",
+   "attributes": {
+    "crud": "R"
+   }
+  },
+  {
+   "source_id": "PRO-12",
+   "target_id": "DAT-03",
+   "verb": "accesses",
+   "attributes": {
+    "crud": "RU"
+   }
+  },
+  {
+   "source_id": "ORG-02",
+   "target_id": "PRO-21",
+   "verb": "performs"
+  },
+  {
+   "source_id": "ORG-02",
+   "target_id": "PRO-22",
+   "verb": "performs"
+  },
+  {
+   "source_id": "ORG-04",
+   "target_id": "PRO-32",
+   "verb": "performs"
+  },
+  {
+   "source_id": "ORG-01",
+   "target_id": "PRO-51",
+   "verb": "performs"
+  },
+  {
+   "source_id": "ORG-03",
+   "target_id": "PRO-12",
+   "verb": "performs"
+  },
+  {
+   "source_id": "ORG-01",
+   "target_id": "PRO-11",
+   "verb": "performs"
+  },
+  {
+   "source_id": "PRO-21",
+   "target_id": "APP-07",
+   "verb": "requires"
+  },
+  {
+   "source_id": "PRO-22",
+   "target_id": "APP-05",
+   "verb": "requires"
+  },
+  {
+   "source_id": "PRO-32",
+   "target_id": "APP-06",
+   "verb": "requires"
+  },
+  {
+   "source_id": "PRO-51",
+   "target_id": "APP-20",
+   "verb": "requires"
+  },
+  {
+   "source_id": "PRO-12",
+   "target_id": "APP-11",
+   "verb": "requires"
+  },
+  {
+   "source_id": "PRO-11",
+   "target_id": "APP-11",
+   "verb": "requires"
+  },
+  {
+   "source_id": "ORG-02",
+   "target_id": "CAP-04",
+   "verb": "has"
+  },
+  {
+   "source_id": "ORG-02",
+   "target_id": "CAP-05",
+   "verb": "has"
+  },
+  {
+   "source_id": "ORG-04",
+   "target_id": "CAP-06",
+   "verb": "has"
+  },
+  {
+   "source_id": "ORG-03",
+   "target_id": "CAP-08",
+   "verb": "has"
+  },
+  {
+   "source_id": "ORG-03",
+   "target_id": "CAP-09",
+   "verb": "has"
+  },
+  {
+   "source_id": "ORG-01",
+   "target_id": "CAP-10",
+   "verb": "has"
+  },
+  {
+   "source_id": "PEO-01",
+   "target_id": "APP-06",
+   "verb": "interacts with"
+  },
+  {
+   "source_id": "PRD-01",
+   "target_id": "CAP-05",
+   "verb": "requires"
+  },
+  {
+   "source_id": "ORG-02",
+   "target_id": "APP-07",
+   "verb": "manages"
+  },
+  {
+   "source_id": "ORG-02",
+   "target_id": "APP-05",
+   "verb": "manages"
+  },
+  {
+   "source_id": "ORG-03",
+   "target_id": "APP-11",
+   "verb": "manages"
+  },
+  {
+   "source_id": "ORG-03",
+   "target_id": "APP-17",
+   "verb": "manages"
+  },
+  {
+   "source_id": "ORG-03",
+   "target_id": "APP-16",
+   "verb": "manages"
+  },
+  {
+   "source_id": "ORG-04",
+   "target_id": "APP-06",
+   "verb": "manages"
+  },
+  {
+   "source_id": "ORG-01",
+   "target_id": "APP-20",
+   "verb": "manages"
+  },
+  {
+   "source_id": "TAS-01",
+   "target_id": "JRN-01",
+   "verb": "is part of"
+  },
+  {
+   "source_id": "JRN-01",
+   "target_id": "CHA-01",
+   "verb": "traverses"
+  },
+  {
+   "source_id": "PRD-01",
+   "target_id": "JRN-01",
+   "verb": "features in"
+  }
+ ],
+ "coherence": {
+  "organisation": {
+   "alignment": "Good"
+  },
+  "product": {
+   "alignment": "Good"
+  },
+  "brand": {
+   "alignment": "Good"
+  }
+ },
+ "suggested_deep_dives": [
+  {
+   "pair": [
+    "capability",
+    "asset"
+   ],
+   "lens": "dependency",
+   "rationale": "Applications behind the fare capabilities",
+   "priority": "High"
+  }
+ ]
+}
