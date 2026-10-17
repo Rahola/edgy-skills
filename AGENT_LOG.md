@@ -20,6 +20,19 @@ perustelut.
 
 ---
 
+### 2026-10-17 — Claude Code (v2.5.1: copyright holder and citation)
+
+- **Who holds the copyright.** The owner asked who holds the rights, and
+  whether someone could claim the work as theirs. This is an independent
+  spare-time project, so the copyright line names the owner (Roope Ahola)
+  instead of "edgy-skills contributors". The NOTICE says the work was
+  developed with AI assistance, so authorship is stated honestly.
+- **Why CITATION.cff.** GitHub then offers a ready citation, and Apache-2.0
+  section 4 already requires a redistribution to keep the NOTICE and its
+  copyright line.
+- **Licences unchanged.** This release changes no licence. Skill versions
+  are unchanged, so this is bundle release v2.5.1.
+
 ### 2026-10-17 — Claude Code (v2.5.0 phase 4: Vibe findings)
 
 - **The missing M06 fixture** (`tools/fixtures/compat-1.10/experience-model.json`)

@@ -4,6 +4,20 @@ Releases of the edgy-skills bundle are git tags. Each skill also carries its
 own semantic version in its `SKILL.md` front matter and in `registry.yaml`.
 Install a release with `EDGY_SKILLS_REF=<tag>` (see README → Versions).
 
+## v2.5.1 — 2026-10
+
+Authorship metadata only; no skill changes (every skill keeps its v2.5.0
+version and content).
+
+- `NOTICE` and README name the copyright holder: **Copyright 2026 Roope
+  Ahola**, an independent spare-time project developed with AI assistance
+  (Claude Code). It was "edgy-skills contributors" before.
+- New `CITATION.cff`: GitHub shows "Cite this repository" with a ready
+  citation.
+- Releases up to v2.5.0 stay under the same licences (Apache-2.0, and CC
+  BY-SA 4.0 for the EDGY-derived files); nothing about the licences
+  changes.
+
 ## v2.5.0 — 2026-10
 
 A click-through **realisation trace** from the customer's journey down to
