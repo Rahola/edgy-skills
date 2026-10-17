@@ -24,7 +24,7 @@ desktop, draw.io online and most wiki plugins expect.
 
 import re
 import xml.etree.ElementTree as ET
-from typing import List, Tuple
+from typing import Optional, List, Tuple
 
 from edgy_parser import EDGYParser
 
@@ -38,7 +38,7 @@ def slugify(name: str) -> str:
     return s or 'page'
 
 
-def unique_slugs(names: List[str]) -> List[str]:
+def unique_slugs(names: List[str], reserved=()) -> List[str]:
     """Deterministic, collision-free slugs for page names.
 
     Each name is slugified; if the slug is already taken (by an earlier page
@@ -46,7 +46,7 @@ def unique_slugs(names: List[str]) -> List[str]:
     `-N` suffix is used. Used for draw.io page ids and for per-page output
     file names, so neither can collide.
     """
-    used = set()
+    used = set(reserved)
     out = []
     for name in names:
         base = slugify(name)
@@ -129,6 +129,9 @@ def parse_document(text: str, with_graph: bool = False):
                 result.append((name, parser))
             continue
         mode, where = edgy_graph.expansion_of(page_text)
+        if mode == 'trace':
+            result.extend(_expand_trace(name or 'Trace', page_text, where, graph))
+            continue
         nodes, problems = edgy_graph.expand_targets(graph, mode, where)
         base = name or 'view'
         stripped = edgy_graph.EXPAND_RE.sub('', edgy_graph.WHERE_RE.sub('', page_text))
@@ -148,11 +151,76 @@ def parse_document(text: str, with_graph: bool = False):
                 holder.errors.append(msg)
             if not result:
                 result.append((base, holder))
-    for (_, parser), slug in zip(result, unique_slugs([n for n, _ in result])):
+    # fixed ids first (realisation trace: trace-<id>), then the slugs of the other pages around them
+    fixed = {p.fixed_page_id for _, p in result if getattr(p, 'fixed_page_id', None)}
+    rest = [(n, p) for n, p in result if not getattr(p, 'fixed_page_id', None)]
+    for (_, parser), slug in zip(rest, unique_slugs([n for n, _ in rest], reserved=fixed)):
         parser.page_id = slug
+    for _, parser in result:
+        if getattr(parser, 'fixed_page_id', None):
+            parser.page_id = parser.fixed_page_id
     if not result:
         raise ValueError("no page to draw — every page has draw: false")
     return (result, graph) if with_graph else result
+
+
+TRACE_DIRECTION_RE = re.compile(r'^[ \t]*trace_direction:\s*(\S+)\s*$', re.M)
+
+
+def _expand_trace(base: str, page_text: str, where, graph) -> List[Tuple[str, EDGYParser]]:
+    """expand: trace — the index page, one page per element of the page set, and a list page for every band with
+    more than MAX_BAND cards (edgy_trace). Ids are fixed (trace-<id>); cards link only to pages in the document."""
+    import edgy_graph
+    import edgy_trace
+    import edgy_views
+    m = TRACE_DIRECTION_RE.search(page_text)
+    direction = (m.group(1).lower() if m else 'both')
+    stripped = edgy_graph.EXPAND_RE.sub('', edgy_graph.WHERE_RE.sub('', page_text))
+    nodes, notes, problems = edgy_trace.page_set(graph, where, direction)
+    ids = {n['id'] for n in nodes}
+    lists = {}
+    for n in nodes:
+        nbs = edgy_trace.neighbours(graph, n['id'])
+        for band in ('above', 'centre', 'below'):
+            if direction == 'down' and band == 'above' or direction == 'up' and band == 'below':
+                continue
+            if sum(1 for x in nbs if x['band'] == band) > edgy_trace.MAX_BAND:
+                lists.setdefault(n['id'], []).append(band)
+    list_ids = {edgy_trace.list_page_id(mid, b) for mid, bands in lists.items() for b in bands}
+
+    def page(prefix: str, fixed: str) -> EDGYParser:
+        p = EDGYParser()
+        p.graph = graph
+        p.parse_input(prefix + stripped)
+        p.trace_pages = ids | list_ids
+        p.fixed_page_id = fixed
+        edgy_views.materialize(p, graph)
+        return p
+
+    out: List[Tuple[str, EDGYParser]] = []
+    index = page("trace_index: yes\n", edgy_trace.INDEX_PAGE_ID)
+    out.append((f"{base} · index", index))
+    for n in nodes:
+        p = page(f"focus: {n['id']}\n", edgy_trace.page_id(n['id']))
+        name = f"{base} · {n['id']} {n['name']}"
+        graph.add_page(name, p)
+        out.append((name, p))
+        for band in lists.get(n['id'], []):
+            lp = page(f"focus: {n['id']}\ntrace_list: {band}\n", edgy_trace.list_page_id(n['id'], band))
+            out.append((f"{name} · {band}", lp))
+    total = len(nodes)
+    index.notes.append(f"trace: {total} trace page(s) for {total} element(s), plus the index"
+                       f"{f' and {len(list_ids)} list page(s)' if list_ids else ''}")
+    if total > edgy_trace.SOFT_CAP_PAGES:
+        index.notes.append(f"trace: {total} pages — consider a narrower where: (ids, highlight, from <id>)")
+    index.notes.extend(notes)
+    for cyc in edgy_trace.contains_cycles(graph):
+        index.warnings.append("trace: contains cycle " + " → ".join(cyc) + " — a hierarchy cannot contain itself; "
+                              "the chips show it once, never followed")
+    for msg in problems:
+        index.warnings.append(msg)
+        index.errors.append(msg)
+    return out
 
 
 def load_graph(text: str):
@@ -177,14 +245,20 @@ def _strip_declaration(xml: str) -> str:
     return re.sub(r'^\s*<\?xml[^>]*\?>\s*', '', xml, count=1)
 
 
-def build_mxfile(pages: List[Tuple[str, str]], host: str = 'edgy-skills') -> str:
+def page_ids_of(pages) -> Optional[List[str]]:
+    """The fixed page ids parse_document gave (trace pages link to them), or None for the default slugs."""
+    ids = [getattr(p, 'page_id', None) for _, p in pages]
+    return ids if ids and all(ids) else None
+
+
+def build_mxfile(pages: List[Tuple[str, str]], host: str = 'edgy-skills', page_ids: List[str] = None) -> str:
     """Wrap one or more mxGraphModel XML strings into an uncompressed mxfile.
 
     No timestamps or random ids: output is reproducible so that regenerated
     example files diff cleanly.
     """
     parts = [f'<?xml version="1.0" encoding="utf-8"?>\n<mxfile host="{host}" agent="edgy_generator.py" compressed="false">']
-    page_ids = unique_slugs([name for name, _ in pages])
+    page_ids = page_ids or unique_slugs([name for name, _ in pages])
     for (name, model_xml), page_id in zip(pages, page_ids):
         body = _strip_declaration(model_xml).strip()
         safe_name = name.replace('&', '&amp;').replace('"', '&quot;').replace('<', '&lt;')
@@ -195,6 +269,29 @@ def build_mxfile(pages: List[Tuple[str, str]], host: str = 'edgy-skills') -> str
     return '\n'.join(parts)
 
 
+def unwrap_links(model: ET.Element) -> ET.Element:
+    """Unwrap draw.io wrapper objects in place: <UserObject|object id label link …><mxCell …/></…> becomes the
+    inner <mxCell> with the wrapper's id, its label as value and its link as `link` — so every reader that walks
+    root/mxCell (lint, render, present, QA) sees linked cards (realisation trace page links, 2.9.0)."""
+    root = model.find('root') if model.tag != 'root' else model
+    if root is None:
+        return model
+    for i, child in enumerate(list(root)):
+        if child.tag not in ('UserObject', 'object'):
+            continue
+        inner = child.find('mxCell')
+        if inner is None:
+            continue
+        inner.set('id', child.get('id') or inner.get('id') or '')
+        if child.get('label') is not None:
+            inner.set('value', child.get('label'))
+        if child.get('link'):
+            inner.set('link', child.get('link'))
+        root.remove(child)
+        root.insert(i, inner)
+    return model
+
+
 def load_pages_from_file(path: str) -> List[Tuple[str, ET.Element]]:
     """Read a .drawio file (bare model or mxfile) → [(page_name, mxGraphModel)]."""
     import base64
@@ -202,7 +299,7 @@ def load_pages_from_file(path: str) -> List[Tuple[str, ET.Element]]:
     import zlib
     root = ET.parse(path).getroot()
     if root.tag == 'mxGraphModel':
-        return [(None, root)]
+        return [(None, unwrap_links(root))]
     if root.tag != 'mxfile':
         raise ValueError(f'unexpected root element <{root.tag}>')
     pages = []
@@ -212,5 +309,5 @@ def load_pages_from_file(path: str) -> List[Tuple[str, ET.Element]]:
             data = base64.b64decode(d.text.strip())
             model = ET.fromstring(urllib.parse.unquote(zlib.decompress(data, -15).decode('utf-8')))
         if model is not None:
-            pages.append((d.get('name'), model))
+            pages.append((d.get('name'), unwrap_links(model)))
     return pages

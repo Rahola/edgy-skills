@@ -15,7 +15,7 @@ Standard library only.
 
 from typing import List
 
-DERIVED_MAP_TYPES = {'capability-view'}   # always derived from the graph (focus: <capability id>)
+DERIVED_MAP_TYPES = {'capability-view', 'trace'}   # always derived from the graph (focus: <capability id>)
 # derived when the page has no elements of its own: the view is drawn from the document graph
 FILLED_WHEN_EMPTY = {'application', 'process', 'capability-matrix'}
 APP_KINDS = ('application', 'platform', 'integration')
@@ -282,3 +282,11 @@ def _capability_view(parser, graph):
 
 
 _DERIVED['capability-view'] = _capability_view
+
+
+def _trace(parser, graph):
+    import edgy_trace
+    return edgy_trace.materialize(parser, graph)
+
+
+_DERIVED['trace'] = _trace

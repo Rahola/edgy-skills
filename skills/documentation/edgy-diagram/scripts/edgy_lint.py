@@ -304,8 +304,9 @@ def load_models(path):
     """Yield (page_name, mxGraphModel element) for every diagram in the file."""
     raw = open(path, 'rb').read()
     root = ET.fromstring(raw)
+    from edgy_document import unwrap_links
     if root.tag == 'mxGraphModel':
-        yield None, root
+        yield None, unwrap_links(root)
         return
     if root.tag != 'mxfile':
         raise ValueError(f"unexpected root element <{root.tag}>")
@@ -316,7 +317,7 @@ def load_models(path):
             xml = urllib.parse.unquote(zlib.decompress(data, -15).decode('utf-8'))
             model = ET.fromstring(xml)
         if model is not None:
-            yield diagram.get('name'), model
+            yield diagram.get('name'), unwrap_links(model)
 
 
 def line_index(path):

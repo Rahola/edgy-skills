@@ -8,7 +8,7 @@ import sys
 import argparse
 from edgy_parser import EDGYParser
 from edgy_to_plantuml import generate_plantuml
-from edgy_document import parse_document, build_mxfile, unique_slugs
+from edgy_document import parse_document, build_mxfile, page_ids_of, unique_slugs
 import edgy_render
 import edgy_qa
 
@@ -396,7 +396,8 @@ def main():
     if args.bare:
         xml_content = edgy_parser.generate_xml()
     else:
-        xml_content = build_mxfile([(name, p.generate_xml()) for name, p in pages])
+        xml_content = build_mxfile([(name, p.generate_xml()) for name, p in pages],
+                                   page_ids=page_ids_of(pages))
     report_layout_warnings(pages, before)
     if args.output:
         if fmt != 'drawio':

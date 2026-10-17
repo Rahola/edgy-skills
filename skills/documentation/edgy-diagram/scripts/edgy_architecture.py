@@ -139,6 +139,9 @@ def prepare(p) -> None:
         prepare_capability_view(p)
     elif p.map_type == 'capability-matrix':
         prepare_matrix(p)
+    elif p.map_type == 'trace':
+        import edgy_trace
+        edgy_trace.prepare(p)
     elif p.map_type == 'process':
         view = (p.view.get('process_view') or '').lower()
         if view == 'chain':

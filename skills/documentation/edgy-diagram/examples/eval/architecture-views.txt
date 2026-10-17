@@ -2,6 +2,8 @@
 # 18 applications, 10 data assets, 6 actors — and every architecture view derived from it. tools/edgy-eval.py
 # and check.sh (edgy-architecture-views) expect 0 lint errors and 0 visual findings on every page.
 # The gaps: statuses are deliberate: W127 notes for known gaps, one open question (CAP-07 processes=unknown).
+# Experience part (edgy-diagram 2.9.0): 2 journeys, 8 tasks, 3 channels with makes / creates / offers, and
+# the Trace page (expand: trace) — the realisation trace from journeys down to organisations and back up.
 # Fictional (Acme Transit).
 language: en
 
@@ -74,6 +76,19 @@ pages:
       - product: "Season pass" {id: PRD-02}
       - product: "Disruption alerts" {id: PRD-03}
       - people: "Ticket inspector" {id: PEO-01}
+      - journey: "Commute to work" {id: JRN-01}
+      - journey: "Get through a disruption" {id: JRN-02}
+      - task: "Plan the trip" {id: TSK-01}
+      - task: "Buy a ticket" {id: TSK-02}
+      - task: "Renew the season pass" {id: TSK-03}
+      - task: "Show the ticket" {id: TSK-04}
+      - task: "Get a disruption alert" {id: TSK-05}
+      - task: "Find another route" {id: TSK-06}
+      - task: "Ask for a refund" {id: TSK-07, gaps: "products=unknown"}
+      - task: "Give feedback" {id: TSK-08, gaps: "products=out_of_scope"}
+      - channel: "Mobile app" {id: CHA-01}
+      - channel: "Ticket machine" {id: CHA-02}
+      - channel: "Service desk" {id: CHA-03, gaps: "products=confirmed_absent"}
     relationships:
       - "CAP-01" -> "APP-15": "requires"
       - "CAP-02" -> "APP-03": "requires"
@@ -213,6 +228,58 @@ pages:
       - "PRD-02" -> "CAP-05": "requires"
       - "PRD-02" -> "CAP-02": "requires"
       - "PRD-03" -> "CAP-09": "requires"
+      - "ORG-02" -> "DAT-01": "manages"
+      - "ORG-04" -> "DAT-02": "manages"
+      - "ORG-03" -> "DAT-03": "manages"
+      - "ORG-02" -> "DAT-04": "manages"
+      - "ORG-02" -> "DAT-05": "manages"
+      - "ORG-02" -> "DAT-06": "manages"
+      - "ORG-05" -> "DAT-07": "manages"
+      - "ORG-05" -> "DAT-08": "manages"
+      - "ORG-01" -> "DAT-09": "manages"
+      - "ORG-01" -> "DAT-10": "manages"
+      - "ORG-01" -> "PRO-01": "performs"
+      - "ORG-01" -> "PRO-10": "performs"
+      - "ORG-02" -> "PRO-20": "performs"
+      - "ORG-05" -> "PRO-30": "performs"
+      - "ORG-01" -> "PRO-50": "performs"
+      - "ORG-04" -> "PEO-01": "contains"
+      - "TSK-01" -> "JRN-01": "is part of"
+      - "TSK-02" -> "JRN-01": "is part of"
+      - "TSK-03" -> "JRN-01": "is part of"
+      - "TSK-04" -> "JRN-01": "is part of"
+      - "TSK-05" -> "JRN-02": "is part of"
+      - "TSK-06" -> "JRN-02": "is part of"
+      - "TSK-07" -> "JRN-02": "is part of"
+      - "TSK-08" -> "JRN-02": "is part of"
+      - "JRN-01" -> "CHA-01": "traverses"
+      - "JRN-01" -> "CHA-02": "traverses"
+      - "JRN-02" -> "CHA-01": "traverses"
+      - "JRN-02" -> "CHA-03": "traverses"
+      - "TSK-01" -> "CHA-01": "uses"
+      - "TSK-02" -> "CHA-01": "uses"
+      - "TSK-02" -> "CHA-02": "uses"
+      - "TSK-03" -> "CHA-01": "uses"
+      - "TSK-05" -> "CHA-01": "uses"
+      - "TSK-07" -> "CHA-03": "uses"
+      - "TSK-08" -> "CHA-03": "uses"
+      - "PRD-01" -> "TSK-02": "serves"
+      - "PRD-01" -> "TSK-04": "serves"
+      - "PRD-02" -> "TSK-03": "serves"
+      - "PRD-02" -> "TSK-04": "serves"
+      - "PRD-03" -> "TSK-01": "serves"
+      - "PRD-03" -> "TSK-05": "serves"
+      - "PRD-03" -> "TSK-06": "serves"
+      - "PRD-01" -> "CHA-01": "offers"
+      - "PRD-01" -> "CHA-02": "offers"
+      - "PRD-02" -> "CHA-01": "offers"
+      - "PRD-03" -> "CHA-01": "offers"
+      - "ORG-02" -> "PRD-01": "makes"
+      - "ORG-02" -> "PRD-02": "makes"
+      - "ORG-05" -> "PRD-03": "makes"
+      - "PRO-22" -> "PRD-01": "creates"
+      - "PRO-22" -> "PRD-02": "creates"
+      - "PRO-33" -> "PRD-03": "creates"
 
   - name: "Application map"
     map_type: application
@@ -243,3 +310,8 @@ pages:
   - name: "Process × data (CRUD)"
     map_type: capability-matrix
     matrix: crud
+
+  - name: "Trace"
+    map_type: trace
+    expand: trace
+    legend: strip

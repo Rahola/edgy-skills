@@ -139,6 +139,8 @@ VALID_MAP_TYPES = {
     # Architecture views (2.8.0): application landscape (Assets of kind application / platform / integration),
     # one capability with its processes, resources, data, actors and products; capability × application / CRUD matrix
     'application', 'capability-view', 'capability-matrix',
+    # Realisation trace (2.9.0): one element and its direct neighbours by level, journey ↔ organisation
+    'trace',
 }
 
 # Karttatyyppi → layout-strategia
@@ -163,6 +165,7 @@ MAP_TYPE_LAYOUT = {
     'application': 'grid',
     'capability-view': 'grid',
     'capability-matrix': 'grid',
+    'trace': 'grid',
     'summary': 'summary',
     'triad': 'triad',
 }
@@ -283,7 +286,7 @@ LEGEND_TITLES = {lang: t['title'] for lang, t in LEGEND_TEXT.items()}   # lint p
 RESERVED_METRIC_KEYS = {'id', 'change', 'size', 'highlight', 'primary', 'stage', 'column', 'row', 'maturity', 'rating'}
 # Attributes of the architecture views (2.8.0): kept on the element (element['attrs']), never printed on the card
 ATTRIBUTE_KEYS = {'kind', 'hosting', 'master', 'owner', 'technology', 'crud', 'type', 'criticality', 'data',
-                  'container', 'time', 'gaps', 'band', 'state', 'vband', 'dim'}
+                  'container', 'time', 'gaps', 'band', 'state', 'vband', 'dim', 'tband', 'tlevel', 'tlink'}
 RESERVED_METRIC_KEYS |= ATTRIBUTE_KEYS
 # Asset kinds (architecture views): an application, a platform, an integration or a data asset; other kinds are free text
 ASSET_KINDS = ('application', 'platform', 'integration', 'data')
@@ -292,7 +295,8 @@ FACET_OF_TYPE = {**{t: 'identity' for t in IDENTITY_ELEMENTS}, **{t: 'architectu
                  **{t: 'base' for t in BASE_ELEMENTS}}
 # Document keys of the architecture views (2.8.0) and of the document graph
 VIEW_KEYS = ('focus', 'expand', 'where', 'draw', 'notation', 'process_view', 'group_by', 'edges', 'depth', 'hops',
-             'matrix', 'ownership', 'chips', 'level', 'system', 'route')
+             'matrix', 'ownership', 'chips', 'level', 'system', 'route', 'trace_direction', 'trace_list',
+             'trace_index')
 # Model ids: what a style value can carry (no ';' or '=' — draw.io style syntax)
 ID_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._:/-]*$')
 
@@ -343,6 +347,19 @@ CORE_LINK_DIRECTIONS = CORE_LINK_PAIRS
 RELATIONSHIP_KINDS = ('link', 'flow', 'tree', 'influence')
 
 
+def _wrap_link(mx_root, cell, page_id: str) -> None:
+    """Turn a cell into a draw.io page link: <UserObject id label link="data:page/id,…"><mxCell …/></UserObject>,
+    in the same place among <root>'s children (draw.io keeps the link on the wrapper; readers unwrap it)."""
+    idx = list(mx_root).index(cell)
+    wrapper = ET.Element('UserObject', {'id': cell.get('id'), 'label': cell.get('value') or '',
+                                        'link': f'data:page/id,{page_id}'})
+    del cell.attrib['id']
+    cell.attrib.pop('value', None)
+    mx_root.remove(cell)
+    wrapper.append(cell)
+    mx_root.insert(idx, wrapper)
+
+
 class EDGYParser:
     def __init__(self):
         self.elements = {}
@@ -388,6 +405,13 @@ class EDGYParser:
         self.view = {}               # view keys of the architecture views (focus, expand, process_view, …)
         self.draw = True             # draw: false — a model page: in the document graph, not in the output
         self.cell_of = {}            # element id → draw.io cell id (after generate_xml)
+        # realisation trace (2.9.0, edgy_trace): page ids that exist in the document, "+N more" cards, chips
+        self.trace_pages = set()
+        self.trace_more = {}
+        self.trace_more_pos = {}
+        self.trace_chips = ([], [])
+        self.trace_unlinked = 0
+        self.trace_hidden = 0
         self.foreign = None          # (handler module, page text, graph) of a notation: page (edgy_notation)
         self.notes = []              # information for the reader (printed as Note:, never an error) — W124 by default
         self._arch_layout = None     # edgy_architecture: ('chain', roots, children, banded) for process_view: chain
@@ -1493,7 +1517,7 @@ class EDGYParser:
         mode = (self.view.get('route') or '').lower()
         if mode in ('auto', 'none'):
             return mode == 'auto'
-        return self.map_type in ('application', 'capability-view')
+        return self.map_type in ('application', 'capability-view', 'trace')
 
     def model_id(self, element: dict) -> Tuple[str, bool]:
         """(model id, explicit?) — the {id:} of the element, else its type + name slug."""
@@ -1982,6 +2006,31 @@ class EDGYParser:
             cid = cell.get('id') or ''
             if cid.isdigit() and int(cid) >= legend_start and 'edgyRole=' not in (cell.get('style') or ''):
                 cell.set('style', (cell.get('style') or '') + 'edgyRole=legend;')
+        next_id = legend_start + 1000
+        # 5) Realisation trace (2.9.0): "+N more" cards and page links (draw.io UserObject link="data:page/id,…")
+        for band, (n, target) in sorted((self.trace_more or {}).items()):
+            if band not in (self.trace_more_pos or {}):
+                continue
+            mx, my, mw, mh = self.trace_more_pos[band]
+            import edgy_trace
+            label = edgy_trace.LEVEL_TITLES.get(self.language if self.language in edgy_trace.LEVEL_TITLES else 'en')[
+                'more'].format(n=n)
+            cell = ET.SubElement(mx_root, "mxCell", {
+                "id": str(next_id), "value": html.escape(label),
+                "style": ("rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#888888;"
+                          "dashed=1;fontSize=12;fontStyle=1;fontColor=#333333;edgyRole=more;"),
+                "vertex": "1", "parent": "1"})
+            ET.SubElement(cell, "mxGeometry", {"x": str(int(round(mx))), "y": str(int(round(my))), "width": str(int(mw)),
+                                               "height": str(int(mh)), "as": "geometry"})
+            if target:
+                cell.set('edgyLink', target)
+            next_id += 1
+        links = {self.cell_of[eid]: (e.get('attrs') or {}).get('tlink') for eid, e in self.elements.items()
+                 if (e.get('attrs') or {}).get('tlink') and eid in self.cell_of}
+        for cell in list(mx_root.findall('mxCell')):
+            target = links.get(cell.get('id')) or cell.attrib.pop('edgyLink', None)
+            if target:
+                _wrap_link(mx_root, cell, target)
         return self._prettify_xml(root)
 
     # Legendan värit ja viivatyylit; tekstit tulevat LEGEND_TEXT[language]-taulusta
@@ -3184,6 +3233,9 @@ class EDGYParser:
         if self._arch_layout and self._arch_layout[0] == 'matrix':
             import edgy_architecture
             return edgy_architecture.layout_matrix(self, items)
+        if self._arch_layout and self._arch_layout[0] in ('trace', 'trace-index'):
+            import edgy_trace
+            return edgy_trace.layout(self, items)
         if containers and all(self.groups[c].get('synthetic') == 'stage' for c in containers):
             # Tehtäväkartan vaihesarakkeet: yksi rivi, tasakorkeat sarakkeet; vaiheettomat tehtävät alle
             cols = self.group_columns or len(containers)

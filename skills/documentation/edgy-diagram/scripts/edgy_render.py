@@ -296,7 +296,8 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
         stroke = st.get('strokeColor', '#000000')
         sw = st.get('strokeWidth', '1')
         dash = ' stroke-dasharray="6,4"' if st.get('dashed') == '1' else ''
-        opacity = ''
+        op = _num(st.get('opacity'), 100)
+        opacity = f' opacity="{op / 100:.2f}"' if op is not None and op < 100 else ''   # dimmed context cards
         if fill == 'none':
             fill = 'none'
         if stroke == 'none':
@@ -311,10 +312,10 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
             if 'arrows2.arrow' in shape:
                 n = min(_num(st.get('dx'), 20) or 20, w * 0.3)
                 pts = f'{x},{y} {x + w - n},{y} {x + w},{y + h / 2} {x + w - n},{y + h} {x},{y + h}'
-                parts.append(f'<polygon points="{pts}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"{dash}/>')
+                parts.append(f'<polygon points="{pts}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"{dash}{opacity}/>')
             elif 'person' in shape:
-                parts.append(f'<ellipse cx="{x + w / 2}" cy="{y + h * 0.22}" rx="{w * 0.22}" ry="{h * 0.2}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"/>'
-                             f'<path d="M{x},{y + h} v-{h * 0.35} a{w / 2},{h * 0.25} 0 0 1 {w},0 v{h * 0.35} z" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"/>')
+                parts.append(f'<ellipse cx="{x + w / 2}" cy="{y + h * 0.22}" rx="{w * 0.22}" ry="{h * 0.2}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"{opacity}/>'
+                             f'<path d="M{x},{y + h} v-{h * 0.35} a{w / 2},{h * 0.25} 0 0 1 {w},0 v{h * 0.35} z" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"{opacity}/>')
             else:
                 rx = 0.0
                 if st.get('rounded') == '1':
