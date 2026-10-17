@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use these skills or build on them, please cite them as below."
+title: "edgy-skills: EDGY 23 enterprise design skills for AI coding agents"
+type: software
+authors:
+  - family-names: Ahola
+    given-names: Roope
+    email: roope.ahola@live.com
+version: 2.5.1
+date-released: 2026-10-17
+license: Apache-2.0
+repository-code: "https://github.com/Rahola/edgy-skills"
+abstract: >-
+  Agent skills for EDGY 23 enterprise design: assessment, framework analysis,
+  deep dives, target-state work, generator-first EDGY diagrams (draw.io,
+  PlantUML, native preview) with linting, architecture views from one model,
+  a click-through realisation trace and an offline presenter, and C4 diagrams
+  for one application. EDGY 23 is by the Intersection Group (CC BY-SA 4.0).
+keywords:
+  - EDGY
+  - enterprise design
+  - enterprise architecture
+  - draw.io
+  - C4 model
+  - agent skills

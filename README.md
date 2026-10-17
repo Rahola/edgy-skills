@@ -107,6 +107,7 @@ EDGY_SKILLS_REF=v2.2.0 bash adapters/claude-code/install.sh --all   # + semantic
 EDGY_SKILLS_REF=v2.3.0 bash adapters/claude-code/install.sh --all   # + official map shapes, badges, model diff, ArchiMate export
 EDGY_SKILLS_REF=v2.4.0 bash adapters/claude-code/install.sh --all   # + architecture views from one model, presenter-lite
 EDGY_SKILLS_REF=v2.5.0 bash adapters/claude-code/install.sh --all   # + realisation trace, edgy-c4, model format 1.10
+EDGY_SKILLS_REF=v2.5.1 bash adapters/claude-code/install.sh --all   # same skills; copyright holder and CITATION.cff
 ```
 
 When an adapter runs from a local clone it installs that checkout, so use
@@ -233,7 +234,12 @@ before adding examples.
 
 ## Licence
 
-- Original skill instructions, tooling and CI: **Apache-2.0** (see [LICENSE](LICENSE)).
+Copyright 2026 Roope Ahola — an independent, spare-time project, developed with
+AI assistance (Claude Code). To cite it, use [CITATION.cff](CITATION.cff)
+(GitHub's "Cite this repository").
+
+- Original skill instructions, tooling and CI: **Apache-2.0** (see [LICENSE](LICENSE));
+  a redistribution keeps [NOTICE](NOTICE) and its copyright line.
 - EDGY 23 stencils, official example maps, and notation are **derived from EDGY
   by the Intersection Group** and remain under **CC BY-SA 4.0** — see [NOTICE](NOTICE)
   for exactly which files this covers and what the attribution/share-alike
