@@ -467,7 +467,15 @@ def find_chromium() -> Optional[str]:
     env = os.environ.get('EDGY_CHROMIUM')
     if env and os.path.isfile(env):
         return env
-    for name in ('chromium', 'chromium-browser', 'google-chrome', 'google-chrome-stable', 'chrome', 'headless_shell'):
+    # headless_shell first (no window frame: the screenshot is exactly the page), then a full browser
+    shells = [shutil.which('headless_shell')] + glob.glob(os.path.join(os.environ.get('PLAYWRIGHT_BROWSERS_PATH', '')
+                                                                     or '/nonexistent', '*', 'chrome-linux',
+                                                                     'headless_shell')) + \
+        glob.glob('/opt/pw-browsers/*/chrome-linux/headless_shell')
+    for hit in shells:
+        if hit and os.path.isfile(hit):
+            return hit
+    for name in ('chromium', 'chromium-browser', 'google-chrome', 'google-chrome-stable', 'chrome'):
         p = shutil.which(name)
         if p:
             return p
@@ -495,14 +503,33 @@ def svg_to_png(svg_path: str, png_path: str, width: int, height: int, chromium: 
     chromium = chromium or find_chromium()
     if not chromium:
         return False
+    w, h = max(int(width), 200), max(int(height), 200)
+    # the full Chrome binary in --headless keeps a window frame: its viewport is shorter than --window-size and
+    # the bottom of the page (the legend) was cut off. headless_shell has no frame. For any other binary the
+    # window is made taller and the PNG cropped back to the page (Pillow), or left with a white band without it.
+    full = 'headless_shell' not in os.path.basename(chromium)
+    pad = CHROME_FRAME_PAD if full else 0
     cmd = [chromium, '--headless', '--no-sandbox', '--disable-gpu', '--hide-scrollbars',
-           f'--force-device-scale-factor={scale}', f'--window-size={max(int(width), 200)},{max(int(height), 200)}',
+           f'--force-device-scale-factor={scale}', f'--window-size={w},{h + pad}',
            f'--screenshot={os.path.abspath(png_path)}', 'file://' + os.path.abspath(svg_path)]
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
     except (OSError, subprocess.TimeoutExpired):
         return False
-    return r.returncode == 0 and os.path.isfile(png_path)
+    ok = r.returncode == 0 and os.path.isfile(png_path)
+    if ok and pad:
+        try:
+            from PIL import Image
+            with Image.open(png_path) as im:
+                cropped = im.crop((0, 0, im.size[0], min(im.size[1], int(round(h * scale)))))
+                cropped.load()
+            cropped.save(png_path)
+        except Exception:          # no Pillow: the page is whole, with a white band below it
+            pass
+    return ok
+
+
+CHROME_FRAME_PAD = 200   # px added to the window height for a full Chrome binary (its frame is ~90 px)
 
 
 def render_file(path: str, out_dir: Optional[str] = None, png: bool = True, scale: float = 1.5,

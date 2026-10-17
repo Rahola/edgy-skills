@@ -227,7 +227,7 @@ def trace_nodes(graph) -> List[dict]:
 
 def page_set(graph, where: Optional[str], direction: str) -> Tuple[List[dict], List[str], List[str]]:
     """(nodes that get a trace page, notes, problems). `where:` ids | highlight | from <id>; `from` is the
-    downward closure (to higher levels), or the upward one with trace_direction: up."""
+    downward closure (to higher and same levels), or the upward one with trace_direction: up."""
     notes, problems = [], []
     nodes = trace_nodes(graph)
     no_id = [n for n in nodes if not n['explicit']]
@@ -251,8 +251,10 @@ def page_set(graph, where: Optional[str], direction: str) -> Tuple[List[dict], L
                     o = nb['node']
                     if not o['explicit'] or o['id'] in keep:
                         continue
-                    # the downward closure (plan §4a); trace_direction: up gives the upward one
-                    if nb['band'] == ('above' if direction == 'up' else 'below'):
+                    # the downward closure (plan §4a); trace_direction: up gives the upward one. Same-level
+                    # links are walked too: a process reaches its application (requires, both level 5) and an
+                    # asset its process, or the chain breaks inside a level
+                    if nb['band'] in ('centre', 'above' if direction == 'up' else 'below'):
                         keep.add(o['id'])
                         frontier.append(o['id'])
             nodes = [n for n in nodes if n['id'] in keep]

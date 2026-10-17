@@ -126,7 +126,7 @@ Do not skip phases. Every phase is required to produce a complete, grounded anal
 ### Phase 1: Load Context
 
 0. **Validate the model** against the shared schema before reading it:
-   `python3 tools/validate-edgy-model.py <company>-edgy-model.json` (schema:
+   `python3 <edgy-assessment>/scripts/validate_edgy_model.py <company>-edgy-model.json` (schema:
    `skills/architecture/edgy-assessment/assets/edgy-model.schema.json`). A
    model that fails validation is not analysed — ask the user to fix it or to
    run `edgy-assessment` in `extract-model` mode. Never invent elements that

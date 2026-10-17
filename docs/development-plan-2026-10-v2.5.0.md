@@ -297,7 +297,7 @@ action.
   - all elements with ids at levels 1–6;
   - `where: <ids>`: exactly those elements;
   - `where: from JRN-01`: JRN-01 plus everything reachable from it by
-    going to a higher level over the whitelist (the downward closure). It
+    going to a higher or the same level over the whitelist (the downward closure; same level added in phase 4, §11). It
     follows `trace_direction`, so `up` gives the upward closure.
 
   The generator writes the page count to `generator_notes[]`. Above 100
@@ -695,4 +695,4 @@ building, for the testers to check against; none changes a promise of §8.
 | Presenter steps | The history step is `history-back` (v2.4.0 already has `back`, the return to the wall); also `trace-card`, `card-first-click`, `card-second-click`, `breadcrumb-jump`. |
 | `examples-vs-v2.4.0` | Compares the tag's committed `expected-*.drawio` with today's (both generated with the canonical tables; the golden test keeps today's current) instead of running the tag's generator; the CI checkout fetches tags (`fetch-depth: 0`). |
 | `--views trace` | Opt-in: never part of `--views all`. |
-
+| `where: from X` (phase 4, S02) | The closure also walks **same-level** links (process *requires* asset, task *uses* channel, people *interacts with* asset). Without them the chain broke inside level 5: an upward trace from an organisation never reached the processes that require its applications. The T05 row is updated. |

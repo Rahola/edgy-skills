@@ -20,6 +20,23 @@ perustelut.
 
 ---
 
+### 2026-10-17 — Claude Code (v2.5.0 phase 4: skill-use findings)
+
+Claude sub-agent 4 used the installed skills as a user's agent (S01–S09).
+
+- **`where: from` walks same-level links.** An upward trace from IT stopped
+  at the applications: asset → process (*requires*) is a level-5 to
+  level-5 link, and the closure followed only lower levels. Same-level
+  links now count. The locked T05 oracle row changed with it (plan §11).
+- **The model validator ships with edgy-assessment**
+  (`scripts/validate_edgy_model.py`). The skills told the agent to run
+  `tools/validate-edgy-model.py`, which an install does not have, and the
+  schema alone misses the per-type `gaps` keys. `tools/` keeps a thin
+  entry point for the checkout and the tests.
+- **Previews prefer `headless_shell`.** A full Chrome in `--headless` has a
+  window frame, and the PNG lost its bottom ~90 px (the legend). A full
+  binary now gets a taller window and the PNG is cropped back.
+
 ### 2026-10-17 — Claude Code (v2.5.0 phase 4: first test findings)
 
 Claude sub-agent 1 (T10, Q01) found trace pages that passed QA 0/0/0 but

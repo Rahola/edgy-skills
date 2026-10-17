@@ -219,8 +219,10 @@ def _unlinked_total(path):
 def test_t05_page_sets_and_unlinked_cards():
     cases = [
         (['where: CAP-01, APP-01'], {'trace-index', 'trace-cap-01', 'trace-app-01'}, 6),
+        # same-level links are walked too (phase 4, S02): the channel, the data and the people join the set
         (['where: from TSK-01'], {'trace-index'} | {edgy_trace.page_id(m) for m in
-                                                    ('TSK-01', 'PRD-01', 'CAP-01', 'PRO-01', 'APP-01', 'ORG-01')}, 8),
+                                                    ('TSK-01', 'CH-01', 'PRD-01', 'CAP-01', 'PRO-01', 'APP-01',
+                                                     'DAT-01', 'PPL-01', 'ORG-01')}, 3),
         (['where: from ORG-01', 'trace_direction: up'], {'trace-index'} | {edgy_trace.page_id(m) for m in LEVEL_OF}, 0),
     ]
     for lines, expected_pages, unlinked in cases:
@@ -439,6 +441,40 @@ def test_t12_direction():
             for _n, p in pages.values():
                 p.generate_xml()
                 assert not p.model_gaps, p.model_gaps
+
+
+def test_from_closure_walks_same_level_links():
+    """Phase 4 (S02): up from an organisation through asset → process (requires, both level 5) to the journey."""
+    text = """pages:
+  - name: "Model"
+    draw: false
+    elements:
+      - journey: "Book a trip" {id: JRN-01}
+      - task: "Pay" {id: TSK-01}
+      - product: "Booking" {id: PRD-01}
+      - capability: "Trip sales" {id: CAP-01}
+      - process: "Sell trips" {id: PRO-01}
+      - asset: "Booking system" {id: APP-01, kind: application}
+      - organisation: "IT" {id: ORG-02}
+    relationships:
+      - "TSK-01" -> "JRN-01": "is part of"
+      - "PRD-01" -> "TSK-01": "serves"
+      - "PRD-01" -> "CAP-01": "requires"
+      - "PRO-01" -> "CAP-01": "realises"
+      - "PRO-01" -> "APP-01": "requires"
+      - "ORG-02" -> "APP-01": "manages"
+  - name: "Trace"
+    map_type: trace
+    expand: trace
+    where: from ORG-02
+    trace_direction: up
+"""
+    ids = {p.page_id for _, p in parse_document(text)}
+    assert ids == {'trace-index'} | {edgy_trace.page_id(m) for m in
+                                     ('ORG-02', 'APP-01', 'PRO-01', 'CAP-01', 'PRD-01', 'TSK-01', 'JRN-01')}, ids
+    down = {p.page_id for _, p in parse_document(text.replace('where: from ORG-02', 'where: from JRN-01')
+                                                 .replace('trace_direction: up', 'trace_direction: down'))}
+    assert edgy_trace.page_id('APP-01') in down and edgy_trace.page_id('ORG-02') in down, down
 
 
 def test_views_trace_is_opt_in():

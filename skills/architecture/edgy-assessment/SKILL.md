@@ -80,7 +80,7 @@ Phases 1 and 3–5 and:
    `coherence` from section 5 (Strong/Good/Weak + contradictions + gaps),
    `suggested_deep_dives` from section 10 if present — otherwise derive at
    least three from sections 5 and 7 and mark `"source_section"` accordingly.
-3. Validate: `python3 tools/validate-edgy-model.py <company>-edgy-model.json`.
+3. Validate: `python3 <edgy-assessment>/scripts/validate_edgy_model.py <company>-edgy-model.json`.
 4. Regenerate the TXT files from the model (`edgy_model_to_txt.py`) and diff
    them against the originals; differences are findings about the old
    delivery, not errors to hide.
@@ -253,8 +253,12 @@ A model that uses a journey array or one of these gaps must say
 `assets/edgy-model.schema.json`, the validator needs only the standard library:
 
 ```bash
-python3 tools/validate-edgy-model.py <company>-edgy-model.json     # must print "valid"
+python3 <edgy-assessment>/scripts/validate_edgy_model.py <company>-edgy-model.json     # must print "valid"
 ```
+
+`<edgy-assessment>` is this skill's directory: `~/.claude/skills/edgy-assessment`
+when installed, `skills/architecture/edgy-assessment` in a checkout. The same
+holds for the other `skills/…` script paths in this file.
 
 Rules:
 - `elements` must contain all 12 EDGY elements (Purpose, Story, Content, Capability, Asset, Process, Task, Channel, Journey, Organisation, Product, Brand)
