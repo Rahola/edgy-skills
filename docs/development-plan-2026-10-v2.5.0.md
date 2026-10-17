@@ -583,10 +583,6 @@ readable, and C4 containers never in the EDGY graph (§4a).
 | 1.10 breaks old models | `compat-1.9` and `compat-1.8` fixtures |
 | Pictures that lint passes but people cannot read | pixel review and rubric are acceptance criteria, not advice |
 
-## 11. Implementation deviations
-
-*None yet: phase 3 has not started.*
-
 ## 10. Review log
 
 **Revision 4 — Vibe review of revision 2.** Vibe supports the plan, has
@@ -661,3 +657,7 @@ against `main`.
 | Q6: migration notes, deep-dive, framework guidance, user guide, adapter docs, example in a sprint (adv) | — | D1, M2, sprint 26 / 29 |
 
 **Revision 1 (2026-10-17):** first draft.
+
+## 11. Implementation deviations
+
+*None yet: phase 3 has not started.*
