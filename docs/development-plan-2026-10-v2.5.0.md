@@ -673,4 +673,6 @@ test.
 | C-rule severities | C001, C004 and C006 are errors. C002, C003 and C005 are warnings. |
 | Skill ids in `requires:` | They must match `^[a-z0-9][a-z0-9-]*$`, and a bad one is rejected before any file-system or shell use. A failed or empty registry listing is an error on every adapter. |
 | Element ids | An id that does not match the graph-id pattern `^[A-Za-z0-9][A-Za-z0-9._:/-]*$` is an E-level parser error naming the id, so it never reaches a route. |
+| edgy-c4 on Vibe and Cursor | edgy-diagram's SKILL.md (installed on every adapter) names edgy-c4 and says it needs the claude-code or generic install. An agent on Vibe or Cursor can then explain the limit instead of guessing (Vibe V8). |
+| Offline adapter tests | The Vibe and Cursor adapters get `--source=local` in sprint 25b, as claude-code has, so `adapter-install` needs no network (Vibe V9). |
 | New `check.sh` steps | `adapter-install`, `trace-fixtures` and `examples-vs-v2.4.0`. The last one compares against the pinned tag, with an exceptions list and a negative control. |
