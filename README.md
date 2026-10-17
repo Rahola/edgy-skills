@@ -201,8 +201,10 @@ single-page presenter for v2.4.0, then C4 diagrams per application as a
 separate `edgy-c4` skill and a click-through realisation trace from
 customer journey to organisation in v2.5.0 — is
 [`docs/development-plan-2026-10-architecture-views.md`](docs/development-plan-2026-10-architecture-views.md)
-(v2.4.0 part implemented; `edgy-c4` and the further presenter effects
-follow).
+(shipped in v2.4.0). The v2.5.0 plan — `edgy-c4`, the realisation trace
+and how far the presenter goes — is
+[`docs/development-plan-2026-10-v2.5.0.md`](docs/development-plan-2026-10-v2.5.0.md)
+(in review).
 
 ## Contributing
 

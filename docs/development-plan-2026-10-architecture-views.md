@@ -346,6 +346,8 @@ System font stack `Helvetica, Arial, "Liberation Sans", sans-serif`.
 
 ## 4. v2.5.0 and later (outside the v2.4.0 cut)
 
+> **Superseded for v2.5.0** by [`development-plan-2026-10-v2.5.0.md`](development-plan-2026-10-v2.5.0.md), which takes F4, F6b and F7 from here into its review. The text below is kept as the record of revision 6.
+
 ### F4 C4 — `edgy-c4` skill 0.1.0 (v2.5.0)
 
 A separate skill in `skills/documentation/edgy-c4/` (own SKILL.md, version,
