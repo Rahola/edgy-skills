@@ -222,7 +222,7 @@ customer journey to organisation in v2.5.0 — is
 (shipped in v2.4.0). The v2.5.0 plan — `edgy-c4`, the realisation trace
 and how far the presenter goes — is
 [`docs/development-plan-2026-10-v2.5.0.md`](docs/development-plan-2026-10-v2.5.0.md)
-(locked; implemented on the v2.5.0 branch, in testing — test plan
+(shipped in v2.5.0; test plan
 [`docs/testing/v2.5.0-agent-test-plan.md`](docs/testing/v2.5.0-agent-test-plan.md)).
 
 ## Contributing

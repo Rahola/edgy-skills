@@ -6,7 +6,7 @@ description: >
   edgy-diagram delivery: the L1 system context derived from the EDGY document graph (Persons,
   partner systems) and L2 container pages written by hand, linked to the EDGY model by the
   application's id. A notation handler for edgy-diagram (extension contract 1): draw.io output,
-  static shapes, rules C001–C006. Use it only for applications in a decided building block.
+  static shapes, rules C001–C007. Use it only for applications in a decided building block.
 category: documentation
 tags: [diagram, drawio, c4, software-architecture, documentation, edgy, en]
 languages: [en]

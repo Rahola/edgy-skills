@@ -4,7 +4,7 @@ Releases of the edgy-skills bundle are git tags. Each skill also carries its
 own semantic version in its `SKILL.md` front matter and in `registry.yaml`.
 Install a release with `EDGY_SKILLS_REF=<tag>` (see README → Versions).
 
-## v2.5.0 — 2026-10 (in testing; tagged after phase 5)
+## v2.5.0 — 2026-10
 
 A click-through **realisation trace** from the customer's journey down to
 the organisations and back up, **C4** diagrams for one application as a
@@ -57,10 +57,20 @@ No breaking changes. Every v2.4.0 example regenerates byte-identically
 - `edgyTrace` marker and SVG `data-link` / `data-trace` (extension
   contract 1, additive).
 
+- **Visual check:** new rules **W130** (a line runs under another
+  edge's label) and **W131** (two unrelated edges share a stretch of
+  line). W111 also covers trace "+N more" cards and a route back through
+  its own end. The router keeps labels off other lines and re-routes
+  around labels placed later. The eval model is 0/0/0 under the new
+  rules.
+- A `{gaps:}` value that is not `band=status` is a warning. Messages from
+  `draw: false` model pages are reported (E010). A missing input file is
+  an error. The native SVG draws dashed person outlines.
+
 **edgy-c4 0.1.0 (new)** — C4 L1 derived from the EDGY graph (Persons,
 inferred Persons dashed, partner systems, `[external]` grey), L2 container
 pages written by hand with boundary crossings from `{container:}` on EDGY
-transfers, rules C001–C006, static shapes, legend "C4 model (Simon Brown,
+transfers, rules C001–C007, static shapes, legend "C4 model (Simon Brown,
 CC BY 4.0)", page ids `c4-<level>-<system>`, L1 ↔ L2 links. draw.io only.
 
 **edgy-assessment 1.11.0** — model format **1.10**: `journey` as an object
@@ -72,6 +82,11 @@ notes 1.9 → 1.10 and the Experience links to emit.
 and links for the trace. **edgy-target-state 1.3.0** — C4 only for
 applications in decided building blocks. **edgy-deep-dive 1.1.2** — reads
 a journey array.
+
+**Testing (phase 4).** Claude (four sub-agents), Codex and Vibe tested
+the candidate, and a person checked the browsers, draw.io desktop and the
+PDF export. Every finding is fixed in this release: the reports and the
+fixes are on PR #8, and plan §11 records the as-built choices.
 
 **Adapters and tools** — `requires:` and `install: directory` in SKILL.md
 front matter, the registry, the validator and `lookup-skill.py` (install
