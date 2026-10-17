@@ -1780,7 +1780,8 @@ class EDGYParser:
                 lw = max(_text.measure(verb, 11), _text.measure(detail, 9) if detail else 0) + 8
                 lh = 11 * 1.3 + (9 * 1.3 if detail else 0)
                 # first pass: the sides; earlier edges' segments count, so a later edge picks a side with a free channel
-                r = edgy_route.route(boxes[key[0]], boxes[key[1]], obstacles, first_used, label_size=(lw, lh))
+                r = edgy_route.route(boxes[key[0]], boxes[key[1]], obstacles, first_used, label_size=(lw, lh),
+                                     soft=titles)
                 if r:
                     rel['options'] = {**rel['options'], 'from': r[0], 'to': r[1]}
                     rel['_route_size'] = (lw, lh)
@@ -1804,7 +1805,8 @@ class EDGYParser:
                 nf = _geo.distribute(len(ins), ins.index((key, 'in')))
                 before = len(used)
                 r = edgy_route.route(boxes[key[0]], boxes[key[1]], obstacles, used, label_size=rel['_route_size'],
-                                     labels=label_boxes, exit_port=(o['from'], ef), entry_port=(o['to'], nf))
+                                     labels=label_boxes, exit_port=(o['from'], ef), entry_port=(o['to'], nf),
+                                     soft=titles)
                 if r:
                     rel['options'] = {**o, 'via': r[2]}
                     rel['_segs'] = used[before:]      # this edge's own path: the other edges' labels keep off it

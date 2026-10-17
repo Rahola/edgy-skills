@@ -24,6 +24,8 @@ Point = Tuple[float, float]
 MARGIN = 10.0            # channel line distance from a card edge (matrix gaps are 20 px: the line runs in the middle)
 BEND = 60.0              # cost of a bend, in px of length
 REUSE = 2000.0           # running along a segment an earlier edge already uses: two edges on one line read as one (a false link), so only when nothing else exists
+JUNCTION = 400.0         # passing through a point where an earlier edge bends or ends
+SOFT = 600.0             # crossing a soft obstacle (group title text)
 SIDES = ('right', 'left', 'bottom', 'top')
 LABEL_FS = 11.0          # edge label font size (px): the generator and the renderer use the same
 
@@ -54,7 +56,8 @@ def _blocked(a: Point, b: Point, obstacles: Sequence[Box]) -> bool:
 def route(source: Box, target: Box, obstacles: Sequence[Box], used: Optional[List[Tuple[Point, Point]]] = None,
           margin: float = MARGIN, label_size: Optional[Tuple[float, float]] = None,
           labels: Optional[List[Box]] = None, exit_port: Optional[Tuple[str, float]] = None,
-          entry_port: Optional[Tuple[str, float]] = None) -> Optional[Tuple[str, str, List[Point], float]]:
+          entry_port: Optional[Tuple[str, float]] = None,
+          soft: Sequence[Box] = ()) -> Optional[Tuple[str, str, List[Point], float]]:
     """(exit side, entry side, waypoints, label fraction) of an orthogonal path from `source` to `target`
     that keeps `margin` px from every obstacle, or None when no such path exists. `obstacles` may contain
     the two end boxes; `used` (segments of earlier edges) is extended with this path's segments.
@@ -89,13 +92,20 @@ def route(source: Box, target: Box, obstacles: Sequence[Box], used: Optional[Lis
         px, py = p
         return any(ox < px < ox + ow and oy < py < oy + oh for ox, oy, ow, oh in obst + ends)
 
+    corners = {p for seg in used for p in seg}
+
     def reuse_cost(a: Point, b: Point) -> float:
+        extra = 0.0
+        if b in corners:
+            extra += JUNCTION       # through another edge's bend or port: the two lines read as one at that point
+        if soft and _blocked(a, b, soft):
+            extra += SOFT           # through a group title: allowed when nothing else exists (cards keep top exits)
         for (u1, u2) in used:
             if a[0] == b[0] == u1[0] == u2[0] and min(a[1], b[1]) < max(u1[1], u2[1]) and max(a[1], b[1]) > min(u1[1], u2[1]):
-                return REUSE
+                return REUSE + extra
             if a[1] == b[1] == u1[1] == u2[1] and min(a[0], b[0]) < max(u1[0], u2[0]) and max(a[0], b[0]) > min(u1[0], u2[0]):
-                return REUSE
-        return 0.0
+                return REUSE + extra
+        return extra
 
     tcx, tcy = target[0] + target[2] / 2, target[1] + target[3] / 2
     goals = {_stub(target, s, margin, f): (s, f) for s, f in tgt_sides}

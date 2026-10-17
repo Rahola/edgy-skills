@@ -214,12 +214,12 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="64" value="transfers&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;Timetable · GTFS&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=open;endFill=0;strokeWidth=2;exitX=0.5;exitY=0.0;exitDx=0;exitDy=0;entryX=0.5;entryY=1.0;entryDx=0;entryDy=0;" edge="1" source="40" target="10" parent="1">
-          <mxGeometry relative="1" as="geometry" x="-0.692">
+        <mxCell id="64" value="transfers&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;Timetable · GTFS&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=open;endFill=0;strokeWidth=2;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="40" target="10" parent="1">
+          <mxGeometry relative="1" as="geometry" x="-0.664">
             <Array as="points">
-              <mxPoint x="620" y="436"/>
-              <mxPoint x="620" y="246"/>
-              <mxPoint x="180" y="246"/>
+              <mxPoint x="510" y="496"/>
+              <mxPoint x="510" y="126"/>
+              <mxPoint x="180" y="126"/>
             </Array>
           </mxGeometry>
         </mxCell>

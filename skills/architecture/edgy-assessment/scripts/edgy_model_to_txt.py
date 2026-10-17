@@ -247,41 +247,55 @@ def _view_page(name, keys):
     return [f'  - name: "{name}"'] + [f"    {k}: {v}" for k, v in keys]
 
 
+PAGE_NAMES = {  # view page names in the model's language (the generated labels follow `language:` already)
+    "Application map": {"fi": "Sovelluskartta", "fr": "Carte applicative", "de": "Anwendungslandkarte"},
+    "Process landscape": {"fi": "Prosessikartta", "fr": "Cartographie des processus", "de": "Prozesslandkarte"},
+    "Process swimlanes": {"fi": "Prosessien uimaradat", "fr": "Couloirs de processus", "de": "Prozess-Swimlanes"},
+    "Capability": {"fi": "Kyvykkyys", "fr": "Capacité", "de": "Fähigkeit"},
+    "Capability × application": {"fi": "Kyvykkyys × sovellus", "fr": "Capacité × application", "de": "Fähigkeit × Anwendung"},
+    "Process × data (CRUD)": {"fi": "Prosessi × tieto (CRUD)", "fr": "Processus × données (CRUD)", "de": "Prozess × Daten (CRUD)"},
+}
+
+
+def _page_name(name, lang):
+    return PAGE_NAMES.get(name, {}).get(lang, name)
+
+
 @register_view("application")
 def _application_view(model, lang):
     """Application map grouped by the capability that requires each application (Shared strip for
     applications several areas need without a primary link)."""
-    return [_view_page("Application map", [("map_type", "application"), ("group_by", "capability")])]
+    return [_view_page(_page_name("Application map", lang), [("map_type", "application"), ("group_by", "capability")])]
 
 
 @register_view("process-chain")
 def _process_chain_view(model, lang):
-    return [_view_page("Process landscape", [("map_type", "process"), ("process_view", "chain")])]
+    return [_view_page(_page_name("Process landscape", lang), [("map_type", "process"), ("process_view", "chain")])]
 
 
 @register_view("process-swimlane")
 def _process_swimlane_view(model, lang):
     """One swimlane page per L1 process (the top of the contains hierarchy): its steps in the lanes of their
     performers — one page for every process at once would be a staircase of unrelated steps."""
-    return [_view_page("Process swimlanes", [("expand", "per-process"), ("where", "top"), ("map_type", "process"),
+    return [_view_page(_page_name("Process swimlanes", lang), [("expand", "per-process"), ("where", "top"), ("map_type", "process"),
                                              ("process_view", "swimlane"), ("legend", "strip")])]
 
 
 @register_view("capability")
 def _capability_view(model, lang):
     """One capability view per capability: processes, resources, data (CRUD), actors, products."""
-    return [_view_page("Capability", [("expand", "per-capability"), ("map_type", "capability-view"),
+    return [_view_page(_page_name("Capability", lang), [("expand", "per-capability"), ("map_type", "capability-view"),
                                       ("legend", "strip")])]
 
 
 @register_view("capability-matrix")
 def _capability_matrix_view(model, lang):
-    return [_view_page("Capability × application", [("map_type", "capability-matrix")])]
+    return [_view_page(_page_name("Capability × application", lang), [("map_type", "capability-matrix")])]
 
 
 @register_view("crud-matrix")
 def _crud_matrix_view(model, lang):
-    return [_view_page("Process × data (CRUD)", [("map_type", "capability-matrix"), ("matrix", "crud")])]
+    return [_view_page(_page_name("Process × data (CRUD)", lang), [("map_type", "capability-matrix"), ("matrix", "crud")])]
 
 
 def build_views(model, views, lang):
