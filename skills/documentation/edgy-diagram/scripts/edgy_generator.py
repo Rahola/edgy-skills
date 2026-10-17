@@ -60,6 +60,8 @@ def report_parser_messages(pages, lenient: bool = False) -> None:
         for w in edgy_parser.warnings:
             print(f"Warning: {prefix}{w}", file=sys.stderr)
             n_warn += 1
+        for note in getattr(edgy_parser, 'notes', []):
+            print(f"Note: {prefix}{note}", file=sys.stderr)
         for e in edgy_parser.errors:
             print(f"Error: {prefix}{e}", file=sys.stderr)
             has_errors = True
@@ -80,8 +82,10 @@ def report_layout_warnings(pages, before_counts) -> None:
         for w in edgy_parser.warnings[before:]:
             print(f"Warning: {prefix}{w}", file=sys.stderr)
             n += 1
+        for note in getattr(edgy_parser, 'notes', [])[getattr(edgy_parser, '_notes_before', 0):]:
+            print(f"Note: {prefix}{note}", file=sys.stderr)
     if n:
-        print(f"{n} layout warning(s) — see above.", file=sys.stderr)
+        print(f"{n} generator warning(s) — see above.", file=sys.stderr)
 
 
 def render_preview(drawio_path: str, png: bool = True, publication: bool = False, preset: str = None,
@@ -279,6 +283,12 @@ def main():
                        help='Write <output>.qa.json next to the .drawio: counts, lint, visual / layout / language '
                             'checks, preview sizes and the approval fields a person fills in (on by default with --preview)')
     parser.add_argument('--no-qa', dest='qa', action='store_false', help='Do not write the qa.json manifest')
+    parser.add_argument('--graph', metavar='PATH',
+                       help='Also write the document graph as JSON (model ids, occurrences with page and cell, '
+                            'relationships) — assets/edgy-graph.schema.json, extension contract 1')
+    parser.add_argument('--present', metavar='HTML',
+                       help='Also write a self-contained presentation (edgy_present.py, presenter-lite): card wall, '
+                            'zoom, cross-view highlight, search, current/target filter, paging — offline, no network')
     parser.add_argument('--no-layout-quality', action='store_true',
                        help='qa.json: run the lint without the layout-quality rules W117–W120 (recorded in the manifest)')
 
@@ -312,7 +322,7 @@ def main():
 
     # Jäsennä EDGY (yksi tai useampi sivu)
     try:
-        pages = parse_document(input_content)
+        pages, graph = parse_document(input_content, with_graph=True)
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(2)
@@ -381,6 +391,8 @@ def main():
 
     # Draw.io pipeline: oletuksena mxfile-kääre (pakkaamaton), jokainen sivu omana <diagram>-elementtinä
     before = [len(p.warnings) for _, p in pages]
+    for _, p in pages:
+        p._notes_before = len(p.notes)
     if args.bare:
         xml_content = edgy_parser.generate_xml()
     else:
@@ -401,6 +413,24 @@ def main():
 
     temp_drawio_path = output_path if fmt == 'drawio' else output_path.replace(f'.{fmt}', '.drawio')
     write_drawio_file(xml_content, temp_drawio_path)
+    if args.graph:
+        import json as _json
+        with open(args.graph, 'w', encoding='utf-8') as f:
+            _json.dump(graph.to_json(), f, ensure_ascii=False, indent=1)
+            f.write('\n')
+        print(f"Document graph: {args.graph}")
+    if args.present:
+        if fmt != 'drawio':
+            print("Error: --present needs the .drawio output (the default --format drawio)", file=sys.stderr)
+            sys.exit(2)
+        import edgy_present
+        stats = edgy_present.write(temp_drawio_path, args.present, graph.to_json(),
+                                   title=heading[0] if heading and heading[0] else None,
+                                   lang=edgy_parser.language)
+        print(f"Presentation: {args.present} — {stats['pages']} view(s), {stats['bytes'] / 1024:.0f} KB")
+        if stats['bytes'] > stats['budget']:
+            print(f"Error: the presentation is over its size budget ({stats['budget'] / 1048576:.2f} MB)", file=sys.stderr)
+            sys.exit(3)
 
     def write_qa(previews, manifest=None):
         # qa.json: samat luvut evalille, assessmentin Phase 5:lle ja katselmoijalle; hyväksyntäkentät jäävät null.

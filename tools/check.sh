@@ -8,7 +8,7 @@
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
 # edgy-tests, edgy-geometry-tests, edgy-lint-tests, edgy-render-tests,
 # edgy-structure-tests, edgy-tool-tests, edgy-model, edgy-model-diff-tests, edgy-archimate-tests,
-# edgy-official-shapes, edgy-eval, edgy-lint,
+# edgy-graph-tests, edgy-examples-golden, edgy-contract, edgy-architecture, edgy-present, edgy-model-compat, edgy-official-shapes, edgy-eval, edgy-lint,
 # edgy-lint-strict, edgy-series, edgy-qa,
 # privacy-scan.
 #
@@ -30,6 +30,10 @@ set -u
 # Siirry repon juureen jos ollaan jossain alihakemistossa
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")"
 cd "$REPO_ROOT"
+
+# Text metrics: the gates measure with the glyph tables (edgy_text.py), the backend CI has —
+# a local Pillow with real fonts measures a pixel differently and would move the goldens
+export EDGY_TEXT_TABLE_ONLY=1
 
 MODE="full"
 TARGET="skills/"
@@ -210,7 +214,52 @@ run_step "edgy-tool-tests" python3 tools/test_edgy_tools.py
 run_step "edgy-model-tests" python3 skills/architecture/edgy-assessment/scripts/test_model_to_txt.py
 run_step "edgy-model-diff-tests" python3 skills/architecture/edgy-assessment/scripts/test_model_diff.py
 run_step "edgy-archimate-tests" python3 skills/architecture/edgy-assessment/scripts/test_model_to_archimate.py
+run_step "edgy-model-compat" python3 tools/test_model_compat.py
 run_step "edgy-semantic-tests" python3 "$EDGY_SCRIPTS/test_semantic.py"
+run_step "edgy-graph-tests" python3 "$EDGY_SCRIPTS/test_graph.py"
+run_step "edgy-examples-golden" python3 "$EDGY_SCRIPTS/test_examples.py"
+run_step "edgy-contract" python3 "$EDGY_SCRIPTS/test_contract.py"
+run_step "edgy-architecture" python3 "$EDGY_SCRIPTS/test_architecture.py"
+# Every architecture view from the shipped 1.9 model (--views all) and from the eval model
+# (examples/eval/architecture-views.txt): lint 0/0, visual 0, layout 0
+edgy_architecture_views() {
+    local tmp
+    tmp=$(mktemp -d)
+    python3 "$REPO_ROOT/skills/architecture/edgy-assessment/scripts/edgy_model_to_txt.py" \
+        "$REPO_ROOT/skills/architecture/edgy-assessment/examples/architecture-model.json" \
+        --views all --out "$tmp" --prefix acme >/dev/null || { rm -rf "$tmp"; return 1; }
+    python3 "$EDGY_SCRIPTS/edgy_generator.py" "$tmp/acme-views.txt" --output "$tmp/acme.drawio" --qa \
+        >/dev/null 2>&1 || { rm -rf "$tmp"; return 1; }
+    python3 "$EDGY_SCRIPTS/edgy_generator.py" "$EDGY_SCRIPTS/../examples/eval/architecture-views.txt" \
+        --output "$tmp/eval.drawio" --qa >/dev/null 2>&1 || { rm -rf "$tmp"; return 1; }
+    python3 - "$tmp/acme.qa.json" "$tmp/eval.qa.json" <<'PY'
+import json, sys
+for path in sys.argv[1:]:
+    t = json.load(open(path, encoding='utf-8'))['totals']
+    bad = {k: t[k] for k in ('lint_errors', 'lint_warnings', 'visual', 'layout_quality') if t.get(k)}
+    if bad:
+        print(f'architecture views ({path}): {bad}', file=sys.stderr)
+        sys.exit(1)
+PY
+    local rc=$?
+    rm -rf "$tmp"
+    return $rc
+}
+run_step "edgy-architecture-views" edgy_architecture_views
+# Presenter: static checks always; the headless-Chrome self-test is a visible WARN (exit 2) without Chrome
+# locally and a FAIL in CI (test_present.py exits 1 there when Chrome is missing)
+present_out=$(python3 "$EDGY_SCRIPTS/test_present.py" 2>&1); present_rc=$?
+if [ $present_rc -eq 0 ]; then
+    log_ok "edgy-present"
+elif [ $present_rc -eq 2 ]; then
+    log_warn "edgy-present" "browser self-test skipped — no Chromium/Chrome (set EDGY_CHROMIUM)"
+    WARN=1
+    [ $EXIT_CODE -eq 0 ] && EXIT_CODE=2
+else
+    log_fail "edgy-present"
+    printf '%s\n' "$present_out" >&2
+    EXIT_CODE=1
+fi
 
 # --- Vaihe 3c2: edgy-model.json-skeema + malli → TXT ------------------------
 # Jokaisen repoon kuuluvan *model*.json-esimerkin on vastattava skeemaa, ja
@@ -265,7 +314,10 @@ edgy_lint_strict() {
         "$ex"/expected-triad-*.drawio "$ex"/expected-purpose.drawio "$ex"/expected-purpose-hierarchy.drawio \
         "$ex"/expected-capability-areas-nested.drawio "$ex"/expected-channel-matrix.drawio \
         "$ex"/expected-transition-roadmap.drawio "$ex"/expected-product-portfolio.drawio \
-        "$ex"/expected-outcome-web.drawio "$ex"/expected-capability-heatmap.drawio "$tmp"/*.drawio
+        "$ex"/expected-outcome-web.drawio "$ex"/expected-capability-heatmap.drawio \
+        "$ex"/expected-application.drawio "$ex"/expected-application-by-capability.drawio \
+        "$ex"/expected-process-chain.drawio "$ex"/expected-process-swimlane.drawio \
+        "$ex"/expected-capability-view.drawio "$tmp"/*.drawio
     local rc=$?
     rm -rf "$tmp"
     return $rc

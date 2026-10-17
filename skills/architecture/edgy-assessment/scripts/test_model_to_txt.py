@@ -160,6 +160,32 @@ def test_generated_ids_are_unique_across_types():
     assert m2t.id_prefix("product") == "PRD" and m2t.id_prefix("process") == "PRO" and m2t.id_prefix("channel") == "CHA"
 
 
+def test_installed_layout_finds_edgy_diagram():
+    """The adapters copy each skill into its own directory (~/.claude/skills/<id>/): the model tools
+    must find edgy-diagram there, not only in a repository checkout (edgy-assessment 1.10.0)."""
+    import shutil
+    with tempfile.TemporaryDirectory() as tmp:
+        skills = Path(tmp) / 'skills'
+        shutil.copytree(HERE.parent, skills / 'edgy-assessment', ignore=shutil.ignore_patterns('__pycache__'))
+        shutil.copytree(DIAGRAM.parent, skills / 'edgy-diagram', ignore=shutil.ignore_patterns('__pycache__'))
+        out = Path(tmp) / 'out'
+        env = {k: v for k, v in os.environ.items() if k != 'EDGY_DIAGRAM_SCRIPTS'}
+        r = subprocess.run([sys.executable, str(skills / 'edgy-assessment' / 'scripts' / 'edgy_model_to_txt.py'),
+                            str(SAMPLE), '--out', str(out), '--prefix', 'm'], capture_output=True, text=True, env=env,
+                           cwd=tmp)
+        assert r.returncode == 0, r.stderr + r.stdout
+        assert sorted(p.name for p in out.glob('m-*.txt')), 'no TXT written from the installed layout'
+        r = subprocess.run([sys.executable, str(skills / 'edgy-assessment' / 'scripts' / 'edgy_model_to_archimate.py'),
+                            str(SAMPLE), '--output', str(Path(tmp) / 'm.xml')], capture_output=True, text=True,
+                           env=env, cwd=tmp)
+        assert r.returncode == 0, r.stderr + r.stdout
+        # without edgy-diagram next to it, the tool says so (exit with a message, no traceback)
+        shutil.rmtree(skills / 'edgy-diagram')
+        r = subprocess.run([sys.executable, str(skills / 'edgy-assessment' / 'scripts' / 'edgy_model_to_txt.py'),
+                            str(SAMPLE), '--out', str(out)], capture_output=True, text=True, env=env, cwd=tmp)
+        assert r.returncode != 0 and 'Traceback' not in r.stderr, r.stderr
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:

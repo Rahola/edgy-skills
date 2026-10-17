@@ -1,11 +1,11 @@
 ---
 name: edgy-framework
-version: "1.6.0"
+version: "1.7.0"
 description: >
   EDGY 23 enterprise design analysis: challenge reframing, facet intersection analysis,
   element identification from natural language, and modelling guidance for strategy
-  documents (strategy → Purpose/Outcome mapping), capability formulation and the
-  organisation role model.
+  documents (strategy → Purpose/Outcome mapping), capability formulation, the
+  organisation role model, and applications, data and actors as EDGY elements.
 category: architecture
 tags: [edgy, enterprise-design, architecture, analysis, reframing, fi, en, fr, de]
 languages: [fi, en, fr, de]
@@ -332,6 +332,53 @@ as a capability).
 `{maturity: 1–5}` or `{rating: differentiating}` on the capability draws a
 badge with its own legend row (edgy-diagram, *status badges*). Say where the
 rating comes from (interview, self-assessment, analysis) in the report.
+
+### Modelling applications, data and actors
+
+EDGY 23 has no application or data element, and none is added. An
+application is an **Asset** — a resource the enterprise needs to do its
+work — and so is a data set; the asset tags EDGY recommends are written as
+`{kind: application | platform | integration | data}`. People who act are
+**Organisation** (a unit, team or role the enterprise sets up) or **People**
+(a person or group outside that structure). The architecture views of
+edgy-diagram draw these elements; they do not change their meaning.
+
+| What it is | EDGY element | Core link / influence verb |
+|------------|--------------|----------------------------|
+| Application, platform, integration service | Asset `{kind: application \| platform \| integration}` | `capability requires asset`, `process requires asset` |
+| Data set, register, master data | Asset `{kind: data}`, `{master: true}` for the master copy | `asset stores asset`, `process accesses asset {crud: CRUD}` (influence verbs) |
+| Integration | `asset transfers asset {data: DAT-…, technology: …}` (flow) | — |
+| Owner of an application | Organisation `manages` the asset, or `{owner: ORG-…}` | `organisation manages asset` |
+| Who runs a process | Organisation `performs` the process | `organisation performs process` |
+| Someone who uses an application | People `interacts with` the asset | influence verb |
+
+**Helper questions**
+
+1. Which capability needs this application, and which one is its *primary*
+   home? (`{primary: true}` on one `requires`; several without one go to the
+   Shared strip — input order never decides an architectural home.)
+2. Who owns it — not who uses it? An application without an owner is a
+   finding before it is a diagram problem (W124).
+3. Which data does it store, and is it the master? Exactly one master per
+   data set; two systems claiming it is a decision to make, not a box to draw.
+   In the model: `{master: true}` sits on the **data asset** (this is master
+   data), and the one application that `stores` it is its system of record;
+   any other system holding a copy receives it through `transfers`, never a
+   second `stores`.
+4. What does an integration carry? A `transfers` link without a data asset
+   (W125) says nothing about what breaks when it fails.
+5. For a lifecycle view: tolerate, invest, migrate or eliminate (Gartner
+   TIME, extension) — and on what evidence? Why TIME and its limits: the
+   register of external standards (edgy-diagram
+   `references/external-standards.md`); EDGY stays the language of the map.
+
+**Naming:** an application keeps its product or system name — it *is* an
+asset, unlike a capability. When a capability and an application share a
+name ("Ticketing" and "Ticketing"), the semantic review asks S013: is the
+capability really system-independent? A capability view with an empty band
+(no processes, no data) is a **model gap**, reported with an evidence status
+(`not_investigated`, `out_of_scope`, `unknown`, `confirmed_absent`); only
+`confirmed_absent` may be presented as a finding.
 
 ### Formulating tasks, outcomes and the Experience facet
 
@@ -743,7 +790,7 @@ When producing an EDGY analysis in `identify` mode, the following minimum requir
 | Identity | Purpose | 1 | At least 2 sentences + analysis |
 | Identity | Story | 1 | At least 2 sentences + analysis |
 | Identity | Content | 1 | At least 2 sentences + analysis |
-| Architecture | Capability | 3 | Table: nature (differentiating/commodity) + level (core/supporting) |
+| Architecture | Capability | 3 | Table: nature (core / enabling / management, or differentiating / commodity — say which) + level (strategic / operational / foundational), as the model fields `nature` and `level` |
 | Architecture | Asset | 2 | Description + ownership + strategic significance |
 | Architecture | Process | 2 | Description + how it realises capabilities |
 | Experience | Task | 3 | Description + customer segment |

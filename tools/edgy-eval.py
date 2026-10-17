@@ -36,6 +36,7 @@ DEFAULT_INPUTS = [
     EXAMPLES / "eval" / "series-acme-capability.txt",
     EXAMPLES / "eval" / "series-acme-task.txt",
     EXAMPLES / "eval" / "series-acme-purpose.txt",
+    EXAMPLES / "eval" / "architecture-views.txt",
     EXAMPLES / "multipage-map.txt",
     EXAMPLES / "full-edgy-map.txt",
     EXAMPLES / "purpose-hierarchy-map.txt",

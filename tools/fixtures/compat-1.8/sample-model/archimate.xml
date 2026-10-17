@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" identifier="id-model" xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd">
+  <name xml:lang="fi">Globex Oy</name>
+  <documentation xml:lang="fi">Exported from edgy-model.json (assessed 2026-04-25T10:00:00) by edgy_model_to_archimate.py — one-way export; edit the EDGY model.</documentation>
+  <elements>
+    <element identifier="id-el-1" xsi:type="Goal">
+      <name xml:lang="fi">Digimuutoskumppani kasvuyrityksille</name>
+      <documentation xml:lang="fi">Globex auttaa pk-yrityksiä kasvamaan digitaalisen transformaation ja räätälöidyn ohjelmistokehityksen avulla.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">purpose</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-2" xsi:type="Meaning">
+      <name xml:lang="fi">Suomalainen tekijä, kansainvälinen kasvu</name>
+      <documentation xml:lang="fi">Globex on perustettu 2015 Helsingissä. Yritys on kasvanut 15 henkilöstä yli 80:aan, laajentuu Ruotsiin 2026. Tarinan ytimessä on käytännönläheinen, asiakaslähtöinen kulttuuri.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">story</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-3" xsi:type="Representation">
+      <name xml:lang="fi">Ajatusjohtajuus ja case-sisällöt</name>
+      <documentation xml:lang="fi">Globex julkaisee blogia, case-kertomuksia ja osallistuu alan tapahtumiin. Sisältö on teknologiapainotteista eikä aina vastaa tarkoituksen kasvuyhtiö-narratiivia.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">content</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-4" xsi:type="Capability">
+      <name xml:lang="fi">Cloud-arkkitehtuuri (AWS/Azure)</name>
+      <documentation xml:lang="fi">Monipilavisessa ympäristössä toimiva suunnittelu- ja toteutuskyvykkyys. Sertifioituja arkkitehteja 12 kpl.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">capability</value>
+        </property>
+        <property propertyDefinitionRef="pd-4">
+          <value xml:lang="fi">Core</value>
+        </property>
+        <property propertyDefinitionRef="pd-5">
+          <value xml:lang="fi">Strategic</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-5" xsi:type="Capability">
+      <name xml:lang="fi">Räätälöity ohjelmistokehitys</name>
+      <documentation xml:lang="fi">Full-stack-kehitys React/TypeScript + .NET/Python. Suurin henkilöstöryhmä (45 kehittäjää).</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">capability</value>
+        </property>
+        <property propertyDefinitionRef="pd-4">
+          <value xml:lang="fi">Core</value>
+        </property>
+        <property propertyDefinitionRef="pd-5">
+          <value xml:lang="fi">Operational</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-6" xsi:type="Capability">
+      <name xml:lang="fi">DevOps ja jatkuva toimitus</name>
+      <documentation xml:lang="fi">CI/CD-putkistot, Kubernetes-orkestraatio. Sisäisessä käytössä; asiakasprojekteissa vaihteleva käyttöaste.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">capability</value>
+        </property>
+        <property propertyDefinitionRef="pd-4">
+          <value xml:lang="fi">Enabling</value>
+        </property>
+        <property propertyDefinitionRef="pd-5">
+          <value xml:lang="fi">Operational</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-7" xsi:type="Capability">
+      <name xml:lang="fi">Myynti ja asiakkuudenhallinta (Ruotsi)</name>
+      <documentation xml:lang="fi">Uusi kyvykkyys: Tukholmaan rekrytoitu Sales Manager Q1/2026. Prosessit kesken, playbook puuttuu.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">capability</value>
+        </property>
+        <property propertyDefinitionRef="pd-4">
+          <value xml:lang="fi">Enabling</value>
+        </property>
+        <property propertyDefinitionRef="pd-5">
+          <value xml:lang="fi">Strategic</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-8" xsi:type="Resource">
+      <name xml:lang="fi">Kehittäjätiimi (80 hlö)</name>
+      <documentation xml:lang="fi">Pääasiallinen tuotannollinen resurssi. Korkea senioriteetti (65% senior/lead). Kasvu 20 rekrytointia 2026.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">asset</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-9" xsi:type="Resource">
+      <name xml:lang="fi">Azure-partneriasema (Gold)</name>
+      <documentation xml:lang="fi">Microsoft Gold Partner -status avaa enterprise-asiakkaita ja alennettuja lisenssejä.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">asset</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-10" xsi:type="Resource">
+      <name xml:lang="fi">Asiakasreferenssit</name>
+      <documentation xml:lang="fi">12 julkista case-kertomusta, 3 Suomen top-50-yritystä referenssinä.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">asset</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-11" xsi:type="BusinessProcess">
+      <name xml:lang="fi">Projektitoimitusmalli (agile)</name>
+      <documentation xml:lang="fi">2-viikon sprintit, asiakas mukana sprint review -sessioissa. Toimii hyvin olemassaolevilla asiakkailla.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">process</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-12" xsi:type="BusinessProcess">
+      <name xml:lang="fi">Myyntiprosessi</name>
+      <documentation xml:lang="fi">Inbound-painotteinen, ei dokumentoitua outbound-playbooka. Ruotsin markkinalla prosessi puuttuu kokonaan.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">process</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-13" xsi:type="BusinessProcess">
+      <name xml:lang="fi">Rekrytointiprosessi</name>
+      <documentation xml:lang="fi">HR-tiimi 3 hlö + ulkoinen headhunter isoihin rekrytointeihin. Tavoite: 20 rekrytointia 2026.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">process</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-14" xsi:type="BusinessProcess">
+      <name xml:lang="fi">Teknologiastrategian muotoilu</name>
+      <documentation xml:lang="fi">Asiakkaan CTO/CPO arvioi teknologiavaihtoehtoja ja -arkkitehtuuria. Globex tukee workshopeilla ja arkkitehtipalveluilla.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">task</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-15" xsi:type="BusinessProcess">
+      <name xml:lang="fi">Ohjelmistokehitysprojektin käynnistys</name>
+      <documentation xml:lang="fi">Asiakkaan projektitiimi kilpailuttaa toimittajia, arvioi tarjouksia, aloittaa yhteistyön.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">task</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-16" xsi:type="BusinessProcess">
+      <name xml:lang="fi">Jatkuva kehitys ja ylläpito</name>
+      <documentation xml:lang="fi">Olemassaoleva asiakas tilaa jatkuvaa kapasiteettia tai ylläpitosopimuksen.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">task</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-17" xsi:type="BusinessInterface">
+      <name xml:lang="fi">Verkkosivut + blogi</name>
+      <documentation xml:lang="fi">Pääasiallinen inbound-kanava. 3500 kuukausikävijää. Konversio heikko (0.8%).</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">channel</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-18" xsi:type="BusinessInterface">
+      <name xml:lang="fi">LinkedIn</name>
+      <documentation xml:lang="fi">Aktiivinen, 4800 seuraajaa. Pääasiassa rekrytointi- ja thought leadership -sisältö.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">channel</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-19" xsi:type="BusinessInterface">
+      <name xml:lang="fi">Suora myynti / referrallit</name>
+      <documentation xml:lang="fi">60% liideistä tulee referralleista. Tukholmassa ei vielä verkostoa.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">channel</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-20" xsi:type="ValueStream">
+      <name xml:lang="fi">Digimuutoskumppanin valinta</name>
+      <documentation xml:lang="fi">Asiakkaan matka tarpeesta toimittajaksi.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">journey</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-21" xsi:type="BusinessActor">
+      <name xml:lang="fi">Globex Oy organisaatio</name>
+      <documentation xml:lang="fi">Toiminnallinen rakenne: Kehitys (45), Arkkitehtuuri &amp; Konsultointi (15), Myynti &amp; Markkinointi (10), HR &amp; Hallinto (10). Ruotsin toimisto perustetaan Q2/2026. Ei erillistä tuote-/palveluomistajuutta.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">organisation</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-22" xsi:type="Product">
+      <name xml:lang="fi">Projektitoimitus (time &amp; material)</name>
+      <documentation xml:lang="fi">Yleisin sopimusmalli. Asiakas maksaa käytetystä kapasiteetista.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">product</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-23" xsi:type="Product">
+      <name xml:lang="fi">Jatkuva kehitys -sopimus</name>
+      <documentation xml:lang="fi">Kuukausipohjainen kapasiteettisopimus. Arvo asiakkaalle: ennakoitavuus.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">product</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-24" xsi:type="Product">
+      <name xml:lang="fi">Arkkitehtuuri­konsultointi</name>
+      <documentation xml:lang="fi">Kiinteähintainen arkkitehtuurikatselmus tai -suunnittelu. Myydään usein projektin esipalveluna.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">product</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-25" xsi:type="Value">
+      <name xml:lang="fi">Globex — Käytännönläheinen digimuutoskumppani</name>
+      <documentation xml:lang="fi">Brändi viestii asiantuntemuksesta ja luotettavuudesta. Ei erotu selkeästi toimiala- tai segmenttiosaamisella. Ruotsissa täysin tuntematon.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="fi">brand</value>
+        </property>
+      </properties>
+    </element>
+  </elements>
+  <relationships>
+    <relationship identifier="id-rel-1" source="id-el-2" target="id-el-1" xsi:type="Association" isDirected="true">
+      <name xml:lang="fi">kontekstualisoi</name>
+    </relationship>
+    <relationship identifier="id-rel-2" source="id-el-3" target="id-el-1" xsi:type="Association" isDirected="true">
+      <name xml:lang="fi">ilmaisee</name>
+    </relationship>
+    <relationship identifier="id-rel-3" source="id-el-25" target="id-el-1" xsi:type="Association" isDirected="true">
+      <name xml:lang="fi">edustaa</name>
+    </relationship>
+    <relationship identifier="id-rel-4" source="id-el-21" target="id-el-1" xsi:type="Association" isDirected="true">
+      <name xml:lang="fi">tavoittelee</name>
+    </relationship>
+    <relationship identifier="id-rel-5" source="id-el-21" target="id-el-2" xsi:type="Association" isDirected="true">
+      <name xml:lang="fi">kirjoittaa</name>
+    </relationship>
+    <relationship identifier="id-rel-6" source="id-el-21" target="id-el-4" xsi:type="Association" isDirected="true">
+      <name xml:lang="fi">omistaa</name>
+    </relationship>
+    <relationship identifier="id-rel-7" source="id-el-21" target="id-el-11" xsi:type="Association" isDirected="true">
+      <name xml:lang="fi">suorittaa</name>
+    </relationship>
+    <relationship identifier="id-rel-8" source="id-el-21" target="id-el-25" xsi:type="Association" isDirected="true">
+      <name xml:lang="fi">rakentaa</name>
+    </relationship>
+    <relationship identifier="id-rel-9" source="id-el-21" target="id-el-22" xsi:type="Association" isDirected="true">
+      <name xml:lang="fi">valmistaa</name>
+    </relationship>
+    <relationship identifier="id-rel-10" source="id-el-11" target="id-el-4" xsi:type="Association" isDirected="true">
+      <name xml:lang="fi">toteuttaa</name>
+    </relationship>
+    <relationship identifier="id-rel-11" source="id-el-11" target="id-el-22" xsi:type="Association" isDirected="true">
+      <name xml:lang="fi">luo</name>
+    </relationship>
+    <relationship identifier="id-rel-12" source="id-el-22" target="id-el-4" xsi:type="Association" isDirected="true">
+      <name xml:lang="fi">vaatii</name>
+    </relationship>
+    <relationship identifier="id-rel-13" source="id-el-22" target="id-el-14" xsi:type="Association" isDirected="true">
+      <name xml:lang="fi">palvelee</name>
+    </relationship>
+    <relationship identifier="id-rel-14" source="id-el-14" target="id-el-17" xsi:type="Association" isDirected="true">
+      <name xml:lang="fi">käyttää</name>
+    </relationship>
+    <relationship identifier="id-rel-15" source="id-el-25" target="id-el-14" xsi:type="Association" isDirected="true">
+      <name xml:lang="fi">tukee</name>
+    </relationship>
+  </relationships>
+  <propertyDefinitions>
+    <propertyDefinition identifier="pd-1" type="string">
+      <name xml:lang="fi">edgy:type</name>
+    </propertyDefinition>
+    <propertyDefinition identifier="pd-2" type="string">
+      <name xml:lang="fi">edgy:id</name>
+    </propertyDefinition>
+    <propertyDefinition identifier="pd-3" type="string">
+      <name xml:lang="fi">edgy:provenance</name>
+    </propertyDefinition>
+    <propertyDefinition identifier="pd-4" type="string">
+      <name xml:lang="fi">edgy:nature</name>
+    </propertyDefinition>
+    <propertyDefinition identifier="pd-5" type="string">
+      <name xml:lang="fi">edgy:level</name>
+    </propertyDefinition>
+  </propertyDefinitions>
+  <views>
+    <diagrams>
+      <view identifier="id-view-1" xsi:type="Diagram">
+        <name xml:lang="fi">Identity</name>
+        <node identifier="id-view-1-n1" elementRef="id-el-1" xsi:type="Element" x="80" y="96" w="280" h="110" />
+        <node identifier="id-view-1-n2" elementRef="id-el-2" xsi:type="Element" x="380" y="96" w="280" h="140" />
+        <node identifier="id-view-1-n3" elementRef="id-el-3" xsi:type="Element" x="80" y="256" w="230" h="140" />
+        <node identifier="id-view-1-n21" elementRef="id-el-21" xsi:type="Element" x="60" y="460" w="180" h="150" />
+        <node identifier="id-view-1-n25" elementRef="id-el-25" xsi:type="Element" x="280" y="460" w="280" h="120" />
+        <connection identifier="id-view-1-c1" relationshipRef="id-rel-1" xsi:type="Relationship" source="id-view-1-n2" target="id-view-1-n1" />
+        <connection identifier="id-view-1-c2" relationshipRef="id-rel-2" xsi:type="Relationship" source="id-view-1-n3" target="id-view-1-n1" />
+        <connection identifier="id-view-1-c3" relationshipRef="id-rel-3" xsi:type="Relationship" source="id-view-1-n25" target="id-view-1-n1" />
+        <connection identifier="id-view-1-c4" relationshipRef="id-rel-4" xsi:type="Relationship" source="id-view-1-n21" target="id-view-1-n1" />
+        <connection identifier="id-view-1-c5" relationshipRef="id-rel-5" xsi:type="Relationship" source="id-view-1-n21" target="id-view-1-n2" />
+        <connection identifier="id-view-1-c8" relationshipRef="id-rel-8" xsi:type="Relationship" source="id-view-1-n21" target="id-view-1-n25" />
+      </view>
+      <view identifier="id-view-2" xsi:type="Diagram">
+        <name xml:lang="fi">Architecture</name>
+        <node identifier="id-view-2-n4" elementRef="id-el-4" xsi:type="Element" x="80" y="96" w="280" h="110" />
+        <node identifier="id-view-2-n5" elementRef="id-el-5" xsi:type="Element" x="380" y="96" w="280" h="110" />
+        <node identifier="id-view-2-n6" elementRef="id-el-6" xsi:type="Element" x="680" y="96" w="280" h="110" />
+        <node identifier="id-view-2-n7" elementRef="id-el-7" xsi:type="Element" x="980" y="96" w="280" h="110" />
+        <node identifier="id-view-2-n8" elementRef="id-el-8" xsi:type="Element" x="80" y="226" w="210" h="110" />
+        <node identifier="id-view-2-n9" elementRef="id-el-9" xsi:type="Element" x="380" y="226" w="210" h="110" />
+        <node identifier="id-view-2-n10" elementRef="id-el-10" xsi:type="Element" x="680" y="226" w="210" h="110" />
+        <node identifier="id-view-2-n11" elementRef="id-el-11" xsi:type="Element" x="980" y="226" w="230" h="110" />
+        <node identifier="id-view-2-n12" elementRef="id-el-12" xsi:type="Element" x="80" y="356" w="230" h="110" />
+        <node identifier="id-view-2-n13" elementRef="id-el-13" xsi:type="Element" x="380" y="356" w="230" h="110" />
+        <node identifier="id-view-2-n21" elementRef="id-el-21" xsi:type="Element" x="60" y="530" w="180" h="150" />
+        <node identifier="id-view-2-n22" elementRef="id-el-22" xsi:type="Element" x="280" y="530" w="240" h="90" />
+        <node identifier="id-view-2-n23" elementRef="id-el-23" xsi:type="Element" x="560" y="530" w="240" h="90" />
+        <node identifier="id-view-2-n24" elementRef="id-el-24" xsi:type="Element" x="60" y="710" w="240" h="90" />
+        <connection identifier="id-view-2-c6" relationshipRef="id-rel-6" xsi:type="Relationship" source="id-view-2-n21" target="id-view-2-n4" />
+        <connection identifier="id-view-2-c7" relationshipRef="id-rel-7" xsi:type="Relationship" source="id-view-2-n21" target="id-view-2-n11" />
+        <connection identifier="id-view-2-c9" relationshipRef="id-rel-9" xsi:type="Relationship" source="id-view-2-n21" target="id-view-2-n22" />
+        <connection identifier="id-view-2-c10" relationshipRef="id-rel-10" xsi:type="Relationship" source="id-view-2-n11" target="id-view-2-n4" />
+        <connection identifier="id-view-2-c11" relationshipRef="id-rel-11" xsi:type="Relationship" source="id-view-2-n11" target="id-view-2-n22" />
+        <connection identifier="id-view-2-c12" relationshipRef="id-rel-12" xsi:type="Relationship" source="id-view-2-n22" target="id-view-2-n4" />
+      </view>
+      <view identifier="id-view-3" xsi:type="Diagram">
+        <name xml:lang="fi">Experience</name>
+        <node identifier="id-view-3-n14" elementRef="id-el-14" xsi:type="Element" x="80" y="96" w="280" h="90" />
+        <node identifier="id-view-3-n15" elementRef="id-el-15" xsi:type="Element" x="380" y="96" w="280" h="90" />
+        <node identifier="id-view-3-n16" elementRef="id-el-16" xsi:type="Element" x="680" y="96" w="280" h="90" />
+        <node identifier="id-view-3-n17" elementRef="id-el-17" xsi:type="Element" x="80" y="206" w="190" h="110" />
+        <node identifier="id-view-3-n18" elementRef="id-el-18" xsi:type="Element" x="380" y="206" w="190" h="110" />
+        <node identifier="id-view-3-n19" elementRef="id-el-19" xsi:type="Element" x="680" y="206" w="190" h="110" />
+        <node identifier="id-view-3-n20" elementRef="id-el-20" xsi:type="Element" x="80" y="336" w="240" h="80" />
+        <node identifier="id-view-3-n22" elementRef="id-el-22" xsi:type="Element" x="60" y="480" w="240" h="90" />
+        <node identifier="id-view-3-n23" elementRef="id-el-23" xsi:type="Element" x="340" y="480" w="240" h="90" />
+        <node identifier="id-view-3-n24" elementRef="id-el-24" xsi:type="Element" x="620" y="480" w="240" h="90" />
+        <node identifier="id-view-3-n25" elementRef="id-el-25" xsi:type="Element" x="60" y="600" w="280" h="120" />
+        <connection identifier="id-view-3-c13" relationshipRef="id-rel-13" xsi:type="Relationship" source="id-view-3-n22" target="id-view-3-n14" />
+        <connection identifier="id-view-3-c14" relationshipRef="id-rel-14" xsi:type="Relationship" source="id-view-3-n14" target="id-view-3-n17" />
+        <connection identifier="id-view-3-c15" relationshipRef="id-rel-15" xsi:type="Relationship" source="id-view-3-n25" target="id-view-3-n14" />
+      </view>
+      <view identifier="id-view-4" xsi:type="Diagram">
+        <name xml:lang="fi">All facets</name>
+        <node identifier="id-view-4-n1" elementRef="id-el-1" xsi:type="Element" x="80" y="96" w="280" h="110" />
+        <node identifier="id-view-4-n2" elementRef="id-el-2" xsi:type="Element" x="80" y="226" w="280" h="140" />
+        <node identifier="id-view-4-n3" elementRef="id-el-3" xsi:type="Element" x="80" y="386" w="230" h="140" />
+        <node identifier="id-view-4-n4" elementRef="id-el-4" xsi:type="Element" x="660" y="96" w="280" h="110" />
+        <node identifier="id-view-4-n5" elementRef="id-el-5" xsi:type="Element" x="660" y="226" w="280" h="110" />
+        <node identifier="id-view-4-n6" elementRef="id-el-6" xsi:type="Element" x="660" y="356" w="280" h="110" />
+        <node identifier="id-view-4-n7" elementRef="id-el-7" xsi:type="Element" x="660" y="486" w="280" h="110" />
+        <node identifier="id-view-4-n8" elementRef="id-el-8" xsi:type="Element" x="660" y="616" w="210" h="110" />
+        <node identifier="id-view-4-n9" elementRef="id-el-9" xsi:type="Element" x="660" y="746" w="210" h="110" />
+        <node identifier="id-view-4-n10" elementRef="id-el-10" xsi:type="Element" x="660" y="876" w="210" h="110" />
+        <node identifier="id-view-4-n11" elementRef="id-el-11" xsi:type="Element" x="660" y="1006" w="230" h="110" />
+        <node identifier="id-view-4-n12" elementRef="id-el-12" xsi:type="Element" x="660" y="1136" w="230" h="110" />
+        <node identifier="id-view-4-n13" elementRef="id-el-13" xsi:type="Element" x="660" y="1266" w="230" h="110" />
+        <node identifier="id-view-4-n14" elementRef="id-el-14" xsi:type="Element" x="1300" y="96" w="280" h="90" />
+        <node identifier="id-view-4-n15" elementRef="id-el-15" xsi:type="Element" x="1300" y="206" w="280" h="90" />
+        <node identifier="id-view-4-n16" elementRef="id-el-16" xsi:type="Element" x="1300" y="316" w="280" h="90" />
+        <node identifier="id-view-4-n17" elementRef="id-el-17" xsi:type="Element" x="1300" y="426" w="190" h="110" />
+        <node identifier="id-view-4-n18" elementRef="id-el-18" xsi:type="Element" x="1300" y="556" w="190" h="110" />
+        <node identifier="id-view-4-n19" elementRef="id-el-19" xsi:type="Element" x="1300" y="686" w="190" h="110" />
+        <node identifier="id-view-4-n20" elementRef="id-el-20" xsi:type="Element" x="1300" y="816" w="240" h="80" />
+        <node identifier="id-view-4-n21" elementRef="id-el-21" xsi:type="Element" x="420" y="650" w="180" h="150" />
+        <node identifier="id-view-4-n22" elementRef="id-el-22" xsi:type="Element" x="1000" y="570" w="240" h="90" />
+        <node identifier="id-view-4-n23" elementRef="id-el-23" xsi:type="Element" x="1000" y="680" w="240" h="90" />
+        <node identifier="id-view-4-n24" elementRef="id-el-24" xsi:type="Element" x="1000" y="790" w="240" h="90" />
+        <node identifier="id-view-4-n25" elementRef="id-el-25" xsi:type="Element" x="690" y="1460" w="280" h="120" />
+        <connection identifier="id-view-4-c1" relationshipRef="id-rel-1" xsi:type="Relationship" source="id-view-4-n2" target="id-view-4-n1" />
+        <connection identifier="id-view-4-c2" relationshipRef="id-rel-2" xsi:type="Relationship" source="id-view-4-n3" target="id-view-4-n1" />
+        <connection identifier="id-view-4-c3" relationshipRef="id-rel-3" xsi:type="Relationship" source="id-view-4-n25" target="id-view-4-n1" />
+        <connection identifier="id-view-4-c4" relationshipRef="id-rel-4" xsi:type="Relationship" source="id-view-4-n21" target="id-view-4-n1" />
+        <connection identifier="id-view-4-c5" relationshipRef="id-rel-5" xsi:type="Relationship" source="id-view-4-n21" target="id-view-4-n2" />
+        <connection identifier="id-view-4-c6" relationshipRef="id-rel-6" xsi:type="Relationship" source="id-view-4-n21" target="id-view-4-n4" />
+        <connection identifier="id-view-4-c7" relationshipRef="id-rel-7" xsi:type="Relationship" source="id-view-4-n21" target="id-view-4-n11" />
+        <connection identifier="id-view-4-c8" relationshipRef="id-rel-8" xsi:type="Relationship" source="id-view-4-n21" target="id-view-4-n25" />
+        <connection identifier="id-view-4-c9" relationshipRef="id-rel-9" xsi:type="Relationship" source="id-view-4-n21" target="id-view-4-n22" />
+        <connection identifier="id-view-4-c10" relationshipRef="id-rel-10" xsi:type="Relationship" source="id-view-4-n11" target="id-view-4-n4" />
+        <connection identifier="id-view-4-c11" relationshipRef="id-rel-11" xsi:type="Relationship" source="id-view-4-n11" target="id-view-4-n22" />
+        <connection identifier="id-view-4-c12" relationshipRef="id-rel-12" xsi:type="Relationship" source="id-view-4-n22" target="id-view-4-n4" />
+        <connection identifier="id-view-4-c13" relationshipRef="id-rel-13" xsi:type="Relationship" source="id-view-4-n22" target="id-view-4-n14" />
+        <connection identifier="id-view-4-c14" relationshipRef="id-rel-14" xsi:type="Relationship" source="id-view-4-n14" target="id-view-4-n17" />
+        <connection identifier="id-view-4-c15" relationshipRef="id-rel-15" xsi:type="Relationship" source="id-view-4-n25" target="id-view-4-n14" />
+      </view>
+    </diagrams>
+  </views>
+</model>

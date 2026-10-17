@@ -1,0 +1,45 @@
+# Value chain (architecture view, edgy-diagram 2.8.0): process_view: chain draws the L1
+# processes (no contains parent) as a row of pentagons and their L2 processes under each;
+# {band: management | core | support} on the L1 processes gives the classic process landscape.
+# The contains links are shown by the position. Fictional (Acme Transit).
+map_type: process
+process_view: chain
+language: en
+legend: strip
+
+elements:
+  - process: "Steer the network" {id: PRO-01, band: management}
+  - process: "Set strategy and targets" {id: PRO-02}
+  - process: "Manage performance" {id: PRO-03}
+  - process: "Plan services" {id: PRO-10, band: core}
+  - process: "Plan the network" {id: PRO-11}
+  - process: "Publish timetables" {id: PRO-12}
+  - process: "Sell travel" {id: PRO-20, band: core}
+  - process: "Price fare products" {id: PRO-21}
+  - process: "Sell in every channel" {id: PRO-22}
+  - process: "Run services" {id: PRO-30, band: core}
+  - process: "Dispatch fleet and crew" {id: PRO-31}
+  - process: "Inspect tickets" {id: PRO-32}
+  - process: "Inform passengers" {id: PRO-40, band: core}
+  - process: "Publish real-time information" {id: PRO-41}
+  - process: "Handle feedback" {id: PRO-42}
+  - process: "Settle revenue" {id: PRO-50, band: support}
+  - process: "Allocate revenue to operators" {id: PRO-51}
+  - process: "Report to the authority" {id: PRO-52}
+  - process: "Run IT services" {id: PRO-60, band: support}
+  - process: "Operate platforms" {id: PRO-61}
+
+relationships:
+  - "PRO-01" -> "PRO-02": "contains"
+  - "PRO-01" -> "PRO-03": "contains"
+  - "PRO-10" -> "PRO-11": "contains"
+  - "PRO-10" -> "PRO-12": "contains"
+  - "PRO-20" -> "PRO-21": "contains"
+  - "PRO-20" -> "PRO-22": "contains"
+  - "PRO-30" -> "PRO-31": "contains"
+  - "PRO-30" -> "PRO-32": "contains"
+  - "PRO-40" -> "PRO-41": "contains"
+  - "PRO-40" -> "PRO-42": "contains"
+  - "PRO-50" -> "PRO-51": "contains"
+  - "PRO-50" -> "PRO-52": "contains"
+  - "PRO-60" -> "PRO-61": "contains"

@@ -1,0 +1,55 @@
+# Capability view and matrices (architecture views, edgy-diagram 2.8.0). The model page is
+# `draw: false`: it feeds the document graph, nothing is drawn from it directly. Every view is
+# derived from the graph — nothing is typed twice:
+#   * map_type: capability-view + focus: one capability with five bands (actors, processes,
+#     resources, data with CRUD, products); expand: per-capability draws one page each
+#   * an empty band is W127 with an evidence status: {gaps: products=out_of_scope} on the
+#     capability says the gap is known; only not_investigated / unknown raise the warning
+#   * map_type: capability-matrix: capabilities × applications (● requires, ◉ primary area),
+#     matrix: crud — processes × data assets with the CRUD letters
+# Fictional (Acme Transit).
+language: en
+
+pages:
+  - name: "Model"
+    draw: false
+    elements:
+      - capability: "Sales in every channel" {id: CAP-05, gaps: "products=out_of_scope"}
+      - capability: "Validation and inspection" {id: CAP-06, gaps: "products=out_of_scope"}
+      - process: "Sell in every channel" {id: PRO-22}
+      - process: "Inspect tickets" {id: PRO-32}
+      - asset: "Ticket shop" {id: APP-05, kind: application, time: invest}
+      - asset: "Fare engine" {id: APP-07, kind: application, time: invest}
+      - asset: "Inspection app" {id: APP-06, kind: application, time: migrate}
+      - asset: "Fare rules" {id: DAT-01, kind: data}
+      - asset: "Sales ledger" {id: DAT-04, kind: data}
+      - asset: "Trip events" {id: DAT-02, kind: data}
+      - organisation: "Fares team" {id: ORG-02}
+      - organisation: "Inspection unit" {id: ORG-04}
+    relationships:
+      - "PRO-22" -> "CAP-05": "realises"
+      - "PRO-32" -> "CAP-06": "realises"
+      - "CAP-05" -> "APP-05": "requires"
+      - "CAP-05" -> "APP-07": "requires" {primary: true}
+      - "CAP-06" -> "APP-06": "requires"
+      - "CAP-06" -> "APP-07": "requires"
+      - "ORG-02" -> "CAP-05": "has"
+      - "ORG-04" -> "CAP-06": "has"
+      - "ORG-02" -> "PRO-22": "performs"
+      - "ORG-04" -> "PRO-32": "performs"
+      - "PRO-22" -> "DAT-01": "accesses" {crud: R}
+      - "PRO-22" -> "DAT-04": "accesses" {crud: CU}
+      - "PRO-32" -> "DAT-02": "accesses" {crud: C}
+      - "PRO-32" -> "DAT-01": "accesses" {crud: R}
+
+  - name: "Capability"
+    expand: per-capability
+    map_type: capability-view
+    legend: strip
+
+  - name: "Capability × application"
+    map_type: capability-matrix
+
+  - name: "CRUD"
+    map_type: capability-matrix
+    matrix: crud

@@ -1,0 +1,20 @@
+# Generated from edgy-model.json by edgy_model_to_txt.py — do not edit by hand; edit the model.
+# company: Globex Oy · assessed_at: 2026-04-25T10:00:00
+facet: identity
+language: fi
+
+elements:
+  - purpose: "Digimuutoskumppani kasvuyrityksille - Globex auttaa pk-yrityksiä kasvamaan digitaalisen transformaation ja räätälöidyn ohjelmistokehityksen avulla." [growth, transformation, b2b] {id: PUR-01}
+  - story: "Suomalainen tekijä, kansainvälinen kasvu - Globex on perustettu 2015 Helsingissä. Yritys on kasvanut 15 henkilöstä yli 80:aan, laajentuu Ruotsiin 2026. Tarinan ytimessä on käytännönläheinen, asiakaslähtöinen kulttuuri." [founded-2015, growth-story, expansion] {id: STO-01}
+  - content: "Ajatusjohtajuus ja case-sisällöt - Globex julkaisee blogia, case-kertomuksia ja osallistuu alan tapahtumiin. Sisältö on teknologiapainotteista eikä aina vastaa tarkoituksen kasvuyhtiö-narratiivia." [blog, cases, events] {id: CON-01}
+  # intersection elements
+  - brand: "Globex — Käytännönläheinen digimuutoskumppani - Brändi viestii asiantuntemuksesta ja luotettavuudesta. Ei erotu selkeästi toimiala- tai segmenttiosaamisella. Ruotsissa täysin tuntematon." {id: BRA-01}
+  - organisation: "Globex Oy organisaatio - Toiminnallinen rakenne: Kehitys (45), Arkkitehtuuri & Konsultointi (15), Myynti & Markkinointi (10), HR & Hallinto (10). Ruotsin toimisto perustetaan Q2/2026. Ei erillistä tuote-/palveluomistajuutta." {id: ORG-01}
+
+relationships:
+  - "Suomalainen tekijä, kansainvälinen kasvu" -> "Digimuutoskumppani kasvuyrityksille": "kontekstualisoi"
+  - "Ajatusjohtajuus ja case-sisällöt" -> "Digimuutoskumppani kasvuyrityksille": "ilmaisee"
+  - "Globex — Käytännönläheinen digimuutoskumppani" -> "Digimuutoskumppani kasvuyrityksille": "edustaa"
+  - "Globex Oy organisaatio" -> "Digimuutoskumppani kasvuyrityksille": "tavoittelee"
+  - "Globex Oy organisaatio" -> "Suomalainen tekijä, kansainvälinen kasvu": "kirjoittaa"
+  - "Globex Oy organisaatio" -> "Globex — Käytännönläheinen digimuutoskumppani": "rakentaa"

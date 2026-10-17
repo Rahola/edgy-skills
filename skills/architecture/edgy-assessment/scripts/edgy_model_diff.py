@@ -24,6 +24,15 @@ Matching, per element type, in this order:
   5. only in the current state               → remove
 Two elements whose ids are both given and differ are never paired by name
 (steps 2 and 3): they are a `remove` and a `new`.
+With model format 1.9 the transition map draws only what changes (changed
+elements, changed relationships and their endpoints, routed); --full draws
+everything, the change table always lists everything.
+Model format 1.9 adds asset attributes (kind, hosting, owner, time,
+criticality, master — compared like description) and relationships[]
+between element ids: a (source, target, verb) only in the target is `new`,
+only in the current state `remove`, other attributes (crud, primary …) a
+`change`; they are written between the element ids. A 1.8 comparison keeps
+its exact 1.8 output.
 Core links are type-level in the model: a pair present only in the target is
 `new`, only in the current state `remove`, a different verb `change`. Kept,
 changed and new links are drawn between the target's primary elements (the
@@ -47,9 +56,40 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import edgy_model_to_txt as m2t  # noqa: E402
 
-ATTRS = ("description", "nature", "level")
+ATTRS = ("description", "nature", "level",
+         # model format 1.9 (architecture views): absent in a 1.8 model on both sides, so never a difference there
+         "kind", "hosting", "owner", "time", "criticality", "master")
 RENAME_RATIO = 0.8
 
+
+
+def _data_names(result):
+    """id → name of every element in the comparison: a transition page names the data an integration carries,
+    and the data asset itself is usually not on that page."""
+    names = {}
+    for pairs in result["elements"].values():
+        for _change, cur, tgt, _d in pairs:
+            for e in (cur, tgt):
+                if e and e.get("id"):
+                    names[e["id"]] = e["name"]
+    return names
+
+
+def _rel_attrs(attrs, names=None):
+    """`, crud: CU, data: "Fare rules; Trip events"` — the relationship attributes a transition page draws."""
+    names = names or {}
+    out = []
+    for k, v in sorted(attrs.items()):
+        if k not in ("crud", "primary", "data", "technology"):
+            continue
+        if isinstance(v, bool):
+            v = str(v).lower()
+        elif isinstance(v, (list, tuple)):          # data is a list of asset ids in format 1.9
+            v = '"' + "; ".join(m2t._clean(names.get(x, x)) for x in v) + '"'
+            out.append(f", {k}: {v}")
+            continue
+        out.append(f", {k}: {m2t._clean(v)}")
+    return "".join(out)
 
 def _elements(model, t):
     return [e for e in m2t._as_list(model.get("elements", {}).get(t)) if isinstance(e, dict) and e.get("name")]
@@ -144,18 +184,52 @@ def diff_links(current, target, lang):
     return out
 
 
-def facet_types(facet):
+def diff_relationships(current, target):
+    """Model format 1.9 relationships[] between element ids: [(change, (source_id, target_id, verb), attrs, detail)].
+    A relationship is its (source, target, verb); different attributes (crud, primary, data …) are a change."""
+    def index(model):
+        out = {}
+        for r in model.get("relationships") or []:
+            if isinstance(r, dict) and r.get("source_id") and r.get("target_id") and r.get("verb"):
+                out.setdefault((r["source_id"], r["target_id"], _norm(r["verb"])), r.get("attributes") or {})
+        return out
+    cur, tgt = index(current), index(target)
+    out = []
+    for key, attrs in tgt.items():
+        if key not in cur:
+            out.append(("new", key, attrs, ""))
+        elif cur[key] != attrs:
+            was = ", ".join(f"{k}: {v}" for k, v in sorted(cur[key].items())) or "none"
+            out.append(("change", key, attrs, f"attributes were {was}"))
+        else:
+            out.append(("keep", key, attrs, ""))
+    for key, attrs in cur.items():
+        if key not in tgt:
+            out.append(("remove", key, attrs, ""))
+    return out
+
+
+def _has_19(current, target):
+    return any(isinstance(m.get("relationships"), list) or m.get("elements", {}).get("people") for m in (current, target))
+
+
+def facet_types(facet, extra=()):
     if facet == "all":
-        return m2t.IDENTITY + m2t.ARCHITECTURE + m2t.EXPERIENCE + ["organisation", "product", "brand"]
+        return m2t.IDENTITY + m2t.ARCHITECTURE + m2t.EXPERIENCE + ["organisation", "product", "brand"] + list(extra)
     main, inter = m2t.FACETS[facet]
     return main + inter
 
 
 def compare(current, target, facet="all", lang="en"):
-    types = facet_types(facet)
+    v19 = _has_19(current, target)
+    types = facet_types(facet, ["people"] if v19 else [])
     elements = {t: diff_type(current, target, t) for t in types}
     links = [l for l in diff_links(current, target, lang) if l[1][0] in types and l[1][1] in types]
-    return {"facet": facet, "language": lang, "elements": elements, "links": links}
+    result = {"facet": facet, "language": lang, "elements": elements, "links": links}
+    if v19:                                   # a 1.8 comparison keeps its exact 1.8 shape
+        ids = {e.get("id") for pairs in elements.values() for _c, a, b, _d in pairs for e in (a, b) if e and e.get("id")}
+        result["relationships"] = [r for r in diff_relationships(current, target) if r[1][0] in ids and r[1][1] in ids]
+    return result
 
 
 def _line(t, change, e, index, primary=False):
@@ -173,8 +247,54 @@ def _primary_of(model, t):
     return elems[m2t.primary_index(elems)] if elems else None
 
 
-def to_txt(result, current, target, layout="default"):
+def to_txt_changes(result):
+    """Model format 1.9: the transition map draws what changes — changed elements, changed relationships and
+    their endpoints (kept, as context) — routed around the cards. A 1.9 model has dozens of relationships; drawn
+    all at once on the facet layout they bury the few that change (and fail the visual lint). The change table
+    lists everything. None when nothing changes (the full map is written instead)."""
+    rels = [r for r in result["relationships"] if r[0] != "keep"]
+    names = _data_names(result)
+    by_id, changed = {}, set()
+    for t, pairs in result["elements"].items():
+        for n, (change, cur, tgt, _d) in enumerate(pairs):
+            e = tgt if tgt is not None else cur
+            if e.get("id"):
+                by_id[e["id"]] = (t, change, e, n)
+                if change != "keep":
+                    changed.add(e["id"])
+    ends = {x for _c, (a, b, _v), _a, _d in rels for x in (a, b)}
+    drawn = [i for i in by_id if i in changed or i in ends]
+    if not drawn:
+        return None
     lang = result["language"]
+    lines = ["# Generated by edgy_model_diff.py from a current and a target edgy-model.json (model format 1.9).",
+             "# Transition overlay (EDGY extension): the stroke shows the change, the fill stays the facet colour.",
+             "# Only what changes is drawn: changed elements, changed relationships and their endpoints (kept, for",
+             "# context). The change table (--report) lists every element and relationship; --full draws them all.",
+             "# replace / decide are judgements the tool never makes — set them by hand where they apply.",
+             # no facet containers: a handful of cards in one column would leave labels no room between them
+             f"language: {lang if lang in m2t.VERB_KEY else 'en'}", "route: auto", "legend: strip",
+             "# map_type: asset is the plain grid (about √N columns); in one row long names grow too wide",
+             "map_type: asset",
+             "", "elements:"]
+    for i in drawn:
+        t, change, e, n = by_id[i]
+        lines.append(_line(t, change, e, n)[0])
+    lines += ["", "relationships:"]
+    for change, (a, b, verb), attrs, _detail in rels:
+        if a in by_id and b in by_id:
+            extra = _rel_attrs(attrs, names)
+            lines.append(f'  - "{a}" -> "{b}": "{verb}" {{change: {change}{extra}}}')
+    return "\n".join(lines) + "\n"
+
+
+def to_txt(result, current, target, layout="default", full=False):
+    if "relationships" in result and layout != "triad" and not full:
+        changes = to_txt_changes(result)
+        if changes is not None:
+            return changes
+    lang = result["language"]
+    names = _data_names(result)
     lines = ["# Generated by edgy_model_diff.py from a current and a target edgy-model.json.",
              "# Transition overlay (EDGY extension): the stroke shows the change, the fill stays the facet colour.",
              "# replace / decide are judgements the tool never makes — set them by hand where they apply.",
@@ -204,6 +324,9 @@ def to_txt(result, current, target, layout="default"):
         ends = old_primary if change == "remove" else primary
         if s in ends and t in ends and verb:
             lines.append(f'  - "{ends[s]}" -> "{ends[t]}": "{verb}" {{change: {change}}}')
+    for change, (s, t, verb), attrs, _detail in result.get("relationships", []):
+        extra = _rel_attrs(attrs, names)
+        lines.append(f'  - "{s}" -> "{t}": "{verb}" {{change: {change}{extra}}}')
     return "\n".join(lines) + "\n"
 
 
@@ -216,6 +339,10 @@ def to_report(result):
     rows += ["", "| Core link | Verb | Change | Detail |", "|-----------|------|--------|--------|"]
     for change, (s, t), verb, detail in result["links"]:
         rows.append(f"| {s} → {t} | {verb or ''} | {change} | {detail} |")
+    if "relationships" in result:
+        rows += ["", "| Relationship | Verb | Change | Detail |", "|--------------|------|--------|--------|"]
+        for change, (s, t, verb), _attrs, detail in result["relationships"]:
+            rows.append(f"| {s} → {t} | {verb} | {change} | {detail} |")
     counts = {}
     for pairs in result["elements"].values():
         for change, *_ in pairs:
@@ -236,6 +363,8 @@ def main(argv=None):
     ap.add_argument("--report", help="markdown change table")
     ap.add_argument("--layout", choices=["default", "triad"], default="default",
                     help="triad = planned ring with Further panels (as edgy_model_to_txt.py --layout triad)")
+    ap.add_argument("--full", action="store_true",
+                    help="model format 1.9: draw every element and relationship, not only what changes")
     ap.add_argument("--json", action="store_true", help="print the comparison as JSON instead of TXT")
     args = ap.parse_args(argv)
     try:
@@ -251,9 +380,12 @@ def main(argv=None):
                                                        "detail": d} for c, a, b, d in pairs]
                                                   for t, pairs in result["elements"].items()},
                           "links": [{"change": c, "source": s, "target": t, "verb": v, "detail": d}
-                                    for c, (s, t), v, d in result["links"]]}, ensure_ascii=False, indent=2))
+                                    for c, (s, t), v, d in result["links"]],
+                          **({"relationships": [{"change": c, "source_id": s, "target_id": t, "verb": v, "attributes": a,
+                                                 "detail": d} for c, (s, t, v), a, d in result["relationships"]]}
+                             if "relationships" in result else {})}, ensure_ascii=False, indent=2))
         return 0
-    txt = to_txt(result, current, target, args.layout)
+    txt = to_txt(result, current, target, args.layout, args.full)
     if args.out:
         Path(args.out).write_text(txt, encoding="utf-8")
         print(args.out)

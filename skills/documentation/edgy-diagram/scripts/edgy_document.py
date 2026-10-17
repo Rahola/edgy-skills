@@ -93,14 +93,84 @@ def default_page_name(parser: EDGYParser) -> str:
     return 'edgy' if base == 'all' else base
 
 
-def parse_document(text: str) -> List[Tuple[str, EDGYParser]]:
-    """Parse a (possibly multi-page) input into [(page_name, parser)]."""
-    result = []
-    for name, page_text in split_pages(text):
+def parse_document(text: str, with_graph: bool = False):
+    """Parse a (possibly multi-page) input into [(page_name, parser)] — the pages to draw.
+
+    Every page is parsed by its own EDGYParser; then one document graph is built over all
+    of them (edgy_graph: model ids, occurrences, cross-page relationships, E014 / E015).
+    `draw: false` pages are model pages: in the graph, not in the result. A page with
+    `expand: per-capability | per-application | per-process` is a template: it becomes one
+    page per matching model element (with `focus: <id>`), named "<page> · <id> <name>".
+    Derived views (edgy_views) are filled from the graph after it is built. Every drawn
+    parser gets its draw.io page id (`parser.page_id`, the same slug build_mxfile writes),
+    the page half of `edgyOcc`. `with_graph=True` returns (pages, graph)."""
+    import edgy_graph
+    import edgy_views
+    parsed: List[Tuple[str, EDGYParser, str]] = []
+    templates: List[Tuple[int, str, str]] = []
+    for idx, (name, page_text) in enumerate(split_pages(text)):
+        if edgy_graph.expansion_of(page_text):
+            templates.append((idx, name, page_text))
+            parsed.append((name, None, page_text))
+            continue
         parser = EDGYParser()
         parser.parse_input(page_text)
-        result.append((name or default_page_name(parser), parser))
-    return result
+        parsed.append((name or default_page_name(parser), parser, page_text))
+    graph = edgy_graph.build_graph([(n, p) for n, p, _ in parsed if p is not None])
+    result: List[Tuple[str, EDGYParser]] = []
+    for name, parser, page_text in parsed:
+        if parser is not None and parser.notation:
+            attach_notation(parser, page_text, graph)
+        if parser is not None:
+            if edgy_views.is_derived(parser):
+                edgy_views.materialize(parser, graph)
+                graph.add_page(name or default_page_name(parser), parser)
+            if parser.draw:
+                result.append((name, parser))
+            continue
+        mode, where = edgy_graph.expansion_of(page_text)
+        nodes, problems = edgy_graph.expand_targets(graph, mode, where)
+        base = name or 'view'
+        stripped = edgy_graph.EXPAND_RE.sub('', edgy_graph.WHERE_RE.sub('', page_text))
+        for node in nodes:
+            p = EDGYParser()
+            p.graph = graph
+            p.parse_input(f"focus: {node['id']}\n" + stripped)
+            if edgy_views.is_derived(p):
+                edgy_views.materialize(p, graph)
+            page_name = f"{base} · {node['id']} {node['name']}"
+            graph.add_page(page_name, p)
+            result.append((page_name, p))
+        if problems:
+            holder = result[-1][1] if result else (parsed[0][1] or EDGYParser())
+            for msg in problems:
+                holder.warnings.append(msg)
+                holder.errors.append(msg)
+            if not result:
+                result.append((base, holder))
+    for (_, parser), slug in zip(result, unique_slugs([n for n, _ in result])):
+        parser.page_id = slug
+    if not result:
+        raise ValueError("no page to draw — every page has draw: false")
+    return (result, graph) if with_graph else result
+
+
+def load_graph(text: str):
+    """The document graph of an input (extension contract 1, entry point)."""
+    return parse_document(text, with_graph=True)[1]
+
+
+def attach_notation(parser: EDGYParser, page_text: str, graph) -> None:
+    """A `notation: X` page is drawn by the registered handler of X (extension contract 1).
+    Unknown or not installed → E013 on the page (fail closed: never drawn as EDGY)."""
+    import edgy_notation
+    mod = edgy_notation.load_module(parser.notation)
+    if mod is None or not hasattr(mod, 'generate_page'):
+        msg = edgy_notation.unsupported_message(parser.notation)
+        parser.warnings.append(msg)
+        parser.errors.append(msg)
+        return
+    parser.foreign = (mod, page_text, graph)
 
 
 def _strip_declaration(xml: str) -> str:

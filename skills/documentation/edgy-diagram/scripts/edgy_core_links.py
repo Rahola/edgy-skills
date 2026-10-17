@@ -59,6 +59,9 @@ INFLUENCE_VERBS = [
     {'en': 'produces', 'fi': 'tuottaa', 'fr': 'produit', 'de': 'bringt hervor', 'usage': 'process → outcome: a process yields a measurable result'},
     {'en': 'measures', 'fi': 'mittaa', 'fr': 'mesure', 'de': 'misst', 'usage': 'outcome → purpose: an outcome (KPI) measures a purpose'},
     {'en': 'contributes to', 'fi': 'edistää', 'fr': 'contribue à', 'de': 'trägt bei zu', 'usage': 'capability → purpose or outcome: bridge when no core link exists'},
+    {'en': 'stores', 'fi': 'tallentaa', 'fr': 'stocke', 'de': 'speichert', 'usage': 'asset (application) → asset (data): the application is the system of record'},
+    {'en': 'accesses', 'fi': 'käsittelee', 'fr': 'accède à', 'de': 'greift zu auf', 'usage': 'process → asset (data): reads or changes data; {crud: R | CU | CRUD} says how'},
+    {'en': 'interacts with', 'fi': 'asioi', 'fr': 'interagit avec', 'de': 'interagiert mit', 'usage': 'people / organisation → asset (application): an actor works with an application (core uses is task → channel only)'},
 ]
 
 

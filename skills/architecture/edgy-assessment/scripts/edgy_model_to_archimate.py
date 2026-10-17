@@ -31,6 +31,23 @@ counterpart keep their meaning in `edgy:type`:
 Relationships are Associations (allowed between any two ArchiMate elements)
 named with the core-link verb; no Realization / Serving is inferred, because
 EDGY verbs do not map one-to-one onto ArchiMate relationship semantics.
+
+Model format 1.9 (architecture views) adds, and a 1.8 model never triggers:
+
+  asset {kind: application | integration} → ApplicationComponent
+  asset {kind: platform} → Node           asset {kind: data} → DataObject
+  people → BusinessActor (edgy:type people)
+  relationships[] between element ids:
+    stores / accesses → Access, accessType from {crud}: R → Read,
+      C / U / D only → Write, R with C / U / D → ReadWrite, none → Access
+    transfers → Flow (the data it carries in the name)
+    every other verb → a directed Association named with the verb
+  An Access or Flow whose ends ArchiMate does not allow for it (an Access
+  must reach a Data Object from a process, actor or application; a Flow
+  joins behaviour or active structure) falls back to an Association with
+  the same name, so the export always validates.
+  Asset attributes kind, hosting, owner, time, criticality and master become
+  edgy:* properties.
 Standard library only.
 """
 
@@ -44,8 +61,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import edgy_model_to_txt as m2t  # noqa: E402
 
-DIAGRAM_SCRIPTS = HERE.parent.parent.parent / "documentation" / "edgy-diagram" / "scripts"
-sys.path.insert(0, str(DIAGRAM_SCRIPTS))
+import edgy_paths  # noqa: E402 — finds edgy-diagram in a checkout and after an install
+DIAGRAM_SCRIPTS = edgy_paths.add_diagram_scripts_to_path() or edgy_paths.candidates()[-1]
 
 NS = "http://www.opengroup.org/xsd/archimate/3.0/"
 XSI = "http://www.w3.org/2001/XMLSchema-instance"
@@ -72,9 +89,32 @@ ARCHIMATE_ELEMENT_TYPES = {
     "Plateau", "Gap", "Grouping", "Location", "AndJunction", "OrJunction",
 }
 PROPERTIES = ("edgy:type", "edgy:id", "edgy:provenance", "edgy:nature", "edgy:level")
+PROPERTIES_19 = ("edgy:kind", "edgy:hosting", "edgy:owner", "edgy:time", "edgy:criticality", "edgy:master")
+KIND_TYPE = {"application": "ApplicationComponent", "integration": "ApplicationComponent", "platform": "Node",
+             "data": "DataObject"}
+ACCESS_SOURCES = {"BusinessProcess", "BusinessActor", "ApplicationComponent", "Node", "BusinessInterface"}
+FLOW_ENDS = {"BusinessProcess", "BusinessActor", "ApplicationComponent", "Node", "BusinessInterface",
+             "ValueStream", "Capability"}
 FACET_VIEWS = (("identity", "Identity"), ("architecture", "Architecture"), ("experience", "Experience"),
                ("all", "All facets"))
 ALL_TYPES = m2t.IDENTITY + m2t.ARCHITECTURE + m2t.EXPERIENCE + ["organisation", "product", "brand"]
+ARCHIMATE_TYPE_19 = {"people": "BusinessActor"}
+
+
+def element_type(t, e):
+    """ArchiMate xsi:type of one element: the asset kind (1.9) refines Resource."""
+    if t == "asset" and e.get("kind") in KIND_TYPE:
+        return KIND_TYPE[e["kind"]]
+    return ARCHIMATE_TYPE.get(t) or ARCHIMATE_TYPE_19[t]
+
+
+def access_type(crud):
+    letters = set(str(crud or "").upper())
+    if not letters & set("CRUD"):
+        return None
+    if "R" in letters and letters & set("CUD"):
+        return "ReadWrite"
+    return "Read" if "R" in letters else "Write"
 
 
 def _q(tag):
@@ -93,9 +133,9 @@ def _ident(prefix, n):
 
 
 def collect(model):
-    """[(type, index, element)] in the model's order, every type."""
+    """[(type, index, element)] in the model's order, every type (people last: 1.9 only)."""
     out = []
-    for t in ALL_TYPES:
+    for t in ALL_TYPES + ["people"]:
         for i, e in enumerate(m2t._as_list(model.get("elements", {}).get(t))):
             if isinstance(e, dict) and e.get("name"):
                 out.append((t, i, e))
@@ -135,14 +175,15 @@ def export(model, lang=None, views=True):
     for n, (t, i, e) in enumerate(collect(model), 1):
         ident = _ident("el", n)
         ids[(t, i)] = ident
-        el = ET.SubElement(elements_el, _q("element"), {"identifier": ident, f"{{{XSI}}}type": ARCHIMATE_TYPE[t]})
+        el = ET.SubElement(elements_el, _q("element"), {"identifier": ident, f"{{{XSI}}}type": element_type(t, e)})
         _text(el, "name", m2t._clean(e["name"]), lang)
         if e.get("description"):
             _text(el, "documentation", m2t._clean(e["description"]), lang)
         props = ET.SubElement(el, _q("properties"))
         values = {"edgy:type": t, "edgy:id": e.get("id"), "edgy:provenance": e.get("provenance"),
                   "edgy:nature": e.get("nature"), "edgy:level": e.get("level")}
-        for k, key in enumerate(PROPERTIES, 1):
+        values.update({f"edgy:{k}": e.get(k) for k in ("kind", "hosting", "owner", "time", "criticality", "master")})
+        for k, key in enumerate(PROPERTIES + PROPERTIES_19, 1):
             if values[key]:
                 prop = ET.SubElement(props, _q("property"), {"propertyDefinitionRef": f"pd-{k}"})
                 _text(prop, "value", str(values[key]), lang)
@@ -170,8 +211,32 @@ def export(model, lang=None, views=True):
         _text(rel, "name", verb, lang)
         rels.append((ident, src, tgt, (s, t)))
 
+    # model format 1.9: relationships[] between element ids
+    by_id = {e.get("id"): (ids[(t, i)], element_type(t, e)) for t, i, e in collect(model) if e.get("id")}
+    seen_rel = set()
+    for r in model.get("relationships") or []:
+        if not isinstance(r, dict):
+            continue
+        a, b, verb = by_id.get(r.get("source_id")), by_id.get(r.get("target_id")), m2t._clean(r.get("verb"))
+        attrs = r.get("attributes") if isinstance(r.get("attributes"), dict) else {}
+        if not a or not b or not verb or (a[0], b[0], verb) in seen_rel:
+            continue
+        seen_rel.add((a[0], b[0], verb))
+        kind, extra = "Association", {"isDirected": "true"}
+        if verb in ("stores", "accesses") and b[1] == "DataObject" and a[1] in ACCESS_SOURCES:
+            kind, extra = "Access", ({"accessType": access_type(attrs.get("crud"))} if access_type(attrs.get("crud")) else {})
+        elif verb == "transfers" and a[1] in FLOW_ENDS and b[1] in FLOW_ENDS:
+            kind, extra = "Flow", {}
+        ident = _ident("rel", len(rels) + 1)
+        rel = ET.SubElement(rels_el, _q("relationship"), {"identifier": ident, "source": a[0], "target": b[0],
+                                                           f"{{{XSI}}}type": kind, **extra})
+        data = m2t._clean(attrs.get("data")) if kind == "Flow" and attrs.get("data") else ""
+        _text(rel, "name", f"{verb} {data}".strip() if data else verb, lang)
+        rels.append((ident, a[0], b[0], None))
+
     pdefs = ET.SubElement(root, _q("propertyDefinitions"))
-    for k, key in enumerate(PROPERTIES, 1):
+    used_19 = any(e.get(k.split(":")[1]) for _t, _i, e in collect(model) for k in PROPERTIES_19)
+    for k, key in enumerate(PROPERTIES + (PROPERTIES_19 if used_19 else ()), 1):
         pd = ET.SubElement(pdefs, _q("propertyDefinition"), {"identifier": f"pd-{k}", "type": "string"})
         _text(pd, "name", key, lang)
 

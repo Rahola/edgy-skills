@@ -20,6 +20,104 @@ perustelut.
 
 ---
 
+### 2026-10-17 — Claude Code (showcase, F7 plan, principles audit)
+
+**Showcase of v2.4.0** (outputs in the session only, not committed: a
+generated presentation is a deliverable). Pixel review found four defects,
+fixed with tests:
+
+- edges ran through group title text and shared one bend point, so they
+  read as a false link: the router now adds a junction cost and a soft
+  title cost;
+- Finnish view pages had English page names;
+- one label sat on a card under Pillow text metrics: the label fallback
+  now also weighs spots just beside the path;
+- transition labels showed the 1.9 `data` list as `['DAT-02']`.
+
+**F7 realisation trace** (owner request): added to the v2.5.0 scope as
+plan revision 6. Owner decisions: channels are in; processes, assets and
+actors share one level; both directions. It walks EDGY links only, so it
+needs no register entry.
+
+**Principles audit:** every SKILL.md, template and reference was searched
+for classifications from outside EDGY.
+
+- Three were in use without an entry, and were added to the register: the
+  capability nature / level / sourcing classification, the
+  building-block / work-package terms (TOGAF-derived), and the strategy
+  vocabulary.
+- The edgy-framework identify table used other `nature` / `level` values
+  than the model schema; it was fixed to the schema.
+- The skills' own analysis constructs are now listed.
+- README gained a Principles section that points to the register instead
+  of repeating it.
+
+---
+
+### 2026-10-16 — Claude Code (Sprints 21a–24: architecture views, v2.4.0)
+
+**Assignment:** `docs/development-plan-2026-10-architecture-views.md`
+revision 5 (locked after the Vibe / Codex reviews on draft PR #7), all
+v2.4.0 sprints on the same branch; Vibe and Codex test the draft PR code
+before review.
+
+**Done:**
+- *Sprint 21a* — document graph over all pages (`edgy_graph.py`), identity
+  markers on every cell, E014 / E015, `draw: false`, `expand:`, quote-aware
+  options and relationship attributes, two-line edge labels, influence verbs
+  `stores` / `accesses {crud}` / `interacts with`, install-aware script
+  location (`edgy_paths.py`), golden test for the shipped examples.
+- *Sprint 21b* — model format 1.9 with a migration contract (1.8 fixtures,
+  byte-identical TXT / diff / ArchiMate), validator `oneOf` / `anyOf` /
+  `null`, extension contract 1 (markers, graph JSON schema, SVG groups,
+  notation handlers that fail closed: E012 / E013).
+- *Sprint 22* — renderer contract groups and attribute hardening;
+  presenter-lite (`edgy_present.py`): five effects, CSP with hashes, no
+  network, headless-Chrome self-test in CI.
+- *Sprint 23* — application map (domains × layers, `group_by: capability`
+  with a Shared strip, TIME and second badge, integrations, W124 / W125,
+  S013), orthogonal router, value chain and swimlane (W126), derived views.
+- *Sprint 24* — capability view (five bands, `hops: 2`, W127 with evidence
+  statuses, `qa.json` `model_gaps[]` / `generator_notes[]`), matrices,
+  model diff and ArchiMate mapping for 1.9, capability `gaps` in the model,
+  eval model and `check.sh` step `edgy-architecture-views`, docs, v2.4.0.
+
+**Why these choices:**
+- Applications and data stay EDGY Assets of a `kind`: the views are
+  layouts, not a second notation, so every EDGY rule still applies.
+- Derived views write ordinary TXT lines into the page's parser: the
+  vocabulary, pair validation, sizing and legend apply unchanged, and a
+  derived page lints like a typed one.
+- Byte-identical 1.8 output is a test, not a promise: old writers stay old,
+  1.9 structures require `schema_version: "1.9"`.
+- The eval model was written before the last fixes on purpose — it found
+  the capability cards on a domain application map, labels off the page and
+  the single all-process swimlane; each became a fix and stays in the gate.
+- Model gaps are never findings unless `confirmed_absent`: an outside-in
+  assessment cannot see most processes, and an empty band is evidence of
+  the analysis, not of the company.
+
+- **A mistake, corrected:** in 21a I took ten examples on main for stale
+  and regenerated them. They were not: this container's Python had Pillow,
+  so text was measured with real fonts, while the examples (and CI) use the
+  glyph tables. CI on the draft PR failed on it. The gates and the
+  regeneration script now force the tables (`EDGY_TEXT_TABLE_ONLY=1`); all 35
+  pre-existing examples equal main except for the `edgy*` markers. The
+  same CI run showed the eval model's application map with a label off the
+  page under the tables — the label search now also tries offsets across
+  the segment at every sampled position.
+
+- **External standards (owner's request):** EDGY stays at the centre; every
+  external standard or classification the skills use is registered with its
+  rationale (`edgy-diagram/references/external-standards.md`) — TIME and C4
+  first, then CRUD, process bands, swimlanes, badges, ArchiMate export, ADRs.
+  The register ships with the skill, so an agent can cite it; CONTRIBUTING
+  makes an entry a merge condition.
+
+**Deviations from the plan:** §12 of the plan.
+
+---
+
 ### 2026-10-10 — Claude Code (Sprints 17–20: coverage plan, v2.3.0)
 
 **Assignment:** `docs/development-plan-2026-10-coverage.md` (a coverage review

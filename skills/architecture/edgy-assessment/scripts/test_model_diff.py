@@ -47,7 +47,8 @@ def test_renamed_by_id_and_by_similarity():
     cur, tgt = _models()
     tgt = copy.deepcopy(tgt)
     tgt["elements"]["capability"][0]["name"] = "Ticketing and validation"        # same id CAP-05
-    tgt["elements"]["organisation"]["name"] = "Platform teams"                    # no id, similar name
+    md_orgs = md.m2t._as_list(tgt["elements"]["organisation"])                   # object (1.8) or array (1.9)
+    md_orgs[0]["name"] = "Platform teams"                                         # no id, similar name
     result = md.compare(cur, tgt, "architecture")
     details = {(t, (b or a)["name"]): (c, d) for t, pairs in result["elements"].items() for c, a, b, d in pairs}
     assert details[("capability", "Ticketing and validation")][0] == "change"
@@ -150,6 +151,74 @@ def test_removed_link_keeps_its_current_endpoints():
     assert '"Old primary" -> "Platform": "requires" {change: remove}' in txt, txt
     assert '"Other" -> "Platform"' not in txt
     assert '"Fare change" -> "Other": "realises" {change: keep}' in txt, "kept links use the target's primary"
+
+
+def test_model_19_attributes_and_relationships():
+    """1.9: asset attributes and relationships[] between ids are compared; a 1.8 pair keeps its 1.8 shape."""
+    cur = json.loads((HERE.parent / "examples" / "architecture-model.json").read_text(encoding="utf-8"))
+    tgt = copy.deepcopy(cur)
+    app = next(a for a in tgt["elements"]["asset"] if a.get("id") == "APP-06")
+    app["time"] = "eliminate"
+    tgt["relationships"] = [r for r in tgt["relationships"] if (r["source_id"], r["target_id"]) != ("CAP-06", "APP-06")]
+    acc = next(r for r in tgt["relationships"] if r["verb"] == "accesses")
+    acc["attributes"] = {"crud": "R"}
+    tgt["relationships"].append({"source_id": "CAP-06", "target_id": "APP-05", "verb": "requires"})
+    result = md.compare(cur, tgt)
+    assert _changes(result)[("asset", "Inspection app")] == "change"
+    rels = {(s, t, v): c for c, (s, t, v), _a, _d in result["relationships"]}
+    assert rels[("CAP-06", "APP-05", "requires")] == "new"
+    assert rels[("CAP-06", "APP-06", "requires")] == "remove"
+    assert rels[(acc["source_id"], acc["target_id"], "accesses")] == "change"
+    txt = md.to_txt(result, cur, tgt)
+    assert '"CAP-06" -> "APP-05": "requires" {change: new}' in txt
+    assert "{change: change, crud: R}" in txt
+    assert "| CAP-06 → APP-06 | requires | remove |" in md.to_report(result)
+    old_cur, old_tgt = _models()
+    assert "relationships" not in md.compare(old_cur, old_tgt)
+
+
+def test_model_19_transition_draws_what_changes_and_lints_clean():
+    cur = json.loads((HERE.parent / "examples" / "architecture-model.json").read_text(encoding="utf-8"))
+    # the name length changes card widths, ports and label room: a fixed name once hid a W112 (Codex retest)
+    for name in ("Pricing engine", "Renamed fare application", "X",
+                 "A very much longer renamed fare application name"):
+        tgt = copy.deepcopy(cur)
+        app = next(a for a in tgt["elements"]["asset"] if a.get("id") == "APP-07")
+        app["name"], app["time"] = name, "eliminate"
+        tgt["relationships"] = [r for r in tgt["relationships"]
+                                if (r["source_id"], r["target_id"]) != ("CAP-04", "APP-07")]
+        tgt["relationships"].append({"source_id": "CAP-04", "target_id": "APP-06", "verb": "requires"})
+        for r in tgt["relationships"]:
+            if (r["source_id"], r["target_id"]) == ("PRO-21", "DAT-01"):
+                r["attributes"] = {"crud": "R"}
+        result = md.compare(cur, tgt)
+        txt = md.to_txt(result, cur, tgt)
+        assert "route: auto" in txt and "change: keep}" in txt
+        assert txt.count(" -> ") == 3 and txt.count("  - capability:") == 1, txt
+        assert md.to_txt(result, cur, tgt, full=True).count(" -> ") > 40
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "t.txt"
+            src.write_text(txt, encoding="utf-8")
+            out = Path(tmp) / "t.drawio"
+            env = {**os.environ, "EDGY_TEXT_TABLE_ONLY": "1"}
+            subprocess.run([sys.executable, str(DIAGRAM / "scripts" / "edgy_generator.py"), str(src), "--output",
+                            str(out)], check=True, capture_output=True, env=env)
+            lint = subprocess.run([sys.executable, str(DIAGRAM / "scripts" / "edgy_lint.py"), "--warnings-as-errors",
+                                   str(out)], capture_output=True, text=True, env=env)
+            assert lint.returncode == 0, (name, lint.stdout)
+
+
+def test_model_19_transition_names_the_data_an_integration_carries():
+    """data is a list of asset ids in 1.9: the transition page names them, never a Python list repr."""
+    cur = json.loads((HERE.parent / "examples" / "architecture-model.json").read_text(encoding="utf-8"))
+    tgt = copy.deepcopy(cur)
+    tgt["elements"]["asset"] = [a for a in tgt["elements"]["asset"] if a.get("id") != "APP-20"]
+    tgt["elements"]["asset"].append({"name": "Revenue hub", "id": "APP-21", "kind": "application"})
+    for r in tgt["relationships"]:
+        r["source_id"], r["target_id"] = (x.replace("APP-20", "APP-21") for x in (r["source_id"], r["target_id"]))
+    txt = md.to_txt(md.compare(cur, tgt), cur, tgt)
+    assert "['" not in txt, txt
+    assert 'data: "Trip events"' in txt and 'data: "Sales ledger"' in txt, txt
 
 
 def main():

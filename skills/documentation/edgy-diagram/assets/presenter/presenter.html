@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="{{csp}}">
+<meta name="referrer" content="no-referrer">
+<meta name="generator" content="edgy-diagram edgy_present.py (extension contract 1)">
+<title>{{title}}</title>
+<style>{{css}}</style>
+</head>
+<body>
+<header class="bar">
+  <div class="brand"><span class="logo" aria-hidden="true"><i></i><i></i><i></i></span><h1>{{title}}</h1><span class="crumb" id="crumb"></span></div>
+  <div class="actions">
+    <button class="btn" id="btn-search" type="button" aria-label="Search elements">Search <kbd>⌘K</kbd></button>
+    <button class="btn" id="btn-state" type="button" aria-pressed="false" title="Filter the change annotations of a page (T)"><span>Changes: all</span><kbd>T</kbd></button>
+    <button class="btn" id="btn-theme" type="button" aria-label="Light or dark theme">◐</button>
+    <button class="btn" id="btn-full" type="button" aria-label="Full screen (F)">⛶</button>
+  </div>
+</header>
+<main>
+  <section class="wall" id="wall" aria-label="All views"></section>
+  <section class="stage" id="stage" hidden>
+    <div class="paper" id="paper"><div id="canvas"></div><span class="hint">wheel to zoom · drag to pan · double-click to reset · ← → views · Esc all views</span></div>
+    <aside class="inspector" id="inspector" aria-live="polite"></aside>
+  </section>
+  <nav class="strip" id="strip" aria-label="Views" hidden></nav>
+</main>
+<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Search" hidden>
+  <div class="box"><input type="search" placeholder="Search elements by name, id or type…" aria-label="Search"><ul role="listbox"></ul></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<div class="print" id="print"></div>
+{{templates}}
+<script type="application/json" id="edgy-graph">{{graph}}</script>
+<script type="application/json" id="edgy-views">{{views}}</script>
+<script>{{js}}</script>
+</body>
+</html>

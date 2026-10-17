@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxfile host="edgy-skills" agent="edgy_generator.py" compressed="false">
+  <diagram id="application" name="application">
+    <mxGraphModel dx="1540" dy="1086" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="1110" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="2" value="Channel" style="whiteSpace=wrap;html=1;fillColor=#f4f4f4;strokeColor=none;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontColor=#555555;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="100" width="1120" height="276" as="geometry"/>
+        </mxCell>
+        <mxCell id="3" value="Core" style="whiteSpace=wrap;html=1;fillColor=#f4f4f4;strokeColor=none;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontColor=#555555;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="410" width="1120" height="276" as="geometry"/>
+        </mxCell>
+        <mxCell id="4" value="Shared" style="whiteSpace=wrap;html=1;fillColor=#f4f4f4;strokeColor=none;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontColor=#555555;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="710" width="1120" height="276" as="geometry"/>
+        </mxCell>
+        <mxCell id="5" value="Customer" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#333333;edgyRole=header;" vertex="1" parent="1">
+          <mxGeometry x="80" y="70" width="200" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="6" value="Fares and ticketing" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#333333;edgyRole=header;" vertex="1" parent="1">
+          <mxGeometry x="300" y="70" width="200" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="7" value="Operations" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#333333;edgyRole=header;" vertex="1" parent="1">
+          <mxGeometry x="520" y="70" width="200" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="8" value="Data" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#333333;edgyRole=header;" vertex="1" parent="1">
+          <mxGeometry x="740" y="70" width="200" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="9" value="External systems" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#333333;edgyRole=header;" vertex="1" parent="1">
+          <mxGeometry x="960" y="70" width="200" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="10" value="&lt;b&gt;Trip planner app&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[APP-01]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=APP-01;edgyType=asset;edgyKind=application;edgyFacet=architecture;edgyOcc=application/10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="136" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="11" value="Invest" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#228833;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="10">
+          <mxGeometry x="59" y="82" width="40" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="12" value="saas" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#7570b3;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="10">
+          <mxGeometry x="105" y="82" width="36" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="13" value="&lt;b&gt;Customer portal&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[APP-02]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=APP-02;edgyType=asset;edgyKind=application;edgyFacet=architecture;edgyOcc=application/13;" vertex="1" parent="1">
+          <mxGeometry x="80" y="256" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="14" value="Tolerate" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#ccbb44;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="13">
+          <mxGeometry x="53" y="82" width="49" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="15" value="cloud" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#1b9e77;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="13">
+          <mxGeometry x="108" y="82" width="38" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="16" value="&lt;b&gt;CRM&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[APP-03]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=APP-03;edgyType=asset;edgyKind=application;edgyFacet=architecture;edgyOcc=application/16;" vertex="1" parent="1">
+          <mxGeometry x="80" y="446" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="17" value="Migrate" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4477aa;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#ffffff;edgyRole=badge;" vertex="1" parent="16">
+          <mxGeometry x="56" y="82" width="46" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="18" value="saas" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#7570b3;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="16">
+          <mxGeometry x="108" y="82" width="36" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="19" value="&lt;b&gt;Identity provider&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[APP-04] · owner: Platform team&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=APP-04;edgyType=asset;edgyKind=platform;edgyFacet=architecture;edgyOcc=application/19;" vertex="1" parent="1">
+          <mxGeometry x="80" y="746" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="20" value="Invest" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#228833;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="19">
+          <mxGeometry x="58" y="82" width="40" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="21" value="cloud" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#1b9e77;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="19">
+          <mxGeometry x="104" y="82" width="38" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="22" value="&lt;b&gt;Ticket shop&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[APP-05]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=APP-05;edgyType=asset;edgyKind=application;edgyFacet=architecture;edgyOcc=application/22;" vertex="1" parent="1">
+          <mxGeometry x="300" y="136" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="23" value="Invest" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#228833;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="22">
+          <mxGeometry x="58" y="82" width="40" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="24" value="cloud" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#1b9e77;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="22">
+          <mxGeometry x="104" y="82" width="38" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="25" value="&lt;b&gt;Validators&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[APP-06]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=APP-06;edgyType=asset;edgyKind=application;edgyFacet=architecture;edgyOcc=application/25;" vertex="1" parent="1">
+          <mxGeometry x="300" y="256" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="26" value="Migrate" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4477aa;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#ffffff;edgyRole=badge;" vertex="1" parent="25">
+          <mxGeometry x="49" y="82" width="46" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="27" value="on-prem" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#ffffff;edgyRole=badge;" vertex="1" parent="25">
+          <mxGeometry x="101" y="82" width="50" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="28" value="&lt;b&gt;Fare engine&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[APP-07]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=APP-07;edgyType=asset;edgyKind=application;edgyFacet=architecture;edgyOcc=application/28;" vertex="1" parent="1">
+          <mxGeometry x="300" y="446" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="29" value="Invest" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#228833;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="28">
+          <mxGeometry x="58" y="82" width="40" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="30" value="cloud" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#1b9e77;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="28">
+          <mxGeometry x="104" y="82" width="38" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="31" value="&lt;b&gt;Legacy ticketing&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[APP-08]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=APP-08;edgyType=asset;edgyKind=application;edgyFacet=architecture;edgyOcc=application/31;" vertex="1" parent="1">
+          <mxGeometry x="300" y="566" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="32" value="Eliminate" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#ee6677;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="31">
+          <mxGeometry x="45" y="82" width="54" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="33" value="on-prem" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#ffffff;edgyRole=badge;" vertex="1" parent="31">
+          <mxGeometry x="105" y="82" width="50" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="34" value="&lt;b&gt;Payment gateway&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[APP-09]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=APP-09;edgyType=asset;edgyKind=platform;edgyFacet=architecture;edgyOcc=application/34;" vertex="1" parent="1">
+          <mxGeometry x="300" y="746" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="35" value="Tolerate" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#ccbb44;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="34">
+          <mxGeometry x="54" y="82" width="49" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="36" value="saas" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#7570b3;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="34">
+          <mxGeometry x="109" y="82" width="36" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="37" value="&lt;b&gt;Driver tablet&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[APP-10]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=APP-10;edgyType=asset;edgyKind=application;edgyFacet=architecture;edgyOcc=application/37;" vertex="1" parent="1">
+          <mxGeometry x="520" y="136" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="38" value="Tolerate" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#ccbb44;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="37">
+          <mxGeometry x="47" y="82" width="49" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="39" value="on-prem" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#ffffff;edgyRole=badge;" vertex="1" parent="37">
+          <mxGeometry x="102" y="82" width="50" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="40" value="&lt;b&gt;Timetable planning&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[APP-11]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=APP-11;edgyType=asset;edgyKind=application;edgyFacet=architecture;edgyOcc=application/40;" vertex="1" parent="1">
+          <mxGeometry x="520" y="446" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="41" value="Invest" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#228833;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="40">
+          <mxGeometry x="58" y="82" width="40" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="42" value="cloud" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#1b9e77;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="40">
+          <mxGeometry x="104" y="82" width="38" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="43" value="&lt;b&gt;Fleet dispatch&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[APP-12]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=APP-12;edgyType=asset;edgyKind=application;edgyFacet=architecture;edgyOcc=application/43;" vertex="1" parent="1">
+          <mxGeometry x="520" y="566" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="44" value="Migrate" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4477aa;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#ffffff;edgyRole=badge;" vertex="1" parent="43">
+          <mxGeometry x="49" y="82" width="46" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="45" value="on-prem" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#ffffff;edgyRole=badge;" vertex="1" parent="43">
+          <mxGeometry x="101" y="82" width="50" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="46" value="&lt;b&gt;Vehicle telematics&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[APP-13]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=APP-13;edgyType=asset;edgyKind=platform;edgyFacet=architecture;edgyOcc=application/46;" vertex="1" parent="1">
+          <mxGeometry x="520" y="746" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="47" value="Tolerate" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#ccbb44;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="46">
+          <mxGeometry x="47" y="82" width="49" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="48" value="on-prem" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#ffffff;edgyRole=badge;" vertex="1" parent="46">
+          <mxGeometry x="102" y="82" width="50" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="49" value="&lt;b&gt;Open data portal&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[APP-14]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=APP-14;edgyType=asset;edgyKind=application;edgyFacet=architecture;edgyOcc=application/49;" vertex="1" parent="1">
+          <mxGeometry x="740" y="136" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="50" value="Invest" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#228833;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="49">
+          <mxGeometry x="58" y="82" width="40" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="51" value="cloud" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#1b9e77;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="49">
+          <mxGeometry x="104" y="82" width="38" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="52" value="&lt;b&gt;Ridership analytics&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[APP-15]&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=APP-15;edgyType=asset;edgyKind=application;edgyFacet=architecture;edgyOcc=application/52;" vertex="1" parent="1">
+          <mxGeometry x="740" y="446" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="53" value="Invest" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#228833;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="52">
+          <mxGeometry x="58" y="82" width="40" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="54" value="cloud" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#1b9e77;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="52">
+          <mxGeometry x="104" y="82" width="38" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="55" value="&lt;b&gt;Integration platform&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[APP-16] · owner: Platform team&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=APP-16;edgyType=asset;edgyKind=integration;edgyFacet=architecture;edgyOcc=application/55;" vertex="1" parent="1">
+          <mxGeometry x="740" y="746" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="56" value="Invest" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#228833;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="55">
+          <mxGeometry x="58" y="82" width="40" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="57" value="cloud" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#1b9e77;strokeColor=#ffffff;strokeWidth=1;fontSize=9;fontStyle=1;fontColor=#1a1a1a;edgyRole=badge;" vertex="1" parent="55">
+          <mxGeometry x="104" y="82" width="38" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="58" value="&lt;b&gt;National timetable registry&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[EXT-01]&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;font-weight:normal&quot;&gt;external&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=EXT-01;edgyType=asset;edgyKind=application;edgyFacet=architecture;edgyOcc=application/58;" vertex="1" parent="1">
+          <mxGeometry x="960" y="746" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="59" value="&lt;b&gt;Bank&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;color:#444444;font-weight:normal&quot;&gt;[EXT-02]&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;font-weight:normal&quot;&gt;external&lt;/font&gt;" style="whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#FFFFFF;strokeWidth=2;verticalAlign=middle;fontStyle=1;fontSize=14;edgyId=EXT-02;edgyType=asset;edgyKind=application;edgyFacet=architecture;edgyOcc=application/59;" vertex="1" parent="1">
+          <mxGeometry x="960" y="866" width="200" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="60" value="transfers&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;Fare rules · REST&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=open;endFill=0;strokeWidth=2;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="28" target="22" parent="1">
+          <mxGeometry relative="1" as="geometry" x="-0.376">
+            <Array as="points">
+              <mxPoint x="290" y="496"/>
+              <mxPoint x="290" y="186"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="61" value="transfers&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;Trip events · Kafka&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=open;endFill=0;strokeWidth=2;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="25" target="52" parent="1">
+          <mxGeometry relative="1" as="geometry" x="-0.465">
+            <Array as="points">
+              <mxPoint x="510" y="306"/>
+              <mxPoint x="730" y="306"/>
+              <mxPoint x="730" y="496"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="62" value="transfers&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;Timetable · NeTEx&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=open;endFill=0;strokeWidth=2;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="40" target="58" parent="1">
+          <mxGeometry relative="1" as="geometry" x="-0.275">
+            <Array as="points">
+              <mxPoint x="730" y="496"/>
+              <mxPoint x="730" y="736"/>
+              <mxPoint x="1060" y="736"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="63" value="transfers&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;Settlement batch · ISO 20022&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=open;endFill=0;strokeWidth=2;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="34" target="59" parent="1">
+          <mxGeometry relative="1" as="geometry" x="0.111">
+            <Array as="points">
+              <mxPoint x="400" y="856"/>
+              <mxPoint x="400" y="916"/>
+              <mxPoint x="950" y="916"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="64" value="transfers&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;Timetable · GTFS&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;fontSize=11;html=1;jumpStyle=arc;jumpSize=8;orthogonalLoop=1;labelBackgroundColor=#ffffff;labelBorderColor=none;endArrow=open;endFill=0;strokeWidth=2;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="40" target="10" parent="1">
+          <mxGeometry relative="1" as="geometry" x="-0.664">
+            <Array as="points">
+              <mxPoint x="510" y="496"/>
+              <mxPoint x="510" y="126"/>
+              <mxPoint x="180" y="126"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="65" value="" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#fafafa;strokeColor=#e5e5e5;strokeWidth=1;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="20" y="1018" width="1260" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="66" value="&lt;b&gt;EDGY 23 — Legend&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=10;fontStyle=1;edgyLang=en;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="30" y="1022" width="120" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="67" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80ffb7;strokeColor=#ffffff;strokeWidth=1;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="160" y="1028" width="14" height="12" as="geometry"/>
+        </mxCell>
+        <mxCell id="68" value="Identity" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="178" y="1022" width="35" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="69" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a6c0ff;strokeColor=#ffffff;strokeWidth=1;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="227" y="1028" width="14" height="12" as="geometry"/>
+        </mxCell>
+        <mxCell id="70" value="Architecture" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="245" y="1022" width="54" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="71" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff99bd;strokeColor=#ffffff;strokeWidth=1;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="313" y="1028" width="14" height="12" as="geometry"/>
+        </mxCell>
+        <mxCell id="72" value="Experience" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="331" y="1022" width="51" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="73" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffd580;strokeColor=#ffffff;strokeWidth=1;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="396" y="1028" width="14" height="12" as="geometry"/>
+        </mxCell>
+        <mxCell id="74" value="Brand" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="414" y="1022" width="30" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="75" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e599ff;strokeColor=#ffffff;strokeWidth=1;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="458" y="1028" width="14" height="12" as="geometry"/>
+        </mxCell>
+        <mxCell id="76" value="Product" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="476" y="1022" width="37" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="77" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#80eaff;strokeColor=#ffffff;strokeWidth=1;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="527" y="1028" width="14" height="12" as="geometry"/>
+        </mxCell>
+        <mxCell id="78" value="Organisation" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="545" y="1022" width="57" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="79" value="" style="edgeStyle=none;endArrow=classic;endFill=1;strokeWidth=1;strokeColor=#333333;edgyRole=legend;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="616" y="1034" as="sourcePoint"/>
+            <mxPoint x="644" y="1034" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="80" value="Link" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="648" y="1022" width="22" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="81" value="" style="edgeStyle=none;endArrow=open;endFill=0;strokeWidth=1;strokeColor=#333333;edgyRole=legend;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="684" y="1034" as="sourcePoint"/>
+            <mxPoint x="712" y="1034" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="82" value="Flow" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="716" y="1022" width="24" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="83" value="" style="edgeStyle=none;endArrow=none;strokeWidth=1;strokeColor=#333333;edgyRole=legend;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="754" y="1034" as="sourcePoint"/>
+            <mxPoint x="782" y="1034" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="84" value="Tree" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="786" y="1022" width="24" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="85" value="" style="edgeStyle=none;endArrow=open;endFill=0;dashed=1;strokeWidth=1;strokeColor=#333333;edgyRole=legend;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="824" y="1034" as="sourcePoint"/>
+            <mxPoint x="852" y="1034" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="86" value="Influence" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="856" y="1022" width="42" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="87" value="&lt;b&gt;Lifecycle (Gartner TIME, extension)&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;fontStyle=1;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="30" y="1046" width="120" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="88" value="" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#ccbb44;strokeColor=#ffffff;edgyRole=badge-key;" vertex="1" parent="1">
+          <mxGeometry x="160" y="1052" width="22" height="11" as="geometry"/>
+        </mxCell>
+        <mxCell id="89" value="Tolerate" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="186" y="1046" width="39" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="90" value="" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#228833;strokeColor=#ffffff;edgyRole=badge-key;" vertex="1" parent="1">
+          <mxGeometry x="239" y="1052" width="22" height="11" as="geometry"/>
+        </mxCell>
+        <mxCell id="91" value="Invest" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="265" y="1046" width="30" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="92" value="" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4477aa;strokeColor=#ffffff;edgyRole=badge-key;" vertex="1" parent="1">
+          <mxGeometry x="309" y="1052" width="22" height="11" as="geometry"/>
+        </mxCell>
+        <mxCell id="93" value="Migrate" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="335" y="1046" width="36" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="94" value="" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#ee6677;strokeColor=#ffffff;edgyRole=badge-key;" vertex="1" parent="1">
+          <mxGeometry x="385" y="1052" width="22" height="11" as="geometry"/>
+        </mxCell>
+        <mxCell id="95" value="Eliminate" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="411" y="1046" width="43" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="96" value="&lt;b&gt;Hosting (extension)&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;fontStyle=1;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="30" y="1070" width="120" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="97" value="" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#7570b3;strokeColor=#ffffff;edgyRole=badge-key;" vertex="1" parent="1">
+          <mxGeometry x="160" y="1076" width="22" height="11" as="geometry"/>
+        </mxCell>
+        <mxCell id="98" value="saas" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="186" y="1070" width="25" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="99" value="" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#1b9e77;strokeColor=#ffffff;edgyRole=badge-key;" vertex="1" parent="1">
+          <mxGeometry x="225" y="1076" width="22" height="11" as="geometry"/>
+        </mxCell>
+        <mxCell id="100" value="cloud" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="251" y="1070" width="27" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="101" value="" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=#ffffff;edgyRole=badge-key;" vertex="1" parent="1">
+          <mxGeometry x="292" y="1076" width="22" height="11" as="geometry"/>
+        </mxCell>
+        <mxCell id="102" value="on-prem" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=9;edgyRole=legend;" vertex="1" parent="1">
+          <mxGeometry x="318" y="1070" width="39" height="24" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

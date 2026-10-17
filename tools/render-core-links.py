@@ -207,11 +207,35 @@ def render_skill(text, data):
     return MARKER_RE.sub(repl, text)
 
 
+def spelling_collisions(data):
+    """An influence verb spelled like a core link in any language would be read as that core link
+    (pair validation, E010) — e.g. fi 'käyttää' is core `uses`. Returns one message per collision."""
+    core = {}
+    for link in data["core_links"]:
+        for lang in ("en", "fi", "fr", "de"):
+            if link.get(lang):
+                core.setdefault(link[lang].lower().strip(), f"core link {link['source']} → {link['target']} ({link['en']})")
+            for alias in (link.get("aliases") or {}).get(lang, []):
+                core.setdefault(alias.lower().strip(), f"core link {link['source']} → {link['target']} ({link['en']}, alias)")
+    out = []
+    for verb in data["influence_verbs"]:
+        for lang in ("en", "fi", "fr", "de"):
+            spelling = (verb.get(lang) or "").lower().strip()
+            if spelling in core:
+                out.append(f"influence verb '{verb['en']}' ({lang} '{verb[lang]}') is spelled like the {core[spelling]}")
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--check", action="store_true", help="do not write; exit 1 if any target is stale")
     args = ap.parse_args()
     data = load()
+    collisions = spelling_collisions(data)
+    if collisions:
+        for c in collisions:
+            print(f"error: {c}", file=sys.stderr)
+        return 1
     stale = []
     targets = [(MODULE, render_module(data))]
     marker_errors = []

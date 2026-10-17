@@ -12,6 +12,8 @@
     "outputs": {"type": "array", "items": {"type": "string"}, "description": "Every delivery file that exists: the requested file, or one rendered file per page"},
     "preset": {},
     "generator_warnings": {"type": "array", "items": {"type": "string"}},
+    "generator_notes": {"type": "array", "items": {"type": "string"}, "description": "Information the generator reported without a warning (Note:), 2.8.0"},
+    "model_gaps": {"type": "array", "description": "W127, capability view (2.8.0): an empty band and its evidence status — only confirmed_absent is a finding; not_investigated and unknown are open questions", "items": {"type": "object", "required": ["rule", "band", "status"], "properties": {"rule": {"type": "string"}, "page": {"type": "string"}, "element_id": {"type": ["string", "null"]}, "band": {"type": "string", "enum": ["actors", "processes", "resources", "data", "products"]}, "status": {"type": "string", "enum": ["not_investigated", "out_of_scope", "unknown", "confirmed_absent"]}}}},
     "pages": {
       "type": "array", "minItems": 1,
       "items": {

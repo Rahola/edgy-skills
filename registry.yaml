@@ -1,10 +1,10 @@
 version: "2026-10"
-updated: "2026-10-10"
+updated: "2026-10-16"
 
 skills:
   - id: edgy-assessment
     path: skills/architecture/edgy-assessment
-    version: 1.9.0
+    version: 1.10.0
     category: architecture
     tags: [edgy, enterprise-design, architecture, analysis, assessment, diagram, fi, en, fr, de]
     agents: [claude-code, cursor, vibe, generic]
@@ -13,7 +13,7 @@ skills:
 
   - id: edgy-deep-dive
     path: skills/architecture/edgy-deep-dive
-    version: 1.1.0
+    version: 1.1.1
     category: architecture
     tags: [edgy, enterprise-design, architecture, analysis, deep-dive, intersection, fi, en]
     agents: [claude-code, cursor, generic]
@@ -22,16 +22,16 @@ skills:
 
   - id: edgy-framework
     path: skills/architecture/edgy-framework
-    version: 1.6.0
+    version: 1.7.0
     category: architecture
     tags: [edgy, enterprise-design, architecture, analysis, reframing, fi, en, fr, de]
     agents: [claude-code, cursor, generic]
     description: >
-      EDGY 23 enterprise design analysis: challenge reframing, facet intersection analysis, element identification from natural language, and modelling guidance for strategy documents (strategy → Purpose/Outcome mapping), capability formulation and the organisation role model.
+      EDGY 23 enterprise design analysis: challenge reframing, facet intersection analysis, element identification from natural language, and modelling guidance for strategy documents (strategy → Purpose/Outcome mapping), capability formulation, the organisation role model, and applications, data and actors as EDGY elements.
 
   - id: edgy-target-state
     path: skills/architecture/edgy-target-state
-    version: 1.1.0
+    version: 1.2.0
     category: architecture
     tags: [edgy, enterprise-design, architecture, target-state, capability-map, roadmap, fi, en]
     agents: [claude-code, cursor, generic]
@@ -40,10 +40,10 @@ skills:
 
   - id: edgy-diagram
     path: skills/documentation/edgy-diagram
-    version: 2.7.0
+    version: 2.8.0
     category: documentation
     tags: [diagram, drawio, visualization, documentation, edgy, enterprise-design, fi, en, fr, de]
     agents: [claude-code, cursor, generic]
     description: >
-      Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML source and export them to PNG/SVG/PDF. Generator-first workflow (edgy_generator.py) with core-link pair validation, an influence-verb vocabulary, a drawio linter (edgy_lint.py) and a CLI-free SVG/PNG preview (edgy_render.py) that the agent must look at before delivery. Uses the EDGY facet model with draw.io CLI or the plantuml-stdlib `<edgy/edgy>` library for rendering.
+      Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML source and export them to PNG/SVG/PDF. Generator-first workflow (edgy_generator.py) with core-link pair validation, an influence-verb vocabulary, a drawio linter (edgy_lint.py) and a CLI-free SVG/PNG preview (edgy_render.py) that the agent must look at before delivery. Uses the EDGY facet model with draw.io CLI or the plantuml-stdlib `<edgy/edgy>` library for rendering. Architecture views from one model (application map, value chain and swimlane process maps, capability view, capability × application and CRUD matrices) and a self-contained offline presentation of every view.
 

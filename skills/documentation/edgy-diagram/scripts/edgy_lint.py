@@ -30,6 +30,9 @@ Rules
   E009 EDGY 23 legend missing (title + ≥ 3 colour chips + ≥ 1 line sample)
   E010 core-link verb on a non-core pair
   E011 non-core verb drawn with core-link style
+  E012 EDGY elements and cells of another notation (edgyNotation=…) on one page
+  E013 notation without a registered, installed handler (edgy_notation.py) — fail
+       closed: only a registered handler switches the EDGY rules off for its page
   W101 text does not fit the element (estimate)
   W102 fill colour is not an EDGY 23 palette colour
   W103 intersection element (brand/product/organisation) not a rectangle
@@ -42,6 +45,8 @@ Rules
        top-level container) that none of the elements inside it carries
   W123 status badge (maturity / rating extension, edgyRole=badge) whose colour
        has no key in the legend — an extension is always explained
+  W128 header text (edgyRole=header: band header, matrix key, title) covered by
+       a legend cell — the legend is drawn on top of it
 
 Visual rules — computed on the same resolved geometry the native renderer
 draws (edgy_geometry.py): ports, orthogonal joins, waypoints, label boxes.
@@ -176,8 +181,15 @@ def strip_html(value):
     return html.unescape(text)
 
 
+def edge_verb(edge, lower=True):
+    """The verb of an edge label: its first line. The generator writes data names and technology on a
+    second line (`transfers<br>Fare data · REST`); only the first line is vocabulary."""
+    first = strip_html(edge.get('value') or '').strip().split('\n')[0].strip()
+    return first.lower() if lower else first
+
+
 def shape_of(st):
-    if st.get('edgyRole') in ('badge', 'badge-key'):
+    if st.get('edgyRole') in ('badge', 'badge-key', 'chip', 'matrix', 'header'):
         return 'decoration'          # status badge (extension) and its legend key: not EDGY elements
     shape = st.get('shape', '')
     if 'arrows2.arrow' in shape:
@@ -207,6 +219,8 @@ def element_type(st):
     return table[fam].get(sh)
 
 
+KNOWN_TYPES = {'purpose', 'content', 'story', 'capability', 'asset', 'process', 'task', 'channel', 'journey',
+               'brand', 'product', 'organisation', 'people', 'activity', 'outcome', 'object'}
 BASE_FILLS = {'#ffffff', '#fff'}
 BASE_STROKES = {'#262626', '#000000', '#333333', '#555555'} | {'#6b778c', '#006644', '#b26b00', '#c25100', '#bf2600'}
 BASE_TYPES = {'rounded': 'outcome', 'pentagon': 'activity', 'rect': 'object', 'person': 'people'}
@@ -259,8 +273,10 @@ def classify_cells(cells):
             continue
         if c.get('vertex') != '1':
             continue
+        if st.get('edgyNotation'):
+            continue                 # a cell of another notation: its handler validates it (extension contract 1)
         label = strip_html(c.get('value') or '').strip().lower()
-        if st.get('container') == '1' or 'swimlane' in (c.get('style') or ''):
+        if st.get('container') == '1' or st.get('shape') == 'swimlane' or (c.get('style') or '').startswith('swimlane'):
             containers.add(i)
             continue
         if 'text' in st and any(w in label for w in LEGEND_WORDS):
@@ -271,7 +287,8 @@ def classify_cells(cells):
         if shape_of(st) == 'decoration':
             continue
         if st.get('fillColor', '').lower() in PALETTE:
-            elements[i] = (c, st, element_type(st))
+            # the generator's edgyType marker names the type exactly; colour + shape is the fallback
+            elements[i] = (c, st, st.get('edgyType') if st.get('edgyType') in KNOWN_TYPES else element_type(st))
             continue
         base = base_element_type(st)
         if base:
@@ -312,6 +329,38 @@ def line_index(path):
     except OSError:
         pass
     return idx
+
+
+def notation_findings(path, page, lines, cells, elements):
+    """E013 for a notation without a registered, installed handler; E012 for EDGY and foreign cells
+    on one page; the handler's own lint_page findings for a registered notation."""
+    out = []
+    by_notation = {}
+    for i, c in cells.items():
+        n = style_dict(c.get('style')).get('edgyNotation')
+        if n:
+            by_notation.setdefault(n.lower(), []).append(i)
+    if not by_notation:
+        return out
+    try:
+        import edgy_notation
+    except Exception:  # pragma: no cover — lint standalone without the registry: every notation is unsupported
+        edgy_notation = None
+    for n, ids in sorted(by_notation.items()):
+        mod = edgy_notation.load_module(n) if edgy_notation else None
+        if mod is None:
+            msg = edgy_notation.unsupported_message(n) if edgy_notation else f"E013 unsupported notation '{n}'"
+            out.append(Finding('ERROR', 'E013', msg.split(' ', 1)[1] if msg.startswith('E013 ') else msg, path,
+                               lines.get(ids[0]), ids[0], page))
+            continue
+        if hasattr(mod, 'lint_page'):
+            for level, rule, msg, cell in mod.lint_page({i: cells[i] for i in cells}, page) or []:
+                out.append(Finding(level, rule, msg, path, lines.get(cell) if cell else None, cell, page))
+    if elements:
+        first = next(iter(sorted(by_notation.values())))[0]
+        out.append(Finding('ERROR', 'E012', f"EDGY elements and {', '.join(sorted(by_notation))} cells on one page — "
+                                            f"draw each notation on its own page", path, lines.get(first), first, page))
+    return out
 
 
 def lint_model(path, page, model, lines, opts):
@@ -374,7 +423,7 @@ def lint_model(path, page, model, lines, opts):
         val = c.get('value') or ''
         if ENTITY_RE.search(val):
             add('WARNING', 'W107', f'double-escaped HTML entity in label ({ENTITY_RE.search(val).group(0)}) — write UTF-8 text and escape only & < > " once', i)
-        if i in elements or i in containers or 'text' in st or shape_of(st) == 'decoration':
+        if i in elements or i in containers or 'text' in st or shape_of(st) == 'decoration' or st.get('edgyNotation'):
             continue
         fill = st.get('fillColor', '').lower()
         is_lane = st.get('strokeColor') == 'none' and st.get('verticalAlign') == 'top'
@@ -460,6 +509,21 @@ def lint_model(path, page, model, lines, opts):
                                    f'but the legend has no key for it — status is an extension and needs its legend row '
                                    f'(the generator writes it for {{maturity: …}} / {{rating: …}})', i)
 
+    # W128 a header text (band header, matrix key, title) covered by a legend cell drawn after it
+    legend_boxes = [abs_box(c) for c in verts.values() if style_dict(c.get('style')).get('edgyRole') == 'legend']
+    for i, c in verts.items():
+        if style_dict(c.get('style')).get('edgyRole') != 'header':
+            continue
+        hb = abs_box(c)
+        if not hb or hb[2] <= 0 or hb[3] <= 0:
+            continue
+        cover = max((max(0.0, min(hb[0] + hb[2], b[0] + b[2]) - max(hb[0], b[0])) *
+                     max(0.0, min(hb[1] + hb[3], b[1] + b[3]) - max(hb[1], b[1])) for b in legend_boxes if b), default=0.0)
+        if cover > 0.2 * hb[2] * hb[3]:
+            add('WARNING', 'W128', f'header "{strip_html(c.get("value") or "")[:40]}" is {cover / (hb[2] * hb[3]):.0%} '
+                                   f'under the legend — the legend is drawn on top; make room for the header or move the '
+                                   f'legend (legend: box / strip)', i)
+
     # W122 container facet colour vs the facet of the elements inside it (any depth)
     def _ancestors(c):
         seen = set()
@@ -498,6 +562,9 @@ def lint_model(path, page, model, lines, opts):
             if inter / smaller > 0.30:
                 add('ERROR', 'E008', f'overlaps element {ib} by {100*inter/smaller:.0f} % of its area', ia)
 
+    # E012 / E013 pages of another notation — fail closed (extension contract 1, edgy_notation.py)
+    F.extend(notation_findings(path, page, lines, cells, elements))
+
     # E009 legend
     if elements and not legend_seen and not opts.no_legend:
         add('ERROR', 'E009', 'EDGY 23 legend missing (element colours + relationship line styles)')
@@ -507,7 +574,7 @@ def lint_model(path, page, model, lines, opts):
         src, tgt = e.get('source'), e.get('target')
         if src not in elements or tgt not in elements:
             continue
-        verb = strip_html(e.get('value') or '').strip().lower()
+        verb = edge_verb(e)          # the first label line; a second line carries data / technology
         if not verb:
             continue
         st = style_dict(e.get('style'))
@@ -544,7 +611,7 @@ def lint_model(path, page, model, lines, opts):
         for i, e in edges.items():
             if e.get('source') not in elements or e.get('target') not in elements:
                 continue
-            for part in strip_html(e.get('value') or '').split(' / '):
+            for part in edge_verb(e, lower=False).split(' / '):
                 verb = part.strip().lower()
                 langs = languages_of(verb)
                 if langs and map_lang not in langs:
@@ -622,10 +689,10 @@ def visual_findings(path, page, lines, cells, elements, containers, page_w, page
         if not verb:
             continue
         fs = float(st.get('fontSize', 11) or 11)
-        lbox = geo.edge_label_box(route, verb.split('\n')[0], fs, rel_x, rel_y, offset)
+        lbox = geo.edge_label_box(route, verb, fs, rel_x, rel_y, offset)
         if lbox is None:
             continue
-        labels.append((i, src, verb.lower(), lbox))
+        labels.append((i, src, verb.split('\n')[0].strip().lower(), lbox))
         area = max(lbox[2] * lbox[3], 1.0)
         # W112: label over an element (its own ends included — a label on the source box is unreadable too)
         for j, box in boxes.items():

@@ -39,3 +39,18 @@ If you redistribute or adapt these EDGY-derived materials, you must:
 The skill instructions, tooling (tools/**), CI, and other original content in
 this repository are licensed under Apache-2.0 and are NOT subject to the
 share-alike obligation above.
+
+================================================================================
+Other external standards, classifications and names
+================================================================================
+
+The skills refer to, but do not reproduce, the following. Only names,
+categories and interoperability formats are used; see
+skills/documentation/edgy-diagram/references/external-standards.md.
+
+  - TIME (Tolerate, Invest, Migrate, Eliminate) application portfolio
+    classification: Gartner, Inc.
+  - ArchiMate® and the ArchiMate Open Exchange Format: The Open Group
+    (ArchiMate is a registered trademark of The Open Group).
+  - C4 model (planned edgy-c4 skill): Simon Brown, c4model.com, Creative
+    Commons Attribution 4.0.

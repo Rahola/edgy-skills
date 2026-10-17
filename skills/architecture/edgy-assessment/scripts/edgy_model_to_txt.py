@@ -26,8 +26,9 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-DIAGRAM_SCRIPTS = HERE.parent.parent.parent / "documentation" / "edgy-diagram" / "scripts"
-sys.path.insert(0, str(DIAGRAM_SCRIPTS))
+sys.path.insert(0, str(HERE))
+import edgy_paths  # noqa: E402 — finds edgy-diagram in a checkout and after an install
+DIAGRAM_SCRIPTS = edgy_paths.add_diagram_scripts_to_path() or edgy_paths.candidates()[-1]
 try:
     from edgy_core_links import CORE_LINKS  # noqa: E402
 except ImportError as exc:  # the vocabulary is required to derive core links — never continue without it
@@ -176,6 +177,149 @@ def build(model, facet, lang, layout="default"):
     return "\n".join(body) + "\n"
 
 
+# ---- architecture views (model format 1.9) ---------------------------------------------------------
+# --views writes one multi-page TXT: a `draw: false` model page with every element (by id) and every
+# relationships[] entry, then one or more view pages that edgy-diagram 2.8.0 derives from that graph.
+MODEL_TYPES = IDENTITY + ARCHITECTURE + EXPERIENCE + ["organisation", "product", "brand", "people"]
+ATTRIBUTE_KEYS_19 = ("kind", "hosting", "owner", "criticality", "time", "master", "gaps", "band")
+VIEW_WRITERS = {}     # view name → function(model, lang) -> list of page blocks; registered by the view sprints
+
+
+def register_view(name):
+    def deco(fn):
+        VIEW_WRITERS[name] = fn
+        return fn
+    return deco
+
+
+def model_elements(model):
+    """[(type, element dict, id)] for every element of the model, ids generated where missing."""
+    out = []
+    elems = model.get("elements") or {}
+    for t in MODEL_TYPES:
+        for i, e in enumerate(_as_list(elems.get(t))):
+            if isinstance(e, dict) and e.get("name"):
+                out.append((t, e, e.get("id") or f"{id_prefix(t)}-{i + 1:02d}"))
+    return out
+
+
+def _opt(value):
+    v = _clean(value)
+    return f'"{v}"' if ("," in v or ":" in v) else v
+
+
+def model_page(model, lang, name="Model"):
+    """The `draw: false` model page: in the document graph, not drawn."""
+    lines = [f'  - name: "{name}"', "    draw: false", "    elements:"]
+    for t, e, eid in model_elements(model):
+        desc = _clean(e.get("description"))
+        value = f"{_clean(e['name'])} - {desc}" if desc else _clean(e["name"])
+        opts = {"id": eid}
+        for k in ATTRIBUTE_KEYS_19:
+            if k == "gaps" and isinstance(e.get(k), dict) and e[k]:
+                # {"processes": "out_of_scope"} → gaps: "processes=out_of_scope" (the capability view's syntax)
+                opts[k] = '"' + "; ".join(f"{_clean(b)}={_clean(v)}" for b, v in e[k].items()) + '"'
+            elif k in e and e[k] not in (None, "") and k != "gaps":
+                opts[k] = str(e[k]).lower() if isinstance(e[k], bool) else e[k]
+        tags = [_clean(x) for x in e.get("tags", []) if _clean(x)]
+        tag_part = f" [{', '.join(tags)}]" if tags else ""
+        lines.append(f'      - {t}: "{value}"{tag_part} {{' + ", ".join(f"{k}: {v if k == 'gaps' else _opt(v)}"
+                                                                          for k, v in opts.items()) + "}")
+    lines.append("    relationships:")
+    for r in model.get("relationships") or []:
+        if not isinstance(r, dict):
+            continue
+        attrs = r.get("attributes") or {}
+        parts = []
+        for k in ("crud", "technology", "container", "change"):
+            if attrs.get(k):
+                parts.append(f"{k}: {_opt(attrs[k])}")
+        if attrs.get("primary") is True:
+            parts.append("primary: true")
+        if attrs.get("data"):
+            parts.append('data: "' + "; ".join(_clean(x) for x in attrs["data"]) + '"')
+        tail = " {" + ", ".join(parts) + "}" if parts else ""
+        lines.append(f'      - "{_clean(r["source_id"])}" -> "{_clean(r["target_id"])}": "{_clean(r["verb"])}"{tail}')
+    return lines
+
+
+def _view_page(name, keys):
+    return [f'  - name: "{name}"'] + [f"    {k}: {v}" for k, v in keys]
+
+
+PAGE_NAMES = {  # view page names in the model's language (the generated labels follow `language:` already)
+    "Application map": {"fi": "Sovelluskartta", "fr": "Carte applicative", "de": "Anwendungslandkarte"},
+    "Process landscape": {"fi": "Prosessikartta", "fr": "Cartographie des processus", "de": "Prozesslandkarte"},
+    "Process swimlanes": {"fi": "Prosessien uimaradat", "fr": "Couloirs de processus", "de": "Prozess-Swimlanes"},
+    "Capability": {"fi": "Kyvykkyys", "fr": "Capacité", "de": "Fähigkeit"},
+    "Capability × application": {"fi": "Kyvykkyys × sovellus", "fr": "Capacité × application", "de": "Fähigkeit × Anwendung"},
+    "Process × data (CRUD)": {"fi": "Prosessi × tieto (CRUD)", "fr": "Processus × données (CRUD)", "de": "Prozess × Daten (CRUD)"},
+}
+
+
+def _page_name(name, lang):
+    return PAGE_NAMES.get(name, {}).get(lang, name)
+
+
+@register_view("application")
+def _application_view(model, lang):
+    """Application map grouped by the capability that requires each application (Shared strip for
+    applications several areas need without a primary link)."""
+    return [_view_page(_page_name("Application map", lang), [("map_type", "application"), ("group_by", "capability")])]
+
+
+@register_view("process-chain")
+def _process_chain_view(model, lang):
+    return [_view_page(_page_name("Process landscape", lang), [("map_type", "process"), ("process_view", "chain")])]
+
+
+@register_view("process-swimlane")
+def _process_swimlane_view(model, lang):
+    """One swimlane page per L1 process (the top of the contains hierarchy): its steps in the lanes of their
+    performers — one page for every process at once would be a staircase of unrelated steps."""
+    return [_view_page(_page_name("Process swimlanes", lang), [("expand", "per-process"), ("where", "top"), ("map_type", "process"),
+                                             ("process_view", "swimlane"), ("legend", "strip")])]
+
+
+@register_view("capability")
+def _capability_view(model, lang):
+    """One capability view per capability: processes, resources, data (CRUD), actors, products."""
+    return [_view_page(_page_name("Capability", lang), [("expand", "per-capability"), ("map_type", "capability-view"),
+                                      ("legend", "strip")])]
+
+
+@register_view("capability-matrix")
+def _capability_matrix_view(model, lang):
+    return [_view_page(_page_name("Capability × application", lang), [("map_type", "capability-matrix")])]
+
+
+@register_view("crud-matrix")
+def _crud_matrix_view(model, lang):
+    return [_view_page(_page_name("Process × data (CRUD)", lang), [("map_type", "capability-matrix"), ("matrix", "crud")])]
+
+
+def build_views(model, views, lang):
+    """One multi-page TXT: the model page and the requested view pages."""
+    unknown = [v for v in views if v not in VIEW_WRITERS]
+    if unknown:
+        raise ValueError(f"unknown view(s): {', '.join(unknown)} (known: {', '.join(sorted(VIEW_WRITERS)) or 'none yet'})")
+    if not isinstance(model.get("relationships"), list) or not model["relationships"]:
+        raise ValueError("the architecture views need model format 1.9 with relationships[] between element ids")
+    head = [f"# Generated from edgy-model.json by edgy_model_to_txt.py --views — do not edit by hand; edit the model.",
+            f"# company: {_clean(model.get('company'))} · assessed_at: {_clean(model.get('assessed_at'))}",
+            f"language: {lang if lang in VERB_KEY else 'en'}"]
+    opts = model.get("layout") if isinstance(model.get("layout"), dict) else {}
+    for key in LAYOUT_KEYS:
+        if key in opts and opts[key] is not None and key not in ("title", "footnote"):
+            value = opts[key]
+            head.append(f"{key}: {str(value).lower() if isinstance(value, bool) else _clean(value)}")
+    body = head + ["", "pages:"] + model_page(model, lang)
+    for v in views:
+        for block in VIEW_WRITERS[v](model, lang):
+            body += [""] + block
+    return "\n".join(body) + "\n"
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="edgy-model.json → four facet TXT inputs")
     ap.add_argument("model")
@@ -184,11 +328,34 @@ def main(argv=None):
     ap.add_argument("--language", choices=list(VERB_KEY), help="verb language (default: model.language)")
     ap.add_argument("--layout", choices=["default", "triad"], default="default",
                     help="triad = planned ring with Further panels (map_type: triad in every file)")
+    ap.add_argument("--views", help="comma-separated architecture views, or all (model format 1.9): writes "
+                                    "<prefix>-views.txt — a draw: false model page and the view pages — instead of "
+                                    "the four facet files")
     args = ap.parse_args(argv)
     model = json.loads(Path(args.model).read_text(encoding="utf-8"))
     lang = args.language or model.get("language", "en")
     prefix = args.prefix or "".join(c if c.isalnum() else "-" for c in model.get("company", "edgy").lower()).strip("-")
     os.makedirs(args.out, exist_ok=True)
+    if args.views:
+        try:
+            views = [v.strip() for v in args.views.split(",") if v.strip()]
+            if views == ["all"]:
+                # all = every view the model can fill: a matrix without its links would be an empty page
+                verbs = {r.get("verb") for r in model.get("relationships") or [] if isinstance(r, dict)}
+                skip = {"crud-matrix": "accesses", "capability-matrix": "requires"}
+                views = [v for v in VIEW_WRITERS if skip.get(v, "") == "" or skip[v] in verbs]
+                for v, verb in skip.items():
+                    if verb not in verbs:
+                        print(f"edgy_model_to_txt: --views all leaves out {v} — the model has no {verb} relationships",
+                              file=sys.stderr)
+            text = build_views(model, views, lang)
+        except ValueError as e:
+            print(f"edgy_model_to_txt: {e}", file=sys.stderr)
+            return 2
+        path = Path(args.out) / f"{prefix}-views.txt"
+        path.write_text(text, encoding="utf-8")
+        print(path)
+        return 0
     for facet in ("identity", "architecture", "experience", "all"):
         name = f"{prefix}-{'all-facets' if facet == 'all' else facet}.txt"
         path = Path(args.out) / name

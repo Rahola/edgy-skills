@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" identifier="id-model" xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd">
+  <name xml:lang="en">Acme Transit (fictional)</name>
+  <documentation xml:lang="en">Exported from edgy-model.json (assessed 2026-09-01) by edgy_model_to_archimate.py — one-way export; edit the EDGY model.</documentation>
+  <elements>
+    <element identifier="id-el-1" xsi:type="Goal">
+      <name xml:lang="en">Effortless everyday travel</name>
+      <documentation xml:lang="en">Public transport is the easy choice for every trip in the region.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="en">purpose</value>
+        </property>
+        <property propertyDefinitionRef="pd-3">
+          <value xml:lang="en">analytical</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-2" xsi:type="Meaning">
+      <name xml:lang="en">From timetable to travel account</name>
+      <documentation xml:lang="en">Travel without knowing fares or zones in advance.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="en">story</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-3" xsi:type="Representation">
+      <name xml:lang="en">Clear fares</name>
+      <documentation xml:lang="en">Simple, published prices for every trip.</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="en">content</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-4" xsi:type="Capability">
+      <name xml:lang="en">Ticketing</name>
+      <documentation xml:lang="en">sell and validate fares</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="en">capability</value>
+        </property>
+        <property propertyDefinitionRef="pd-2">
+          <value xml:lang="en">CAP-05</value>
+        </property>
+        <property propertyDefinitionRef="pd-4">
+          <value xml:lang="en">Core</value>
+        </property>
+        <property propertyDefinitionRef="pd-5">
+          <value xml:lang="en">Operational</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-5" xsi:type="Resource">
+      <name xml:lang="en">Legacy fare engine</name>
+      <documentation xml:lang="en">zone-based fare calculation</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="en">asset</value>
+        </property>
+        <property propertyDefinitionRef="pd-2">
+          <value xml:lang="en">AST-01</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-6" xsi:type="Resource">
+      <name xml:lang="en">Card personalisation service</name>
+      <documentation xml:lang="en">prints personal travel cards</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="en">asset</value>
+        </property>
+        <property propertyDefinitionRef="pd-2">
+          <value xml:lang="en">AST-03</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-7" xsi:type="BusinessProcess">
+      <name xml:lang="en">Fare change</name>
+      <documentation xml:lang="en">define and publish</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="en">process</value>
+        </property>
+        <property propertyDefinitionRef="pd-2">
+          <value xml:lang="en">PRO-01</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-8" xsi:type="BusinessProcess">
+      <name xml:lang="en">Buy a ticket</name>
+      <documentation xml:lang="en">get a valid ticket before boarding</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="en">task</value>
+        </property>
+        <property propertyDefinitionRef="pd-2">
+          <value xml:lang="en">TSK-01</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-9" xsi:type="BusinessInterface">
+      <name xml:lang="en">Mobile app</name>
+      <documentation xml:lang="en">tickets and journey planning</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="en">channel</value>
+        </property>
+        <property propertyDefinitionRef="pd-2">
+          <value xml:lang="en">CHA-01</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-10" xsi:type="ValueStream">
+      <name xml:lang="en">Daily commute</name>
+      <documentation xml:lang="en">home to work and back</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="en">journey</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-11" xsi:type="BusinessActor">
+      <name xml:lang="en">Platform team</name>
+      <documentation xml:lang="en">owns the ticketing platform</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="en">organisation</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-12" xsi:type="Product">
+      <name xml:lang="en">Acme app</name>
+      <documentation xml:lang="en">ticket purchase in the app</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="en">product</value>
+        </property>
+      </properties>
+    </element>
+    <element identifier="id-el-13" xsi:type="Value">
+      <name xml:lang="en">Acme Transit</name>
+      <documentation xml:lang="en">regional public transport brand</documentation>
+      <properties>
+        <property propertyDefinitionRef="pd-1">
+          <value xml:lang="en">brand</value>
+        </property>
+      </properties>
+    </element>
+  </elements>
+  <relationships>
+    <relationship identifier="id-rel-1" source="id-el-4" target="id-el-5" xsi:type="Association" isDirected="true">
+      <name xml:lang="en">requires</name>
+    </relationship>
+    <relationship identifier="id-rel-2" source="id-el-7" target="id-el-4" xsi:type="Association" isDirected="true">
+      <name xml:lang="en">realises</name>
+    </relationship>
+    <relationship identifier="id-rel-3" source="id-el-11" target="id-el-4" xsi:type="Association" isDirected="true">
+      <name xml:lang="en">has</name>
+    </relationship>
+    <relationship identifier="id-rel-4" source="id-el-8" target="id-el-9" xsi:type="Association" isDirected="true">
+      <name xml:lang="en">uses</name>
+    </relationship>
+    <relationship identifier="id-rel-5" source="id-el-8" target="id-el-10" xsi:type="Association" isDirected="true">
+      <name xml:lang="en">is part of</name>
+    </relationship>
+  </relationships>
+  <propertyDefinitions>
+    <propertyDefinition identifier="pd-1" type="string">
+      <name xml:lang="en">edgy:type</name>
+    </propertyDefinition>
+    <propertyDefinition identifier="pd-2" type="string">
+      <name xml:lang="en">edgy:id</name>
+    </propertyDefinition>
+    <propertyDefinition identifier="pd-3" type="string">
+      <name xml:lang="en">edgy:provenance</name>
+    </propertyDefinition>
+    <propertyDefinition identifier="pd-4" type="string">
+      <name xml:lang="en">edgy:nature</name>
+    </propertyDefinition>
+    <propertyDefinition identifier="pd-5" type="string">
+      <name xml:lang="en">edgy:level</name>
+    </propertyDefinition>
+  </propertyDefinitions>
+  <views>
+    <diagrams>
+      <view identifier="id-view-1" xsi:type="Diagram">
+        <name xml:lang="en">Identity</name>
+        <node identifier="id-view-1-n1" elementRef="id-el-1" xsi:type="Element" x="80" y="96" w="200" h="110" />
+        <node identifier="id-view-1-n2" elementRef="id-el-2" xsi:type="Element" x="360" y="96" w="260" h="80" />
+        <node identifier="id-view-1-n3" elementRef="id-el-3" xsi:type="Element" x="80" y="226" w="120" h="110" />
+        <node identifier="id-view-1-n11" elementRef="id-el-11" xsi:type="Element" x="60" y="400" w="120" h="90" />
+        <node identifier="id-view-1-n13" elementRef="id-el-13" xsi:type="Element" x="220" y="400" w="120" h="90" />
+      </view>
+      <view identifier="id-view-2" xsi:type="Diagram">
+        <name xml:lang="en">Architecture</name>
+        <node identifier="id-view-2-n4" elementRef="id-el-4" xsi:type="Element" x="80" y="96" w="120" h="110" />
+        <node identifier="id-view-2-n5" elementRef="id-el-5" xsi:type="Element" x="320" y="96" w="220" h="80" />
+        <node identifier="id-view-2-n6" elementRef="id-el-6" xsi:type="Element" x="80" y="226" w="220" h="80" />
+        <node identifier="id-view-2-n7" elementRef="id-el-7" xsi:type="Element" x="320" y="226" w="140" h="80" />
+        <node identifier="id-view-2-n11" elementRef="id-el-11" xsi:type="Element" x="60" y="370" w="120" h="90" />
+        <node identifier="id-view-2-n12" elementRef="id-el-12" xsi:type="Element" x="220" y="370" w="120" h="90" />
+        <connection identifier="id-view-2-c1" relationshipRef="id-rel-1" xsi:type="Relationship" source="id-view-2-n4" target="id-view-2-n5" />
+        <connection identifier="id-view-2-c2" relationshipRef="id-rel-2" xsi:type="Relationship" source="id-view-2-n7" target="id-view-2-n4" />
+        <connection identifier="id-view-2-c3" relationshipRef="id-rel-3" xsi:type="Relationship" source="id-view-2-n11" target="id-view-2-n4" />
+      </view>
+      <view identifier="id-view-3" xsi:type="Diagram">
+        <name xml:lang="en">Experience</name>
+        <node identifier="id-view-3-n8" elementRef="id-el-8" xsi:type="Element" x="80" y="96" w="120" h="90" />
+        <node identifier="id-view-3-n9" elementRef="id-el-9" xsi:type="Element" x="240" y="96" w="120" h="90" />
+        <node identifier="id-view-3-n10" elementRef="id-el-10" xsi:type="Element" x="80" y="206" w="140" h="90" />
+        <node identifier="id-view-3-n12" elementRef="id-el-12" xsi:type="Element" x="60" y="360" w="120" h="90" />
+        <node identifier="id-view-3-n13" elementRef="id-el-13" xsi:type="Element" x="220" y="360" w="120" h="90" />
+        <connection identifier="id-view-3-c4" relationshipRef="id-rel-4" xsi:type="Relationship" source="id-view-3-n8" target="id-view-3-n9" />
+        <connection identifier="id-view-3-c5" relationshipRef="id-rel-5" xsi:type="Relationship" source="id-view-3-n8" target="id-view-3-n10" />
+      </view>
+      <view identifier="id-view-4" xsi:type="Diagram">
+        <name xml:lang="en">All facets</name>
+        <node identifier="id-view-4-n1" elementRef="id-el-1" xsi:type="Element" x="80" y="96" w="200" h="110" />
+        <node identifier="id-view-4-n2" elementRef="id-el-2" xsi:type="Element" x="80" y="226" w="260" h="80" />
+        <node identifier="id-view-4-n3" elementRef="id-el-3" xsi:type="Element" x="80" y="326" w="120" h="110" />
+        <node identifier="id-view-4-n4" elementRef="id-el-4" xsi:type="Element" x="580" y="96" w="120" h="110" />
+        <node identifier="id-view-4-n5" elementRef="id-el-5" xsi:type="Element" x="580" y="226" w="220" h="80" />
+        <node identifier="id-view-4-n6" elementRef="id-el-6" xsi:type="Element" x="580" y="326" w="220" h="80" />
+        <node identifier="id-view-4-n7" elementRef="id-el-7" xsi:type="Element" x="580" y="426" w="140" h="80" />
+        <node identifier="id-view-4-n8" elementRef="id-el-8" xsi:type="Element" x="1040" y="96" w="120" h="90" />
+        <node identifier="id-view-4-n9" elementRef="id-el-9" xsi:type="Element" x="1040" y="206" w="120" h="90" />
+        <node identifier="id-view-4-n10" elementRef="id-el-10" xsi:type="Element" x="1040" y="316" w="140" h="90" />
+        <node identifier="id-view-4-n11" elementRef="id-el-11" xsi:type="Element" x="400" y="250" w="120" h="90" />
+        <node identifier="id-view-4-n12" elementRef="id-el-12" xsi:type="Element" x="860" y="250" w="120" h="90" />
+        <node identifier="id-view-4-n13" elementRef="id-el-13" xsi:type="Element" x="600" y="590" w="120" h="90" />
+        <connection identifier="id-view-4-c1" relationshipRef="id-rel-1" xsi:type="Relationship" source="id-view-4-n4" target="id-view-4-n5" />
+        <connection identifier="id-view-4-c2" relationshipRef="id-rel-2" xsi:type="Relationship" source="id-view-4-n7" target="id-view-4-n4" />
+        <connection identifier="id-view-4-c3" relationshipRef="id-rel-3" xsi:type="Relationship" source="id-view-4-n11" target="id-view-4-n4" />
+        <connection identifier="id-view-4-c4" relationshipRef="id-rel-4" xsi:type="Relationship" source="id-view-4-n8" target="id-view-4-n9" />
+        <connection identifier="id-view-4-c5" relationshipRef="id-rel-5" xsi:type="Relationship" source="id-view-4-n8" target="id-view-4-n10" />
+      </view>
+    </diagrams>
+  </views>
+</model>

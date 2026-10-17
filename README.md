@@ -10,16 +10,18 @@ package the framework as agent instructions: reframing challenges, analysing
 facet intersections, and rendering draw.io / PlantUML diagrams from natural
 language.
 
-> Skills are Markdown instruction files (`SKILL.md`) plus supporting assets and
-> examples. They contain no code that runs on your machine except the optional
-> validation tooling in `tools/`.
+> Skills are Markdown instruction files (`SKILL.md`) plus supporting assets,
+> examples and standard-library Python scripts (generator, linter, renderer,
+> presenter, model tools). The scripts run only when the agent calls them —
+> no network access, no third-party packages — and `tools/` holds the
+> repository's own validation tooling.
 
 ## The skills
 
 | Skill | Category | What it does |
 |-------|----------|--------------|
 | [`edgy-framework`](skills/architecture/edgy-framework/) | architecture | Challenge reframing, facet intersection analysis, element identification from natural language. |
-| [`edgy-diagram`](skills/documentation/edgy-diagram/) | documentation | Render EDGY diagrams as draw.io XML or PlantUML and export to PNG/SVG/PDF. |
+| [`edgy-diagram`](skills/documentation/edgy-diagram/) | documentation | Render EDGY diagrams as draw.io XML or PlantUML and export to PNG/SVG/PDF; architecture views (application, process, capability view, matrices) from one model and an offline presentation. |
 | [`edgy-assessment`](skills/architecture/edgy-assessment/) | architecture | Orchestrator — chains `edgy-framework` + `edgy-diagram` into a full assessment with a locked PDF report layout. |
 | [`edgy-deep-dive`](skills/architecture/edgy-deep-dive/) | architecture | Targeted analysis of a specific element pair / facet combination from an existing assessment model. |
 | [`edgy-target-state`](skills/architecture/edgy-target-state/) | architecture | Internal target-state architecture work: purpose map, capability map and cards, guardrails, building-block hypothesis with a current → target overlay, work packages, role model, stakeholder summary. |
@@ -29,6 +31,34 @@ company (it calls `edgy-framework` and `edgy-diagram` internally), then
 `edgy-deep-dive` to explore a specific intersection. For your own
 organisation's target architecture run `edgy-target-state` instead.
 `edgy-framework` and `edgy-diagram` also work standalone.
+
+## Principles
+
+1. **EDGY 23 first.** Every map is valid EDGY: its element types, the
+   facet colour as the fill, and the 24 core links. The linter enforces
+   this; for example, E010 flags a core-link verb on a pair EDGY does not
+   link, and W102 flags a fill outside the EDGY palette.
+2. **Extensions are visible and opt-in.** Anything EDGY does not define is
+   drawn only when the input asks for it, and only as a badge, stroke,
+   layout or matrix cell. Examples are TIME, CRUD and the transition
+   overlay. Its legend section is marked "(extension)", and the delivery
+   says it is an extension.
+3. **An external standard needs a register entry.** The entry in
+   [`external-standards.md`](skills/documentation/edgy-diagram/references/external-standards.md)
+   says what the standard answers that EDGY cannot, why it was chosen,
+   what the alternatives were, and gives its source and licence.
+4. **Another notation is another skill.** C4 is the planned `edgy-c4`
+   skill, and ArchiMate is a one-way export. Neither is drawn with EDGY
+   shapes on an EDGY page.
+5. **Gaps are evidence, not guesses.** An empty part of a view is recorded
+   as a model gap with an evidence status. It becomes a finding only when
+   the absence is confirmed.
+6. **Offline and dependency-free.** The scripts use only the Python
+   standard library and never use the network. A generated presentation
+   cannot send its model anywhere.
+7. **No client material in the repository.** Examples are fictional, and a
+   generated deliverable stays with the client
+   (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Using the skills
 
@@ -58,6 +88,7 @@ EDGY_SKILLS_REF=v2.0.0 bash adapters/claude-code/install.sh --all   # generator-
 EDGY_SKILLS_REF=v2.1.0 bash adapters/claude-code/install.sh --all   # + visual lint, triad layout
 EDGY_SKILLS_REF=v2.2.0 bash adapters/claude-code/install.sh --all   # + semantic review, layout quality, qa.json
 EDGY_SKILLS_REF=v2.3.0 bash adapters/claude-code/install.sh --all   # + official map shapes, badges, model diff, ArchiMate export
+EDGY_SKILLS_REF=v2.4.0 bash adapters/claude-code/install.sh --all   # + architecture views from one model, presenter-lite
 ```
 
 When an adapter runs from a local clone it installs that checkout, so use
@@ -164,7 +195,14 @@ skills cannot produce yet (nested groups, stage and matrix layouts, product
 trees, outcome webs, status overlay, wider semantic review, model diff,
 ArchiMate export) — is
 [`docs/development-plan-2026-10-coverage.md`](docs/development-plan-2026-10-coverage.md)
-(shipped in v2.3.0).
+(shipped in v2.3.0). The next plan — application map, process map,
+capability view (processes, applications, data, actors) and an interactive
+single-page presenter for v2.4.0, then C4 diagrams per application as a
+separate `edgy-c4` skill and a click-through realisation trace from
+customer journey to organisation in v2.5.0 — is
+[`docs/development-plan-2026-10-architecture-views.md`](docs/development-plan-2026-10-architecture-views.md)
+(v2.4.0 part implemented; `edgy-c4` and the further presenter effects
+follow).
 
 ## Contributing
 

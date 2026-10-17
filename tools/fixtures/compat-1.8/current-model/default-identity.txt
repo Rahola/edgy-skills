@@ -1,0 +1,14 @@
+# Generated from edgy-model.json by edgy_model_to_txt.py — do not edit by hand; edit the model.
+# company: Acme Transit (fictional) · assessed_at: 2026-09-01
+facet: identity
+language: en
+
+elements:
+  - purpose: "Effortless everyday travel - Public transport is the easy choice for every trip in the region." [analytical] {id: PUR-01}
+  - story: "From timetable to travel account - Travel without knowing fares or zones in advance." {id: STO-01}
+  - content: "Clear fares - Simple, published prices for every trip." {id: CON-01}
+  # intersection elements
+  - brand: "Acme Transit - regional public transport brand" {id: BRA-01}
+  - organisation: "Platform team - owns the ticketing platform" {id: ORG-01}
+
+relationships:

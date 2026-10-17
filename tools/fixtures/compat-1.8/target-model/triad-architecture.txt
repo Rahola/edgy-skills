@@ -1,0 +1,21 @@
+# Generated from edgy-model.json by edgy_model_to_txt.py — do not edit by hand; edit the model.
+# company: Acme Transit (fictional) · assessed_at: 2026-10-01
+facet: architecture
+language: en
+map_type: triad
+
+elements:
+  - capability: "Ticketing - sell and validate fares" [core, operational] {id: CAP-05}
+  - capability: "Account-based travel - pay-as-you-go with a travel account" [differentiating, strategic] {id: CAP-03}
+  - asset: "Account-based ticketing platform - travel accounts and fare capping" {id: AST-02}
+  - asset: "Open-loop payment gateway - bank-card payments at the validator" {id: AST-04}
+  - process: "Fare change - define, test, publish" {id: PRO-01}
+  # intersection elements
+  - organisation: "Platform team - owns the ticketing platform" {id: ORG-01}
+  - product: "Acme app - travel account and ticket purchase in the app" {id: PRD-01}
+
+relationships:
+  - "Ticketing" -> "Account-based ticketing platform": "requires"
+  - "Fare change" -> "Ticketing": "realises"
+  - "Platform team" -> "Ticketing": "has"
+  - "Acme app" -> "Ticketing": "requires"

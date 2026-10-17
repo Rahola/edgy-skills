@@ -49,3 +49,8 @@ skills/**/*.zip
 
 # Väliaikaiset suunnitelmatiedostot
 plan.md
+
+# Presenter-lite: presentation.html voi sisältää asiakasmallin — pidä toimeksiantokansiossa.
+# Vain examples/-kansion fiktiiviset esitykset voi commitoida.
+*presentation*.html
+!skills/**/examples/**/*presentation*.html

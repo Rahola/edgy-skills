@@ -1,6 +1,6 @@
 ---
 name: edgy-diagram
-version: "2.7.0"
+version: "2.8.0"
 description: >
   Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML
   source and export them to PNG/SVG/PDF. Generator-first workflow
@@ -8,6 +8,9 @@ description: >
   vocabulary, a drawio linter (edgy_lint.py) and a CLI-free SVG/PNG preview
   (edgy_render.py) that the agent must look at before delivery. Uses the EDGY facet model
   with draw.io CLI or the plantuml-stdlib `<edgy/edgy>` library for rendering.
+  Architecture views from one model (application map, value chain and
+  swimlane process maps, capability view, capability × application and CRUD
+  matrices) and a self-contained offline presentation of every view.
 category: documentation
 tags: [diagram, drawio, visualization, documentation, edgy, enterprise-design, fi, en, fr, de]
 languages: [fi, en, fr, de]
@@ -171,7 +174,8 @@ layouts that the options below should fix: `card_width`, `equal_cards`,
 they ran. **W122** (always on) flags a container coloured with a facet colour
 that none of the elements inside it carries — an area is coloured by what it
 holds. **W123** flags a status badge (maturity / rating extension) whose
-colour has no key in the legend. **W121 (`--series`)** checks the files of one delivery against the
+colour has no key in the legend. **W128** flags a header text (band header,
+matrix key, title) covered by a legend cell. **W121 (`--series`)** checks the files of one delivery against the
 first: legend placement, content margin, card width of every shared type and
 label font sizes must agree on every page of every file — generate the
 series with the same options.
@@ -231,7 +235,18 @@ edgy_generator.py in.txt --format plantuml --output out.puml
 edgy_render.py out.drawio [--out DIR] [--no-png] [--publication]            # preview an existing file
 edgy_lint.py out.drawio [--warnings-as-errors] [--visual] [--scale 0.4]     # lint; W115 below 6 pt at that scale
 edgy_lint.py --series a.drawio b.drawio [--no-layout-quality]              # W121 across a delivery; W117–W120 off
+edgy_generator.py in.txt --output out.drawio --graph graph.json            # document graph (extension contract 1)
+edgy_generator.py in.txt --output out.drawio --present presentation.html   # self-contained offline presentation
+edgy_present.py out.drawio [-o presentation.html] [--graph graph.json]     # same, from an existing file
 ```
+
+`--present` writes one HTML file with every page (card wall → zoom,
+cross-view highlight, ⌘K search, current ↔ target over `{change:}`
+annotations, paging and deep links, print). It has no network access (CSP
+`connect-src 'none'`) and inlines the native preview; it may carry the
+model, so keep it in the engagement folder like the `.drawio`. Style
+markers, graph JSON and SVG `data-*` attributes are a public contract for
+extensions: `references/extension-contract.md`.
 
 `--publication` crops the native SVG/PNG to the content (shapes, routes,
 arrowheads, labels, legend) instead of the editor page and prints an
@@ -486,6 +501,9 @@ and the linter flag such edges and draw them as influence.
 | produces | tuottaa | produit | bringt hervor | process → outcome: a process yields a measurable result |
 | measures | mittaa | mesure | misst | outcome → purpose: an outcome (KPI) measures a purpose |
 | contributes to | edistää | contribue à | trägt bei zu | capability → purpose or outcome: bridge when no core link exists |
+| stores | tallentaa | stocke | speichert | asset (application) → asset (data): the application is the system of record |
+| accesses | käsittelee | accède à | greift zu auf | process → asset (data): reads or changes data; {crud: R | CU | CRUD} says how |
+| interacts with | asioi | interagit avec | interagiert mit | people / organisation → asset (application): an actor works with an application (core uses is task → channel only) |
 <!-- edgy-links:end -->
 
 `supports`/`tukee` is the core link brand → task; on any other pair it is
@@ -559,6 +577,10 @@ the parser warns.
 | `purpose` | **hierarchy**: top purposes → sub-purposes (`contains`) → Outcomes (`measures`); Organisation and Brand in the top row, Content left, Story right | 6 | 10–15 |
 | `outcome` | **web**: layered left → right by link direction (causes left, effects right) when outcomes have directed links, ≤ 15 elements; grid + tree otherwise | 5 | 7–10 |
 | `journey`, `activity`, `process` | sequence (pentagon row, left → right) | 4 | 6–8 |
+| `process` + `process_view: chain \| swimlane` | **value chain** (L1 row, L2 stacked, `{band:}` rows) or **swimlane** (one lane per performer, staircase, asset chips) — `references/architecture-views.md` | 4 | 6–20 |
+| `application` | **application map**: domains (`group:`), domains × layers (`rows:`), or `group_by: capability` areas with a Shared strip; TIME and hosting badges, routed integrations | 6 | 15–40 |
+| `capability-view` | one capability (`focus:` / `expand: per-capability`) with actors, processes, resources, data (CRUD) and products in five bands; W127 for empty bands | 1 | 5–15 |
+| `capability-matrix` | capabilities × applications (● / ◉ primary) or, with `matrix: crud`, processes × data with CRUD letters | 2 | any |
 | `brand`, `product`, `object` | **tree** (portfolio, brand architecture, object parts) when they have tree relationships (`contains`); hub-and-spoke otherwise | 5–6 | 7–15 |
 | `asset`, `channel`, `content`, `people`, `story` | grid (`cols ≈ √N`) | 5–8 | 7–30 |
 | `task` | **stakeholder inventory** when lanes exist or a People / Organisation element has relationships to the tasks: one lane per stakeholder (a related stakeholder becomes the lane and is not drawn as a box), `stages:` as columns with `{stage: …}`; it has no edges because its input has no other relationships (one written between two tasks is drawn); **path** when tasks link to a journey (`is part of`) or channels (`uses`): journeys above, tasks in input order, channels below; **stage columns** (official task map) when `stages:` is set without lanes or stakeholder relationships: one column container per stage, tasks stacked, a task without a known stage below with a warning; grid otherwise | 5–8 | 7–30 |
@@ -588,6 +610,29 @@ system-independent result nouns, 6–12 areas and 40–80 leaves (edgy-framework
 Examples: `examples/purpose-hierarchy-map.txt`,
 `examples/organisation-roles-map.txt`, `examples/reference-architecture-map.txt`,
 `examples/summary-map.txt`.
+
+## Architecture views (application, process, capability view, matrices)
+
+Applications and data are EDGY **Assets** with `{kind: application |
+platform | integration | data}` — the views add layouts, not a notation.
+One `draw: false` model page with explicit `{id:}`s feeds the document
+graph; a view page of `map_type: application`, `process` or
+`capability-matrix` without elements of its own is derived from it, and
+`capability-view` always is. `expand: per-capability | per-application |
+per-process` (with `where: ids | highlight | top`) writes one page per
+element. From an assessment model: `edgy_model_to_txt.py MODEL.json --views
+all` (edgy-assessment, model format 1.9). New rules: **E014** conflicting
+or duplicate id, **E015** relationship to an unknown id, **W124** application
+without an owner, **W125** integration without a data asset, **W126** band
+mismatch on a value chain, **W127** empty capability-view band with its
+evidence status (`{gaps: band=status}`, written to `qa.json`
+`model_gaps[]`). Not supported yet: **C4** diagrams (planned as the separate `edgy-c4`
+skill, v2.5.0) — say so and offer the application map or a capability view;
+`notation: c4` is E013 until that skill is installed. Read
+`references/architecture-views.md` before drawing any of these maps; examples: `examples/application-map.txt`,
+`examples/application-by-capability-map.txt`,
+`examples/process-chain-map.txt`, `examples/process-swimlane-map.txt`,
+`examples/capability-view-map.txt`.
 
 ## Transition Overlay (EDGY extension — current → target state)
 
@@ -661,6 +706,14 @@ the native preview) next to the `.drawio`. Write into wikis, trackers or other
 external systems only when the user asks, and then place each diagram next
 to the section it belongs to. Say in the delivery which layouts are EDGY
 extensions (transition overlay, `reference`, `summary`).
+
+**External standards.** EDGY 23 is the language of every map. Classifications
+from outside EDGY — Gartner TIME, CRUD, the management / core / support
+process bands, the swimlane layout, maturity and hosting badges, the
+ArchiMate export, and C4 (planned, separate skill) — are registered with
+their rationale, limits and source in `references/external-standards.md`.
+Name the ones a delivery uses, credit the source (the legends do), and never
+use a classification that is not in the register: propose an entry instead.
 
 ## Dependencies
 

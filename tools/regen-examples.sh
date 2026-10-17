@@ -3,6 +3,7 @@
 # edgy-diagram skill from its input. Run after a generator change; never edit
 # the expected files by hand. Usage: bash tools/regen-examples.sh
 set -euo pipefail
+export EDGY_TEXT_TABLE_ONLY=1      # canonical metrics: the glyph tables CI measures with (not a local Pillow)
 cd "$(dirname "$0")/../skills/documentation/edgy-diagram"   # layout_from: paths in the inputs are relative to the skill root
 EX="examples"
 GEN="scripts/edgy_generator.py"

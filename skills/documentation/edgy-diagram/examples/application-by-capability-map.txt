@@ -1,0 +1,42 @@
+# Application map grouped by capability (architecture view, edgy-diagram 2.8.0): an application
+# sits in the area of the capability that requires it — the requires link marked {primary: true},
+# else the single requiring capability's area. Several areas without a primary → the Shared strip;
+# input order never decides. The capabilities are drawn as the areas, not as cards. Fictional.
+map_type: application
+group_by: capability
+ownership: required
+language: en
+legend: strip
+
+elements:
+  - group: "Fares and ticketing"
+    - capability: "Fare product definition" {id: CAP-04}
+    - capability: "Sales in every channel" {id: CAP-05}
+  - group: "Planning and operations"
+    - capability: "Timetable planning" {id: CAP-08}
+    - capability: "Real-time passenger information" {id: CAP-09}
+  - asset: "Fare engine" {id: APP-07, kind: application, time: invest}
+  - asset: "Ticket shop" {id: APP-05, kind: application, time: invest}
+  - asset: "Timetable planner" {id: APP-11, kind: application, time: migrate}
+  - asset: "Passenger info hub" {id: APP-17, kind: application, time: invest}
+  - asset: "Identity provider" {id: APP-04, kind: platform, time: invest}
+  - asset: "Integration platform" {id: APP-16, kind: integration, time: tolerate}
+  - organisation: "Fares team"
+  - organisation: "Platform team"
+
+relationships:
+  - "CAP-04" -> "APP-07": "requires"
+  - "CAP-05" -> "APP-05": "requires"
+  - "CAP-05" -> "APP-07": "requires" {primary: true}
+  - "CAP-08" -> "APP-11": "requires"
+  - "CAP-09" -> "APP-17": "requires"
+  - "CAP-05" -> "APP-04": "requires"
+  - "CAP-09" -> "APP-04": "requires"
+  - "CAP-08" -> "APP-16": "requires"
+  - "CAP-04" -> "APP-16": "requires"
+  - "Fares team" -> "APP-07": "manages"
+  - "Fares team" -> "APP-05": "manages"
+  - "Platform team" -> "APP-04": "manages"
+  - "Platform team" -> "APP-16": "manages"
+  - "Platform team" -> "APP-11": "manages"
+  - "Platform team" -> "APP-17": "manages"

@@ -1,6 +1,6 @@
 ---
 name: edgy-deep-dive
-version: "1.1.0"
+version: "1.1.1"
 description: >
   Targeted EDGY 23 deep-dive analysis of a specific element pair or facet combination.
   Requires an existing edgy-model.json produced by the edgy-assessment skill.
@@ -130,7 +130,8 @@ Do not skip phases. Every phase is required to produce a complete, grounded anal
    model that fails validation is not analysed — ask the user to fix it or to
    run `edgy-assessment` in `extract-model` mode. Never invent elements that
    the model does not contain.
-1. Read the `model` file (edgy-model.json).
+1. Read the `model` file (edgy-model.json). `elements.organisation` is one object (format 1.8)
+   or an array (1.9) — treat a single object as a list of one.
 2. Extract the entries for all `focus_elements` from `elements`.
 3. Note the coherence scores from `coherence` for any intersection elements in the focus.
 4. Check `suggested_deep_dives` — if this exact pair was suggested, note its rationale and priority.
@@ -308,7 +309,7 @@ relationships:
 Then author `<company>-deep-dive-<elements>.drawio` directly as XML following the pairwise layout rules (the generator does not yet support the pairwise layout), include the legend block from the edgy-diagram skill, and lint the file before delivery:
 
 ```bash
-G=skills/documentation/edgy-diagram/scripts
+G=${EDGY_DIAGRAM_SCRIPTS:-skills/documentation/edgy-diagram/scripts}   # installed skills: ~/.claude/skills/edgy-diagram/scripts
 python3 $G/edgy_lint.py <company>-deep-dive-<elements>.drawio     # 0 errors required
 python3 $G/edgy_render.py <company>-deep-dive-<elements>.drawio   # SVG (+PNG) preview — look at it before delivery
 ```

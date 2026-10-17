@@ -4,6 +4,137 @@ Releases of the edgy-skills bundle are git tags. Each skill also carries its
 own semantic version in its `SKILL.md` front matter and in `registry.yaml`.
 Install a release with `EDGY_SKILLS_REF=<tag>` (see README → Versions).
 
+## v2.4.0 — 2026-10
+
+Architecture views: an application map, a value chain and swimlane process
+maps, one capability view per capability and two matrices — all drawn from
+one model, in EDGY notation (applications and data are Assets of a `kind`)
+— plus a self-contained offline presentation of every view. Background:
+`docs/development-plan-2026-10-architecture-views.md` (revision 5, locked;
+deviations in its §12). C4 per application (`edgy-c4`) is v2.5.0.
+
+| Skill | v2.3.0 | v2.4.0 |
+|-------|--------|--------|
+| edgy-diagram | 2.7.0 | **2.8.0** |
+| edgy-assessment | 1.9.0 | **1.10.0** |
+| edgy-framework | 1.6.0 | **1.7.0** |
+| edgy-target-state | 1.1.0 | **1.2.0** |
+| edgy-deep-dive | 1.1.0 | **1.1.1** |
+
+No breaking changes. Every new input key and model field is opt-in; every
+shipped 1.8 model gives byte-identical TXT, diff and ArchiMate output
+(`tools/test_model_compat.py`). Generated draw.io output changed in style
+keys only: every element cell carries the identity markers of extension
+contract 1 (`edgyId`, `edgyType`, `edgyOcc` …) and every legend cell
+`edgyRole=legend` — the regenerated examples differ from v2.3.0 only there
+(`tools/compare-style-only.py`).
+
+**edgy-diagram 2.8.0**
+- **Document graph** over all pages: one model element per explicit
+  `{id:}`, occurrences per page, cross-page relationships; **E014**
+  conflicting or duplicate id, **E015** relationship to an unknown id;
+  `draw: false` model pages; `expand: per-capability | per-application |
+  per-process` with `where: ids | highlight | top`; `--graph` writes it as
+  JSON (`assets/edgy-graph.schema.json`).
+- **`map_type: application`**: domains, domains × layers (`rows:`) or
+  `group_by: capability` areas with a Shared strip (no primary area) and an
+  External systems column; Gartner TIME lifecycle badge `{time: …}` and a
+  second badge (`{hosting: …}` / `{criticality: …}`); integrations as
+  `transfers` with data and technology on a second label line; `edges:
+  direct | none`; owners and data folded onto cards and labels; **W124**
+  application without an owner (warning with `ownership: required`),
+  **W125** integration without data.
+- **Orthogonal routing** (`scripts/edgy_route.py`, `route: auto`) through
+  the channels between cards, labels on the longest free segment.
+- **`map_type: process`**: `process_view: chain` (L1 row, L2 stacked, L3
+  with `depth: 3`, management / core / support bands, **W126**) and
+  `process_view: swimlane` (lanes per performer, staircase, asset chips).
+- **`map_type: capability-view`**: one capability with actors, processes,
+  resources, data (CRUD) and products in five bands, `hops: 2` context;
+  **W127** for an empty band with an evidence status (`{gaps: band=status}`)
+  — `qa.json` gains `model_gaps[]` and `generator_notes[]`.
+- **`map_type: capability-matrix`**: capabilities × applications (● / ◉
+  primary) and `matrix: crud` (processes × data with CRUD letters).
+- An empty application, process or matrix page is derived from the document
+  graph — nothing is typed twice.
+- **Presenter-lite** (`scripts/edgy_present.py`, `--present`): one offline
+  HTML of every view — card wall → zoom, cross-view highlight, ⌘K search,
+  current ↔ target filter over `{change:}` annotations, paging, deep links,
+  print; CSP with sha256 hashes and `connect-src 'none'`; browser self-test
+  in CI. `*presentation*.html` is git-ignored outside `examples/`. The card
+  wall sizes its rows by content and has a phone layout (one column, the
+  top bar wraps); the self-test checks in a narrow window that no card is
+  flattened.
+- **Extension contract 1** (`references/extension-contract.md`): style
+  markers, graph JSON, SVG `data-*` groups (renderer hardened against
+  attribute break-out), notation handlers that fail closed (**E013**
+  unknown notation, **E012** mixed notations on one page).
+- Routed maps, after the agent test round: one port list per card side for
+  both directions, no shared trunks between different edges, labels off group
+  titles and off other edges; `ownership: required` marks `no owner` on the
+  card; a TIME value hidden by a maturity / rating badge is a warning. New lint
+  **W128**: a header text (band header, matrix key) covered by the legend.
+- Influence verbs `stores`, `accesses {crud:}`, `interacts with`
+  (fi / en / fr / de); semantic question **S013** (application named like
+  the capability it serves).
+- Examples: application-map, application-by-capability-map,
+  process-chain-map, process-swimlane-map, capability-view-map (strict lint
+  gate); eval `architecture-views.txt` (12 capabilities, 18 applications, 10
+  data assets, 6 actors) — `check.sh` step `edgy-architecture-views`
+  requires 0 lint findings and 0 visual findings on every view.
+- Golden test (`edgy-examples-golden`): every example is regenerated in
+  `check.sh` and must equal its `expected-*` file. The gates and
+  `tools/regen-examples.sh` measure text with the glyph tables
+  (`EDGY_TEXT_TABLE_ONLY=1`), the backend CI has — a local Pillow with real
+  fonts measures a pixel differently and must not move the examples.
+
+- **External standards register** (`references/external-standards.md`):
+  every classification from outside EDGY (Gartner TIME, CRUD, process bands,
+  swimlane layout, maturity / hosting badges, ArchiMate export, C4 planned)
+  with what it answers, why it was chosen, alternatives, how it stays
+  subordinate to EDGY, and its source and licence. CONTRIBUTING: no external
+  standard without an entry; NOTICE names the third parties. An audit of
+  every skill added the capability classification (nature, level,
+  sourcing), the building-block / work-package terms (TOGAF-derived) and
+  the strategy vocabulary, and lists the skills' own analysis constructs.
+- **README: Principles** — EDGY 23 first, visible opt-in extensions, the
+  register, another notation as another skill, gaps as evidence, offline,
+  no client material.
+
+**edgy-assessment 1.10.0**
+- Model format **1.9** (additive): `relationships[]` between element ids,
+  `elements.people`, `organisation` as an object or an array, asset `kind`,
+  `hosting`, `owner`, `time`, `criticality`, `master`, capability `gaps`,
+  process `band`.
+  The validator supports `oneOf` / `anyOf` / `null` and rejects 1.9
+  structures in a model that does not declare 1.9.
+- `edgy_model_to_txt.py --views …|all`: one multi-page TXT with the model
+  page and the architecture views (swimlanes one page per L1 process).
+- `edgy_model_diff.py` compares asset attributes and `relationships[]`; for
+  a 1.9 model the transition TXT draws only what changes (routed, lint-clean;
+  `--full` draws everything);
+  `edgy_model_to_archimate.py` maps applications to ApplicationComponent,
+  platforms to Node, data to DataObject, `stores` / `accesses` to Access
+  (accessType from `crud`), `transfers` to Flow, People to BusinessActor.
+- Fix: the scripts find edgy-diagram after an install, not only in a
+  checkout (`scripts/edgy_paths.py`).
+- Example `examples/architecture-model.json` (1.9, fictional).
+
+**edgy-framework 1.7.0**
+- *Modelling applications, data and actors*: applications and data as
+  Assets of a kind, owners and performers, primary capability, master data,
+  integrations, TIME — and model gaps vs findings.
+- Fix: the identify-mode capability table used other values for `nature`
+  and `level` than the model schema; it now uses the schema's values.
+
+**edgy-target-state 1.2.0**
+- Optional application landscape and capability × application matrix from
+  a 1.9 model, with `ownership: required`.
+
+**edgy-deep-dive 1.1.1**
+- `organisation` may be an object (1.8) or an array (1.9); install-aware
+  script path.
+
 ## v2.3.0 — 2026-10
 
 Coverage: the shapes of the official EDGY 23 maps that the generator could

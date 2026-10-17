@@ -42,7 +42,12 @@ Rules (S = semantic; each finding carries the reason and the question to answer)
   S012 an Outcome outside a purpose map carries no measure (no metric in
        {…}, no number in the name) while other Outcomes on the page do —
        how will anyone know it happened? (info)
-S001–S006 run on purpose maps (S001 / S006 on every Purpose); S007–S012 on
+  S013 an application (Asset of kind application / platform / integration) has
+       the name of a capability it serves, or the same word stems without a
+       system word (engine, platform, hub, planner …) — is it the system or the
+       ability? (info; a question, never a demand to rename: some
+       products are named after what they do)
+S001–S006 run on purpose maps (S001 / S006 on every Purpose); S007–S013 on
 every page that has the element type.
 
 Standard library only.
@@ -85,7 +90,7 @@ MEASURES_VERBS = _vocab.spellings('measures') or {'measures'}
 METRIC_RE = re.compile(r'(\d+([.,]\d+)?\s?(%|€|eur|kpl|pcs|h|min(?:utes?|uut(?:ti|tia))?|pv|d|days?|hours?|km|t|co2)(?!\w))'
                        r'|([≥≤<>]\s?\d)|(\d+\s?/\s?\d+)', re.I)
 STEM_MIN = 5
-RULE_SET = 'S001-S012'   # recorded in qa.json: which questions a run could raise
+RULE_SET = 'S001-S013'   # recorded in qa.json: which questions a run could raise
 REVIEWED_TYPES = {'purpose', 'outcome', 'capability', 'task'}   # pages with these types get a semantic_review entry
 
 # S008 / S011: the FIRST word is a verb in base form (infinitive / imperative) — exact
@@ -125,6 +130,12 @@ INTERNAL_VERBS = {'process', 'handle', 'approve', 'administer', 'invoice', 'onbo
                   'facturer', 'bearbeiten', 'genehmigen', 'abrechnen', 'registrieren'}
 CUSTOMER_STEMS = ('customer', 'client', 'passenger', 'citizen', 'user', 'asiak', 'matkustaj', 'käyttäj', 'kansalai',
                   'usager', 'voyageur', 'kunde', 'kundin', 'fahrgast', 'fahrgäst', 'bürger', 'nutzer')
+
+
+# S013: words that already make a name a system name ("Fare engine", "Passenger info hub")
+SYSTEM_NOUNS = {'engine', 'system', 'platform', 'app', 'application', 'hub', 'portal', 'shop', 'tool', 'gateway',
+                'service', 'suite', 'database', 'api', 'bus', 'registry', 'tablet', 'järjestelmä', 'alusta', 'sovellus',
+                'palvelu', 'portaali', 'système', 'plateforme', 'outil', 'portail', 'system', 'plattform', 'dienst'}
 
 
 def _tokens(text: str) -> List[str]:
@@ -281,6 +292,20 @@ def review_parser(p: EDGYParser, page: str = None) -> List[Dict]:
                     _has_measure(o) for o in p.elements.values() if o['type'] == 'outcome'):
                 add('S012', 'info', e, 'no measure (no metric, no number)',
                     'How will anyone know this happened? Add a metric ({kpi: …}) or link a measuring Outcome.')
+    # S013: an application named like the capability it serves (requires: capability → asset)
+    apps = {eid: e for eid, e in p.elements.items()
+            if e['type'] == 'asset' and e.get('kind') in ('application', 'platform', 'integration')}
+    for rel in p.relationships:
+        app, cap = p.elements.get(rel['target']), p.elements.get(rel['source'])
+        if not app or not cap or rel['target'] not in apps or cap['type'] != 'capability':
+            continue
+        same = app['name'].strip().lower() == cap['name'].strip().lower()
+        a, c = _stems(app['name']), _stems(cap['name'])
+        system_word = any(t in SYSTEM_NOUNS or t.endswith(('er', 'or')) for t in _tokens(app['name']))
+        if same or (a and a == c and not system_word):
+            add('S013', 'info', app, f'named like the capability it serves ("{cap["name"]}")',
+                'Is this the system or the ability? If it is the system, a product or system name helps '
+                '("Fare engine" for "Ticketing"); if the name is the product\'s real name, keep it — this is a question only.')
     return F
 
 

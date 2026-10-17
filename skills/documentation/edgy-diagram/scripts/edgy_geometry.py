@@ -361,6 +361,9 @@ def approx_text_width(text: str, fs: float, bold: bool = False) -> float:
         return len(text) * fs * CHAR_W * (1.08 if bold else 1.0)
 
 
+DETAIL_FS = 9.0   # second edge-label line (data names, technology), as the generator writes it
+
+
 def edge_label_box(path: Sequence[Point], text: str, fs: float, relative_x: Optional[float] = None,
                    relative_y: Optional[float] = None, offset: Optional[Point] = None,
                    bold: bool = False) -> Optional[Box]:
@@ -373,9 +376,13 @@ def edge_label_box(path: Sequence[Point], text: str, fs: float, relative_x: Opti
     ax, ay = label_anchor(path, label_fraction(relative_x), perpendicular, offset or (0.0, 0.0))
     if relative_y is None and not offset:
         ay -= fs * 0.6
-    w = approx_text_width(text, fs, bold) + LABEL_PAD
-    h = fs * LABEL_H
-    return (ax - w / 2, ay - h / 2, w, h)
+    # a second line (data names / technology, 9 px) widens and heightens the box downwards
+    lines = [ln for ln in text.split('\n') if ln.strip()] or [text]
+    sizes = [fs] + [min(fs, DETAIL_FS)] * (len(lines) - 1)
+    w = max(approx_text_width(ln, f, bold and k == 0) for k, (ln, f) in enumerate(zip(lines, sizes))) + LABEL_PAD
+    h = sum(f * LABEL_H for f in sizes)
+    first_h = fs * LABEL_H
+    return (ax - w / 2, ay - first_h / 2, w, h)
 
 
 # ─── collisions ──────────────────────────────────────────────────────────────
