@@ -208,6 +208,19 @@ def test_model_19_transition_draws_what_changes_and_lints_clean():
             assert lint.returncode == 0, (name, lint.stdout)
 
 
+def test_model_19_transition_names_the_data_an_integration_carries():
+    """data is a list of asset ids in 1.9: the transition page names them, never a Python list repr."""
+    cur = json.loads((HERE.parent / "examples" / "architecture-model.json").read_text(encoding="utf-8"))
+    tgt = copy.deepcopy(cur)
+    tgt["elements"]["asset"] = [a for a in tgt["elements"]["asset"] if a.get("id") != "APP-20"]
+    tgt["elements"]["asset"].append({"name": "Revenue hub", "id": "APP-21", "kind": "application"})
+    for r in tgt["relationships"]:
+        r["source_id"], r["target_id"] = (x.replace("APP-20", "APP-21") for x in (r["source_id"], r["target_id"]))
+    txt = md.to_txt(md.compare(cur, tgt), cur, tgt)
+    assert "['" not in txt, txt
+    assert 'data: "Trip events"' in txt and 'data: "Sales ledger"' in txt, txt
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith('test_')]
     for t in tests:
