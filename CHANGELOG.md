@@ -4,6 +4,11 @@ Releases of the edgy-skills bundle are git tags. Each skill also carries its
 own semantic version in its `SKILL.md` front matter and in `registry.yaml`.
 Install a release with `EDGY_SKILLS_REF=<tag>` (see README → Versions).
 
+## Unreleased
+
+- Zenodo DOI [10.5281/zenodo.23439782](https://doi.org/10.5281/zenodo.23439782) (all versions): a DOI badge in
+  README and `doi:` in `CITATION.cff`. Metadata only.
+
 ## v2.5.1 — 2026-10
 
 Authorship metadata only; no skill changes (every skill keeps its v2.5.0

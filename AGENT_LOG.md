@@ -20,6 +20,14 @@ perustelut.
 
 ---
 
+### 2026-10-17 — Claude Code (Zenodo DOI)
+
+- **Why the concept DOI.** Zenodo archived the v2.5.1 release through its
+  GitHub integration. README and CITATION.cff cite the concept DOI
+  (10.5281/zenodo.23439782), which resolves to the latest version, so they need no
+  update on each release; each release still gets its own version DOI on
+  Zenodo.
+
 ### 2026-10-17 — Claude Code (v2.5.1: copyright holder and citation)
 
 - **Who holds the copyright.** The owner asked who holds the rights, and

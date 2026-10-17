@@ -9,6 +9,11 @@ authors:
 version: 2.5.1
 date-released: 2026-10-17
 license: Apache-2.0
+doi: 10.5281/zenodo.23439782
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23439782
+    description: "Zenodo concept DOI: all versions, resolves to the latest release"
 repository-code: "https://github.com/Rahola/edgy-skills"
 abstract: >-
   Agent skills for EDGY 23 enterprise design: assessment, framework analysis,

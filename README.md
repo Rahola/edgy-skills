@@ -1,5 +1,7 @@
 # edgy-skills
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23439782.svg)](https://doi.org/10.5281/zenodo.23439782)
+
 Agent skills for **EDGY 23 Enterprise Design** — a set of composable skills that
 let an AI coding agent (Claude Code, Cursor, and generic agents) run EDGY
 analyses and produce EDGY-notation diagrams.
@@ -236,7 +238,8 @@ before adding examples.
 
 Copyright 2026 Roope Ahola — an independent, spare-time project, developed with
 AI assistance (Claude Code). To cite it, use [CITATION.cff](CITATION.cff)
-(GitHub's "Cite this repository").
+(GitHub's "Cite this repository") or the Zenodo DOI
+[10.5281/zenodo.23439782](https://doi.org/10.5281/zenodo.23439782), which always resolves to the latest release.
 
 - Original skill instructions, tooling and CI: **Apache-2.0** (see [LICENSE](LICENSE));
   a redistribution keeps [NOTICE](NOTICE) and its copyright line.
