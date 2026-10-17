@@ -1,11 +1,15 @@
 # EDGY skills development plan (2026-10, part 5): v2.5.0 — C4, realisation trace, presenter scope
 
-**Revision 2 (2026-10-17) — DRAFT for agent review.** Revision 1 was
-reviewed by three Claude sub-agents: C4 feasibility against the code, the
-trace / model / presenter, and an adversarial pass. They found three
-blockers, 28 majors and 8 minors; §10 maps each one to its change. This
-revision waits for Vibe and Codex on PR #8 and for the owner's decisions
-in §3. Nothing is locked.
+**Revision 3 (2026-10-17) — DRAFT for agent review.**
+- **Revision 1** was reviewed by three Claude sub-agents: C4 feasibility
+  against the code, the trace / model / presenter, and an adversarial
+  pass. They found 3 blockers, 28 majors and 8 minors.
+- **Revision 2** was reviewed by Codex: 6 majors and 1 minor (CX1–CX7).
+  Codex supports the scope and agrees with Q1–Q6. §4a settles the
+  contracts it asked for.
+
+§10 maps every finding to its change. This revision waits for Vibe and
+for the owner's decisions in §3. Nothing is locked.
 
 It follows the released v2.4.0 (tag `v2.4.0`, merge commit `01a5dbe`) and
 takes over §4 of
@@ -67,7 +71,7 @@ object; then the owner decides.
 |---|----------|---------------------|-----------|
 | Q1 | How far does the presenter go? | **A: only the F7 drill-through, as part of effect 5** (paging and deep links). The cap stays at **5** effects. The rest of F6b waits for workshop evidence. | all three agree on A; the adversarial reviewer: keep the cap at 5 rather than "5 + 1" |
 | Q2 | How far does C4 go? | **L1 + L2.** L2 comes only from C4 pages and never from the EDGY model. No L3. C4-PlantUML moves to 0.2.0. | agree; PlantUML output needs a core hook and cannot be checked in CI (no Java) |
-| Q3 | How do C4 and the trace meet? | One link from an application card to its L1 page, through a core **C4 page index**. Without `edgy-c4`, the link is left out, never left dangling. | agree; it is core code, so it gets its own estimate |
+| Q3 | How do C4 and the trace meet? | The application card keeps its **trace link** as the primary action. A separate **C4 badge** on the card links to the L1 page, but only when that page exists (§4a). Without `edgy-c4`, the badge is not drawn. | agree; Codex CX4: the C4 link is a second action, never a replacement |
 | Q4 | Split the capability `nature` field? | **Deferred to v2.6.0.** 1.10 = journeys with ids + `gaps` keys only. | two reviewers: the split changes three writers and is unrelated to F7 / F4 |
 | Q5 | One release or two? | **One v2.5.0, with separate acceptance for F7 and F4.** M2 ships with F7; M1 can ship alone; F4 needs F4-core. Sprints are split so the slip lines are real (§6). | agree, with the coupling fixed |
 | Q6 | What is missing? | D1 docs; edgy-deep-dive 1.1.2 (it reads journey as one element); edgy-assessment emits the Experience links; a fix budget after testing | from the adversarial review |
@@ -245,8 +249,153 @@ a rule in the skill, because edgy-c4 has no data about decisions.
 
 ### Q3 Trace ↔ C4 link — droppable
 
-An application card on a trace page links to `c4-context-<APP id>` when
-the C4 page index has that page. Without it, the card has no link.
+See §4a. The trace link stays on the card, and a "C4" badge is the second
+action.
+
+### 4a. Contracts settled in revision 3 (Codex CX1–CX7)
+
+**Trace algorithm (CX3).**
+
+- **What a page shows.** A trace page shows the **direct neighbours** of
+  its focus (one hop) over the link whitelist of F7, never a transitive
+  chain. The reader walks the chain by clicking. Cycles therefore need no
+  special handling: each page is one hop.
+- **Where a neighbour goes.** The band is decided by **level**, not by
+  arrow direction:
+
+  | Neighbour's level | Band |
+  |-------------------|------|
+  | lower than the focus | *above* |
+  | higher than the focus | *below* |
+  | the same as the focus | *centre* |
+
+  `contains` gives the *part of* / *parts* chips. The edge keeps its EDGY
+  direction and verb.
+- **Order.** Within a band: by level, then by element type (in the order
+  of the level table), then by id. The output is deterministic.
+- **Page set.** `expand: trace` computes its page set first:
+  - all elements with ids at levels 1–6;
+  - `where: <ids>`: exactly those elements;
+  - `where: from JRN-01`: JRN-01 plus everything reachable from it by
+    going to a higher level over the whitelist (the downward closure).
+- **Link closure.** A card gets a page link **only if its destination
+  page is in the document.** A card without a page is drawn without a
+  link and counted in `generator_notes[]` ("N cards without a page:
+  outside `where:`"). The acceptance criterion "every link resolves"
+  therefore holds by construction, and the note says what was left out.
+  With `where: from`, every downward link resolves. Upward cards outside
+  the set are unlinked and counted.
+- **Fixtures** (phase 2):
+  - a cycle (two capabilities requiring each other's assets);
+  - a shared dependency (one asset under two capabilities);
+  - a disconnected element;
+  - a deliberately narrow `where:` filter.
+
+**Gap keys and W129 (CX2).** Each element type allows its own set of
+`gaps` keys:
+
+| Type | Allowed `gaps` keys | W129 checks |
+|------|---------------------|-------------|
+| journey | `tasks`, `channels`, `products` | `tasks` |
+| task | `products`, `channels` | `products` |
+| channel | `products` | `products` |
+| product | `capabilities`, `processes`, `organisation` | `capabilities` |
+| capability | `actors`, `processes`, `resources`, `data`, `products` (W127, unchanged), plus `organisation` | `processes`, `resources` |
+| process | `resources`, `organisation` | `organisation` |
+| asset | `organisation` | `organisation` |
+| people | `organisation` | `organisation` |
+| organisation | none | never; the end of the chain |
+
+Rules for W129:
+- **When it runs:** only on the *below* band of a page drawn with
+  `trace_direction: both` or `down`. It never runs on `up` pages, never
+  on organisations, and a same-level link never counts as *below*.
+- **Severity:** as in W127. `not_investigated` (the default) and
+  `unknown` are warnings. `out_of_scope` and `confirmed_absent` are notes.
+- **Clean-output gate:** a deliberate gap marked `out_of_scope` passes
+  it. The eval model sets statuses so that its trace is 0 / 0 / 0.
+
+**Q3 actions on an application card (CX4).**
+- **Trace action:** the card itself links to `trace-<id>`, with or
+  without C4.
+- **C4 action:** a separate badge cell labelled "C4", on the card's
+  corner, with its own link to the L1 page. It exists only when the C4
+  page index has that page.
+- **draw.io:** the card and the badge are two link cells.
+- **Presenter:** both are focusable with Tab and activated with Enter. On
+  touch, a tap opens the badge's target, and a tap on the card follows
+  the drill gesture. *Back* returns from either.
+- **Phase 2 test:** the same delivery is generated once with `edgy-c4`
+  and once without it.
+
+**C4 cross-page resolution (CX5).**
+- **Prepass and index.** Before any page is generated, the core runs a
+  **notation prepass** over every `notation:` page and builds a
+  document-level `notation_index[c4]`, separate from the EDGY graph. The
+  index holds:
+  - pages by (level, system);
+  - containers by id, with their owning system and page.
+- **Handler access.** `generate_page(page_text, graph)` reads the index
+  as `graph.notation_index` (an optional, compatible addition; still
+  `contract: 1`).
+- **Scope.** Container ids are unique in the document (C006).
+- **Prepass order.** Because the prepass runs first, page order does not
+  matter.
+- **Boundary annotation.** `{container: C-…}` on an EDGY `transfers`
+  names the container on the endpoint system that owns it, resolved
+  through the index. A transfer between two decomposed applications
+  names both: `{container: "C-A; C-B"}`. A container that belongs to
+  neither endpoint is C001.
+- **Phase 2 tests:**
+  - reversed page order;
+  - a container of the wrong system;
+  - a duplicate declaration;
+  - a two-sided boundary.
+- **Inferred actors (Q2, Codex).** An L1 Person derived through
+  *performs* → *requires* is an **inferred stakeholder**, not an observed
+  user. Its card has a dashed border, and the legend reads "inferred:
+  performs a process that requires this system".
+
+**Install contract (CX6).**
+- **Dependencies.** `lookup-skill.py requires <id>` returns the transitive
+  closure in install order.
+  - A missing dependency is an error, and so is a cycle.
+  - A dependency is always installed **from the same ref** as the
+    requested skill. An already installed older copy is overwritten,
+    and the log says so.
+- **`--all`.** `--all` skips skills whose `agents:` do not include the
+  adapter and names them. An explicit request for an unsupported skill
+  exits 1 with a message.
+- **`adapter-install` step:**
+  - runs **all four adapters**: claude-code and generic for real
+    installs into a temporary directory; Vibe and Cursor for the
+    unsupported-skill refusal and for failure handling with one broken
+    registry entry;
+  - checks that installed edgy-c4 runs from the temporary install, with
+    the checkout hidden, so the scripts cannot fall back to repository
+    files.
+
+**Ids in routes and pages (CX7).**
+- **Page ids.** A trace page id is `trace-` followed by the slug of the
+  model id. If the slug loses characters (for example `/` or `:`), it
+  gets six hex characters of the id's SHA-1 appended, so the id stays
+  deterministic and reversible through the index.
+- **Collisions.** Trace and C4 page ids are assigned first. An ordinary
+  page whose slug collides gets the existing `-N` suffix
+  (`edgy_document.py:45`).
+- **Presenter routes.** Each segment of a route is encoded with
+  `encodeURIComponent`, so ids that contain `/` survive.
+- **Phase 2 tests:**
+  - slash-bearing ids;
+  - rename and reorder;
+  - refresh and deep-link restore;
+  - browser back and forward.
+
+**Mixed delivery (Codex Q6).** One delivery with EDGY views, trace pages
+and C4 pages must read and navigate well in the presenter. C4 containers
+never appear as EDGY graph elements: the presenter's search and highlight
+skip them. This case is an acceptance item, and the browser and PDF
+checks remain release items for a person.
 
 ### M1 Adapters — P1
 
@@ -258,14 +407,16 @@ broken registry entry, which must exit 1.
 
 ### M2 Model format 1.10 — ships with F7
 
-- `journey`: one object (1.9) or an array of journeys with `id` (`oneOf`,
-  as `organisation` in 1.9). A journey `id` and a journey array are gated
-  as 1.10 structures.
-- `gaps` on every chain type, from **one key set**: `tasks`, `channels`,
-  `products`, `capabilities`, `processes`, `resources`, `actors`, `data`,
-  `organisation`. The W127 keys keep their meaning. Each type allows the
-  keys of its *below* levels.
-- **New `compat-1.9` fixtures,** written with the v2.4.0 scripts: 1.9 and
+- `journey`: one object (1.9) or an array of journeys (`oneOf`, as
+  `organisation` in 1.9).
+  - Only the **array** is a 1.10 structure.
+  - A single journey with an `id` is valid 1.9 today and stays valid 1.9
+    (Codex CX1; `tools/validate-edgy-model.py:140` already resolves its
+    id).
+- `gaps` on the chain types, with the keys defined per type in §4a. The
+  capability keeps every key it has today.
+- **New `compat-1.9` fixtures,** written with the v2.4.0 scripts. One of
+  them has a single journey with an id and relationships to it. 1.9 and
   1.8 inputs give byte-identical TXT, diff and ArchiMate output.
 - edgy-assessment emits the Experience links (*serves*, *features in*,
   *offers*) when it extracts a 1.10 model.
@@ -355,7 +506,9 @@ the list page, C4 L1 and C4 L2.
 **F7**
 - From the eval model's journey, every level down to organisation and
   back up is reachable by links.
-- Every link resolves.
+- Every link resolves. Cards without a page are counted in a note (§4a).
+- The four algorithm fixtures pass: a cycle, a shared dependency, a
+  disconnected element and a narrow filter.
 - Every trace page scores 0 / 0 / 0.
 - W129 statuses are written to `model_gaps[]`.
 - Hidden cards are counted in `generator_notes[]`.
@@ -376,7 +529,10 @@ the list page, C4 L1 and C4 L2.
 - edgy-c4 installs with its requirement on claude-code and generic, and
   is refused with a clear message on Vibe, Cursor and in curl mode.
 
-**M1:** a broken entry exits 1 and names the skill.
+**M1:** a broken entry exits 1 and names the skill, on all four adapters.
+
+**Mixed delivery:** EDGY, trace and C4 pages in one presenter: navigable,
+readable, and C4 containers never in the EDGY graph (§4a).
 
 **M2:** 1.9 and 1.8 inputs give byte-identical output; 1.10 validates.
 
@@ -399,6 +555,21 @@ the list page, C4 L1 and C4 L2.
 | Pictures that lint passes but people cannot read | pixel review and rubric are acceptance criteria, not advice |
 
 ## 10. Review log
+
+**Revision 3 — Codex review of revision 2.** Codex supports the scope
+and agrees with Q1–Q6. It requested changes before locking.
+
+| Finding | Severity | Change |
+|---------|----------|--------|
+| CX1: gating a journey id as 1.10 rejects valid 1.9 input | major | only the journey array is 1.10; a `compat-1.9` fixture has a journey with an id |
+| CX2: the per-type gaps rule contradicts the capability's `gaps.products` | major | per-type key table; W129 run rules and severities (§4a) |
+| CX3: trace selection and link closure undefined | major | the trace algorithm: one hop, level-based bands, deterministic order, page set, link closure, fixtures (§4a) |
+| CX4: the Q3 C4 link replaced the trace link | major | trace link primary; a C4 badge as a second action |
+| CX5: C4 cross-page resolution incomplete | major | notation prepass and index, container ownership, two-sided `{container:}`, tests (§4a) |
+| CX6: the install gate missed the changed adapters; no dependency resolution | major | `requires` closure, same-ref installs, `--all` filtering, all four adapters in `adapter-install` (§4a) |
+| CX7: ids in routes and the slug namespace | minor | hashed slugs when lossy, trace/C4 ids first, encoded routes (§4a) |
+| Q2: an inferred Person is not an observed user | — | dashed border and a legend line (§4a) |
+| Q6: the mixed EDGY + C4 presenter case | — | §4a and §8 |
 
 **Revision 2 — three Claude sub-agent reviews of revision 1** (C4 vs
 code; trace, model and presenter; adversarial). Every finding was checked
