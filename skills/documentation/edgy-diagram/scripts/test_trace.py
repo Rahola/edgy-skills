@@ -477,6 +477,34 @@ def test_from_closure_walks_same_level_links():
     assert edgy_trace.page_id('APP-01') in down and edgy_trace.page_id('ORG-02') in down, down
 
 
+def test_phase4_codex_ids_and_model_page_messages():
+    """Codex F1: INDEX never takes the index's page id, and ids that differ only in case are an error, not two
+    pages with one id. Codex F3: E010 on a draw: false model page is reported (F-PATH-NEG)."""
+    base = """pages:
+  - name: "Model"
+    draw: false
+    elements:
+      - journey: "Book a trip" {id: JRN-01}
+      - capability: "Reserved" {id: INDEX}
+%s  - name: "Trace"
+    map_type: trace
+    expand: trace
+"""
+    pages = parse_document(base % '')
+    ids = [p.page_id for _, p in pages]
+    assert len(ids) == len(set(ids)) and ids.count('trace-index') == 1, ids
+    assert edgy_trace.page_id('INDEX').startswith('trace-index-'), edgy_trace.page_id('INDEX')
+    pages = parse_document(base % '      - capability: "A" {id: CAP-X}\n      - capability: "B" {id: cap-x}\n')
+    errs = [e for _, p in pages for e in p.errors]
+    assert any('would share the page id trace-cap-x' in e for e in errs), errs
+    neg = F_PATH.replace('      - "PRD-01" -> "JRN-01": "features in"',
+                         '      - "PRD-01" -> "JRN-01": "features in"\n      - "PPL-01" -> "PRO-01": "performs"')
+    assert neg != F_PATH
+    pages = parse_document(with_trace(neg))
+    warns = [w for _, p in pages for w in p.warnings]
+    assert any(w.startswith('[Model] E010') and 'people → process' in w for w in warns), warns
+
+
 def test_views_trace_is_opt_in():
     """--views trace writes the Trace page; --views all leaves it out (a large model gives many pages)."""
     script = os.path.join(HERE, '..', '..', '..', 'architecture', 'edgy-assessment', 'scripts', 'edgy_model_to_txt.py')

@@ -127,7 +127,7 @@ def page_id(model_id: str) -> str:
     """trace-<slug>; when the slug loses characters (/ : . _ …), six hex characters of the SHA-1 of the
     UTF-8 id are appended so the id stays unique and deterministic (plan §4a, CX7)."""
     slug = _SLUG.sub('-', model_id.lower()).strip('-') or 'x'
-    if slug != model_id.lower():
+    if slug != model_id.lower() or slug == 'index':      # 'index' would be the trace index's own page id
         slug += '-' + hashlib.sha1(model_id.encode('utf-8')).hexdigest()[:6]
     return 'trace-' + slug
 

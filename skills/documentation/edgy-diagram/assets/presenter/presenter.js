@@ -20,17 +20,20 @@
   var SVGNS = 'http://www.w3.org/2000/svg';
 
   // ---- model ---------------------------------------------------------------------------------------
-  var byId = {};
+  // model ids are data: every index is a null-prototype object, so an id such as "constructor" or
+  // "__proto__" is an inert key and never reaches Object.prototype
+  function dict() { return Object.create(null); }
+  var byId = dict();
   graph.elements.forEach(function (e) { byId[e.id] = e; });
-  var near = {};
+  var near = dict();
   graph.relationships.forEach(function (r) {
-    (near[r.source] = near[r.source] || {})[r.target] = true;
-    (near[r.target] = near[r.target] || {})[r.source] = true;
+    (near[r.source] = near[r.source] || dict())[r.target] = true;
+    (near[r.target] = near[r.target] || dict())[r.source] = true;
   });
-  var pageIndex = {};
+  var pageIndex = dict();
   views.forEach(function (v, i) { pageIndex[v.page_id] = i; });
   // realisation trace (2.9.0): one Trace card (the index); element pages and list pages are reached by drilling
-  var traceIndex, traceOf = {}, listOf = {}, visible = [];
+  var traceIndex, traceOf = dict(), listOf = dict(), visible = [];
   views.forEach(function (v, i) {
     if (v.trace === 'index' && traceIndex === undefined) { traceIndex = i; }
     else if (v.trace === 'page' && v.focus && !Object.prototype.hasOwnProperty.call(traceOf, v.focus)) { traceOf[v.focus] = i; }
@@ -39,7 +42,7 @@
   });
   function has(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
   function occurrencesByView(id) {
-    var out = {};
+    var out = dict();
     var e = byId[id];
     (e ? e.occurrences : []).forEach(function (o) {
       if (o.page_id in pageIndex) { out[pageIndex[o.page_id]] = (out[pageIndex[o.page_id]] || 0) + 1; }
@@ -473,7 +476,7 @@
       $$('.is-focus, .is-near, .is-hot', svg).forEach(function (n) { n.classList.remove('is-focus', 'is-near', 'is-hot'); });
       svg.classList.toggle('focusing', !!id);
       if (id) {
-        var nb = near[id] || {};
+        var nb = near[id] || dict();
         $$('g.el', svg).forEach(function (g) {
           var gid = g.getAttribute('data-id');
           if (gid === id) { g.classList.add('is-focus'); }
@@ -489,7 +492,7 @@
         });
       }
     }
-    var hits = id ? occurrencesByView(id) : {};
+    var hits = id ? occurrencesByView(id) : dict();
     $$('.tab').forEach(function (t) {
       var i = Number(t.getAttribute('data-view'));
       var badge = $('.hits', t);
@@ -519,7 +522,7 @@
     if (dl.childNodes.length) { box.appendChild(dl); }
     box.appendChild(el('h4', null, 'Appears in'));
     var ul = el('ul');
-    var seen = {};
+    var seen = dict();
     e.occurrences.forEach(function (o) {
       var i = pageIndex[o.page_id];
       if (i === undefined || seen[i]) { return; }
@@ -922,6 +925,8 @@
     }).then(function () {
       showWall();
       check('back', current === -1 && !$('#wall').hidden);
+      check('inert-keys', !Object.prototype.hasOwnProperty.call(Object, 'CAP-X') && ({}).constructor === Object &&
+                          Object.getPrototypeOf(byId) === null && Object.getPrototypeOf(near) === null);
       check('no-errors', errors === 0 && cspViolations === 0);
       done(true);
     }).catch(function () { done(false); });

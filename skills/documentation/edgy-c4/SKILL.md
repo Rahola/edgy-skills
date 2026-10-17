@@ -118,6 +118,7 @@ added to the derived ones; such a hand-written page must list its own `system:` 
 | C004 | error | `system:` is not an application asset, or is a platform / integration kind; `level:` is not `context` or `container` |
 | C005 | warning | `system:` is not drawn on its hand-written L1 page |
 | C006 | error | a container id declared twice, or two pages for the same level and system |
+| C007 | error | a line of an `elements:` or `relationships:` section that cannot be read (a missing brace, a stray item) — never dropped silently |
 
 An error stops the generator (exit 2, no file). C001 and C006 are checked in the notation
 prepass over all C4 pages, so page order never matters.

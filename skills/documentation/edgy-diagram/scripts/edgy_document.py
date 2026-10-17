@@ -167,6 +167,14 @@ def parse_document(text: str, with_graph: bool = False):
         holder = next((p for n, p in result if n == page), result[0][1] if result else None)
         if holder is not None:
             _apply_finding(holder, finding)
+    # a draw: false model page is never drawn, but its messages (E010 on a core verb between the wrong pair …)
+    # are the input's: they are reported on the first drawn page, named by their page
+    if result:
+        holder = result[0][1]
+        for name, parser, _t in parsed:
+            if parser is not None and not parser.draw and parser is not holder:
+                holder.warnings.extend(f"[{name or 'model'}] {w}" for w in parser.warnings)
+                holder.errors.extend(f"[{name or 'model'}] {e}" for e in parser.errors)
     # fixed ids first (realisation trace: trace-<id>, notation pages: their handler's page_id), then the slugs of
     # the other pages around them
     fixed = {p.fixed_page_id for _, p in result if getattr(p, 'fixed_page_id', None)}
@@ -234,6 +242,14 @@ def _expand_trace(base: str, page_text: str, where, graph) -> List[Tuple[str, ED
     for cyc in edgy_trace.contains_cycles(graph):
         index.warnings.append("trace: contains cycle " + " → ".join(cyc) + " — a hierarchy cannot contain itself; "
                               "the chips show it once, never followed")
+    # one page id, one destination: ids that differ only in case (CAP-X, cap-x) would share a page and a link
+    seen: dict = {}
+    for _name, p in out:
+        seen.setdefault(p.fixed_page_id, []).append(_name)
+    for pid, owners in seen.items():
+        if len(owners) > 1:
+            problems.append(f"expand: trace — {len(owners)} pages would share the page id {pid} "
+                            f"({', '.join(map(str, owners))}): give the elements ids that differ in more than case")
     for msg in problems:
         index.warnings.append(msg)
         index.errors.append(msg)

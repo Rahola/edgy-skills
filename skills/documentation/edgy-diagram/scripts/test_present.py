@@ -54,7 +54,10 @@ DEMO = '''pages:
       - task: "Pay" {id: TSK-01}
       - product: "Single ticket" {id: PRD-01}
       - capability: "Ticketing" {id: CAP-05}
+      - capability: "Odd id" {id: constructor}
+      - capability: "Sub" {id: CAP-X}
     relationships:
+      - "constructor" -> "CAP-X": "contains"
       - "TSK-01" -> "JRN-01": "is part of"
       - "PRD-01" -> "TSK-01": "serves"
       - "PRD-01" -> "CAP-05": "requires"
@@ -215,8 +218,7 @@ def browser_selftest():
     for step in ('wall', 'wall-cards', 'view', 'highlight', 'zoom', 'search-jump', 'state-noop', 'state-current', 'state-target', 'paging',
                  'trace-card', 'drill', 'card-first-click', 'card-second-click', 'breadcrumb', 'breadcrumb-jump',
                  'history-back', 'forward', 'deeplink-restore', 'route-malformed', 'badge-no-pan', 'card-vs-badge',
-                 'return-to-trace',
-                 'back', 'no-errors'):
+                 'return-to-trace', 'back', 'inert-keys', 'no-errors'):
         if f'{step}:ok' not in m.group(3):
             return f'fail: step {step} missing ({m.group(3)})'
     return 'pass'

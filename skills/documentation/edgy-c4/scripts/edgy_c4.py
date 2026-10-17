@@ -101,9 +101,10 @@ ELEMENT_RE = re.compile(r'^\s*-\s*(container|person|system):\s*"([^"]*)"\s*(\[[^
 REL_RE = re.compile(r'^\s*-\s*"([^"]+)"\s*->\s*"([^"]+)"\s*:\s*"([^"]*)"\s*(\{.*\})?\s*$')
 
 
-def parse_body(page_text: str) -> Tuple[List[dict], List[dict]]:
-    """(elements, relationships) of a C4 page body."""
+def parse_body(page_text: str, unparsed: Optional[List[str]] = None) -> Tuple[List[dict], List[dict]]:
+    """(elements, relationships) of a C4 page body; an item line it cannot read goes to `unparsed`."""
     elements, rels = [], []
+    unparsed = unparsed if unparsed is not None else []
     section = None
     for ln in textwrap.dedent(page_text or '').split('\n'):
         s = ln.strip()
@@ -112,9 +113,14 @@ def parse_body(page_text: str) -> Tuple[List[dict], List[dict]]:
         if re.match(r'^(elements|relationships):\s*$', s):
             section = s[:-1]
             continue
+        if section and not s.startswith('-'):
+            section = None                          # a header line after the sections ends them
+            continue
         if section == 'elements':
             m = ELEMENT_RE.match(ln)
-            if m:
+            if not m:
+                unparsed.append(s)
+            else:
                 name, _, desc = m.group(2).partition(' - ')
                 opts = _split_options(m.group(4)[1:-1]) if m.group(4) else {}
                 tags = [t.strip().lower() for t in (m.group(3) or '')[1:-1].split(',') if t.strip()]
@@ -123,7 +129,9 @@ def parse_body(page_text: str) -> Tuple[List[dict], List[dict]]:
                                  'external': 'external' in tags})
         elif section == 'relationships':
             m = REL_RE.match(ln)
-            if m:
+            if not m:
+                unparsed.append(s)
+            else:
                 opts = _split_options(m.group(4)[1:-1]) if m.group(4) else {}
                 rels.append({'source': m.group(1), 'target': m.group(2), 'description': m.group(3).strip(),
                              'technology': opts.get('technology', '')})
@@ -399,6 +407,15 @@ def generate_page(page_text: str, graph):
         d.text(problem, 40, 40, 640, 40)
         d.legend([], 120)
         return d.xml(), [('error', 'C004', problem, system or None)]
+    unread: List[str] = []
+    parse_body(page_text, unread)
+    if unread:
+        # a line nobody can read is never dropped in silence (a missing brace used to lose a container)
+        msg = f"{len(unread)} line(s) of the C4 page are not understood: " + '; '.join(u[:80] for u in unread[:3])
+        d = Drawing()
+        d.text(msg, 40, 40, 640, 40)
+        d.legend([], 120)
+        return d.xml(), [('error', 'C007', msg, unread[0][:80])]
     if level not in ('context', 'container'):
         msg = f"level: {level} is not drawn by edgy-c4 0.1.0 (context, container)"
         d = Drawing()

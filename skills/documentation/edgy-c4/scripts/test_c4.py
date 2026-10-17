@@ -258,6 +258,11 @@ def test_phase4_findings():
     comp = (BASE % '') + '  - name: "L3"\n    notation: c4\n    level: component\n    system: APP-07\n'
     found, _ = findings(comp)
     assert [(r, sev) for r, sev, *_ in found] == [('C004', 'error')], found
+    broken = (BASE % '') + l2('L2', 'APP-07', [('C-API', 'API')]).replace('technology: Go}', 'technology: Go')
+    found, _ = findings(broken)
+    assert [(r, sev) for r, sev, *_ in found] == [('C007', 'error')], found          # Codex F2: fail closed
+    found, _ = findings((BASE % '') + '  - name: "X"\n    notation: c4\n    level: ../x\n    system: APP-07\n')
+    assert [(r, sev) for r, sev, *_ in found] == [('C004', 'error')], found
     ghost = (BASE % '') + l2('L2', 'APP-07', [('C-API', 'API')],
                              '      - "C-API" -> "C-GHOST": "reads" {technology: JDBC}\n')
     found, _ = findings(ghost)

@@ -20,6 +20,23 @@ perustelut.
 
 ---
 
+### 2026-10-17 — Claude Code (v2.5.0 phase 4: Codex findings F1–F5)
+
+- **One page id, one destination.** An element with id `INDEX` took the
+  index's page id, and `CAP-X` and `cap-x` shared one page. `INDEX` now
+  gets the hash suffix. Ids that differ only in case stop the run: a hash
+  would make them unique, but readers could not tell the two pages apart.
+- **Model-page messages are reported.** A `draw: false` page is never
+  drawn, so its warnings (E010 on people → process *performs*) were lost.
+  They are now reported on the first drawn page, prefixed with their page.
+- **edgy-c4 fails closed on a line it cannot read (C007).** A missing
+  brace used to drop a container silently.
+- **The native SVG draws the dashed person outline.** The draw.io cell had
+  it, but the preview and the presenter did not.
+- **The presenter's indexes are null-prototype objects.** The model id
+  `constructor` used to write a key onto `Object`. New self-test step
+  `inert-keys`.
+
 ### 2026-10-17 — Claude Code (v2.5.0 phase 4: presenter and edgy-c4 findings)
 
 - **Blocker: a mouse click on the "C4" badge or the "+N more" card did

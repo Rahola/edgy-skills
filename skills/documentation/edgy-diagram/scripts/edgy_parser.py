@@ -1067,7 +1067,7 @@ class EDGYParser:
                 return 'link'
             expected = ', '.join(f"{a} → {b}" for a, b in sorted(allowed))
             self.warnings.append(
-                f"Ydinlinkki '{label}': sallittu {expected}; "
+                f"E010 Ydinlinkki '{label}': sallittu {expected}; "
                 f"saatu {source_type} → {target_type} — ei virallinen ydinlinkki, "
                 f"piirretään influence-tyylillä (katkoviiva)"
             )
