@@ -1,6 +1,6 @@
 # EDGY skills development plan (2026-10, part 5): v2.5.0 — C4, realisation trace, presenter scope
 
-**Revision 4 (2026-10-17) — DRAFT, ready for the owner's decisions.**
+**Revision 4 (2026-10-17) — LOCKED.** The owner decided Q1–Q6 as recorded in §3 (2026-10-17). Deviations found during implementation are recorded in §11 and `AGENT_LOG.md`. Phase 2 (test cases) starts from this revision.
 - **Revision 3** answered Codex.
 - **Vibe** reviewed revision 2: 2 majors and 3 minors, no blockers. Vibe
   supports the plan and agrees with Q1–Q6. Revision 4 folds Vibe's
@@ -16,8 +16,7 @@ Earlier history:
   Codex supports the scope and agrees with Q1–Q6. §4a settles the
   contracts it asked for.
 
-§10 maps every finding to its change. This revision waits only for the
-owner's decisions in §3. Nothing is locked.
+§10 maps every finding to its change.
 
 It follows the released v2.4.0 (tag `v2.4.0`, merge commit `01a5dbe`) and
 takes over §4 of
@@ -70,12 +69,13 @@ template for phase 2.
 | D1 | Docs: migration 1.9 → 1.10, trace and C4 user guide, adapter support table, register update, edgy-framework journey / task / channel modelling | **in** |
 | — | Capability `nature` split; C4-PlantUML; F6b effects; C4 L3; a full-directory install for the Vibe adapter; Experience elements optional in the model schema | **out** (v2.6.0 candidates) |
 
-## 3. Decisions for the reviewers and the owner
+## 3. Decisions (owner, 2026-10-17)
 
-Revision 2 records the Claude reviewers' answers. Vibe and Codex may still
-object; then the owner decides.
+The owner accepted every position below. Claude (three sub-agents), Codex
+and Vibe all agreed with them. Q3 is refined by §4a: the trace link is
+the primary action, and the C4 link is a separate badge.
 
-| Q | Question | Revision 2 position | Reviewers |
+| Q | Question | Decision | Reviewers |
 |---|----------|---------------------|-----------|
 | Q1 | How far does the presenter go? | **A: only the F7 drill-through, as part of effect 5** (paging and deep links). The cap stays at **5** effects. The rest of F6b waits for workshop evidence. | all three agree on A; the adversarial reviewer: keep the cap at 5 rather than "5 + 1" |
 | Q2 | How far does C4 go? | **L1 + L2.** L2 comes only from C4 pages and never from the EDGY model. No L3. C4-PlantUML moves to 0.2.0. | agree; PlantUML output needs a core hook and cannot be checked in CI (no Java) |
@@ -582,6 +582,10 @@ readable, and C4 containers never in the EDGY graph (§4a).
 | C4 knowledge leaks into EDGY skills | C4 guidance only in edgy-c4; the container key is opt-in and ignored by the EDGY paths |
 | 1.10 breaks old models | `compat-1.9` and `compat-1.8` fixtures |
 | Pictures that lint passes but people cannot read | pixel review and rubric are acceptance criteria, not advice |
+
+## 11. Implementation deviations
+
+*None yet: phase 3 has not started.*
 
 ## 10. Review log
 
