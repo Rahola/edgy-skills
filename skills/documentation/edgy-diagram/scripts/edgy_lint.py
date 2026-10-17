@@ -50,16 +50,20 @@ Rules
 
 Visual rules — computed on the same resolved geometry the native renderer
 draws (edgy_geometry.py): ports, orthogonal joins, waypoints, label boxes.
-  W111 edge passes through an element that is neither its source nor target (> 8 px inside)
+  W111 edge passes through an element that is neither its source nor target (> 8 px inside), a
+       trace "+N more" card, or back through its own source or target
   W112 edge label overlaps an element (> 20 % of the label box)
   W113 edge label overlaps another edge label (> 20 % of the smaller box; a
        parent → children fan with one verb is one bus and does not count)
   W114 edge label or edge end outside the page
+  W130 a line runs under another edge's label (> 12 px; a fan from one source or into one target
+       with one verb is a bus)
+  W131 two edges with no end in common share more than 20 px of line
   W115 text below 6 pt at --scale (title, description, relation label)
   W116 edge label is a vocabulary verb of another language than the map's
        (map language: --language, else the edgyLang marker the generator writes
        when the input set language:; silent otherwise)
-  --visual prints only the visual findings (W111–W114), as JSON with page,
+  --visual prints only the visual findings (W111–W114, W130, W131), as JSON with page,
   cell ids and coordinates, for a machine to act on.
 
 Layout-quality rules — measured, on by default, --no-layout-quality switches
@@ -110,7 +114,7 @@ except Exception:  # pragma: no cover — lint must still run standalone
     def languages_of(_verb):
         return set()
 
-VISUAL_RULES = ('W111', 'W112', 'W113', 'W114')   # geometry findings with coordinates; W115 (--scale) is a size check
+VISUAL_RULES = ('W111', 'W112', 'W113', 'W114', 'W130', 'W131')   # geometry findings with coordinates; W115 (--scale) is a size check
 LAYOUT_RULES = ('W117', 'W118', 'W119', 'W120')   # layout quality, on by default (--no-layout-quality); W121 needs --series
 W117_MAX_SPREAD = 1.25     # max / min of width or height within one type and parent
 W118_NEAR_MIN, W118_NEAR_MAX = 1.0, 12.0   # px: near-aligned but not aligned
@@ -124,6 +128,9 @@ W121_MARGIN_TOL = 10.0     # px difference in content offset between files of on
 W111_MIN_INSIDE = 8.0      # px of an edge inside a foreign element before it counts
 W112_MIN_OVERLAP = 0.20    # share of the label box over an element
 W113_MIN_OVERLAP = 0.20    # share of the smaller label box over another label
+W130_MIN_INSIDE = 12.0     # px of a line under another edge's label: a line straight across a one-line label (10 px) is a crossing, longer reads as the label's line
+W131_SAME_LINE = 3.0       # px: two axis-parallel segments closer than this are one line
+W131_MIN_SHARED = 20.0     # px of shared line between edges with no end in common
 
 PALETTE = {
     '#80ffb7': 'identity', '#a6c0ff': 'architecture', '#ff99bd': 'experience',
@@ -618,7 +625,7 @@ def lint_model(path, page, model, lines, opts):
                 if langs and map_lang not in langs:
                     add('WARNING', 'W116', f'label "{part.strip()}" is a {"/".join(sorted(langs))} vocabulary verb in a {map_lang} map — write it in {map_lang}, or set language: {map_lang} in the input so the generator renders it', i)
 
-    # W111–W114 visual rules — on the renderer's geometry (edgy_geometry)
+    # W111–W114, W130, W131 visual rules — on the renderer's geometry (edgy_geometry)
     F.extend(visual_findings(path, page, lines, cells, elements, containers, page_w, page_h))
 
     # W117–W120 layout quality — measured on element and container boxes
@@ -657,7 +664,14 @@ def visual_findings(path, page, lines, cells, elements, containers, page_w, page
 
     cache = {}
     boxes = {i: box for i, (_c, _st, box) in elements.items() if box}
+    # a "+N more" card of a trace page is a card a line must not cross either
+    for i, c in cells.items():
+        if c.get('vertex') == '1' and style_dict(c.get('style')).get('edgyRole') == 'more':
+            b = geo.abs_box(cells, i, cache)
+            if b:
+                boxes[i] = b
     labels = []   # (edge id, source id, verb, label box)
+    routes = []   # (edge id, source id, target id, verb, route)
     for i, e in cells.items():
         if e.get('edge') != '1':
             continue
@@ -679,6 +693,19 @@ def visual_findings(path, page, lines, cells, elements, containers, page_w, page
             if inside > W111_MIN_INSIDE:
                 add('W111', f'edge "{strip_html(e.get("value") or "").strip() or "(unlabelled)"}" passes through element {j} ({inside:.0f} px inside) — move the element, add via: waypoints or change the exit/entry side',
                     i, {'edge': i, 'other': j, 'inside_px': round(inside, 1), 'route': [[round(x), round(y)] for x, y in route]})
+        # W111 (own ends): a route that runs back through its own source or target card reads as a line
+        # through the card — the port is on the border, so nothing of the route belongs inside
+        for j in (src, tgt):
+            box = boxes.get(j)
+            if box is None or j in containers:
+                continue
+            inner = (box[0] + 2, box[1] + 2, box[2] - 4, box[3] - 4)
+            inside = geo.path_through_box(route, inner) if inner[2] > 0 and inner[3] > 0 else 0.0
+            if inside > W111_MIN_INSIDE:
+                add('W111', f'edge "{strip_html(e.get("value") or "").strip() or "(unlabelled)"}" runs through its own '
+                            f'{"source" if j == src else "target"} {j} ({inside:.0f} px inside) — change the exit/entry side',
+                    i, {'edge': i, 'other': j, 'inside_px': round(inside, 1), 'route': [[round(x), round(y)] for x, y in route]})
+        routes.append((i, src, tgt, strip_html(e.get('value') or '').split('\n')[0].strip().lower(), route))
         # W114a: route end outside the page
         if page_w and page_h:
             for px, py in (route[0], route[-1]):
@@ -706,6 +733,43 @@ def visual_findings(path, page, lines, cells, elements, containers, page_w, page
         # W114b: label outside the page
         if geo.outside_page(lbox, page_w, page_h):
             add('W114', f'label "{verb}" extends outside the page', i, {'edge': i, 'label_box': [round(v) for v in lbox]})
+    # W130: a line under another edge's label — the label then reads as this line's (a fan with one source and
+    # one verb is a bus and does not count)
+    tgt_of = {i: t for i, _s, t, _v, _r in routes}
+    for ia, sa, ta, va, route in routes:
+        for ib, sb_, vb, bb in labels:
+            # a fan out of one source, or into one target, with one verb is a bus: its lines share the label
+            if ia == ib or (va == vb and (sa == sb_ or ta == tgt_of.get(ib))):
+                continue
+            inner = (bb[0] + 2, bb[1] + 2, bb[2] - 4, bb[3] - 4)
+            inside = geo.path_through_box(route, inner) if inner[2] > 0 and inner[3] > 0 else 0.0
+            if inside > W130_MIN_INSIDE:
+                add('W130', f'edge {ia} runs under the label "{vb}" of edge {ib} ({inside:.0f} px) — the label reads as '
+                            f'this line\'s; move the label or reroute', ia,
+                    {'edge': ia, 'other': ib, 'inside_px': round(inside, 1), 'label_box': [round(v) for v in bb]})
+    # W131: two edges with no end in common share a stretch of line — a reader cannot tell them apart
+    segs = []
+    for i, src, tgt, _v, route in routes:
+        for k in range(len(route) - 1):
+            (x0, y0), (x1, y1) = route[k], route[k + 1]
+            if abs(x0 - x1) < 0.5 or abs(y0 - y1) < 0.5:
+                segs.append((i, src, tgt, x0, y0, x1, y1))
+    reported = set()
+    for a in range(len(segs)):
+        ia, sa, ta, ax0, ay0, ax1, ay1 = segs[a]
+        for b in range(a + 1, len(segs)):
+            ib, sb_, tb_, bx0, by0, bx1, by1 = segs[b]
+            if ia == ib or {sa, ta} & {sb_, tb_} or (min(ia, ib), max(ia, ib)) in reported:
+                continue
+            overlap = 0.0
+            if abs(ax0 - ax1) < 0.5 and abs(bx0 - bx1) < 0.5 and abs(ax0 - bx0) < W131_SAME_LINE:
+                overlap = min(max(ay0, ay1), max(by0, by1)) - max(min(ay0, ay1), min(by0, by1))
+            elif abs(ay0 - ay1) < 0.5 and abs(by0 - by1) < 0.5 and abs(ay0 - by0) < W131_SAME_LINE:
+                overlap = min(max(ax0, ax1), max(bx0, bx1)) - max(min(ax0, ax1), min(bx0, bx1))
+            if overlap > W131_MIN_SHARED:
+                reported.add((min(ia, ib), max(ia, ib)))
+                add('W131', f'edges {ia} and {ib} share {overlap:.0f} px of line but no end — they cannot be told apart; '
+                            f'reroute one of them', ia, {'edge': ia, 'other': ib, 'shared_px': round(overlap, 1)})
     # W113: label over another label; a fan of edges from one source with one verb is a bus
     for a in range(len(labels)):
         ia, sa, va, ba = labels[a]
@@ -999,7 +1063,7 @@ def main(argv=None):
                     help='treat the files as one delivery: W121 when they differ in legend placement, margins, card widths or font sizes')
     ap.add_argument('--json', action='store_true', help='print findings as JSON')
     ap.add_argument('--visual', action='store_true',
-                    help='print only the visual findings (W111–W114) as JSON with coordinates')
+                    help='print only the visual findings (W111–W114, W130, W131) as JSON with coordinates')
     ap.add_argument('--language', choices=['fi', 'en', 'fr', 'de'], default=None,
                     help='map language for W116 (default: the edgyLang marker the generator writes when the input set language:)')
     ap.add_argument('--scale', type=float, default=None,

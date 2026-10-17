@@ -1829,16 +1829,48 @@ class EDGYParser:
                 ef = _geo.distribute(len(outs), outs.index((key, 'out')))
                 nf = _geo.distribute(len(ins), ins.index((key, 'in')))
                 before = len(used)
+                n_labels = len(label_boxes)
                 r = edgy_route.route(boxes[key[0]], boxes[key[1]], obstacles, used, label_size=rel['_route_size'],
                                      labels=label_boxes, exit_port=(o['from'], ef), entry_port=(o['to'], nf),
                                      soft=titles)
                 if r:
                     rel['options'] = {**o, 'via': r[2]}
                     rel['_segs'] = used[before:]      # this edge's own path: the other edges' labels keep off it
+                    rel['_ports'] = ((o['from'], ef), (o['to'], nf))
+                    rel['_label_box'] = label_boxes[n_labels] if len(label_boxes) > n_labels else None
                     if 'label' not in rel['options']:
                         rel['options']['label_at'] = r[3][0] if isinstance(r[3], tuple) else r[3]
                 else:
                     rel['options'] = {k: v for k, v in o.items() if k not in ('from', 'to')}
+            # third pass: an edge routed before a later edge's label existed may run under it (W130); now that
+            # every label is placed, such an edge is routed once more around the others' labels
+            for key in order:
+                rel = merged[key]
+                if '_segs' not in rel:
+                    continue
+                own_box = rel.get('_label_box')
+                others = [b for b in label_boxes if b is not own_box and b not in titles]
+                inner = [(x + 2, y + 2, w - 4, h - 4) for x, y, w, h in others if w > 4 and h > 4]
+                if not any(edgy_route._blocked(a, b, inner) for a, b in rel['_segs']):
+                    continue
+                rest = [seg for seg in used if seg not in rel['_segs']]
+                trial_labels = [b for b in label_boxes if b is not own_box]
+                n_before = len(rest)
+                r = edgy_route.route(boxes[key[0]], boxes[key[1]], obstacles, rest, label_size=rel['_route_size'],
+                                     labels=trial_labels, exit_port=rel['_ports'][0], entry_port=rel['_ports'][1],
+                                     soft=titles)
+                if not r:
+                    continue
+                new_segs = rest[n_before:]
+                if any(edgy_route._blocked(a, b, inner) for a, b in new_segs):
+                    continue                      # no better path: keep the first one
+                used[:] = rest
+                label_boxes[:] = trial_labels
+                rel['options'] = {**rel['options'], 'via': r[2]}
+                rel['_segs'] = new_segs
+                rel['_label_box'] = label_boxes[-1] if label_boxes else None
+                if 'label' not in rel['options']:
+                    rel['options']['label_at'] = r[3][0] if isinstance(r[3], tuple) else r[3]
 
         from collections import defaultdict
         outgoing_by_side = defaultdict(list)
@@ -1980,7 +2012,12 @@ class EDGYParser:
                     lw = max([_text.measure(html.unescape(lines[0]), 11)] +
                              [_text.measure(html.unescape(x), 9) for x in lines[1:]]) + 8 if lines else 60
                     lh = 11 * 1.3 + 9 * 1.3 * (len(lines) - 1)
-                    frac = edgy_route._label_fraction(path, list(obstacles) + lines_of_others, (lw, lh), placed)
+                    segs_of_others = [seg for other in valid_rels if other[0] is not rel
+                                      for seg in other[0].get('_segs', [])]
+                    # the thin boxes keep a label off a line it would run along; the segments themselves also
+                    # forbid a short crossing (a line through a label reads as the label's, W130)
+                    frac = edgy_route._label_fraction(path, list(obstacles) + lines_of_others, (lw, lh), placed,
+                                                      segs_of_others)
                 if isinstance(frac, tuple):        # no room on the path: beside it, with an absolute offset
                     frac, (odx, ody) = frac
                     rel['options'] = {**rel['options'], 'label_dx': odx, 'label_dy': ody}

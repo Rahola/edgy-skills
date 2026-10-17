@@ -132,7 +132,7 @@ cannot run, and then only for diagrams under ~15 cells — still lint it later.
 ```bash
 python3 scripts/edgy_lint.py <name>.drawio                       # 0 errors required
 python3 scripts/edgy_lint.py --warnings-as-errors <name>.drawio  # strict (shipped examples)
-python3 scripts/edgy_lint.py --visual <name>.drawio              # W111–W114 only, JSON with coordinates
+python3 scripts/edgy_lint.py --visual <name>.drawio              # W111–W114, W130, W131 only, JSON with coordinates
 python3 scripts/edgy_lint.py --series a.drawio b.drawio c.drawio   # one delivery: W121 when the files differ in layout
 python3 scripts/edgy_lint.py --no-layout-quality <name>.drawio   # switch W117–W120 off for a run
 python3 scripts/edgy_qa.py --require-approvals <name>.qa.json     # the manifest: lint and approvals on separate lines
@@ -146,13 +146,16 @@ verb only on an allowed pair, non-core verb never in core-link style, verbs
 from the vocabulary). Exit 1 = fix before delivery; warnings do not block but
 must be read.
 
-**Visual rules (W111–W114)** run on the same resolved geometry the preview
+**Visual rules (W111–W114, W130, W131)** run on the same resolved geometry the preview
 draws (`edgy_geometry.py`: ports, orthogonal joins, waypoints, label boxes),
 so a clean structural lint is no longer mistaken for a readable picture:
 W111 an edge passes through an element that is not its source or target,
 W112 an edge label lies on an element, W113 a label lies on another label (a
 parent → children fan with one verb is one bus and is allowed), W114 a label
-or edge end leaves the page. They are warnings: fix them by moving the
+or edge end leaves the page, W130 a line runs under another edge's label
+(the label reads as that line's), W131 two edges with no common end share a
+stretch of line. W111 also covers a trace "+N more" card and a route back
+through its own end. They are warnings: fix them by moving the
 element, adding `via:` waypoints, changing `from:`/`to:`, or using `label:
 source|target`; `--visual` gives the cell ids and coordinates for a script to
 act on. A delivery should have none; `--warnings-as-errors` enforces that.
@@ -192,7 +195,7 @@ flagged.
 **QA manifest (`qa.json`).** `edgy_generator.py --qa` (on by default with
 `--preview`, `--no-qa` to skip) writes `<name>.qa.json` next to the
 `.drawio`: per page the element and edge counts, the structural lint
-(errors, warnings, rules), the visual rules W111–W114, the layout rules
+(errors, warnings, rules), the visual rules W111–W114, W130 and W131, the layout rules
 W117–W120 and whether they ran, the language check W116, the text-size check
 W115 at the preset's reference width, the preview image size and
 orientation, and the generator warnings. Three fields are never set by the

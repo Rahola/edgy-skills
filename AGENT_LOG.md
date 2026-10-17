@@ -20,6 +20,37 @@ perustelut.
 
 ---
 
+### 2026-10-17 — Claude Code (v2.5.0 phase 4: F4, the visual check's blind spot)
+
+Every tester found pictures that QA reported as 0/0/0 but that people
+could not read. Two new visual rules and three router changes close that
+gap.
+
+- **New rules.**
+  - **W130:** a line runs under another edge's label for more than 12 px.
+  - **W131:** two edges with no end in common share more than 20 px of
+    line.
+  - **W111** now also covers a "+N more" card and a route that runs back
+    through its own source or target.
+  - A fan out of one source, or into one target, with one verb is a bus,
+    as in W113.
+- **Why 12 px for W130.** A line straight across a one-line label is
+  10 px inside it: a crossing. Hand-positioned fixtures have those, and
+  they read fine. Longer than that, the label reads as the line's own.
+- **Router changes, so the rules have nothing to report on our own
+  output.**
+  - Label placement rejects a spot that another edge's line passes under,
+    and a label over a card weighs more than a crossing.
+  - A route avoids the labels already placed.
+  - A third pass re-routes an edge that runs under a label placed after
+    it.
+  - A second ring of channel lines beside each card lets an edge pass a
+    card's approach row without sharing it.
+- **Results.**
+  - The eval model went from 22 findings under the new rules to 0.
+  - One shipped example changed: the capability view moved one *accesses*
+    path. It is listed in the v2.5.0 example exceptions with this reason.
+
 ### 2026-10-17 — Claude Code (v2.5.0 phase 4: Codex findings F1–F5)
 
 - **One page id, one destination.** An element with id `INDEX` took the
