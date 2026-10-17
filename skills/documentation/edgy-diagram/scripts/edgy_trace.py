@@ -382,7 +382,7 @@ def prepare(p) -> None:
     fe = p.elements[focus]
     p.model_gaps = []
     if direction in ('both', 'down') and not (p.view.get('trace_list') or ''):
-        gaps = arch.parse_gaps((fe.get('attrs') or {}).get('gaps'))
+        gaps = arch.gaps_of(p, fe)
         below_types = {p.elements[i]['type'] for ids in bands['below'].values() for i in ids}
         for key in W129_KEYS.get(fe['type'], ()):
             if any(t in below_types for t in KEY_TYPES[key]):

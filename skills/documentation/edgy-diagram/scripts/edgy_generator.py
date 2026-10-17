@@ -4,6 +4,7 @@ EDGY Generator - Pääskripti EDGY-kaavioiden generointiin
 """
 
 import os
+import re
 import sys
 import argparse
 from edgy_parser import EDGYParser
@@ -317,6 +318,10 @@ def main():
     # Lue syöte
     if os.path.exists(args.input):
         input_content = read_input_file(args.input)
+    elif '\n' not in args.input and re.search(r'\.(txt|md|edgy)$', args.input.strip(), re.I):
+        # a file name that does not exist is a typo, never a one-line diagram (it drew an empty page, exit 0)
+        print(f"Error: input file not found: {args.input}", file=sys.stderr)
+        sys.exit(2)
     else:
         input_content = args.input
 

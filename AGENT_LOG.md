@@ -20,6 +20,22 @@ perustelut.
 
 ---
 
+### 2026-10-17 — Claude Code (v2.5.0 phase 4: Vibe findings)
+
+- **The missing M06 fixture** (`tools/fixtures/compat-1.10/experience-model.json`)
+  is now committed. A test runs it through the validator, `--views trace`
+  and the `--graph` JSON.
+- **A `{gaps:}` value that names no `band=status` pair is now a warning.**
+  A nested `{products: unknown}` used to fall back to `not_investigated`
+  in silence.
+- **The generator stops on a missing input file.** A typo'd `*.txt` path
+  used to be read as a one-line diagram and drew an empty page.
+- Two usage strings in `edgy-core-links.yaml` are quoted; their commas
+  had truncated the SKILL.md table since v2.4.0.
+- Doc clarifications:
+  - edgy-c4: an L1-only delivery and `{container:}`;
+  - test plan T02: the focus-incident wording.
+
 ### 2026-10-17 — Claude Code (v2.5.0 phase 4: F4, the visual check's blind spot)
 
 Every tester found pictures that QA reported as 0/0/0 but that people

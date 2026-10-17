@@ -61,8 +61,8 @@ influence_verbs:
   - {en: guides,       fi: ohjaa,        fr: guide,       de: steuert,      usage: A steers or constrains B}
   - {en: influences,   fi: vaikuttaa,    fr: influence,   de: beeinflusst,  usage: generic influence when nothing more specific fits}
   - {en: offers,       fi: tarjoaa,      fr: offre,       de: bietet,       usage: A makes B available (non-core product/channel pairs)}
-  - {en: manages,      fi: hallinnoi,    fr: gère,        de: verwaltet,    usage: A administers B (organisation → asset, organisation → product portfolio)}
-  - {en: reflects,     fi: heijastaa,    fr: reflète,     de: spiegelt,     usage: B mirrors A (content → brand, task → purpose)}
+  - {en: manages,      fi: hallinnoi,    fr: gère,        de: verwaltet,    usage: "A administers B (organisation → asset, organisation → product portfolio)"}
+  - {en: reflects,     fi: heijastaa,    fr: reflète,     de: spiegelt,     usage: "B mirrors A (content → brand, task → purpose)"}
   - {en: strengthens,  fi: vahvistaa,    fr: renforce,    de: stärkt,       usage: A reinforces B}
   - {en: defines,      fi: määrittelee,  fr: définit,     de: definiert,    usage: A sets the scope or rules of B}
   - {en: depends on,   fi: riippuu,      fr: dépend de,   de: hängt ab von, usage: A cannot exist without B (non-core pairs; core pairs use requires)}

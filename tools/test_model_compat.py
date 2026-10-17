@@ -179,6 +179,28 @@ def test_110_gap_keys_per_type():
     assert any("gaps/products" in e and "maybe" in e for e in errs), errs
 
 
+def test_110_experience_links_through_the_tools():
+    """M06: the 1.10 fixture's serves / features in / offers reach the trace TXT and the --graph JSON."""
+    model = REPO / "tools" / "fixtures" / "compat-1.10" / "experience-model.json"
+    r = subprocess.run([sys.executable, str(REPO / "tools" / "validate-edgy-model.py"), str(model)], capture_output=True, text=True)
+    assert r.returncode == 0, r.stdout + r.stderr
+    tuples = {("PRD-01", "TSK-01", "serves"), ("PRD-01", "JRN-01", "features in"), ("PRD-01", "CH-01", "offers")}
+    with tempfile.TemporaryDirectory() as tmp:
+        r = subprocess.run([sys.executable, str(REPO / "skills/architecture/edgy-assessment/scripts/edgy_model_to_txt.py"),
+                            str(model), "--views", "trace", "--out", tmp, "--prefix", "m"], capture_output=True, text=True)
+        assert r.returncode == 0, r.stderr
+        txt = Path(tmp, "m-views.txt").read_text(encoding="utf-8")
+        for s_, t_, v in tuples:
+            assert f'"{s_}" -> "{t_}": "{v}"' in txt, (s_, t_, v)
+        gen = REPO / "skills/documentation/edgy-diagram/scripts/edgy_generator.py"
+        r = subprocess.run([sys.executable, str(gen), str(Path(tmp, "m-views.txt")), "--output", str(Path(tmp, "m.drawio")),
+                            "--graph", str(Path(tmp, "g.json"))], capture_output=True, text=True)
+        assert r.returncode == 0, r.stderr[-2000:]
+        graph = json.loads(Path(tmp, "g.json").read_text(encoding="utf-8"))
+        got = {(x["source"], x["target"], x["verb"]) for x in graph["relationships"]}
+        assert tuples <= got, tuples - got
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     for t in tests:

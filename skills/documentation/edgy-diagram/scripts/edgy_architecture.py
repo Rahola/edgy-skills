@@ -649,6 +649,17 @@ def parse_gaps(raw: Optional[str]) -> Dict[str, str]:
     return out
 
 
+def gaps_of(p, element) -> Dict[str, str]:
+    """The element's {gaps: …} as {band: status}; a value that names no band=status pair is said, never ignored
+    (a nested {products: unknown} used to fall back to not_investigated in silence)."""
+    raw = (element.get('attrs') or {}).get('gaps')
+    out = parse_gaps(raw)
+    if raw and not out:
+        _once(p, f"gaps: '{raw}' on {element.get('ref') or element.get('name')} is not band=status — write "
+                 f'{{gaps: "products=unknown"}} (several: "processes=out_of_scope; data=unknown")')
+    return out
+
+
 def prepare_capability_view(p) -> None:
     focus_id = (p.view.get('focus') or '').strip()
     focus = next((eid for eid, e in p.elements.items() if (e.get('ref') or '').lower() == focus_id.lower()), None)
@@ -666,7 +677,7 @@ def prepare_capability_view(p) -> None:
         elif band == 'context':
             context.append(eid)
     lang = _lang(p)
-    gaps = parse_gaps((p.elements[focus].get('attrs') or {}).get('gaps'))
+    gaps = gaps_of(p, p.elements[focus])
     p.model_gaps = []
     for band in CAPVIEW_BANDS:
         if bands[band]:

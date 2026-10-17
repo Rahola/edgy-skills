@@ -507,8 +507,8 @@ and the linter flag such edges and draw them as influence.
 | guides | ohjaa | guide | steuert | A steers or constrains B |
 | influences | vaikuttaa | influence | beeinflusst | generic influence when nothing more specific fits |
 | offers | tarjoaa | offre | bietet | A makes B available (non-core product/channel pairs) |
-| manages | hallinnoi | gère | verwaltet | A administers B (organisation → asset |
-| reflects | heijastaa | reflète | spiegelt | B mirrors A (content → brand |
+| manages | hallinnoi | gère | verwaltet | A administers B (organisation → asset, organisation → product portfolio) |
+| reflects | heijastaa | reflète | spiegelt | B mirrors A (content → brand, task → purpose) |
 | strengthens | vahvistaa | renforce | stärkt | A reinforces B |
 | defines | määrittelee | définit | definiert | A sets the scope or rules of B |
 | depends on | riippuu | dépend de | hängt ab von | A cannot exist without B (non-core pairs; core pairs use requires) |

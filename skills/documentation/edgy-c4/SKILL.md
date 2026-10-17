@@ -105,7 +105,9 @@ added to the derived ones; such a hand-written page must list its own `system:` 
 - **Boundary crossings** come from the EDGY model: `{container: C-FARE-API}` on a *transfers*
   of the system names the container the transfer enters or leaves. A transfer between two
   decomposed applications names both: `{container: "C-WEB; C-FARE-API"}`. The key is inert on
-  EDGY pages, in the ArchiMate export and in an EDGY-only delivery.
+  EDGY pages, in the ArchiMate export and in an EDGY-only delivery. In a delivery with C4 pages
+  every `{container:}` must resolve (C001): for an L1-only delivery, add the L2 page or leave the
+  keys out of the model.
 - The L2 page links back to its L1 page, and the L1 system card links to its L2 page.
 
 ## Rules
