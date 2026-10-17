@@ -660,4 +660,17 @@ against `main`.
 
 ## 11. Implementation deviations
 
-*None yet: phase 3 has not started.*
+**Clarifications from phase 2** (the test plan review, Codex TP1–TP9).
+None changes a promise of §8. Each one makes a contract precise enough to
+test.
+
+| Area | Clarification |
+|------|---------------|
+| `contains` in the trace | The *part of* / *parts* chips are only for `contains` between two elements of the same type. `organisation contains people` is a band edge (link table, 6 → 5). A `contains` cycle is a warning, and generation completes. |
+| Crowded bands | The "+N more" card links to the list page `<trace page id>-more-<band>`. |
+| Page-id hash | When the slug loses characters, it gets the first six hex characters of the SHA-1 of the UTF-8 model id. |
+| Findings channel | A finding is `(severity, rule, message, subject)`. An `error` finding gives exit 2 and no output file, as E-rules do. A handler exception in the prepass or in `generate_page` gives one error line naming the page, with exit 2 and no traceback. |
+| C-rule severities | C001, C004 and C006 are errors. C002, C003 and C005 are warnings. |
+| Skill ids in `requires:` | They must match `^[a-z0-9][a-z0-9-]*$`, and a bad one is rejected before any file-system or shell use. A failed or empty registry listing is an error on every adapter. |
+| Element ids | An id that does not match the graph-id pattern `^[A-Za-z0-9][A-Za-z0-9._:/-]*$` is an E-level parser error naming the id, so it never reaches a route. |
+| New `check.sh` steps | `adapter-install`, `trace-fixtures` and `examples-vs-v2.4.0`. The last one compares against the pinned tag, with an exceptions list and a negative control. |
