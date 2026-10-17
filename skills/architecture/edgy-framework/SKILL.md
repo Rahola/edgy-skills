@@ -12,6 +12,7 @@ languages: [fi, en, fr, de]
 agents:
   - claude-code
   - cursor
+  - vibe
   - generic
 inputs:
   - name: mode

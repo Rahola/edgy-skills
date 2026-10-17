@@ -14,6 +14,7 @@ languages: [fi, en]
 agents:
   - claude-code
   - cursor
+  - vibe
   - generic
 inputs:
   - name: programme

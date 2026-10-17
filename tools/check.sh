@@ -8,7 +8,7 @@
 # Vaiheet: validator, registry-sync, examples-refs, core-links-sync,
 # edgy-tests, edgy-geometry-tests, edgy-lint-tests, edgy-render-tests,
 # edgy-structure-tests, edgy-tool-tests, edgy-model, edgy-model-diff-tests, edgy-archimate-tests,
-# edgy-graph-tests, edgy-examples-golden, edgy-contract, edgy-architecture, edgy-present, edgy-model-compat, edgy-official-shapes, edgy-eval, edgy-lint,
+# edgy-graph-tests, edgy-examples-golden, edgy-contract, edgy-architecture, edgy-present, edgy-model-compat, adapter-install, edgy-official-shapes, edgy-eval, edgy-lint,
 # edgy-lint-strict, edgy-series, edgy-qa,
 # privacy-scan.
 #
@@ -215,6 +215,7 @@ run_step "edgy-model-tests" python3 skills/architecture/edgy-assessment/scripts/
 run_step "edgy-model-diff-tests" python3 skills/architecture/edgy-assessment/scripts/test_model_diff.py
 run_step "edgy-archimate-tests" python3 skills/architecture/edgy-assessment/scripts/test_model_to_archimate.py
 run_step "edgy-model-compat" python3 tools/test_model_compat.py
+run_step "adapter-install" python3 tools/test_adapters.py
 run_step "edgy-semantic-tests" python3 "$EDGY_SCRIPTS/test_semantic.py"
 run_step "edgy-graph-tests" python3 "$EDGY_SCRIPTS/test_graph.py"
 run_step "edgy-examples-golden" python3 "$EDGY_SCRIPTS/test_examples.py"

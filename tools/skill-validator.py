@@ -27,6 +27,7 @@ REQUIRED_FIELDS = ["name", "version", "description", "category", "tags", "agents
 VALID_CATEGORIES = ["coding", "architecture", "security", "documentation", "productivity"]
 VALID_AGENTS = ["claude-code", "cursor", "mistral-vibe", "vibe", "generic", "github-coding-agent"]
 VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+$")
+SKILL_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 
 
 class ValidationError:
@@ -109,6 +110,17 @@ def validate_skill_file(file_path: Path) -> list[ValidationError]:
                         f"Tuntematon agentti: '{agent}'. Sallitut: {VALID_AGENTS}",
                         severity="warning"
                     ))
+
+    # Tarkista requires-kenttä (v2.5.0): toisten skillien id:t, jotka asennetaan ensin
+    if "requires" in frontmatter:
+        req = frontmatter["requires"]
+        if not isinstance(req, list) or not all(isinstance(r, str) and SKILL_ID_PATTERN.match(r) for r in req):
+            errors.append(ValidationError(
+                path_str, f"'requires' pitää olla lista skill-id:itä (^[a-z0-9][a-z0-9-]*$): {req!r}"))
+
+    # Tarkista install-kenttä (v2.5.0): 'directory' = toimii vain koko hakemiston asennuksella
+    if "install" in frontmatter and frontmatter["install"] not in ("directory",):
+        errors.append(ValidationError(path_str, f"Tuntematon install: {frontmatter['install']!r} (sallittu: directory)"))
 
     # Tarkista tags-kenttä
     if "tags" in frontmatter and frontmatter["tags"] is not None:
