@@ -227,7 +227,9 @@ def _label_fraction(path: List[Point], obstacles: Sequence[Box], size: Optional[
                     if free(box):
                         taken.append(box)
                         return frac, (float(dx), float(dy))
-    # nothing is free: the on-page position on the path that covers the least
+                    if d <= 40:                  # near enough to read as this edge's label in the fallback
+                        candidates.append((box, (frac, (float(dx), float(dy)))))
+    # nothing is free: the on-page position, on the path or just beside it, that covers the least
     def cost(box):
         off = 1e9 if box[0] < 0 or box[1] < 0 else 0.0
         return off + sum(_overlap(box, o) for o in list(obstacles) + taken)
