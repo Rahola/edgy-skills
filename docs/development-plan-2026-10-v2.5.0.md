@@ -1,6 +1,14 @@
 # EDGY skills development plan (2026-10, part 5): v2.5.0 — C4, realisation trace, presenter scope
 
-**Revision 3 (2026-10-17) — DRAFT for agent review.**
+**Revision 4 (2026-10-17) — DRAFT, ready for the owner's decisions.**
+- **Revision 3** answered Codex.
+- **Vibe** reviewed revision 2: 2 majors and 3 minors, no blockers. Vibe
+  supports the plan and agrees with Q1–Q6. Revision 4 folds Vibe's
+  findings in.
+
+All three reviewers now agree with every position in §3.
+
+Earlier history:
 - **Revision 1** was reviewed by three Claude sub-agents: C4 feasibility
   against the code, the trace / model / presenter, and an adversarial
   pass. They found 3 blockers, 28 majors and 8 minors.
@@ -8,8 +16,8 @@
   Codex supports the scope and agrees with Q1–Q6. §4a settles the
   contracts it asked for.
 
-§10 maps every finding to its change. This revision waits for Vibe and
-for the owner's decisions in §3. Nothing is locked.
+§10 maps every finding to its change. This revision waits only for the
+owner's decisions in §3. Nothing is locked.
 
 It follows the released v2.4.0 (tag `v2.4.0`, merge commit `01a5dbe`) and
 takes over §4 of
@@ -60,7 +68,7 @@ template for phase 2.
 | M1 | Adapters report failed skills; install tests | **in**, P1 |
 | M2 | Model format 1.10: journeys with ids, `gaps` on chain types | **in**, ships with F7 |
 | D1 | Docs: migration 1.9 → 1.10, trace and C4 user guide, adapter support table, register update, edgy-framework journey / task / channel modelling | **in** |
-| — | Capability `nature` split, C4-PlantUML, F6b effects, C4 L3 | **out** (v2.6.0 candidates) |
+| — | Capability `nature` split; C4-PlantUML; F6b effects; C4 L3; a full-directory install for the Vibe adapter; Experience elements optional in the model schema | **out** (v2.6.0 candidates) |
 
 ## 3. Decisions for the reviewers and the owner
 
@@ -192,8 +200,20 @@ about 80 trace pages. The example is `examples/trace-map.txt`.
    "shape hook" is corrected.
 5. **C4 page index** in the document graph: (notation, level, system) →
    page id, for Q3.
-6. The `{container:}` key on an EDGY `transfers` is an **opt-in extension
-   key**. The EDGY render, TXT and ArchiMate paths ignore it, with a test.
+6. **`{container:}` has one meaning.** Model format 1.9 already defines
+   `relationships[].attributes.container` as a free string, and the
+   model → TXT writer passes it through (Vibe 2).
+   - **Meaning (from 1.10):** the id of a C4 container, or two ids
+     (`"C-A; C-B"`). The schema description is updated; the type stays a
+     string, so 1.9 models stay valid.
+   - **Carriers:** the TXT writer and the graph pass the key through on
+     purpose. That is how it reaches the C4 prepass.
+   - **Ignored:** the EDGY drawing never shows it (not on cards, not on
+     the label lines), and the ArchiMate export leaves it out.
+   - **Test:** one test covers all four paths: TXT writer, graph, drawing
+     and ArchiMate.
+   - **Unresolved value:** a value that names no container is C001, and
+     only on a C4 page. On an EDGY-only delivery it is inert.
 
 ### F4 `edgy-c4` 0.1.0 — P0
 
@@ -277,7 +297,12 @@ action.
   - all elements with ids at levels 1–6;
   - `where: <ids>`: exactly those elements;
   - `where: from JRN-01`: JRN-01 plus everything reachable from it by
-    going to a higher level over the whitelist (the downward closure).
+    going to a higher level over the whitelist (the downward closure). It
+    follows `trace_direction`, so `up` gives the upward closure.
+
+  The generator writes the page count to `generator_notes[]`. Above 100
+  trace pages it adds a note suggesting a narrower `where:`. This is a
+  soft cap, not an error (Vibe 4).
 - **Link closure.** A card gets a page link **only if its destination
   page is in the document.** A card without a page is drawn without a
   link and counted in `generator_notes[]` ("N cards without a page:
@@ -370,7 +395,7 @@ Rules for W129:
   - runs **all four adapters**: claude-code and generic for real
     installs into a temporary directory; Vibe and Cursor for the
     unsupported-skill refusal and for failure handling with one broken
-    registry entry;
+    registry entry, an empty registry and an unreadable registry;
   - checks that installed edgy-c4 runs from the temporary install, with
     the checkout hidden, so the scripts cannot fall back to repository
     files.
@@ -400,7 +425,9 @@ checks remain release items for a person.
 ### M1 Adapters — P1
 
 claude-code, Vibe and Cursor count and list failed skills, exit 1, and do
-not print "Asennus valmis" when anything failed. A new `check.sh` step
+not print "Asennus valmis" when anything failed. The same applies when
+the `--all` listing **fails or returns no skills**: the loop does not run,
+and that is an error, never a success (Vibe 1). A new `check.sh` step
 `adapter-install` runs claude-code and generic against a temporary
 directory, including edgy-c4 with its requirement. It also runs one
 broken registry entry, which must exit 1.
@@ -485,7 +512,9 @@ F7, M2, M1 and F4-core are the last to go.
   and layout findings;
 - the C4 L1 for every eval application passes strict lint.
 
-**Agent tracks** (fresh sessions, installed skills only):
+**Agent tracks** (fresh sessions, installed skills only). The C4 tracks
+go to Claude sub-agents and Codex, which can install edgy-c4. Vibe takes
+F7, M2 and M1, and reviews C4 at code level from a checkout:
 - a trace down from a journey;
 - a trace up from an organisation;
 - C4 for one application;
@@ -555,6 +584,18 @@ readable, and C4 containers never in the EDGY graph (§4a).
 | Pictures that lint passes but people cannot read | pixel review and rubric are acceptance criteria, not advice |
 
 ## 10. Review log
+
+**Revision 4 — Vibe review of revision 2.** Vibe supports the plan, has
+no blockers and agrees with Q1–Q6.
+
+| Finding | Severity | Change |
+|---------|----------|--------|
+| Vibe 1: `--all` with a failed or empty listing still prints success | major | M1 also fails on an empty or failed listing; `adapter-install` tests an empty and an unreadable registry |
+| Vibe 2: `{container:}` already exists in model 1.9 and the TXT writer passes it through, so "ignored by the TXT path" was false | major | F4-core 6: one meaning (C4 container ids); passed through on purpose; ignored by the drawing and ArchiMate; tested on all four paths |
+| Vibe 3: W129 at the terminal level | minor | already settled in revision 3 (§4a): never on organisations, never on `up` pages |
+| Vibe 4: `where: from` size undefined | minor | the closure follows `trace_direction`; the page count goes to the notes, with a soft cap at 100 |
+| Vibe 5: Vibe cannot install edgy-c4 | minor | phase 2: the C4 tracks go to Claude sub-agents and Codex; Vibe takes F7, M2 and M1, plus a code-level C4 review from a checkout |
+| v2.6.0 candidates | — | §2: a full-directory install mode for the Vibe adapter; Experience elements optional in the schema (today `minItems: 1` forces placeholders) |
 
 **Revision 3 — Codex review of revision 2.** Codex supports the scope
 and agrees with Q1–Q6. It requested changes before locking.
