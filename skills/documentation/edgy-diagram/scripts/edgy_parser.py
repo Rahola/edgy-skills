@@ -2025,6 +2025,17 @@ class EDGYParser:
             if target:
                 cell.set('edgyLink', target)
             next_id += 1
+        # edgyTrace (extension contract 1, optional): the focus card of a trace page (focus) or list page (list),
+        # and the cards of the trace index (index) — the presenter routes #/trace/… by these, never by page names
+        layout = getattr(self, '_arch_layout', None) or ()
+        marks = {}
+        if layout and layout[0] == 'trace' and layout[1] in self.cell_of:
+            marks[self.cell_of[layout[1]]] = 'list' if self.view.get('trace_list') else 'focus'
+        elif layout and layout[0] == 'trace-index':
+            marks = {self.cell_of[eid]: 'index' for eid in self.elements if eid in self.cell_of}
+        for cell in mx_root.findall('mxCell'):
+            if cell.get('id') in marks:
+                cell.set('style', (cell.get('style') or '') + f"edgyTrace={marks[cell.get('id')]};")
         links = {self.cell_of[eid]: (e.get('attrs') or {}).get('tlink') for eid, e in self.elements.items()
                  if (e.get('attrs') or {}).get('tlink') and eid in self.cell_of}
         for cell in list(mx_root.findall('mxCell')):

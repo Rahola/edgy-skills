@@ -1,7 +1,8 @@
-/* EDGY presenter-lite (edgy-diagram 2.8.0, extension contract 1).
+/* EDGY presenter-lite (edgy-diagram 2.9.0, extension contract 1).
  * Five effects, no more (a sixth goes to F6b): card wall → zoom, cross-view highlight,
- * search, current ↔ target filter over change annotations, paging. No network, no eval,
- * text only through textContent. Every animation is a cut with prefers-reduced-motion. */
+ * search, current ↔ target filter over change annotations, paging. Drill-through on a
+ * realisation trace belongs to effect 5 (paging and deep links): no new effect. No network,
+ * no eval, text only through textContent. Every animation is a cut with prefers-reduced-motion. */
 (function () {
   'use strict';
   var errors = 0;
@@ -28,6 +29,15 @@
   });
   var pageIndex = {};
   views.forEach(function (v, i) { pageIndex[v.page_id] = i; });
+  // realisation trace (2.9.0): one Trace card (the index); element pages and list pages are reached by drilling
+  var traceIndex, traceOf = {}, listOf = {}, visible = [];
+  views.forEach(function (v, i) {
+    if (v.trace === 'index' && traceIndex === undefined) { traceIndex = i; }
+    else if (v.trace === 'page' && v.focus && !Object.prototype.hasOwnProperty.call(traceOf, v.focus)) { traceOf[v.focus] = i; }
+    else if (v.trace === 'list' && v.focus) { listOf[v.focus + '\n' + v.band] = i; }
+    if (v.trace !== 'page' && v.trace !== 'list') { visible.push(i); }
+  });
+  function has(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
   function occurrencesByView(id) {
     var out = {};
     var e = byId[id];
@@ -95,11 +105,17 @@
   var home = null;           // the view's full viewBox
   var focusId = null;
   var stateMode = 'all';     // all | current | target
+  var selectedId = null;     // the card inspected by the first click; a second click drills through
+  var tracePath = [];        // the trace path taken: element ids, the last one is the open trace page
+  var traceBand = null;      // above | below on a list page
+  var lastHash = null;       // the route this page last showed (popstate and hashchange both arrive)
+  var navPromise = Promise.resolve();
 
   // ---- wall ----------------------------------------------------------------------------------------------
   function buildWall() {
     var wall = $('#wall');
-    views.forEach(function (v, i) {
+    visible.forEach(function (i) {
+      var v = views[i];
       var card = el('button', { 'class': 'card', type: 'button', 'data-view': String(i),
                                 'aria-label': v.name + ' — open view' });
       card.style.setProperty('--i', String(i));
@@ -125,7 +141,8 @@
       wall.appendChild(card);
     });
     var strip = $('#strip');
-    views.forEach(function (v, i) {
+    visible.forEach(function (i) {
+      var v = views[i];
       var tab = el('button', { 'class': 'tab', type: 'button', 'data-view': String(i) });
       tab.appendChild(el('span', null, v.name));
       tab.appendChild(el('span', { 'class': 'hits' }, ''));
@@ -158,13 +175,116 @@
       g.addEventListener('pointerleave', function () { highlight(null); });
       g.addEventListener('focus', function () { highlight(g.getAttribute('data-id')); });
       g.addEventListener('blur', function () { highlight(null); });
-      g.addEventListener('click', function (ev) { ev.stopPropagation(); inspect(g.getAttribute('data-id')); zoomTo(g); });
+      g.addEventListener('click', function (ev) { ev.stopPropagation(); select(g); });
       g.addEventListener('keydown', function (ev) {
-        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); inspect(g.getAttribute('data-id')); zoomTo(g); }
+        if (ev.target === g && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); select(g); }
       });
+      if (linkOf(g) !== null) { addDrillBadge(g, e); }
     });
+    $$('g.deco[data-link]', svg).forEach(function (d) {      // "+N more" → the band's list page
+      if (!has(pageIndex, d.getAttribute('data-link'))) { return; }
+      d.setAttribute('tabindex', '0');
+      d.setAttribute('role', 'link');
+      d.setAttribute('aria-label', 'Show every card of this band');
+      d.classList.add('linked');
+      function go() { openLink(d.getAttribute('data-link')); }
+      d.addEventListener('click', function (ev) { ev.stopPropagation(); go(); });
+      d.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); go(); } });
+    });
+    selectedId = null;
     enablePanZoom();
     applyState(false);
+  }
+
+  // ---- drill-through (effect 5): the "→" badge or a second click opens a card's trace page ---------------------
+  function linkOf(g) {
+    var l = g.getAttribute('data-link');
+    return l && has(pageIndex, l) && views[pageIndex[l]].trace === 'page' ? l : null;
+  }
+  function addDrillBadge(g, e) {
+    var b = g.getBBox();
+    var badge = document.createElementNS(SVGNS, 'g');
+    badge.setAttribute('class', 'drill');
+    badge.setAttribute('tabindex', '0');
+    badge.setAttribute('role', 'link');
+    badge.setAttribute('aria-label', 'Open the trace of ' + (e ? e.name : g.getAttribute('data-id')));
+    var c = document.createElementNS(SVGNS, 'circle');
+    c.setAttribute('cx', String(b.x + b.width - 2));
+    c.setAttribute('cy', String(b.y + 2));
+    c.setAttribute('r', '11');
+    var t = document.createElementNS(SVGNS, 'text');
+    t.setAttribute('x', String(b.x + b.width - 2));
+    t.setAttribute('y', String(b.y + 7));
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('font-size', '14');
+    t.setAttribute('font-weight', 'bold');
+    t.textContent = '→';
+    badge.appendChild(c);
+    badge.appendChild(t);
+    function go(ev) { ev.preventDefault(); ev.stopPropagation(); drill(g.getAttribute('data-id')); }
+    badge.addEventListener('click', go);
+    badge.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { go(ev); } });
+    g.appendChild(badge);
+    g.classList.add('linked');
+  }
+  function select(g) {
+    var id = g.getAttribute('data-id');
+    if (selectedId === id && linkOf(g) !== null) { drill(id); return; }
+    selectedId = id;
+    inspect(id);
+    zoomTo(g);
+  }
+  function traceHash(path, band) {
+    return '#/trace' + path.map(function (p) { return '/' + encodeURIComponent(p); }).join('') + (band ? '/+' + band : '');
+  }
+  function drill(id) {
+    if (!has(traceOf, id)) { toast('No trace page for ' + id); return navPromise; }
+    var base = current >= 0 && views[current].trace && views[current].trace !== 'index' ? tracePath : [];
+    var at = base.indexOf(id);
+    return goTrace(at >= 0 ? base.slice(0, at + 1) : base.concat([id]), null, true);
+  }
+  function openLink(pid) {
+    var v = views[pageIndex[pid]];
+    if (!v) { return navPromise; }
+    if (v.trace === 'list') {
+      var path = tracePath.length && tracePath[tracePath.length - 1] === v.focus ? tracePath : [v.focus];
+      return goTrace(path, v.band, true);
+    }
+    return v.trace === 'page' ? drill(v.focus) : openView(pageIndex[pid]);
+  }
+  function traceTarget(path, band) {
+    if (!path.length) { return band ? undefined : traceIndex; }
+    var last = path[path.length - 1];
+    return band ? listOf[last + '\n' + band] : (has(traceOf, last) ? traceOf[last] : undefined);
+  }
+  function goTrace(path, band, push) {
+    var i = traceTarget(path, band || null);
+    if (i === undefined) { toast('Not found in this presentation'); return navPromise; }
+    tracePath = path.slice();
+    traceBand = band || null;
+    var h = traceHash(tracePath, traceBand);
+    lastHash = h;
+    if (location.hash !== h) {
+      try { if (push) { history.pushState(null, '', h); } else { history.replaceState(null, '', h); } }
+      catch (e) { /* file:// in some browsers: the view still opens, without a history entry */ }
+    }
+    navPromise = openView(i, null, null, true);
+    return navPromise;
+  }
+  function parseTrace(h) {
+    var m = /^#\/trace((?:\/[^/?#]*)*)$/.exec(h);
+    if (!m) { return null; }
+    var segs = m[1] ? m[1].split('/').slice(1) : [];
+    var band = null;
+    if (segs.length && /^\+(above|below)$/.test(segs[segs.length - 1])) { band = segs.pop().slice(1); }
+    var path = [];
+    for (var n = 0; n < segs.length; n++) {
+      var id;
+      try { id = decodeURIComponent(segs[n]); } catch (e) { return null; }
+      if (!id || !has(traceOf, id)) { return null; }
+      path.push(id);
+    }
+    return traceTarget(path, band) === undefined ? null : { path: path, band: band };
   }
 
   function setChrome() {
@@ -182,13 +302,32 @@
       var back = el('button', { type: 'button' }, 'All views');
       back.addEventListener('click', showWall);
       crumb.appendChild(back);
-      crumb.appendChild(document.createTextNode(' / ' + views[current].name));
+      var v = views[current];
+      if (v.trace && traceIndex !== undefined && v.trace !== 'index') {
+        // the path taken: Trace / journey / task / …, each crumb jumps back to its page
+        var home = el('button', { type: 'button', 'data-depth': '0' }, views[traceIndex].name);
+        home.addEventListener('click', function () { goTrace([], null, true); });
+        crumb.appendChild(document.createTextNode(' / '));
+        crumb.appendChild(home);
+        tracePath.forEach(function (id, n) {
+          var name = byId[id] ? byId[id].name : id;
+          crumb.appendChild(document.createTextNode(' / '));
+          if (n === tracePath.length - 1 && !traceBand) { crumb.appendChild(el('span', { 'aria-current': 'page' }, name)); return; }
+          var b = el('button', { type: 'button', 'data-depth': String(n + 1) }, name);
+          b.addEventListener('click', function () { goTrace(tracePath.slice(0, n + 1), null, true); });
+          crumb.appendChild(b);
+        });
+        if (traceBand) { crumb.appendChild(document.createTextNode(' / ' + v.name)); }
+      } else {
+        crumb.appendChild(document.createTextNode(' / ' + v.name));
+      }
     }
   }
 
-  function openView(i, elementId, fromCard) {
+  function openView(i, elementId, fromCard, routed) {
     if (i < 0 || i >= views.length) { return Promise.resolve(); }
     current = i;
+    if (!routed) { syncTrace(i); }
     setChrome();
     mount(i);
     inspect(elementId || null);
@@ -214,13 +353,23 @@
     });
   }
 
+  function syncTrace(i) {                          // a trace page opened by a tab, search or paging: a path of one
+    var v = views[i];
+    if (!v.trace) { return; }
+    if (v.trace === 'index') { tracePath = []; traceBand = null; return; }
+    if (tracePath[tracePath.length - 1] !== v.focus || traceBand !== (v.band || null)) {
+      tracePath = [v.focus];
+      traceBand = v.band || null;
+    }
+  }
+
   function showWall() {
     var leaving = current;
     current = -1;
     highlight(null);
     setChrome();
     updateHash(null);
-    var card = $('.card[data-view="' + leaving + '"]');
+    var card = $('.card[data-view="' + leaving + '"]') || (traceIndex !== undefined && $('.card[data-view="' + traceIndex + '"]'));
     if (card) { card.focus({ preventScroll: false }); }
   }
 
@@ -379,7 +528,9 @@
     if (!e) { return Promise.resolve(); }
     var here = current >= 0 && svg && svg.querySelector('g.el[data-id="' + cssEscape(id) + '"]');
     if (here) { highlight(id); inspect(id); updateHash(id); return zoomTo(here); }
-    var occ = e.occurrences.filter(function (o) { return o.page_id in pageIndex; })[0];
+    var occs = e.occurrences.filter(function (o) { return o.page_id in pageIndex; });
+    var occ = occs.filter(function (o) { return !views[pageIndex[o.page_id]].trace; })[0] ||
+              (has(traceOf, id) ? { page_id: views[traceOf[id]].page_id } : occs[0]);
     if (!occ) { toast(e.name + ' is only in the model — not drawn on any view'); inspect(id); return Promise.resolve(); }
     return openView(pageIndex[occ.page_id], id);
   }
@@ -478,24 +629,48 @@
 
   // ---- effect 5: paging, full screen, deep links, print -------------------------------------------------
   function page(d) {
-    if (current < 0) { return openView(d > 0 ? 0 : views.length - 1); }
-    return openView((current + d + views.length) % views.length);
+    if (!visible.length) { return Promise.resolve(); }
+    if (current < 0) { return openView(visible[d > 0 ? 0 : visible.length - 1]); }
+    var at = visible.indexOf(current);
+    if (at < 0) { at = visible.indexOf(traceIndex); }             // from a trace page: page on from the Trace card
+    return openView(visible[(at + d + visible.length) % visible.length]);
   }
   function updateHash(id) {
-    var h = current < 0 ? '#/' : '#/view/' + views[current].page_id + (id ? '/' + encodeURIComponent(id) : '') +
+    var h = current < 0 ? '#/' : views[current].trace ? traceHash(tracePath, traceBand) :
+            '#/view/' + views[current].page_id + (id ? '/' + encodeURIComponent(id) : '') +
             (stateMode !== 'all' ? '?state=' + stateMode : '');
     if (location.hash !== h && location.hash !== '#selftest') {
+      lastHash = h;
       try { history.replaceState(null, '', h); } catch (e) { /* file:// in some browsers */ }
     }
   }
-  function fromHash() {
-    var m = /^#\/view\/([a-z0-9-]+)(?:\/([^?]+))?(?:\?state=(current|target))?$/.exec(location.hash || '');
-    if (!m || !(m[1] in pageIndex)) { return false; }
-    var id = m[2] ? decodeURIComponent(m[2]) : null;
+  function route(h) {
+    // false (with a "not found" toast) for anything that is not a page of this file: the view stays as it is
+    if (/^#\/trace(\/|$)/.test(h)) {
+      var t = parseTrace(h);
+      if (!t) { toast('Not found in this presentation'); return false; }
+      goTrace(t.path, t.band, false);
+      return true;
+    }
+    var m = /^#\/view\/([a-z0-9-]+)(?:\/([^?]+))?(?:\?state=(current|target))?$/.exec(h);
+    if (!m || !has(pageIndex, m[1])) {
+      if (/^#\/view/.test(h)) { toast('Not found in this presentation'); }
+      return false;
+    }
+    var id = null;
+    try { id = m[2] ? decodeURIComponent(m[2]) : null; } catch (e) { id = null; }
     if (id && !byId[id]) { id = null; }
     if (m[3]) { stateMode = m[3]; }
-    openView(pageIndex[m[1]], id);
+    navPromise = openView(pageIndex[m[1]], id);
     return true;
+  }
+  function fromHash() { return route(location.hash || ''); }
+  function onNav() {                                   // back / forward / an edited address: show that route
+    var h = location.hash || '';
+    if (h === '#selftest' || h === lastHash) { return; }
+    lastHash = h;
+    if ((h === '' || h === '#/' || h === '#') && current >= 0) { showWall(); return; }
+    fromHash();
   }
   function buildPrint() {
     var box = $('#print');
@@ -563,10 +738,76 @@
   $('#palette').addEventListener('click', function (ev) { if (ev.target === $('#palette')) { closePalette(); } });
   $('#palette input').addEventListener('input', function (ev) { renderResults(ev.target.value); });
   window.addEventListener('beforeprint', buildPrint);
-  window.addEventListener('hashchange', function () { if (location.hash !== '#selftest') { fromHash(); } });
-  if (location.hash === '#selftest') { selftest(); } else { fromHash(); }
+  window.addEventListener('hashchange', onNav);
+  window.addEventListener('popstate', onNav);
+  var cspViolations = 0;
+  document.addEventListener('securitypolicyviolation', function () { cspViolations += 1; });
+  if (location.hash === '#selftest') { selftest(); } else { lastHash = location.hash; fromHash(); }
 
   // ---- self-test (CI: headless Chrome --dump-dom file://…#selftest) ------------------------------------------
+  function waitNav(ms) {                              // the next back / forward / hash route, or the time-out
+    return new Promise(function (resolve) {
+      var t = setTimeout(done, ms);
+      function done() {
+        clearTimeout(t);
+        window.removeEventListener('popstate', later);
+        window.removeEventListener('hashchange', later);
+        resolve(navPromise);
+      }
+      function later() { setTimeout(done, 0); }
+      window.addEventListener('popstate', later);
+      window.addEventListener('hashchange', later);
+    });
+  }
+  function traceSteps(check) {
+    if (traceIndex === undefined) { return Promise.resolve(); }
+    var a = null, b = null;
+    function focusIs(id, depth) { return views[current].trace === 'page' && views[current].focus === id && tracePath.length === depth; }
+    return goTrace([], null, true).then(function () {
+      check('trace-card', current === traceIndex && $$('.card[data-view="' + traceIndex + '"]').length === 1);
+      var g = $$('g.el.linked', svg)[0];
+      a = g && g.getAttribute('data-id');
+      g.querySelector('g.drill').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      return navPromise;
+    }).then(function () {
+      check('drill', focusIs(a, 1) && location.hash === traceHash([a], null));
+      var g = $$('g.el.linked', svg).filter(function (n) { return n.getAttribute('data-id') !== a; })[0];
+      b = g && g.getAttribute('data-id');
+      var before = current;
+      g.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      check('card-first-click', current === before && selectedId === b);
+      g.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      return navPromise;
+    }).then(function () {
+      check('card-second-click', focusIs(b, 2));
+      var crumb = $('#crumb button[data-depth="1"]');
+      check('breadcrumb', !!crumb && $$('#crumb button[data-depth]').length === 2 && !!$('#crumb [aria-current="page"]'));
+      crumb.click();
+      return navPromise;
+    }).then(function () {
+      check('breadcrumb-jump', focusIs(a, 1));
+      var p = waitNav(2000);
+      history.back();
+      return p;
+    }).then(function () {
+      check('history-back', focusIs(b, 2));
+      var p = waitNav(2000);
+      history.forward();
+      return p;
+    }).then(function () {
+      check('forward', focusIs(a, 1));
+      var p = waitNav(2000);
+      location.hash = traceHash([a, b], null);
+      return p;
+    }).then(function () {
+      check('deeplink-restore', focusIs(b, 2) && $$('#crumb button[data-depth]').length === 2);
+      var before = current;
+      var bad = ['#/trace/%E0%A4%A', '#/trace/NOPE', '#/trace/..%2F..', '#/view/', '#/trace/+below/x', '#/trace//'];
+      check('route-malformed', bad.every(function (h) { return route(h) === false && current === before; }) &&
+                               $('#toast').textContent === 'Not found in this presentation' && cspViolations === 0);
+    });
+  }
+
   function selftest() {
     var steps = [];
     function check(name, ok) { steps.push(name + ':' + (ok ? 'ok' : 'FAIL')); if (!ok) { throw new Error(name); } }
@@ -577,12 +818,12 @@
     };
     var pick = null;
     Promise.resolve().then(function () {
-      check('wall', $$('.card').length === views.length && views.length > 0);
+      check('wall', $$('.card').length === visible.length && visible.length > 0);
       // a card is never flattened: its 16:10 thumbnail and title stay whole (row sizing bug seen on phones)
       check('wall-cards', $$('.card').every(function (c) { return c.offsetHeight >= c.offsetWidth * 0.62; }));
-      return openView(0, null, $('.card'));
+      return openView(visible[0], null, $('.card'));
     }).then(function () {
-      check('view', !!svg && current === 0);
+      check('view', !!svg && current === visible[0]);
       var before = svg.getAttribute('viewBox');
       pick = svg.querySelector('g.el[data-id]');
       check('elements', !!pick);
@@ -619,11 +860,15 @@
       return chain;
     }).then(function () {
       var before = current;
-      return page(1).then(function () { check('paging', views.length < 2 || current === (before + 1) % views.length); });
+      return page(1).then(function () {
+        check('paging', visible.length < 2 || current === visible[(visible.indexOf(before) + 1) % visible.length]);
+      });
+    }).then(function () {
+      return traceSteps(check);
     }).then(function () {
       showWall();
       check('back', current === -1 && !$('#wall').hidden);
-      check('no-errors', errors === 0);
+      check('no-errors', errors === 0 && cspViolations === 0);
       done(true);
     }).catch(function () { done(false); });
   }

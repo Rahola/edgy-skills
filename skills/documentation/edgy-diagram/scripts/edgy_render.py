@@ -277,8 +277,14 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
         x, y, w, h = box
         st = style_dict(c.get('style'))
         mid = _attr_id(st.get('edgyId'))
+        lm = re.match(r'^data:page/id,([a-z0-9-]+)$', c.get('link') or '')
+        link = f' data-link="{lm.group(1)}"' if lm else ''      # a draw.io page link (trace pages, 2.9.0)
         if mid and not st.get('edgyRole'):
             attrs = [f'data-id="{esc(mid)}"']
+            if lm:
+                attrs.append(link.strip())
+            if st.get('edgyTrace') in ('focus', 'list', 'index'):
+                attrs.append(f'data-trace="{st["edgyTrace"]}"')
             occ = st.get('edgyOcc')
             if occ and re.match(r'^[a-z0-9-]+/\d+$', occ):
                 attrs.append(f'data-occ="{esc(occ)}"')
@@ -291,7 +297,7 @@ def page_to_svg(page: Page, title: Optional[str] = None, publication: bool = Fal
         else:
             owner = page.owner_id(cid)
             extra = f' data-for="{esc(owner)}"' if owner else ''
-            parts.append(f'<g class="deco" data-role="{deco_role(c, st)}"{extra}>')
+            parts.append(f'<g class="deco" data-role="{deco_role(c, st)}"{extra}{link}>')
         fill = st.get('fillColor', '#ffffff')
         stroke = st.get('strokeColor', '#000000')
         sw = st.get('strokeWidth', '1')

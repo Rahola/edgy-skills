@@ -23,7 +23,10 @@ effects, no more — a sixth belongs to the deferred presenter effects (F6b):
      it is. The {change:} overlay is a stroke colour on one diagram, so this is
      a filter over annotations, never a second (target) model
   5. paging: ← / → through the views, F full screen, deep links
-     #/view/<page>/<id>?state=target, a print stylesheet (one view per page)
+     #/view/<page>/<id>?state=target, a print stylesheet (one view per page); drill-through on a
+     realisation trace (2.9.0) belongs here: the trace pages are one Trace card on the wall, the "→"
+     badge or a second click on a card opens its trace page, #/trace/<id>/<id>/… routes with the
+     browser history and a breadcrumb of the path taken
 
 The diagrams stay on a light paper card in both chrome themes; with
 prefers-reduced-motion every animation is a cut.
@@ -127,6 +130,22 @@ def graph_from_drawio(pages) -> dict:
     return {'contract': 1, 'elements': [elements[m] for m in order], 'relationships': rels}
 
 
+def _trace_info(svg: str, pid: str) -> dict:
+    """Realisation trace pages (2.9.0), from the edgyTrace markers the generator writes (data-trace in the SVG):
+    {'trace': 'index'} for the trace index, {'trace': 'page', 'focus': id} for an element's trace page and
+    {'trace': 'list', 'focus': id, 'band': above|below} for its list page; {} for every other page."""
+    if re.search(r'<g class="el" [^>]*data-trace="index"', svg):
+        return {'trace': 'index'}
+    m = re.search(r'<g class="el" data-id="([^"]+)"[^>]*data-trace="(focus|list)"', svg)
+    if not m:
+        return {}
+    focus = html.unescape(m.group(1))
+    if m.group(2) == 'list':
+        band = re.search(r'-more-(above|below)$', pid)
+        return {'trace': 'list', 'focus': focus, 'band': band.group(1) if band else 'below'}
+    return {'trace': 'page', 'focus': focus}
+
+
 def _json_for_script(data) -> str:
     """JSON safe inside <script type="application/json">: no '<', '>' or '&' can close or confuse it."""
     return (json.dumps(data, ensure_ascii=False, separators=(',', ':'))
@@ -158,10 +177,12 @@ def build(drawio: str, graph: Optional[dict] = None, title: Optional[str] = None
         svg = svg.replace('<svg xmlns="http://www.w3.org/2000/svg"', f'<svg xmlns="http://www.w3.org/2000/svg" data-page="{pid}"', 1)
         facets = sorted({m for m in re.findall(r'data-facet="([a-z]+)"', svg)}, key=lambda f: FACET_ORDER.index(f)
                         if f in FACET_ORDER else 9)
-        views.append({'index': i, 'page_id': pid, 'name': name,
-                      'elements': len(re.findall(r'<g class="el" ', svg)),
-                      'edges': len(re.findall(r'<g class="edge" ', svg)), 'facets': facets,
-                      'changes': 'data-change=' in svg})
+        view = {'index': i, 'page_id': pid, 'name': name,
+                'elements': len(re.findall(r'<g class="el" ', svg)),
+                'edges': len(re.findall(r'<g class="edge" ', svg)), 'facets': facets,
+                'changes': 'data-change=' in svg}
+        view.update(_trace_info(svg, pid))
+        views.append(view)
         templates.append(f'<template id="view-{i}">{svg}</template>')
     css = open(os.path.join(ASSETS, 'presenter.css'), encoding='utf-8').read()
     js = open(os.path.join(ASSETS, 'presenter.js'), encoding='utf-8').read()

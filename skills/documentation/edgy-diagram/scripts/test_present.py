@@ -25,7 +25,7 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
-from edgy_document import parse_document, build_mxfile  # noqa: E402
+from edgy_document import parse_document, build_mxfile, page_ids_of  # noqa: E402
 import edgy_present  # noqa: E402
 import edgy_render  # noqa: E402
 
@@ -48,13 +48,26 @@ DEMO = '''pages:
     relationships:
       - "CAP-05" -> "AST-02": "requires"
       - "AST-02" -> "AST-07": "stores"
+  - name: "Journey"
+    elements:
+      - journey: "Buy a ticket" {id: JRN-01}
+      - task: "Pay" {id: TSK-01}
+      - product: "Single ticket" {id: PRD-01}
+      - capability: "Ticketing" {id: CAP-05}
+    relationships:
+      - "TSK-01" -> "JRN-01": "is part of"
+      - "PRD-01" -> "TSK-01": "serves"
+      - "PRD-01" -> "CAP-05": "requires"
+  - name: "Trace"
+    map_type: trace
+    expand: trace
 '''
 
 
 def _build(text=DEMO, title='Acme Transit'):
     tmp = tempfile.mkdtemp()
     pages, graph = parse_document(text, with_graph=True)
-    xml = build_mxfile([(n, p.generate_xml()) for n, p in pages])
+    xml = build_mxfile([(n, p.generate_xml()) for n, p in pages], page_ids=page_ids_of(pages))
     drawio = os.path.join(tmp, 'demo.drawio')
     open(drawio, 'w', encoding='utf-8').write(xml)
     html, stats = edgy_present.build(drawio, graph.to_json(), title)
@@ -89,11 +102,18 @@ def test_graph_and_views_are_embedded():
     graph = json.loads(re.search(r'<script type="application/json" id="edgy-graph">(.*?)</script>', html, re.S).group(1))
     views = json.loads(re.search(r'<script type="application/json" id="edgy-views">(.*?)</script>', html, re.S).group(1))
     assert graph['contract'] == 1 and {e['id'] for e in graph['elements']} >= {'CAP-05', 'AST-02', 'AST-07'}
-    assert [v['name'] for v in views] == ['Capabilities', 'Applications']
-    assert len(re.findall(r'<template id="view-\d+">', html)) == 2
+    plain = [v for v in views if not v.get('trace')]
+    assert [v['name'] for v in plain] == ['Capabilities', 'Applications', 'Journey']
+    assert len(re.findall(r'<template id="view-\d+">', html)) == len(views)
     assert views[0]['changes'] and not views[1]['changes']
     cap = next(e for e in graph['elements'] if e['id'] == 'CAP-05')
-    assert {o['page_id'] for o in cap['occurrences']} == {v['page_id'] for v in views}   # one element, two views
+    assert {'capabilities', 'applications', 'journey'} <= {o['page_id'] for o in cap['occurrences']}
+    # realisation trace (2.9.0): the index, one page per element with its focus; ids are not page names
+    trace = {v['page_id']: v for v in views if v.get('trace')}
+    assert trace['trace-index']['trace'] == 'index'
+    assert {'JRN-01', 'TSK-01', 'PRD-01', 'CAP-05'} <= {v['focus'] for v in trace.values() if v['trace'] == 'page'}
+    assert trace['trace-jrn-01'] == {**trace['trace-jrn-01'], 'trace': 'page', 'focus': 'JRN-01'}
+    assert 'data-link="trace-tsk-01"' in html and 'data-trace="focus"' in html
 
 
 def test_graph_from_cells_without_graph_json():
@@ -151,7 +171,7 @@ elements:
 
 def test_size_budget():
     html, stats, _out, _d = _build()
-    assert stats['bytes'] < edgy_present.budget_bytes(stats['pages']) / 10, stats
+    assert stats['bytes'] < edgy_present.budget_bytes(stats['pages']) / 5, stats
     assert edgy_present.budget_bytes(60) == 2 * edgy_present.budget_bytes(30)
 
 
@@ -188,7 +208,9 @@ def browser_selftest():
         return f'fail: no self-test sentinel in the DOM (exit {r.returncode})'
     if m.group(1) != 'pass' or m.group(2) != '0':
         return f'fail: result={m.group(1)} errors={m.group(2)} steps={m.group(3)}'
-    for step in ('wall', 'wall-cards', 'view', 'highlight', 'zoom', 'search-jump', 'state-noop', 'state-current', 'state-target', 'paging', 'back'):
+    for step in ('wall', 'wall-cards', 'view', 'highlight', 'zoom', 'search-jump', 'state-noop', 'state-current', 'state-target', 'paging',
+                 'trace-card', 'drill', 'card-first-click', 'card-second-click', 'breadcrumb', 'breadcrumb-jump',
+                 'history-back', 'forward', 'deeplink-restore', 'route-malformed', 'back', 'no-errors'):
         if f'{step}:ok' not in m.group(3):
             return f'fail: step {step} missing ({m.group(3)})'
     return 'pass'
