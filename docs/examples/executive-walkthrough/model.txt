@@ -1,0 +1,60 @@
+# Completely fictional Acme Oy field-service example. All descriptions and links are invented.
+language: fi
+legend: strip
+card_width: 230
+pages:
+  - name: "Model"
+    draw: false
+    elements:
+      - purpose: "Luotettava palveluarki - Asiakkaan toiminta jatkuu ennakoitavasti" [analyyttinen] {id: PUR-01}
+      - journey: "Huoltopyyntö ratkaisuksi - Varauksesta toiminnan vahvistukseen" [analyyttinen] {id: JRN-01}
+      - task: "Saan laitteen kuntoon - Tiedän seuraavan askeleen" [analyyttinen] {id: TSK-01}
+      - channel: "Asiakaspalvelu - Yhteydenotto ja tilanteen selvittäminen" [analyyttinen] {id: CHA-01}
+      - product: "Huoltopalvelu - Sovittu apu ja vahvistettu lopputulos" [analyyttinen] {id: PRD-01}
+      - capability: "Palvelutarpeen hallinta - Oikea tarve ja palvelun rajaus" [analyyttinen] {id: CAP-01, gaps: "data=out_of_scope"}
+      - capability: "Palvelun koordinointi - Työ ja vastuu kohtaavat" [analyyttinen] {id: CAP-02, gaps: "data=out_of_scope"}
+      - capability: "Palvelun palautuminen - Turvallinen jatko häiriössä" [analyyttinen] {id: CAP-03, gaps: "data=out_of_scope"}
+      - capability: "Asiakastiedon hallinta - Jaettu tulkinta ja ajantasaisuus" [analyyttinen] {id: CAP-04, gaps: "data=out_of_scope"}
+      - process: "Huollon toteutus - Pyynnöstä vahvistettuun lopputulokseen" [analyyttinen] {id: PRO-01, gaps: "organisation=out_of_scope"}
+      - asset: "Työnohjaus - Yhteinen työjono" [analyyttinen] {id: APP-01, kind: application, gaps: "organisation=out_of_scope"}
+      - organisation: "Acme Oy - Kuvitteellinen palveluyhtiö" [analyyttinen] {id: ORG-01}
+    relationships:
+      - "ORG-01" -> "PUR-01": "pursues"
+      - "ORG-01" -> "CAP-01": "has"
+      - "ORG-01" -> "CAP-02": "has"
+      - "ORG-01" -> "CAP-03": "has"
+      - "ORG-01" -> "CAP-04": "has"
+      - "ORG-01" -> "PRO-01": "performs"
+      - "ORG-01" -> "PRD-01": "makes"
+      - "ORG-01" -> "APP-01": "manages"
+      - "PRO-01" -> "CAP-01": "realises"
+      - "PRO-01" -> "CAP-02": "realises"
+      - "PRO-01" -> "CAP-03": "realises"
+      - "PRO-01" -> "CAP-04": "realises"
+      - "PRO-01" -> "APP-01": "requires"
+      - "PRO-01" -> "PRD-01": "creates"
+      - "CAP-02" -> "APP-01": "requires"
+      - "CAP-04" -> "APP-01": "requires"
+      - "PRD-01" -> "CAP-01": "requires"
+      - "PRD-01" -> "CAP-02": "requires"
+      - "PRD-01" -> "CAP-03": "requires"
+      - "PRD-01" -> "CAP-04": "requires"
+      - "PRD-01" -> "TSK-01": "serves"
+      - "PRD-01" -> "JRN-01": "features in"
+      - "TSK-01" -> "JRN-01": "is part of"
+      - "TSK-01" -> "CHA-01": "uses"
+      - "JRN-01" -> "CHA-01": "traverses"
+  - name: "Kyvykkyydet"
+    map_type: capability
+    elements:
+      - capability: "Palvelutarpeen hallinta - Oikea tarve ja palvelun rajaus" [analyyttinen] {id: CAP-01, gaps: "data=out_of_scope"}
+      - capability: "Palvelun koordinointi - Työ ja vastuu kohtaavat" [analyyttinen] {id: CAP-02, gaps: "data=out_of_scope"}
+      - capability: "Palvelun palautuminen - Turvallinen jatko häiriössä" [analyyttinen] {id: CAP-03, gaps: "data=out_of_scope"}
+      - capability: "Asiakastiedon hallinta - Jaettu tulkinta ja ajantasaisuus" [analyyttinen] {id: CAP-04, gaps: "data=out_of_scope"}
+  - name: "Koordinoinnin toteutuminen"
+    map_type: capability-view
+    focus: CAP-02
+  - name: "Trace"
+    map_type: trace
+    expand: trace
+    where: JRN-01, TSK-01, PRD-01, CAP-02, PRO-01, APP-01, ORG-01

@@ -20,6 +20,24 @@ perustelut.
 
 ---
 
+### 2026-10-18 — Codex (executive walkthrough discovery toward v2.6.0)
+
+- Added a discussion draft for an optional narrated presentation layer over
+  the existing EDGY atlas. Its contract concerns claims, evidence, discussion
+  and return to the narrative, while visual composition remains flexible.
+- Added a fully fictional Acme Oy demonstrator with source TXT, an offline
+  HTML composition and a standard-library builder. It reuses the generator,
+  graph, native renderer and presenter rather than duplicating layout or trace.
+- Discussion notes and meeting positions stay in memory and export locally;
+  they are not formal approvals or model changes. CSP pins the outer and
+  embedded presenter's scripts/styles; no network dependency was added.
+- This is a review artefact and candidate direction, not a new skill or a
+  change to the locked five-effect presenter scope. Skill versions, registry
+  and release metadata are unchanged.
+- Diagrams: 1 multi-page model (10 views) · lint before manual fixes:
+  0 errors / 0 warnings · after: 0 / 0 · preview looked at: yes · manual
+  draw.io edits: none. All example content and evidence sources are invented.
+
 ### 2026-10-17 — Claude Code (Zenodo DOI)
 
 - **Why the concept DOI.** Zenodo archived the v2.5.1 release through its
