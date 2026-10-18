@@ -9,6 +9,10 @@
 **Scope:** findings, candidate content responsibilities, open decisions and a
 review plan. No skill, schema, presenter contract, registry or version changes.
 
+**Dependency:** this note stays a discussion draft until the walkthrough in
+PR #11 has had a human review (EW-07). The site inherits the walkthrough's
+unverified assumptions, so its value depends on that hypothesis holding first.
+
 ## 1. The outcome worth exploring
 
 The atlas helps somebody explore the model, and the walkthrough helps a
@@ -49,6 +53,13 @@ it does not replace it.
 
 ## 3. Findings
 
+Every SS finding below is a **hypothesis**. None of them has been observed with
+real stakeholders. SS-03 (audience entry pages) and SS-04 (decision log) in
+particular are plausible but unverified. The fictional demonstrator (section 9)
+tests the **mechanics**, not the **demand**. Only a real trial shows whether
+people use these pages, and whether keeping them current is worth the effort
+(SS-08).
+
 | ID | Finding | Candidate direction | Why it matters |
 |---|---|---|---|
 | SS-01 | A meeting artefact is out of date the day after the meeting. | Rebuild the site from the model and authored files. Show *as of* date, model version and build provenance on every page. | Readers can trust what they see, or see that it is stale. |
@@ -58,6 +69,8 @@ it does not replace it.
 | SS-05 | Comments need a home, but a backend is a big commitment. | Stable deep links for every page, element, decision and question. Discussion happens in the organisation's existing tool, linking back. | Collaboration without the skills running a service. |
 | SS-06 | Real programme content is confidential. | The build tool is generic and lives in this repo. Content, builds and hosting stay inside the organisation. | This public repo never holds client material. |
 | SS-07 | Walkthrough notes are lost after the meeting (EW demonstrator). | Import an exported walkthrough note as *proposed* entries in the decision log or open questions. A person then confirms them in the authored files. | The meeting feeds the site, but a note never becomes a decision on its own. |
+| SS-08 | **Maintenance load.** Somebody must write the narrative, keep the decision log and open questions current, and adjust them when the model changes. If that work happens outside the workflow that produces the model and views, the authored content is always older than the model. SS-01 then shows a fresh date over stale content. | Make maintenance part of the same agent workflow. A rebuild lists every authored item that refers to an id that changed in the model delta (SS-02), and flags it as *needs review*. The agent drafts the updates and a person confirms them. Measure the upkeep time in the real trial. | If upkeep costs more than the site saves, the site dies after a few versions. This is the likeliest failure mode, so it is a finding, not a footnote. |
+| SS-09 | **Link stability has a price.** Stable URLs (SS-05) work only while ids stay stable. A model refactoring merges, splits or renames elements, so `model/CAP-02` breaks or points to the wrong thing. | An id migration policy: an id is never reused. A removed id keeps a **tombstone page** ("CAP-02 was merged into CAP-05 on 2026-11-03"), generated from an explicit `replaced_by` mapping or confirmed from the model delta's rename and remove pairs. The link checker fails a build that drops a published id without a tombstone. | This is the largest technical risk of the site, larger than the hosting choice: a broken or wrong link in last month's minutes undermines trust in everything else. |
 
 ## 4. Candidate content responsibilities
 
@@ -78,9 +91,16 @@ composition stays free, as in EW-02.
 
 Every item has a **stable URL** (`decisions/D-012`, `questions/Q-007`,
 `model/CAP-02`). The URLs survive rebuilds, so a link posted in a chat
-or a minutes document keeps working. This needs the same "drill target" hook
-proposed in the PR #11 review: a link can open the atlas at an element's view
-or trace.
+or a minutes document keeps working, under the id migration policy of SS-09.
+This needs the same "drill target" hook proposed in the PR #11 review: a link
+can open the atlas at an element's view or trace.
+
+**Composition freedom, restated for a site.** EW-02 and the walkthrough note's
+§4 keep the visual composition free and require no single page template.
+A site needs a **fixed structure**, because stable URLs and the responsibilities
+above are its contract. The freedom of EW-02 therefore applies **within a
+page** (its layout, order and visual form), not to the site's structure.
+This is a refinement of EW-02, not a contradiction.
 
 ## 5. Build and versioning
 
@@ -93,8 +113,11 @@ or trace.
   snapshot's graph, so "what changed" is computed rather than written.
 - **Determinism:** the same inputs give the same output, as for the generator
   and the PR #11 builder, so a rebuild without changes is a no-op diff.
-- **Checks:** strict lint of all views, plus a link checker (no broken internal
-  link, every referenced id exists), plus the presenter self-test.
+- **Checks:** strict lint of all views; a link checker (no broken internal
+  link, every referenced id exists, no published id dropped without a
+  tombstone, per SS-09); a *needs review* list of authored items whose ids
+  changed (SS-08); the presenter self-test; and an automated accessibility
+  check against the requirement in §7.
 
 ## 6. Hosting and collaboration (outside the skills)
 
@@ -124,6 +147,12 @@ or a hosted service is out of scope for v2.6.0.
 - Proposals, interpretations and observations keep their labels (EW-05) on
   every page they appear on.
 
+**Accessibility is a requirement, not an option.** A site for real stakeholders
+must meet **WCAG 2.1 AA** as a minimum. The same bar should apply to the
+walkthrough (EW), because it is easier to lock now than to retrofit. An
+automated check is necessary but not sufficient: the acceptance in §9 includes
+a keyboard-only and a screen-reader pass by a person.
+
 ## 8. Open decisions
 
 | ID | Decision | Options |
@@ -133,7 +162,7 @@ or a hosted service is out of scope for v2.6.0.
 | SD-3 | Decision log format | Markdown ADR files; a section in the model TXT; a separate YAML file |
 | SD-4 | Snapshot retention | previous build only; every tagged version |
 | SD-5 | Languages | one per site; parallel language trees (fi/en) |
-| SD-6 | Accessibility target | WCAG 2.1 AA as the acceptance bar for the generated pages |
+| SD-6 | Id migration source | an explicit `replaced_by` mapping in the model or site files; proposals from the model delta confirmed by a person; both |
 | SD-7 | Relation to the walkthrough | separate tools sharing components; the walkthrough as one page type of the site |
 
 ## 9. Fictional demonstrator and review tasks
@@ -151,12 +180,15 @@ open questions being resolved.
 | Follow a chat link to D-012 | lands on the decision; its model ids open in the atlas | broken or unstable link |
 | Walkthrough note → site | the note appears as *proposed*; a person confirms it | a note shows as decided automatically |
 | Stale build | the *as of* date and model version are visible | an old build looks current |
+| Model refactoring (merge CAP-02 into another capability in version 3) | the old link opens a tombstone that points to the new id; the build fails without one | the link breaks or silently shows another element |
+| Upkeep after a model change | the rebuild lists the authored items to review; the time to update them is recorded | authored pages silently refer to removed or renamed ids |
+| Accessibility | automated WCAG 2.1 AA check passes; keyboard-only and screen-reader passes by a person | missing labels, focus traps, contrast failures |
 | Offline / file share | opens without network; links work | blank pages or blocked scripts |
 | Confidentiality | a fictional-only repo scan passes; a classification banner shows | real names or content in the repo |
 
 As in EW-07, agent and browser checks are not stakeholder acceptance. One
 real programme should try a fictionalised trial before any production
-decision.
+decision. That trial is also where the upkeep time of SS-08 is measured.
 
 ## 10. Place in the v2.6.0 discovery sequence
 
@@ -168,6 +200,8 @@ walkthrough note's §6, and three questions to step 1:
 2. Which audiences come first (sponsor, steering group, domain owners, teams)?
 3. Which hosting constraints are real for the first users (§6)?
 
+The id migration policy (SS-09) and the upkeep workflow (SS-08) should be
+designed before SD-1, because they decide whether the site is viable at all.
 Decisions SD-1 to SD-7 belong to step 4. Nothing here changes the skills
 until step 5 locks a plan.
 

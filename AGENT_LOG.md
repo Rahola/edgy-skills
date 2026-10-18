@@ -25,12 +25,19 @@ perustelut.
 - **Why a separate note.** The owner asked whether the walkthrough could become
   a site that every stakeholder returns to. That is a different reader (alone,
   over weeks) from the walkthrough's group in one meeting, so it gets its own
-  findings (SS-01–SS-07) and decisions (SD-1–SD-7). It shares the graph, ids and
+  findings (SS-01–SS-09) and decisions (SD-1–SD-7). It shares the graph, ids and
   the evidence rules.
 - **No backend.** Comments and approvals stay in the organisation's existing
   tools, linked by stable URLs. The skills produce static files only.
 - **Authority.** The site shows decisions from an authored log. A walkthrough note
   can only enter it as a proposal that a person confirms.
+- **Owner review (PR #12).** The SS findings are labelled as hypotheses. Two
+  findings were added: the upkeep load (SS-08), as the likeliest failure mode,
+  and id stability with tombstones (SS-09), as the largest technical risk.
+  WCAG 2.1 AA moved from an open decision to a requirement, for the
+  walkthrough too. The note says that composition freedom applies within a
+  page, not to the site structure. It stays a draft until #11 has had a
+  human review.
 - Documentation only: no skill, schema, registry or version change.
 
 ### 2026-10-18 — Codex (executive walkthrough discovery toward v2.6.0)
