@@ -122,6 +122,8 @@ architecture decision or a persisted model change.
 2. **Compare compositions.** Review this executive walkthrough alongside the
    existing atlas; later try a workshop or report composition with the same
    fictional facts. Identify shared responsibilities, not shared pixels.
+   A persistent, asynchronous **stakeholder site** over the same graph is drafted in
+   [`development-plan-2026-10-stakeholder-site.md`](development-plan-2026-10-stakeholder-site.md).
 3. **Test the content workflow with agents.** Ask different agents to prepare
    a discussion from the same material. Compare traceability, argument and
    facilitation, not byte-identical HTML.

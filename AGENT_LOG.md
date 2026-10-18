@@ -20,6 +20,19 @@ perustelut.
 
 ---
 
+### 2026-10-18 — Claude Code (stakeholder site discovery toward v2.6.0)
+
+- **Why a separate note.** The owner asked whether the walkthrough could become
+  a site that every stakeholder returns to. That is a different reader (alone,
+  over weeks) from the walkthrough's group in one meeting, so it gets its own
+  findings (SS-01–SS-07) and decisions (SD-1–SD-7). It shares the graph, ids and
+  the evidence rules.
+- **No backend.** Comments and approvals stay in the organisation's existing
+  tools, linked by stable URLs. The skills produce static files only.
+- **Authority.** The site shows decisions from an authored log. A walkthrough note
+  can only enter it as a proposal that a person confirms.
+- Documentation only: no skill, schema, registry or version change.
+
 ### 2026-10-18 — Codex (executive walkthrough discovery toward v2.6.0)
 
 - Added a discussion draft for an optional narrated presentation layer over
