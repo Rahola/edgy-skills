@@ -64,6 +64,8 @@ independent campaign begins only after G1 on a frozen SHA.
 | BR-04 | C / browser | Run offline with request interception and collect console/CSP errors. | Zero attempted external requests, JS errors or CSP violations; essential diagrams and content available. |
 | BR-05 | C / browser | At 1440×1000 and 390×844 traverse full narrative and site. | No page-level horizontal overflow or clipped controls; diagrams may intentionally pan/zoom. |
 | BR-06 | C / browser | Print all narrative sections and a representative site decision/history page. | Argument/evidence/version visible; no blank atlas region or hidden-only-current-section printout. |
+| BR-07 | C / regression | From every narrative section, including sources after atlas, enter atlas and return; insert/reorder a section. | Return uses departure section ID, not hard-coded index; no jump to opening section. Reproduces PR #11's section-10 defect. |
+| BR-08 | C / browser | Open CAP-02 from narrative detail under file:// and HTTP; traverse two trace links and return through history/breadcrumb. | Relevant element view/trace opens without manual searching; return is reliable. Document browser history limitations and offer working explicit Back controls; do not claim unsupported history. |
 | AC-01 | C / automated | Run accessibility scanner on every distinct page type and open/closed interactive states. | No unresolved detected violations against adopted AA rules; report scanner coverage/limits. |
 | AC-02 | C / browser | Keyboard-only navigation; open/close dialog, escape, return focus; browser back. | All tasks reachable, visible focus and meaningful order; no traps; non-pointer alternative exists. |
 | AC-03 | C / browser | Inspect semantic SVG/diagram alternatives, headings, labels, reduced-motion and 200% zoom/reflow. | Equivalent textual meaning and readable controls; motion preference respected. Human validation still required. |
@@ -72,6 +74,7 @@ independent campaign begins only after G1 on a frozen SHA.
 | PK-03 | D / CI | Change only docs/example HTML or composition inputs in a test branch. | Required composition/link/browser checks selected by CI paths; not silently skipped as in docs-only PRs. |
 | PK-04 | D / release | Install skills from candidate release archive in a clean directory; build demo following docs. | All required scripts/templates present; no local paths or undeclared dependencies; outputs pass validation. |
 | PK-05 | D / release | Compare skill versions, registry, changelog, package manifest, tag target and licence notices. | Coherent v2.6.0 bundle; unchanged skills are not needlessly version-bumped; EDGY attribution retained. |
+| PK-06 | D / regression | Rebuild committed demo HTML from a clean checkout using documented browser setup; compare outputs and run browser checks. | No generated-file drift; instructions use available declared tools, not author's private adapter. Record actual browser/tool versions. |
 | PV-01 | B / review | Inspect changed source/examples, exports, snapshots, logs and release package. | Fictional-only content; no customer data/secrets; classification label not portrayed as access enforcement. |
 
 Tests should assert observable contracts, not mirror renderer implementation or

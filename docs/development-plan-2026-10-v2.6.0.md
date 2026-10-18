@@ -178,6 +178,23 @@ No test has passed merely because its case is written in the plan.
 
 ### Review comment disposition
 
+The following dispositions are proposed for owner acceptance. The issues remain
+open until implementation/tests supply evidence; listing them is not a fix.
+
+| Review item | Proposed disposition | Plan / verification |
+|---|---|---|
+| PR #11 return from section 10 / hard-coded atlas index | Accept; derive destinations from section IDs and capture every departure. | I-3; BR-01, BR-07. |
+| PR #11 targeted drill | Accept semantic responsibility; approve a minimal initial-route hook if existing atlas routing cannot be reused. This reuses search/trace, not a sixth atlas effect. | P-09; BR-08; hook design reviewed before implementation. |
+| PR #11 srcdoc history limitation | Accept; choose/test embedding and routing under file:// before promising browser trace history. An explicit in-composition Back/breadcrumb is required; do not silently swallow a limitation. | I-3; BR-01, BR-03, BR-08. |
+| PR #11 escaping | Accept for all model/source/import text, not just one dialog. | §3.5; SE-01. |
+| PR #11 CI and generated HTML drift | Accept; track example inputs/build scripts in CI and rebuild-and-diff committed HTML. | I-5; PK-03, PK-06. |
+| PR #11 uncommitted browser adapter / reproducibility | Accept; publish supported setup/commands or a repo-owned runner; no private scratch adapter required. | I-5; PK-04, PK-06. |
+| PR #11 builder location and composition freedom | Accept; propose existing tool home, two materially different compositions and no fixed section count. | P-01, P-08; CT-03. |
+| PR #12 hypotheses and upkeep cost | Accept; separate mechanics from demand and record real upkeep effort. | §1, §3.4; HU-02, HU-04. |
+| PR #12 ID stability, authority and accessibility | Accept; complete published-ID history, explicit confirmation and human accessibility review. | §3; HS/IM/AC cases and HU-03. |
+| Follow-up full-content history and freshness | Accept; graph-only diff and build date cannot stand for complete/current content. | §3.2–3.4; DF-02, HS-01, FR-01. |
+
+
 Keep dispositions in the planning PR and reference an approved commit SHA.
 For each material comment record: ID, request, accepted/changed/deferred/rejected,
 rationale, resulting plan/test IDs and owner acceptance if scope changes.
