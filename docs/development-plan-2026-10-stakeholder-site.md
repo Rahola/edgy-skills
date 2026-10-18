@@ -13,6 +13,10 @@ review plan. No skill, schema, presenter contract, registry or version changes.
 PR #11 has had a human review (EW-07). The site inherits the walkthrough's
 unverified assumptions, so its value depends on that hypothesis holding first.
 
+**Consolidated proposal:** [implementation and approval gates](development-plan-2026-10-v2.6.0.md) and
+[test cases](test-plan-2026-10-v2.6.0.md). The proposal resolves candidate
+choices for review; it does not retroactively lock this discovery note.
+
 ## 1. The outcome worth exploring
 
 The atlas helps somebody explore the model, and the walkthrough helps a

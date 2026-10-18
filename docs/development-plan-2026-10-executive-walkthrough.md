@@ -6,6 +6,10 @@
 
 **Scope:** findings, an adaptable presentation approach, and a completely fictional offline HTML example. No production skill, model schema or presenter contract changes in this PR.
 
+**Consolidated proposal:** [implementation and approval gates](development-plan-2026-10-v2.6.0.md) and
+[test cases](test-plan-2026-10-v2.6.0.md). The proposal resolves candidate
+choices for review; it does not retroactively lock this discovery note.
+
 ## 1. The outcome worth preserving
 
 The strongest feedback on a recent generated presentation was that its author

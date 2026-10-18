@@ -20,6 +20,16 @@ perustelut.
 
 ---
 
+### 2026-10-18 — Codex (v2.6.0 consolidated plan and test cases)
+
+- Consolidated walkthrough/site discovery into a proposed implementation plan,
+  keeping production work behind an explicit owner approval gate.
+- Specified complete content snapshots, historical/current links, freshness and
+  review dependencies; stable routes do not mandate a navigation template.
+- Added independent agent test roles, negative fixtures, human acceptance tasks
+  and merge/release gates. Future feature tests remain explicitly not run.
+- Documentation only; no skill, schema, presenter, registry or release change.
+
 ### 2026-10-18 — Claude Code (stakeholder site discovery toward v2.6.0)
 
 - **Why a separate note.** The owner asked whether the walkthrough could become
