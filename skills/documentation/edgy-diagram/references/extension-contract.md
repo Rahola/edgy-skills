@@ -173,7 +173,7 @@ script/style hashes and required local frame, never `unsafe-inline`.
 | `ready` | Promise of initial state after optional initial route settles. |
 | `openElement(id)` | Promise<boolean>; open an explicit model ID's trace page, otherwise a drawn occurrence and inspector. Missing, malformed, slug-only or undrawn IDs return false without changing the view. IDs are data, not CSS selectors. |
 | `navigate(route)` | Promise<boolean>; accepted routes below; malformed/unavailable targets return false and retain the view. |
-| `back()` | Promise<boolean>; previous local route, false at start. Works even if native browser History is unavailable in srcdoc. |
+| `back()` | Promise<boolean>; previous local route (including its change-state filter), false at start. Works even if native browser History is unavailable in srcdoc. |
 | `getState()` | Fresh plain object `{contract, route, pageId, elementId, canGoBack, history}`; elementId is the inspected target, otherwise the trace focal ID, otherwise null; null page when absent; `history` is `browser` until a History call fails, then `local`. It is not an estimate of browser Back availability. |
 
 ### Which window owns the API?
@@ -207,7 +207,8 @@ base64 storage; it is a fixture reference, not an installed site engine.
   local predecessor semantics when native History is unavailable.
 - Trace navigation restores the focal element's inspector, including Back and
   native history return. An explicitly targeted occurrence on another trace's
-  page continues to identify that occurrence.
+  page continues to identify that occurrence. Trace routes also carry an optional
+  change-state query, so current/target filters survive local and native return.
 
 Public command promises are serialised, so callers can submit several commands
 without stale animations selecting the wrong element. Always await a command
@@ -222,7 +223,7 @@ Routes (IDs are encoded with `encodeURIComponent`):
 
 - `#/` — all views;
 - `#/view/<page-id>` or `#/view/<page-id>/<element-id>`;
-- optionally `?state=current` or `?state=target` on a view route;
+- optionally `?state=current` or `?state=target` on a view or trace route;
 - `#/trace` or `#/trace/<element-id>[/<element-id>…]`, optionally `/+above`
   or `/+below` for an available list page.
 

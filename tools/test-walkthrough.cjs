@@ -143,6 +143,19 @@ let browser, server, base;
   await page.evaluate(()=>EDGY_PRESENT.back());assert.equal((await page.evaluate(()=>EDGY_PRESENT.getState())).elementId,'AST-02');assert((await page.locator('#inspector').textContent()).includes('AST-02'));
   await page.evaluate(()=>EDGY_PRESENT.openElement('CAP-05'));await page.goBack();await page.waitForFunction(()=>EDGY_PRESENT.getState().elementId==='AST-02');assert((await page.locator('#inspector').textContent()).includes('AST-02'));
  });
+ await test('NV-05 filtered trace native/local round-trip regression',async()=>{
+  for(const host of ['file://'+path.join(work,'atlas.html'),base+'/atlas.html']){
+   await page.goto(host);await page.evaluate(()=>EDGY_PRESENT.ready);
+   await page.evaluate(()=>EDGY_PRESENT.navigate('#/view/trace-cap-05?state=target'));
+   assert.equal((await page.evaluate(()=>EDGY_PRESENT.getState())).route,'#/trace/CAP-05?state=target');assert(await page.locator('#canvas svg').evaluate(e=>e.classList.contains('state-target')));
+   await page.evaluate(()=>EDGY_PRESENT.navigate('#/view/capabilities?state=current'));await page.evaluate(()=>EDGY_PRESENT.back());
+   assert.equal((await page.evaluate(()=>EDGY_PRESENT.getState())).route,'#/trace/CAP-05?state=target');assert(await page.locator('#canvas svg').evaluate(e=>e.classList.contains('state-target')));
+   await page.evaluate(()=>EDGY_PRESENT.navigate('#/view/capabilities?state=current'));await page.goBack();await page.waitForFunction(()=>EDGY_PRESENT.getState().route==='#/trace/CAP-05?state=target');assert(await page.locator('#canvas svg').evaluate(e=>e.classList.contains('state-target')));
+   const before=await page.evaluate(()=>EDGY_PRESENT.getState());assert.equal(await page.evaluate(()=>EDGY_PRESENT.navigate('#/trace/CAP-05?state=unknown')),false);assert.deepEqual(await page.evaluate(()=>EDGY_PRESENT.getState()),before);
+   await page.reload();await page.evaluate(()=>EDGY_PRESENT.ready);assert(await page.locator('#canvas svg').evaluate(e=>e.classList.contains('state-target')));
+   await page.evaluate(()=>EDGY_PRESENT.navigate('#/trace/CAP-05'));assert.equal((await page.evaluate(()=>EDGY_PRESENT.getState())).route,'#/trace/CAP-05');assert.equal(await page.locator('#canvas svg').evaluate(e=>e.classList.contains('state-target')),false);
+  }
+ });
  await test('BR-03 layout/keyboard/print',async()=>{
   await page.goto('file://'+demo);for(const width of [1440,390]){await page.setViewportSize({width,height:1000});for(let i=0;i<10;i++){await page.evaluate(i=>document.querySelector(`.nav[data-step="${i}"]`).click(),i);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}}
   await page.setViewportSize({width:1440,height:1000});await page.locator('.nav[data-step="3"]').click();await page.locator('[data-cap="CAP-02"]').focus();await page.keyboard.press('Enter');assert(await page.locator('#detail-dialog').isVisible());await page.keyboard.press('Escape');assert.equal(await page.evaluate(()=>document.activeElement.dataset.cap),'CAP-02');

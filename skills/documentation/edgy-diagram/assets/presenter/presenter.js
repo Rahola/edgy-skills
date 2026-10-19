@@ -301,7 +301,8 @@
     zoomTo(g);
   }
   function traceHash(path, band) {
-    return '#/trace' + path.map(function (p) { return '/' + encodeURIComponent(p); }).join('') + (band ? '/+' + band : '');
+    return '#/trace' + path.map(function (p) { return '/' + encodeURIComponent(p); }).join('') + (band ? '/+' + band : '') +
+      (stateMode !== 'all' ? '?state=' + stateMode : '');
   }
   function drill(id) {
     if (!has(traceOf, id)) { toast('No trace page for ' + id); return navPromise; }
@@ -340,7 +341,7 @@
     return navPromise;
   }
   function parseTrace(h) {
-    var m = /^#\/trace((?:\/[^/?#]*)*)$/.exec(h);
+    var m = /^#\/trace((?:\/[^/?#]*)*)(?:\?state=(current|target))?$/.exec(h);
     if (!m) { return null; }
     var segs = m[1] ? m[1].split('/').slice(1) : [];
     var band = null;
@@ -352,7 +353,7 @@
       if (!validModelId(id) || !has(traceOf, id)) { return null; }
       path.push(id);
     }
-    return traceTarget(path, band) === undefined ? null : { path: path, band: band };
+    return traceTarget(path, band) === undefined ? null : { path: path, band: band, state: m[2] || 'all' };
   }
 
   function setChrome() {
@@ -727,9 +728,10 @@
   function route(h, push) {
     if (typeof h !== 'string' || /\s/.test(h)) { return false; }
     // false (with a "not found" toast) for anything that is not a page of this file: the view stays as it is
-    if (/^#\/trace(\/|$)/.test(h)) {
+    if (/^#\/trace(?:\/|\?|$)/.test(h)) {
       var t = parseTrace(h);
       if (!t) { toast('Not found in this presentation'); return false; }
+      stateMode = t.state;
       goTrace(t.path, t.band, !!push);
       return true;
     }

@@ -28,6 +28,8 @@ perustelut.
 - Restored focal inspector content for trace routes and history return, including
   view aliases. Added duplicate routes, native Back/Forward, branching, reload,
   host-state and inspector regressions to the repository-owned browser runner.
+- An independent follow-up found a residual trace current/target filter loss.
+  Added optional trace-state queries with local/native/reload round-trip tests.
 - Clarified standalone versus frame API ownership, safe composition assembly,
   back versus navigate, build-only output and page-level network assertions.
 - No release or human facilitation/assistive-technology acceptance implied.

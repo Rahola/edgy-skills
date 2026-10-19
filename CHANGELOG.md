@@ -16,7 +16,8 @@ Candidate v2.6.0 (human facilitation and assistive-technology acceptance pending
   generated HTML, browser behaviour, accessibility findings and size budget.
 - External review follow-up: repeated-route native/local history uses entry
   identity, trace inspector restores on return, and API embedding/back guidance
-  now includes a concrete composition example.
+  now includes a concrete composition example. Trace routes retain current/target
+  filters across native/local history and reload.
 - No stakeholder-site builder, content lifecycle or approval workflow is added.
 
 - Zenodo DOI [10.5281/zenodo.23439782](https://doi.org/10.5281/zenodo.23439782) (all versions): a DOI badge in
