@@ -110,6 +110,39 @@ let browser, server, base;
   await page.reload();await page.evaluate(()=>EDGY_PRESENT.ready);assert.equal((await page.evaluate(()=>EDGY_PRESENT.getState())).elementId,'CAP/path:05.1');
   assert.equal(await page.evaluate(()=>EDGY_PRESENT.openElement('constructor')),true);assert.equal((await page.evaluate(()=>EDGY_PRESENT.getState())).elementId,'constructor');
  });
+ await test('NV-05 duplicate route native/local history regression',async()=>{
+  for(const host of ['file://'+path.join(work,'atlas.html'),base+'/atlas.html']){
+   await page.goto(host);await page.evaluate(()=>EDGY_PRESENT.ready);
+   for(const route of ['#/view/capabilities','#/view/applications','#/view/capabilities'])await page.evaluate(r=>EDGY_PRESENT.navigate(r),route);
+   await page.goBack();await page.waitForFunction(()=>EDGY_PRESENT.getState().pageId==='applications');
+   await page.goBack();await page.waitForFunction(()=>EDGY_PRESENT.getState().pageId==='capabilities');
+   assert.equal(await page.evaluate(()=>EDGY_PRESENT.back()),true);
+   assert.equal((await page.evaluate(()=>EDGY_PRESENT.getState())).route,'#/');
+   assert.equal((await page.evaluate(()=>EDGY_PRESENT.getState())).canGoBack,false);
+   assert.equal(await page.evaluate(()=>EDGY_PRESENT.back()),false);
+  }
+ });
+ await test('NV-05 native forward, branch and host state history regression',async()=>{
+  await page.goto(base+'/atlas.html');await page.evaluate(()=>EDGY_PRESENT.ready);
+  await page.evaluate(()=>history.replaceState({hostValue:'preserved'},'',location.href));
+  for(const route of ['#/view/capabilities','#/view/applications','#/view/capabilities'])await page.evaluate(r=>EDGY_PRESENT.navigate(r),route);
+  await page.goBack();await page.waitForFunction(()=>EDGY_PRESENT.getState().pageId==='applications');
+  await page.goForward();await page.waitForFunction(()=>EDGY_PRESENT.getState().pageId==='capabilities');
+  await page.evaluate(()=>EDGY_PRESENT.back());assert.equal((await page.evaluate(()=>EDGY_PRESENT.getState())).pageId,'applications');
+  await page.evaluate(()=>EDGY_PRESENT.openElement('CAP-05'));
+  await page.goBack();await page.waitForFunction(()=>EDGY_PRESENT.getState().pageId==='applications');
+  await page.evaluate(()=>EDGY_PRESENT.back());assert.equal((await page.evaluate(()=>EDGY_PRESENT.getState())).pageId,'capabilities');
+  assert.equal(await page.evaluate(()=>history.state.hostValue),'preserved');
+  await page.goto(base+'/atlas.html#/trace/CAP-05');await page.evaluate(()=>EDGY_PRESENT.ready);await page.reload();await page.evaluate(()=>EDGY_PRESENT.ready);
+  await page.evaluate(()=>EDGY_PRESENT.back());assert.equal((await page.evaluate(()=>EDGY_PRESENT.getState())).route,'#/');
+ });
+ await test('NV-02/05 trace inspector restored on local/native return',async()=>{
+  await page.goto('file://'+path.join(work,'atlas.html'));await page.evaluate(()=>EDGY_PRESENT.ready);
+  await page.evaluate(()=>EDGY_PRESENT.navigate('#/view/trace-ast-02'));assert.equal((await page.evaluate(()=>EDGY_PRESENT.getState())).route,'#/trace/AST-02');assert((await page.locator('#inspector').textContent()).includes('AST-02'));await page.evaluate(()=>EDGY_PRESENT.back());assert.equal((await page.evaluate(()=>EDGY_PRESENT.getState())).route,'#/');
+  await page.evaluate(()=>EDGY_PRESENT.openElement('AST-02'));await page.evaluate(()=>EDGY_PRESENT.openElement('CAP-05'));
+  await page.evaluate(()=>EDGY_PRESENT.back());assert.equal((await page.evaluate(()=>EDGY_PRESENT.getState())).elementId,'AST-02');assert((await page.locator('#inspector').textContent()).includes('AST-02'));
+  await page.evaluate(()=>EDGY_PRESENT.openElement('CAP-05'));await page.goBack();await page.waitForFunction(()=>EDGY_PRESENT.getState().elementId==='AST-02');assert((await page.locator('#inspector').textContent()).includes('AST-02'));
+ });
  await test('BR-03 layout/keyboard/print',async()=>{
   await page.goto('file://'+demo);for(const width of [1440,390]){await page.setViewportSize({width,height:1000});for(let i=0;i<10;i++){await page.evaluate(i=>document.querySelector(`.nav[data-step="${i}"]`).click(),i);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}}
   await page.setViewportSize({width:1440,height:1000});await page.locator('.nav[data-step="3"]').click();await page.locator('[data-cap="CAP-02"]').focus();await page.keyboard.press('Enter');assert(await page.locator('#detail-dialog').isVisible());await page.keyboard.press('Escape');assert.equal(await page.evaluate(()=>document.activeElement.dataset.cap),'CAP-02');

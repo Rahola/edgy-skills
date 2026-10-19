@@ -11,12 +11,17 @@ required format. Reuse validated graph IDs and generator-owned diagrams.
    evidence and its status, and a useful question. A measured observation, an
    interpretation and a proposal must not look equally confirmed. Put scope,
    provenance and uncertainty next to the claim, not just in an appendix.
+   Two illustrative cases do not establish the "largest" risk or a ranking;
+   qualify such prioritisation as a hypothesis unless the evidence supports it.
 3. Choose interactions only when they answer a question: comparing trade-offs,
    following a capability or inspecting evidence. Avoid decorative controls,
    invented scores/ROI and implied approvals. Missing evidence is not absence.
 4. Make detail optional. Use generated views and the same explicit IDs as the
    graph; use the navigation API in `references/extension-contract.md` §7 to
-   target a model element. Do not make a presenter search manually after an
+   target a model element. The API lives in the generated atlas window; an
+   embedding calls frame.contentWindow.EDGY_PRESENT, while a standalone atlas
+   uses its own window. Read §7 for safe srcdoc/CSP assembly and back vs navigate.
+   Do not make a presenter search manually after an
    "explore this capability" button. State honestly when a target is unavailable.
 5. Save the narrative departure section, relevant selection and keyboard focus.
    Close detail or return from atlas to that point. Test sections on both sides

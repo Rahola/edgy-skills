@@ -20,6 +20,18 @@ perustelut.
 
 ---
 
+### 2026-10-19 — Codex (external review follow-up)
+
+- Reproduced the external review's repeated-route native/local Back defect in
+  file and HTTP mode. Replaced route-string lookup with per-session History
+  entry identity and retained local predecessor links; preserve host object state.
+- Restored focal inspector content for trace routes and history return, including
+  view aliases. Added duplicate routes, native Back/Forward, branching, reload,
+  host-state and inspector regressions to the repository-owned browser runner.
+- Clarified standalone versus frame API ownership, safe composition assembly,
+  back versus navigate, build-only output and page-level network assertions.
+- No release or human facilitation/assistive-technology acceptance implied.
+
 ### 2026-10-19 — Codex (narrow v2.6.0 presentation integration)
 
 - Owner approved presentation guidance and atlas integration; removed the

@@ -18,7 +18,7 @@ commands, expected/actual result, environment and evidence. Blocked is not pass.
 | NV-02 | Target an explicit ID via API; repeat without trace pages. | Opens its trace when available, otherwise drawn occurrence; inspector identifies exact ID without manual search. |
 | NV-03 | Invalid/malformed routes, missing/slug-only IDs and model-only elements. | API returns failure; existing view retained; no invented target or silent fallback. |
 | NV-04 | Enter via initial-route attribute and standalone fragment, including punctuation IDs. | Same target in srcdoc and standalone; fragment takes precedence for standalone links. |
-| NV-05 | Drill several steps in srcdoc, call explicit Back; repeat standalone browser Back/Forward. | Local Back works without History support; native history tested separately, limitations documented. |
+| NV-05 | Drill several steps in srcdoc, call explicit Back; repeat standalone browser Back/Forward, duplicate A/B/A routes, branching, reload and host history state. | Local Back works without History support; native history uses entry identity rather than last matching route; inspector restored; host object state retained. |
 | NV-06 | Switch target rapidly; reopen same ID; use API before frame ready. | Caller awaits load; calls settle deterministically, no stale zoom/focus or unexpected navigation. |
 | CT-01 | Run existing graph/SVG/notation contract tests and new API tests. | Existing consumers unchanged; integration version and supported methods documented/tested. |
 | SE-01 | Hostile strings in model/source/capability/options/journey; unsafe routes and prototype-like IDs. | Inert rendered text or explicit rejection, no execution or unsafe selector errors. |

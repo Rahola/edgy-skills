@@ -116,18 +116,44 @@
   var navPromise = Promise.resolve();
   // Composition navigation contract 1: local history also works in about:srcdoc,
   // where browser History may reject opaque file origins. This is not a new effect.
-  var localRoutes = ['#/'], localAt = 0, restoring = false;
+  var localRoutes = ['#/'], localPrevious = [null], localAt = 0, restoring = false;
   var browserHistory = true;
+  // A route string cannot identify a history entry: A → B → A has two different
+  // positions. Retain entry identities/predecessors, even when a branch changes.
+  var historySession = String(Date.now()) + ':' + String(Math.random());
+  function historyState(at) {
+    var out = dict(), state = history.state;
+    if (state && typeof state === 'object' && !Array.isArray(state)) {
+      Object.keys(state).forEach(function (key) { out[key] = state[key]; });
+    }
+    out.edgyNavigation = { session: historySession, index: at };
+    return out;
+  }
+  function historyPosition(h) {
+    try {
+      var state = history.state, marker = state && state.edgyNavigation;
+      if (marker && marker.session === historySession && Number.isInteger(marker.index) &&
+          marker.index >= 0 && marker.index < localRoutes.length &&
+          localRoutes[marker.index] === (h === '' || h === '#' ? '#/' : h)) {
+        return marker.index;
+      }
+    } catch (e) { /* opaque srcdoc: the local predecessor chain remains usable */ }
+    return null;
+  }
   function writeRoute(h, push) {
     lastHash = h;
+    var previousAt = localAt;
     if (!restoring && localRoutes[localAt] !== h) {
-      localRoutes = localRoutes.slice(0, localAt + 1);
-      localRoutes.push(h); localAt += 1;
+      localPrevious.push(localAt);
+      localRoutes.push(h); localAt = localRoutes.length - 1;
     }
-    if (location.hash === h) { return; }
     try {
-      if (push) { history.pushState(null, '', h); }
-      else { history.replaceState(null, '', h); }
+      if (push && location.hash !== h) {
+        // Also label the initial entry (whose URL may have no fragment). Preserve
+        // unrelated host state; a reload's old session marker is never trusted.
+        history.replaceState(historyState(previousAt), '', location.href);
+        history.pushState(historyState(localAt), '', h);
+      } else { history.replaceState(historyState(localAt), '', h); }
     } catch (e) { browserHistory = false; }
   }
 
@@ -310,6 +336,7 @@
     var h = traceHash(tracePath, traceBand);
     writeRoute(h, push);
     navPromise = openView(i, null, null, true);
+    if (path.length) { inspect(path[path.length - 1]); }
     return navPromise;
   }
   function parseTrace(h) {
@@ -715,7 +742,12 @@
     try { id = m[2] ? decodeURIComponent(m[2]) : null; } catch (e) { return false; }
     if (id && (!validModelId(id) || !has(byId, id) || !(byId[id].occurrences || []).some(function (o) { return o.page_id === m[1]; }))) { return false; }
     stateMode = m[3] || 'all';
-    if (push) { writeRoute(h, true); }
+    if (views[pageIndex[m[1]]].trace && !id) {
+      syncTrace(pageIndex[m[1]]);
+      goTrace(tracePath, traceBand, !!push);
+      return true;
+    }
+    if (push) { writeRoute(viewRoute(pageIndex[m[1]], id), true); }
     navPromise = openView(pageIndex[m[1]], id);
     return true;
   }
@@ -731,7 +763,7 @@
     return { contract: 1, route: localRoutes[localAt],
       pageId: current < 0 ? null : views[current].page_id,
       elementId: current < 0 ? null : (inspectedId || views[current].focus || null),
-      canGoBack: localAt > 0, history: browserHistory ? 'browser' : 'local' };
+      canGoBack: localPrevious[localAt] !== null, history: browserHistory ? 'browser' : 'local' };
   }
   function navigate(h, push) {
     if (typeof h !== 'string') { return Promise.resolve(false); }
@@ -744,7 +776,7 @@
     openElement: function (id) {
       return command(function () {
         if (!validModelId(id) || !has(byId, id) || byId[id].id_source === 'slug') { return false; }
-        if (has(traceOf, id)) { return goTrace([id], null, true).then(function () { inspect(id); return true; }); }
+        if (has(traceOf, id)) { return goTrace([id], null, true).then(function () { return true; }); }
         if (!(byId[id].occurrences || []).some(function (o) { return has(pageIndex, o.page_id); })) { return false; }
         return goTo(id, true).then(function () { return true; });
       });
@@ -752,8 +784,8 @@
     navigate: function (h) { return command(function () { return navigate(h, true); }); },
     back: function () {
       return command(function () {
-        if (localAt === 0) { return false; }
-        localAt -= 1; restoring = true;
+        if (localPrevious[localAt] === null) { return false; }
+        localAt = localPrevious[localAt]; restoring = true;
         return navigate(localRoutes[localAt]).finally(function () { restoring = false; });
       });
     },
@@ -764,12 +796,17 @@
   function fromHash() { return route(location.hash || ''); }
   function onNav() {                                   // back / forward / an edited address: show that route
     var h = location.hash || '';
-    if (h === '#selftest' || h === lastHash) { return; }
-    var remembered = localRoutes.lastIndexOf(h);
-    if (remembered >= 0) { localAt = remembered; }
+    if (h === '#selftest') { return; }
+    var position = historyPosition(h);
+    if (position !== null) { localAt = position; }
+    if (h === lastHash) { return; }
     lastHash = h;
-    if ((h === '' || h === '#/' || h === '#') && current >= 0) { showWall(); return; }
-    fromHash();
+    var wasRestoring = restoring;
+    restoring = position !== null || wasRestoring;
+    try {
+      if (h === '' || h === '#/' || h === '#') { showWall(); }
+      else { fromHash(); }
+    } finally { restoring = wasRestoring; }
   }
   function buildPrint() {
     var box = $('#print');

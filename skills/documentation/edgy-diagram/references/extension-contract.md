@@ -176,6 +176,39 @@ script/style hashes and required local frame, never `unsafe-inline`.
 | `back()` | Promise<boolean>; previous local route, false at start. Works even if native browser History is unavailable in srcdoc. |
 | `getState()` | Fresh plain object `{contract, route, pageId, elementId, canGoBack, history}`; elementId is the inspected target, otherwise the trace focal ID, otherwise null; null page when absent; `history` is `browser` until a History call fails, then `local`. It is not an estimate of browser Back availability. |
 
+### Which window owns the API?
+
+The API belongs to the **generated atlas document**. Open generated atlas HTML
+standalone and use `window.EDGY_PRESENT`. In a narrative that embeds the same
+atlas in an iframe, use `frame.contentWindow.EDGY_PRESENT`; the parent narrative
+window does not acquire the API automatically. Both forms are supported. Keep
+cross-origin access restrictions intact.
+
+For a single-file composition, embed the generated atlas HTML as local data and
+set `frame.srcdoc` (as the fictional Acme fixture does). Attach the load handler
+**before** setting srcdoc; await `api.ready`, then target an explicit ID. The
+parent CSP must allow the exact embedded atlas script/style hashes, its own
+script/style hashes, and the local frame. JSON-encode/escape embedded data; do
+not interpolate arbitrary atlas text into a script literal. The repository's
+`docs/examples/executive-walkthrough/build.py` shows hash generation and safe
+base64 storage; it is a fixture reference, not an installed site engine.
+
+- `openElement(id)` means "show this model element", choosing its trace or a
+  drawn occurrence. Prefer it when the narrative knows the model ID.
+- `navigate(route)` means "go to this explicit destination". A successful new
+  destination records a navigation step; it does not mean return to a predecessor.
+- `back()` follows the previously visited **local** navigation entry. Use it for
+  an explicit in-frame Back button, not `navigate(previousGuess)`. It is distinct
+  from browser `history.back()` and does not leave the atlas document.
+- Repeated route strings retain distinct entry identities. Native Back/Forward
+  synchronises the local cursor through namespaced `history.state.edgyNavigation`
+  metadata; unrelated object state fields are preserved. A document-session
+  marker prevents trusting stale cursors after reload. Srcdoc retains the same
+  local predecessor semantics when native History is unavailable.
+- Trace navigation restores the focal element's inspector, including Back and
+  native history return. An explicitly targeted occurrence on another trace's
+  page continues to identify that occurrence.
+
 Public command promises are serialised, so callers can submit several commands
 without stale animations selecting the wrong element. Always await a command
 before reading its settled state. Reopening the same target does not add a
@@ -209,6 +242,33 @@ frame.addEventListener('load', async () => {
   // If false, tell the reader the target is absent; do not imply a successful drill.
 });
 ```
+
+For example, after generating `atlasHTML` with the normal presenter pipeline:
+
+```js
+// These listeners are in the narrative's hash-pinned script.
+const frame = document.querySelector('iframe');
+let atlasReady;
+atlasReady = new Promise((resolve, reject) => {
+  frame.addEventListener('load', () => {
+    const api = frame.contentWindow.EDGY_PRESENT;
+    if (!api || api.contract !== 1) return reject(new Error('Unsupported atlas'));
+    api.ready.then(() => resolve(api), reject);
+  }, {once: true});
+});
+frame.srcdoc = atlasHTML; // generated HTML, embedded safely with the required CSP hashes
+exploreButton.addEventListener('click', async () => {
+  const api = await atlasReady;
+  if (!await api.openElement('CAP-02')) showUnavailableMessage();
+});
+atlasBackButton.addEventListener('click', async () => {
+  await (await atlasReady).back();
+});
+```
+
+The composition supplies `atlasHTML`, controls and its own unavailable-message
+UI; this example is not a new rendering or content-manifest API. If the atlas is
+opened standalone, simply await `window.EDGY_PRESENT.ready` in that atlas context.
 
 The exported graph, SVG attributes (§2–3) and generated atlas remain the shared
 source. Explicit model IDs connect views and survive a rename. A fallback slug
