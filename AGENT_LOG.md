@@ -20,6 +20,87 @@ perustelut.
 
 ---
 
+### 2026-10-19 — Codex (external review follow-up)
+
+- Reproduced the external review's repeated-route native/local Back defect in
+  file and HTTP mode. Replaced route-string lookup with per-session History
+  entry identity and retained local predecessor links; preserve host object state.
+- Restored focal inspector content for trace routes and history return, including
+  view aliases. Added duplicate routes, native Back/Forward, branching, reload,
+  host-state and inspector regressions to the repository-owned browser runner.
+- An independent follow-up found a residual trace current/target filter loss.
+  Added optional trace-state queries with local/native/reload round-trip tests.
+- Clarified standalone versus frame API ownership, safe composition assembly,
+  back versus navigate, build-only output and page-level network assertions.
+- No release or human facilitation/assistive-technology acceptance implied.
+
+### 2026-10-19 — Codex (narrow v2.6.0 presentation integration)
+
+- Owner approved presentation guidance and atlas integration; removed the
+  proposed generic site/content/history/approval machinery from release scope.
+- Added navigation API 1 over existing paging/trace: explicit-ID targeting,
+  optional initial route, validated navigation, serial commands and local Back
+  for opaque srcdoc origins. Graph/notation contract 1 and five effects retained.
+- Corrected the fictional fixture's all-section return and focus, targeted drill,
+  dynamic text escaping and embedded Back. The fixture builder remains bounded
+  to this example; it is not a general-purpose engine.
+- Added CI regeneration/size gate and a repository-owned optional Playwright/axe
+  browser runner. Corrected contrast and visible-label mismatches found by axe.
+- Independent Codex agents found API identity/history and accessibility gaps.
+  Corrected inspected identity/route preservation, browser history on occurrence
+  commands, malformed-ID rejection, modal search focus/labels, sibling SVG drill
+  controls and hidden mobile navigation. Expanded browser regressions accordingly.
+- Changed edgy-diagram to 2.10.0; bundle v2.6.0 remains an unreleased candidate.
+  Human facilitation and assistive-technology sign-offs are not supplied by agents.
+
+### 2026-10-18 — Codex (v2.6.0 consolidated plan and test cases)
+
+- Consolidated walkthrough/site discovery into a proposed implementation plan,
+  keeping production work behind an explicit owner approval gate.
+- Specified complete content snapshots, historical/current links, freshness and
+  review dependencies; stable routes do not mandate a navigation template.
+- Added independent agent test roles, negative fixtures, human acceptance tasks
+  and merge/release gates. Future feature tests remain explicitly not run.
+- Documentation only; no skill, schema, presenter, registry or release change.
+
+### 2026-10-18 — Claude Code (stakeholder site discovery toward v2.6.0)
+
+- **Why a separate note.** The owner asked whether the walkthrough could become
+  a site that every stakeholder returns to. That is a different reader (alone,
+  over weeks) from the walkthrough's group in one meeting, so it gets its own
+  findings (SS-01–SS-09) and decisions (SD-1–SD-7). It shares the graph, ids and
+  the evidence rules.
+- **No backend.** Comments and approvals stay in the organisation's existing
+  tools, linked by stable URLs. The skills produce static files only.
+- **Authority.** The site shows decisions from an authored log. A walkthrough note
+  can only enter it as a proposal that a person confirms.
+- **Owner review (PR #12).** The SS findings are labelled as hypotheses. Two
+  findings were added: the upkeep load (SS-08), as the likeliest failure mode,
+  and id stability with tombstones (SS-09), as the largest technical risk.
+  WCAG 2.1 AA moved from an open decision to a requirement, for the
+  walkthrough too. The note says that composition freedom applies within a
+  page, not to the site structure. It stays a draft until #11 has had a
+  human review.
+- Documentation only: no skill, schema, registry or version change.
+
+### 2026-10-18 — Codex (executive walkthrough discovery toward v2.6.0)
+
+- Added a discussion draft for an optional narrated presentation layer over
+  the existing EDGY atlas. Its contract concerns claims, evidence, discussion
+  and return to the narrative, while visual composition remains flexible.
+- Added a fully fictional Acme Oy demonstrator with source TXT, an offline
+  HTML composition and a standard-library builder. It reuses the generator,
+  graph, native renderer and presenter rather than duplicating layout or trace.
+- Discussion notes and meeting positions stay in memory and export locally;
+  they are not formal approvals or model changes. CSP pins the outer and
+  embedded presenter's scripts/styles; no network dependency was added.
+- This is a review artefact and candidate direction, not a new skill or a
+  change to the locked five-effect presenter scope. Skill versions, registry
+  and release metadata are unchanged.
+- Diagrams: 1 multi-page model (10 views) · lint before manual fixes:
+  0 errors / 0 warnings · after: 0 / 0 · preview looked at: yes · manual
+  draw.io edits: none. All example content and evidence sources are invented.
+
 ### 2026-10-17 — Claude Code (Zenodo DOI)
 
 - **Why the concept DOI.** Zenodo archived the v2.5.1 release through its

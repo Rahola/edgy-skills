@@ -1,6 +1,6 @@
 ---
 name: edgy-diagram
-version: "2.9.0"
+version: "2.10.0"
 description: >
   Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML
   source and export them to PNG/SVG/PDF. Generator-first workflow
@@ -10,7 +10,8 @@ description: >
   with draw.io CLI or the plantuml-stdlib `<edgy/edgy>` library for rendering.
   Architecture views from one model (application map, value chain and
   swimlane process maps, capability view, capability × application and CRUD
-  matrices) and a self-contained offline presentation of every view.
+  matrices) and a self-contained offline presentation of every view. Discussion-led
+  presentation guidance and a versioned API for targeting model elements from a composition.
 category: documentation
 tags: [diagram, drawio, visualization, documentation, edgy, enterprise-design, fi, en, fr, de]
 languages: [fi, en, fr, de]
@@ -261,6 +262,14 @@ annotations, paging and deep links, print). It has no network access (CSP
 model, so keep it in the engagement folder like the `.drawio`. Style
 markers, graph JSON and SVG `data-*` attributes are a public contract for
 extensions: `references/extension-contract.md`.
+
+**Discussion-led presentations (2.10.0).** For an executive introduction,
+workshop or interactive narrative, read `references/discussion-presentations.md`.
+Compose a claim/evidence/question path; keep optional detail and reliable return
+without imposing a visual template. Use `window.EDGY_PRESENT` navigation API 1
+(`references/extension-contract.md` §7) to target explicit model IDs and provide
+local Back in srcdoc embeddings. This extends paging/deep links, not the five
+atlas effects. Human facilitation/accessibility acceptance is separate from tests.
 
 `--publication` crops the native SVG/PNG to the content (shapes, routes,
 arrowheads, labels, legend) instead of the editor page and prints an

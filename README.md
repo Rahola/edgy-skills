@@ -228,6 +228,15 @@ and how far the presenter goes — is
 (shipped in v2.5.0; test plan
 [`docs/testing/v2.5.0-agent-test-plan.md`](docs/testing/v2.5.0-agent-test-plan.md)).
 
+A discussion draft toward **v2.6.0** explores a narrated, discussion-friendly
+executive presentation over the existing atlas:
+[`executive walkthrough findings`](docs/development-plan-2026-10-executive-walkthrough.md)
+and a [fully fictional offline HTML demonstrator](docs/examples/executive-walkthrough/README.md).
+The owner-approved [v2.6.0 plan](docs/development-plan-2026-10-v2.6.0.md)
+limits implementation to guidance and atlas integration; no new required visual
+format or stakeholder-site engine is introduced. Browser setup and reproducible
+checks: [v2.6.0 browser verification](docs/testing/v2.6.0-browser.md).
+
 ## Contributing
 
 Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). All PRs run
