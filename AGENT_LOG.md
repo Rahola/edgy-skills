@@ -20,6 +20,25 @@ perustelut.
 
 ---
 
+### 2026-10-19 — Codex (narrow v2.6.0 presentation integration)
+
+- Owner approved presentation guidance and atlas integration; removed the
+  proposed generic site/content/history/approval machinery from release scope.
+- Added navigation API 1 over existing paging/trace: explicit-ID targeting,
+  optional initial route, validated navigation, serial commands and local Back
+  for opaque srcdoc origins. Graph/notation contract 1 and five effects retained.
+- Corrected the fictional fixture's all-section return and focus, targeted drill,
+  dynamic text escaping and embedded Back. The fixture builder remains bounded
+  to this example; it is not a general-purpose engine.
+- Added CI regeneration/size gate and a repository-owned optional Playwright/axe
+  browser runner. Corrected contrast and visible-label mismatches found by axe.
+- Independent Codex agents found API identity/history and accessibility gaps.
+  Corrected inspected identity/route preservation, browser history on occurrence
+  commands, malformed-ID rejection, modal search focus/labels, sibling SVG drill
+  controls and hidden mobile navigation. Expanded browser regressions accordingly.
+- Changed edgy-diagram to 2.10.0; bundle v2.6.0 remains an unreleased candidate.
+  Human facilitation and assistive-technology sign-offs are not supplied by agents.
+
 ### 2026-10-18 — Codex (v2.6.0 consolidated plan and test cases)
 
 - Consolidated walkthrough/site discovery into a proposed implementation plan,

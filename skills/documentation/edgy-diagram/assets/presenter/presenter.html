@@ -13,8 +13,8 @@
 <header class="bar">
   <div class="brand"><span class="logo" aria-hidden="true"><i></i><i></i><i></i></span><h1>{{title}}</h1><span class="crumb" id="crumb"></span></div>
   <div class="actions">
-    <button class="btn" id="btn-search" type="button" aria-label="Search elements">Search <kbd>⌘K</kbd></button>
-    <button class="btn" id="btn-state" type="button" aria-pressed="false" title="Filter the change annotations of a page (T)"><span>Changes: all</span><kbd>T</kbd></button>
+    <button class="btn" id="btn-search" type="button" aria-label="Search ⌘K — elements">Search <kbd aria-hidden="true">⌘K</kbd></button>
+    <button class="btn" id="btn-state" type="button" aria-pressed="false" title="Filter the change annotations of a page (T)"><span>Changes: all</span><kbd aria-hidden="true">T</kbd></button>
     <button class="btn" id="btn-theme" type="button" aria-label="Light or dark theme">◐</button>
     <button class="btn" id="btn-full" type="button" aria-label="Full screen (F)">⛶</button>
   </div>
@@ -27,9 +27,9 @@
   </section>
   <nav class="strip" id="strip" aria-label="Views" hidden></nav>
 </main>
-<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Search" hidden>
-  <div class="box"><input type="search" placeholder="Search elements by name, id or type…" aria-label="Search"><ul role="listbox"></ul></div>
-</div>
+<dialog class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Search" hidden>
+  <div class="box"><input type="search" role="combobox" aria-expanded="true" aria-controls="edgy-search-results" placeholder="Search elements by name, id or type…" aria-label="Search"><ul role="listbox" id="edgy-search-results" aria-label="Matching model elements" tabindex="0"></ul></div>
+</dialog>
 <div class="toast" id="toast" role="status"></div>
 <div class="print" id="print"></div>
 {{templates}}

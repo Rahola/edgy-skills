@@ -218,3 +218,11 @@ until step 5 locks a plan.
 - dashboards with invented metrics, maturity scores or ROI;
 - replacing the atlas or the walkthrough;
 - real organisation content in this repository.
+
+## Scope decision — 2026-10-19
+
+The owner approved a narrow v2.6.0: presentation guidance and atlas integration.
+The site, content/decision workflows, snapshot history, ID migration ledger and
+publication controls described here are **outside edgy-skills implementation**.
+This note is retained as discovery for an external consumer of the existing
+export contract. No site builder or content manifest is planned for this release.

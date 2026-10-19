@@ -6,6 +6,8 @@ on:
       - 'skills/**'
       - 'registry.yaml'
       - 'tools/**'
+      - 'docs/examples/**'
+      - '.github/workflows/validate-skills.yml'
   push:
     branches:
       - main
@@ -13,6 +15,8 @@ on:
       - 'skills/**'
       - 'registry.yaml'
       - 'tools/**'
+      - 'docs/examples/**'
+      - '.github/workflows/validate-skills.yml'
 
 jobs:
   validate:
@@ -39,6 +43,13 @@ jobs:
         # asiakaslistaa pilveen). Asiakasnimien esto tehdään PAIKALLISESTI
         # pre-commit-hookilla (tools/install-git-hooks.sh + .blocklist).
         run: bash tools/check.sh --verbose
+
+      - name: Walkthrough browser tests
+        run: |
+          npm install --no-save --prefix "$RUNNER_TEMP/edgy-browser" playwright@1.62.1 @axe-core/playwright@4.14.0
+          export NODE_PATH="$RUNNER_TEMP/edgy-browser/node_modules"
+          export EDGY_CHROMIUM="$(command -v google-chrome)"
+          node tools/test-walkthrough.cjs
 
       - name: Examples heuristic (nameless privacy reminder)
         if: always()

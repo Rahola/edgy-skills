@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the fictional offline walkthrough with existing EDGY tools (stdlib only).
-No skill or presenter template is changed. Generated index.html is committed so
-reviewers can open it without installing anything.
+This fixture-specific assembler is not a production composition engine.
+Generated index.html is committed so reviewers can open it without installing anything.
 """
 import base64
 import hashlib

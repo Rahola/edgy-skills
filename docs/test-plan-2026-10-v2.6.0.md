@@ -1,135 +1,51 @@
-# v2.6.0 test plan: walkthrough and stakeholder site
+# v2.6.0 scoped test plan
 
-**Status:** proposed; all cases below are **not run** for the future feature.
-**Plan:** [implementation proposal](development-plan-2026-10-v2.6.0.md).
-Tests become executable with the corresponding implementation increments.
-Existing PR #11 demo checks do not count as passes for the new implementation.
+**Scope approved:** 2026-10-19. Supersedes the broad site test matrix at `1006df9`.
+Tests become passes only when executed and recorded against a candidate SHA.
+The HS/FR/IM site-series and content-diff workflow tests are out of this release.
 
-## 1. Fixtures, execution and evidence
+## Fixtures and evidence
 
-Use fictional Acme Oy only. Build three immutable snapshots from the same
-canonical programme. All data, sources and decisions are invented.
+Use fictional Acme data and generated contract-test fixtures only. Test standalone
+and same-origin srcdoc under file:// and HTTP, explicit IDs (including punctuation
+and inert prototype-like keys), missing and slug-only IDs, and models with/without
+trace pages. No customer content. Record case, candidate SHA, actual runner/model,
+commands, expected/actual result, environment and evidence. Blocked is not pass.
 
-- **v1:** baseline, proposed D-012, open Q-007, CAP-02 and CAP-05.
-- **v2:** changed model relationship, human-authored decision confirmation,
-  Q-007 resolved, changed source and dependent narrative.
-- **v3:** CAP-02 merged into CAP-05 with a confirmed migration, D-012 superseded.
-- Orthogonal mutations isolate narrative-only/source-only changes, split and
-  deletion without successor, old ID reuse, unsafe text and conflicting imports.
-- Two audience compositions and two different walkthrough compositions share
-  canonical records. Finnish and English builds use separate explicit inputs.
-- Use an external ADR fixture with a pinned revision, plus an unavailable source.
-
-Each result records: case ID, candidate SHA, fixture revision, runner/model and
-browser/OS/tool versions, steps/command, expected and actual result, pass/fail/
-blocked/not-run, and relevant log/screenshot/artifact. An unavailable tool is
-**blocked**, not pass. Browser logs include JS/CSP errors and attempted network
-requests. Keep test data and reports fictional and safe for the public repo.
-
-## 2. Automated and agent-executed cases
-
-Owners below are independent test roles after development: **A** architecture
-and content, **B** adversarial integrity, **C** browser/accessibility, **D**
-reproducibility/release. Author tests may run throughout development; the formal
-independent campaign begins only after G1 on a frozen SHA.
-
-| ID | Owner / layer | Steps / mutation | Expected result |
-|---|---|---|---|
-| CT-01 | A / unit | Validate valid v1; separately duplicate an ID, omit a required decision source, use an unknown status. | Valid input accepted; each invalid mutation rejected with actionable record/path; no partial published output. |
-| CT-02 | A / integration | Open the same claim through both audience entries, walkthrough and detail. | Canonical text, status, source and model IDs agree; different explanatory framing is allowed. |
-| CT-03 | A / integration | Build two visibly different narrative compositions over the same records. | Order/layout can differ without graph duplication or a mandatory site navigation tree. |
-| CT-04 | A / integration | Render a pinned external ADR and an unconfirmed local proposal; include rejected/superseded decisions. | Authority, revision and statuses visible; no second approval truth or promotion of proposal. |
-| CT-05 | A / integration | Compare v1/v2 snapshots; separately render current/target architecture states. | Historical change is labelled as version change, not approved target state; existing state filters unchanged. |
-| DF-01 | A / unit | Change only one graph relationship. | Delta identifies relationship and endpoints; unchanged records stay unchanged. |
-| DF-02 | A / integration | Hold graph identical; change only narrative, then only evidence/source metadata. | Each relevant change appears in change summary; neither build reports "no changes". |
-| DF-03 | A / integration | Change only decision status/date; resolve/remove a question. | Correct before/after entries visible with references; model change is not invented. |
-| DF-04 | D / integration | Compare v1 directly with v3 after v2 exists. | Selected endpoints used; removed and changed records retained in history. |
-| DF-05 | D / integration | Rebuild same inputs including publication metadata twice; then change builder version. | Byte-identical first pair; provenance change identified separately in second comparison. |
-| HS-01 | B / integration | Open current D-012 link and v1-qualified D-012 after v3 publication. | Current link shows superseded status; historical link shows v1 proposal and snapshot warning. |
-| HS-02 | B / integration | Merge CAP-02 into CAP-05; separately split another item into two. | Old IDs open tombstones with correct one/many successors and dates; no silent identity change. |
-| HS-03 | B / negative | Remove a published ID without tombstone; reuse a v1 ID absent from v2. | Publication fails in both cases using full published ID history. |
-| HS-04 | B / negative | Create migration cycle, unknown successor; then legitimate removal without successor. | Invalid mappings rejected; intentional deletion gets a truthful tombstone without invented replacement. |
-| HS-05 | D / negative | Republish v1 with different content; rebuild identical v1. | Different content rejected; identical content is safe/idempotent. |
-| FR-01 | A / integration | Rebuild old content with today's explicit build metadata. | Built-from changes do not advance content-as-of or last-reviewed. |
-| FR-02 | A / integration | Change a model ID, a source and a dependent decision separately. | Direct and declared transitive dependent claims enter needs-review report with cause; unrelated claims unchanged. |
-| FR-03 | B / negative | Publish with pending review; preview it; then apply explicit scoped waiver. | Publication blocked initially; preview labelled; waiver attributable and visible, never automatic approval. |
-| FR-04 | B / unit | Include dependency cycle and missing dependency reference. | No infinite recursion; cycle handled/reported per documented policy; missing reference rejected. |
-| IM-01 | B / integration | Import note saying "approved"; import same export twice. | Proposal only; stable identity prevents duplicate records; provenance retained. |
-| IM-02 | B / negative | Import two conflicting exports for same meeting/item. | Conflict visible for human resolution; no silent overwrite or status escalation. |
-| SE-01 | B / negative | Put scripts, HTML event handlers and javascript URLs in narrative, note and source title. | Inert escaped text or validation rejection; no execution, unsafe navigation or CSP weakening. |
-| SE-02 | B / negative | Reference ../ outside content root, absolute system path and symlink escaping root; use unsafe output ID. | No read/write outside declared roots; actionable rejection. |
-| BR-01 | C / browser | Present, change selection, open detail/atlas, navigate back twice. | Original narrative section and meaningful selection restored; browser history coherent. |
-| BR-02 | C / browser | Capture discussion note, export, reopen resulting file as text. | Correct note/context/owner; no formal-approval implication; export stays local. |
-| BR-03 | C / browser | Open index, old/current decision and model links under file:// and local HTTP. | Every internal destination works without server rewrites, fetch/CORS dependency or hidden fallback. |
-| BR-04 | C / browser | Run offline with request interception and collect console/CSP errors. | Zero attempted external requests, JS errors or CSP violations; essential diagrams and content available. |
-| BR-05 | C / browser | At 1440×1000 and 390×844 traverse full narrative and site. | No page-level horizontal overflow or clipped controls; diagrams may intentionally pan/zoom. |
-| BR-06 | C / browser | Print all narrative sections and a representative site decision/history page. | Argument/evidence/version visible; no blank atlas region or hidden-only-current-section printout. |
-| BR-07 | C / regression | From every narrative section, including sources after atlas, enter atlas and return; insert/reorder a section. | Return uses departure section ID, not hard-coded index; no jump to opening section. Reproduces PR #11's section-10 defect. |
-| BR-08 | C / browser | Open CAP-02 from narrative detail under file:// and HTTP; traverse two trace links and return through history/breadcrumb. | Relevant element view/trace opens without manual searching; return is reliable. Document browser history limitations and offer working explicit Back controls; do not claim unsupported history. |
-| AC-01 | C / automated | Run accessibility scanner on every distinct page type and open/closed interactive states. | No unresolved detected violations against adopted AA rules; report scanner coverage/limits. |
-| AC-02 | C / browser | Keyboard-only navigation; open/close dialog, escape, return focus; browser back. | All tasks reachable, visible focus and meaningful order; no traps; non-pointer alternative exists. |
-| AC-03 | C / browser | Inspect semantic SVG/diagram alternatives, headings, labels, reduced-motion and 200% zoom/reflow. | Equivalent textual meaning and readable controls; motion preference respected. Human validation still required. |
-| PK-01 | D / integration | Check internal links/assets across all snapshots and both compositions; simulate missing asset. | All references resolve; negative mutation fails validation. External links are not treated as offline evidence. |
-| PK-02 | D / regression | Run full tools/check.sh on final candidate and existing presenter self-tests. | All required repository tests pass; no existing atlas, C4 gate, model or rendering regression. |
-| PK-03 | D / CI | Change only docs/example HTML or composition inputs in a test branch. | Required composition/link/browser checks selected by CI paths; not silently skipped as in docs-only PRs. |
-| PK-04 | D / release | Install skills from candidate release archive in a clean directory; build demo following docs. | All required scripts/templates present; no local paths or undeclared dependencies; outputs pass validation. |
-| PK-05 | D / release | Compare skill versions, registry, changelog, package manifest, tag target and licence notices. | Coherent v2.6.0 bundle; unchanged skills are not needlessly version-bumped; EDGY attribution retained. |
-| PK-06 | D / regression | Rebuild committed demo HTML from a clean checkout using documented browser setup; compare outputs and run browser checks. | No generated-file drift; instructions use available declared tools, not author's private adapter. Record actual browser/tool versions. |
-| PV-01 | B / review | Inspect changed source/examples, exports, snapshots, logs and release package. | Fictional-only content; no customer data/secrets; classification label not portrayed as access enforcement. |
-
-Tests should assert observable contracts, not mirror renderer implementation or
-pixel-lock a single theme. Use focused fixtures instead of a combinatorial
-cross-product of all layouts, languages, states and hosts. Add a regression case
-for each corrected defect when it protects a meaningful behaviour.
-
-## 3. Required human tasks (agents cannot sign these off)
-
-| ID | Participant / task | Evidence and acceptance |
+| ID | Case and steps | Acceptance |
 |---|---|---|
-| HU-01 | Owner/presenter leads a 10-minute executive walkthrough; reviewer interrupts for evidence. | Reviewer can state purpose and requested decision; presenter returns to argument without reconstructing position. Record observations and explicit acceptance, not inferred approval. |
-| HU-02 | Sponsor/domain reviewer visits independently, then returns after a later version. | Within five minutes identifies goal/status/next decision; finds delta and relevant domain impact without reading full atlas. Capture confusion and actual usage intent. |
-| HU-03 | Human uses keyboard and a screen reader through main route, evidence, decision and history. | Record browser/assistive technology, labels/order/announcements and actual task results; resolve blockers before claiming AA acceptance. |
-| HU-04 | Author updates narrative/evidence following model and source change. | Record upkeep minutes, missed dependencies and review effort. Owner explicitly judges usefulness against maintenance cost; do not invent a numeric threshold. |
+| NV-01 | Open each narrative section, enter atlas, return; reorder/insert sections. | Departure identified by section, including sources after atlas; selection and focus preserved. |
+| NV-02 | Target an explicit ID via API; repeat without trace pages. | Opens its trace when available, otherwise drawn occurrence; inspector identifies exact ID without manual search. |
+| NV-03 | Invalid/malformed routes, missing/slug-only IDs and model-only elements. | API returns failure; existing view retained; no invented target or silent fallback. |
+| NV-04 | Enter via initial-route attribute and standalone fragment, including punctuation IDs. | Same target in srcdoc and standalone; fragment takes precedence for standalone links. |
+| NV-05 | Drill several steps in srcdoc, call explicit Back; repeat standalone browser Back/Forward. | Local Back works without History support; native history tested separately, limitations documented. |
+| NV-06 | Switch target rapidly; reopen same ID; use API before frame ready. | Caller awaits load; calls settle deterministically, no stale zoom/focus or unexpected navigation. |
+| CT-01 | Run existing graph/SVG/notation contract tests and new API tests. | Existing consumers unchanged; integration version and supported methods documented/tested. |
+| SE-01 | Hostile strings in model/source/capability/options/journey; unsafe routes and prototype-like IDs. | Inert rendered text or explicit rejection, no execution or unsafe selector errors. |
+| BR-01 | Navigation, detail/return, discussion export, cues, preserved option selection. | End-to-end narrative works; exported note is local and not formal approval. |
+| BR-02 | Record JS/CSP errors/network attempts under file:// and local HTTP. | Zero errors/violations/external requests; no weakening to allow arbitrary scripts. |
+| BR-03 | 1440×1000, 390×844, keyboard controls, Escape/focus return, 200% zoom, print. | No page overflow/clipping/focus trap; full narrative and diagram print fallback; semantic controls. |
+| AC-01 | Automated accessibility scan of main path, dialog, loaded trace and open atlas Search; inspect findings. | Resolve detected serious/critical issues; document other findings and scanner limits. Not full WCAG certification. |
+| RP-01 | Rebuild demo twice and compare bytes; verify committed HTML; measure size. | Byte-identical outputs, zero drift, fixture <= 512 KiB; budget is fixture-specific, not all EDGY deliveries. |
+| RP-02 | Clean install changed skill directory and inspect/run its integration fixture. | Reference and assets shipped, no private scratch path/dependency; existing adapters remain compatible. |
+| CI-01 | Inspect workflow selections; run full tools/check.sh plus reproducible browser runner. | docs/example and workflow changes trigger CI; rebuild-and-diff and browser tests execute. Missing browser fails CI visibly. |
+| QA-01 | Different compositions from same skill/model; inspect meaning, evidence and IDs. | No fixed visual template; graph identity/provenance maintained; no invented metrics. |
+| HU-01 | Person leads 10-minute presentation; reviewer asks an unexpected evidence question. | Reviewer can state argument/decision; presenter returns naturally. Record actual participant/date/acceptance. |
+| HU-02 | Person uses keyboard and screen reader on narrative, detail and atlas route. | Record browser/assistive tech and task outcomes; fix blockers before human accessibility acceptance. |
 
-For the release, use fictional content with representative reviewers. These
-tasks establish acceptance for the bounded feature, not broad market demand.
-Real programme adoption and its maintenance economics remain a later trial.
-No fictional-data demo proves production hosting/access-control suitability.
+## Independent testing and defects
 
-## 4. Defects, retests and release criteria
+After G1 use independent agents for (A) contract/architecture and guidance,
+(B) adversarial safety/navigation, (C) browser/accessibility and (D) package/CI.
+All use the frozen SHA and raw artefacts, not the author's verdict. Record actual
+vendor/model; unavailable Claude/Mistral runners are not simulated by other agents.
 
-- **Critical:** data disclosure, code execution, fabricated approval or history
-  corruption. **High:** wrong canonical claim/status, broken historical identity,
-  essential inaccessible path, failed offline build or main presentation flow.
-  **Medium/low:** assess impact, affected users and workaround; not just appearance.
-- All critical/high defects block G3. Other defects need an explicit disposition
-  and owner acceptance if left open. A required case that is blocked/not run
-  prevents its gate passing unless an explicit plan amendment changes scope.
-- A fix gets its focused regression test plus affected independent cases on the
-  new SHA. Re-run the complete required automated suite before final PR/release.
-  Repeat human tasks if their path, content meaning or accessibility changed.
-- Independent reports name the actual agent/model and candidate SHA. Different
-  vendor testing happens only with a genuine runner; unavailable runners stay
-  blocked or are reassigned transparently with approval of the test allocation.
-- Final evidence index maps every required case to a result on the final SHA
-  (or unchanged evidence with explicit impact assessment). No blanket "all tests
-  passed" based only on the repository gate or an author's report.
+Critical/high defects (execution/data leakage, wrong identity, broken main route,
+misleading approval or essential inaccessible path) block release. Fix with a
+meaningful regression case and retest affected scenarios on the new SHA. Run the
+full required suite on the final candidate. Medium/low residual issues require
+explicit disposition. Human tasks remain pending until a person completes them.
 
-## 5. Execution report template
-
-```text
-Candidate SHA / fixture revision:
-Runner role / actual model / tools / environment:
-Case ID:
-Steps or command:
-Expected:
-Actual:
-Status: pass | fail | blocked | not-run
-Evidence:
-Defect / severity / affected contract:
-Retest SHA / result:
-Human acceptance reference (if applicable):
-```
-
-The plan and case definitions are reviewable now. There is no completed
-multi-agent campaign, stakeholder acceptance or release implied by this file.
+Each report records: case ID; SHA; runner/model/tools; steps; expected; actual;
+pass/fail/blocked/not-run; evidence; defect/severity; retest SHA/result. Use the
+same evidence index for final PR/release. No site lifecycle tests are claimed.

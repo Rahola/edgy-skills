@@ -1,7 +1,8 @@
 # Fictional executive walkthrough
 
-**Status:** design demonstrator for discussion toward v2.6.0, not an installed
-skill or a mandatory presentation format.
+**Status:** fictional reference composition for v2.6.0. It is not an installed
+site builder or a mandatory presentation format. The fixture-specific build.py
+exists only to reproduce this example; generic content workflows are out of scope.
 
 Open [`index.html`](index.html) locally in a browser. It is one self-contained
 file: no server, network, package install, CDN or external font is required.
@@ -21,7 +22,9 @@ composition are examples rather than a proposed fixed standard.
 5. Open a source or capability to inspect detail; closing returns to the same
    section. The journey/option selection is retained.
 6. **Tutki mallia** opens the generated atlas. **Palaa päälinjaan** returns to
-   the point of departure. The atlas's own search, zoom and trace work as usual.
+   the point of departure, including from the sources section. Capability detail
+   opens the exact model ID. **Edellinen mallinäkymä** uses the atlas's local
+   history; browser Back inside local srcdoc is not promised.
 7. Record the discussion direction and next step; export the Markdown note.
 8. Try a narrow screen and the print view.
 
@@ -59,14 +62,15 @@ executive-session usefulness.
 
 ## Boundaries
 
-- No production SKILL.md, schema, registry or five-effect presenter changes.
+- The production guidance/API are documented in edgy-diagram 2.10.0. Graph
+  contract 1, five atlas effects and the existing C4 gate remain unchanged.
 - The narrative uses the same model ids as the embedded generated atlas.
 - Source popovers explicitly describe fictional evidence and its limits.
 - No fabricated measured ROI, maturity ratings or approved architecture decisions.
 - No C4 diagram is needed for this composition; existing C4 entry rules stand.
 - Feedback should distinguish reusable behaviour from this particular layout.
 
-## Validation recorded for this demonstrator (2026-10-18)
+## Historical validation (2026-10-18, before v2.6.0 corrections)
 
 - `build.py`: generation and strict diagram lint passed (10 views, 0 errors / 0 warnings).
 - Rebuilding produced byte-identical `index.html` in the same environment.
@@ -84,3 +88,12 @@ executive-session usefulness.
 
 This is agent/browser evidence. Human facilitation, assistive-technology,
 Firefox and Safari review remain open; no executive-session acceptance is claimed.
+
+## Current reproducible checks
+
+Run `python3 tools/check-walkthrough.py` for byte-identical regeneration and
+the fixture's 512 KiB size budget. `node tools/test-walkthrough.cjs` covers the
+actual browser navigation, targeting, hostile text, offline/CSP, keyboard, print
+and automated accessibility checks. Setup: [browser test guide](../../testing/v2.6.0-browser.md).
+These run in CI for example and presenter changes. No private adapter is needed
+by the new runner. Historical evidence above is not new human acceptance.

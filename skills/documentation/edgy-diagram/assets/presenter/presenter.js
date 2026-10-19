@@ -106,6 +106,7 @@
   var current = -1;          // -1 = wall
   var svg = null;
   var home = null;           // the view's full viewBox
+  var inspectedId = null;
   var focusId = null;
   var stateMode = 'all';     // all | current | target
   var selectedId = null;     // the card inspected by the first click; a second click drills through
@@ -113,14 +114,29 @@
   var traceBand = null;      // above | below on a list page
   var lastHash = null;       // the route this page last showed (popstate and hashchange both arrive)
   var navPromise = Promise.resolve();
+  // Composition navigation contract 1: local history also works in about:srcdoc,
+  // where browser History may reject opaque file origins. This is not a new effect.
+  var localRoutes = ['#/'], localAt = 0, restoring = false;
+  var browserHistory = true;
+  function writeRoute(h, push) {
+    lastHash = h;
+    if (!restoring && localRoutes[localAt] !== h) {
+      localRoutes = localRoutes.slice(0, localAt + 1);
+      localRoutes.push(h); localAt += 1;
+    }
+    if (location.hash === h) { return; }
+    try {
+      if (push) { history.pushState(null, '', h); }
+      else { history.replaceState(null, '', h); }
+    } catch (e) { browserHistory = false; }
+  }
 
   // ---- wall ----------------------------------------------------------------------------------------------
   function buildWall() {
     var wall = $('#wall');
     visible.forEach(function (i) {
       var v = views[i];
-      var card = el('button', { 'class': 'card', type: 'button', 'data-view': String(i),
-                                'aria-label': v.name + ' — open view' });
+      var card = el('button', { 'class': 'card', type: 'button', 'data-view': String(i) });
       card.style.setProperty('--i', String(i));
       var thumb = el('div', { 'class': 'thumb' });
       var img = el('img', { alt: '' });
@@ -165,7 +181,7 @@
     svg.removeAttribute('width');
     svg.removeAttribute('height');
     svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-    svg.setAttribute('role', 'img');
+    svg.setAttribute('role', 'group');
     svg.setAttribute('aria-label', views[i].name);
     canvas.appendChild(svg);
     home = parseBox(svg.getAttribute('viewBox'));
@@ -173,7 +189,7 @@
       var e = byId[g.getAttribute('data-id')];
       g.setAttribute('tabindex', '0');
       g.setAttribute('role', 'button');
-      g.setAttribute('aria-label', (e ? e.name + ' — ' + e.type : g.getAttribute('data-type')) + ' ' + g.getAttribute('data-id'));
+      g.setAttribute('aria-label', g.textContent.replace(/\s+/g, ' ').trim() + ' — ' + (e ? e.type : g.getAttribute('data-type')) + ' ' + g.getAttribute('data-id'));
       g.addEventListener('pointerenter', function () { highlight(g.getAttribute('data-id')); });
       g.addEventListener('pointerleave', function () { highlight(null); });
       g.addEventListener('focus', function () { highlight(g.getAttribute('data-id')); });
@@ -189,7 +205,7 @@
       var to = views[pageIndex[d.getAttribute('data-link')]];
       d.setAttribute('tabindex', '0');
       d.setAttribute('role', 'link');
-      d.setAttribute('aria-label', to.trace === 'list' ? 'Show every card of this band' : 'Open ' + to.name);
+      d.setAttribute('aria-label', d.textContent.trim() + ' — ' + (to.trace === 'list' ? 'Show every card of this band' : 'Open ' + to.name));
       d.classList.add('linked');
       addHitArea(d);
       function go() { openLink(d.getAttribute('data-link')); }
@@ -226,6 +242,7 @@
     var b = g.getBBox();
     var badge = document.createElementNS(SVGNS, 'g');
     badge.setAttribute('class', 'drill');
+    badge.setAttribute('data-drill-for', g.getAttribute('data-id'));
     badge.setAttribute('tabindex', '0');
     badge.setAttribute('role', 'link');
     badge.setAttribute('aria-label', 'Open the trace of ' + (e ? e.name : g.getAttribute('data-id')));
@@ -246,7 +263,8 @@
     function go(ev) { ev.preventDefault(); ev.stopPropagation(); drill(g.getAttribute('data-id')); }
     badge.addEventListener('click', go);
     badge.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { go(ev); } });
-    g.appendChild(badge);
+    // Separate controls: a focusable link must not be nested in the card button.
+    g.parentNode.insertBefore(badge, g.nextSibling);
     g.classList.add('linked');
   }
   function select(g) {
@@ -275,8 +293,7 @@
     if (v.trace === 'page') { return drill(v.focus); }
     // another page (the C4 badge, Q3): a history entry of its own, so back returns to the trace
     var h = '#/view/' + pid;
-    lastHash = h;
-    try { history.pushState(null, '', h); } catch (e) { /* file:// in some browsers */ }
+    writeRoute(h, true);
     navPromise = openView(pageIndex[pid]);
     return navPromise;
   }
@@ -291,11 +308,7 @@
     tracePath = path.slice();
     traceBand = band || null;
     var h = traceHash(tracePath, traceBand);
-    lastHash = h;
-    if (location.hash !== h) {
-      try { if (push) { history.pushState(null, '', h); } else { history.replaceState(null, '', h); } }
-      catch (e) { /* file:// in some browsers: the view still opens, without a history entry */ }
-    }
+    writeRoute(h, push);
     navPromise = openView(i, null, null, true);
     return navPromise;
   }
@@ -309,7 +322,7 @@
     for (var n = 0; n < segs.length; n++) {
       var id;
       try { id = decodeURIComponent(segs[n]); } catch (e) { return null; }
-      if (!id || !has(traceOf, id)) { return null; }
+      if (!validModelId(id) || !has(traceOf, id)) { return null; }
       path.push(id);
     }
     return traceTarget(path, band) === undefined ? null : { path: path, band: band };
@@ -358,6 +371,7 @@
     if (!routed) { syncTrace(i); }
     setChrome();
     mount(i);
+    focusId = null;
     inspect(elementId || null);
     updateHash(elementId);
     var paper = $('#paper');
@@ -503,6 +517,7 @@
   }
 
   function inspect(id) {
+    inspectedId = id && has(byId, id) ? id : null;
     var box = $('#inspector');
     box.textContent = '';
     var e = id ? byId[id] : null;
@@ -553,29 +568,33 @@
     }
   }
 
-  function goTo(id) {
+  function goTo(id, push) {
     var e = id ? byId[id] : null;
     if (!e) { return Promise.resolve(); }
     var here = current >= 0 && svg && svg.querySelector('g.el[data-id="' + cssEscape(id) + '"]');
-    if (here) { highlight(id); inspect(id); updateHash(id); return zoomTo(here); }
+    if (here) { if (push) { writeRoute(viewRoute(current, id), true); } highlight(id); inspect(id); updateHash(id); return zoomTo(here); }
     var occs = e.occurrences.filter(function (o) { return o.page_id in pageIndex; });
     var occ = occs.filter(function (o) { return !views[pageIndex[o.page_id]].trace; })[0] ||
               (has(traceOf, id) ? { page_id: views[traceOf[id]].page_id } : occs[0]);
     if (!occ) { toast(e.name + ' is only in the model — not drawn on any view'); inspect(id); return Promise.resolve(); }
+    if (push) { writeRoute(viewRoute(pageIndex[occ.page_id], id), true); }
     return openView(pageIndex[occ.page_id], id);
   }
 
   // ---- effect 3: search ------------------------------------------------------------------------------------
   var results = [], sel = 0;
+  var paletteOpener = null;
   function openPalette() {
     var p = $('#palette');
+    paletteOpener = document.activeElement;
     p.hidden = false;
+    p.showModal();
     var input = $('#palette input');
     input.value = '';
     renderResults('');
     input.focus();
   }
-  function closePalette() { $('#palette').hidden = true; }
+  function closePalette() { var p = $('#palette'); p.close(); p.hidden = true; if (paletteOpener && paletteOpener.isConnected) { paletteOpener.focus(); } }
   function renderResults(q) {
     q = q.trim().toLowerCase();
     var list = graph.elements.filter(function (e) {
@@ -591,7 +610,7 @@
     var ul = $('#palette ul');
     ul.textContent = '';
     results.forEach(function (e, n) {
-      var li = el('li', { role: 'option', 'aria-selected': n === 0 ? 'true' : 'false' });
+      var li = el('li', { id: 'edgy-option-' + n, role: 'option', 'aria-selected': n === 0 ? 'true' : 'false' });
       var sw = el('span', { 'class': 'sw' });
       sw.style.background = swatch(e);
       li.appendChild(sw);
@@ -600,12 +619,14 @@
       li.addEventListener('click', function () { choose(n); });
       ul.appendChild(li);
     });
+    $('#palette input').setAttribute('aria-activedescendant', results.length ? 'edgy-option-0' : '');
     if (!results.length) { ul.appendChild(el('li', { 'aria-selected': 'false' }, 'No element matches')); }
   }
   function moveSel(d) {
     if (!results.length) { return; }
     sel = (sel + d + results.length) % results.length;
     $$('#palette li').forEach(function (li, n) { li.setAttribute('aria-selected', n === sel ? 'true' : 'false'); });
+    $('#palette input').setAttribute('aria-activedescendant', 'edgy-option-' + sel);
     var cur = $$('#palette li')[sel];
     cur && cur.scrollIntoView && cur.scrollIntoView({ block: 'nearest' });
   }
@@ -665,21 +686,23 @@
     if (at < 0) { at = visible.indexOf(traceIndex); }             // from a trace page: page on from the Trace card
     return openView(visible[(at + d + visible.length) % visible.length]);
   }
-  function updateHash(id) {
-    var h = current < 0 ? '#/' : views[current].trace ? traceHash(tracePath, traceBand) :
-            '#/view/' + views[current].page_id + (id ? '/' + encodeURIComponent(id) : '') +
-            (stateMode !== 'all' ? '?state=' + stateMode : '');
-    if (location.hash !== h && location.hash !== '#selftest') {
-      lastHash = h;
-      try { history.replaceState(null, '', h); } catch (e) { /* file:// in some browsers */ }
-    }
+  function viewRoute(i, id) {
+    if (i < 0) { return '#/'; }
+    return views[i].trace && !id ? traceHash(tracePath, traceBand) :
+      '#/view/' + views[i].page_id + (id ? '/' + encodeURIComponent(id) : '') +
+      (stateMode !== 'all' ? '?state=' + stateMode : '');
   }
-  function route(h) {
+  function updateHash(id) {
+    if (location.hash !== '#selftest') { writeRoute(viewRoute(current, id), false); }
+  }
+  function validModelId(id) { return typeof id === 'string' && /^[A-Za-z0-9][A-Za-z0-9._:/-]*$/.test(id) && !/\s/.test(id); }
+  function route(h, push) {
+    if (typeof h !== 'string' || /\s/.test(h)) { return false; }
     // false (with a "not found" toast) for anything that is not a page of this file: the view stays as it is
     if (/^#\/trace(\/|$)/.test(h)) {
       var t = parseTrace(h);
       if (!t) { toast('Not found in this presentation'); return false; }
-      goTrace(t.path, t.band, false);
+      goTrace(t.path, t.band, !!push);
       return true;
     }
     var m = /^#\/view\/([a-z0-9-]+)(?:\/([^?]+))?(?:\?state=(current|target))?$/.exec(h);
@@ -688,16 +711,61 @@
       return false;
     }
     var id = null;
-    try { id = m[2] ? decodeURIComponent(m[2]) : null; } catch (e) { id = null; }
-    if (id && !byId[id]) { id = null; }
-    if (m[3]) { stateMode = m[3]; }
+    try { id = m[2] ? decodeURIComponent(m[2]) : null; } catch (e) { return false; }
+    if (id && (!validModelId(id) || !has(byId, id) || !(byId[id].occurrences || []).some(function (o) { return o.page_id === m[1]; }))) { return false; }
+    stateMode = m[3] || 'all';
+    if (push) { writeRoute(h, true); }
     navPromise = openView(pageIndex[m[1]], id);
     return true;
   }
+  // Public composition API. Commands accept data only, never selectors, HTML or URLs.
+  // Await frame load (API exists) and .ready before reading initial state.
+  var commands = Promise.resolve();
+  function command(fn) {
+    var next = commands.then(fn);
+    commands = next.catch(function () {});
+    return next;
+  }
+  function state() {
+    return { contract: 1, route: localRoutes[localAt],
+      pageId: current < 0 ? null : views[current].page_id,
+      elementId: current < 0 ? null : (inspectedId || views[current].focus || null),
+      canGoBack: localAt > 0, history: browserHistory ? 'browser' : 'local' };
+  }
+  function navigate(h, push) {
+    if (typeof h !== 'string') { return Promise.resolve(false); }
+    if (h === '#/') { if (push) { writeRoute(h, true); } showWall(); return Promise.resolve(true); }
+    if (!route(h, push)) { return Promise.resolve(false); }
+    return navPromise.then(function () { return true; });
+  }
+  var publicAPI = {
+    contract: 1,
+    openElement: function (id) {
+      return command(function () {
+        if (!validModelId(id) || !has(byId, id) || byId[id].id_source === 'slug') { return false; }
+        if (has(traceOf, id)) { return goTrace([id], null, true).then(function () { inspect(id); return true; }); }
+        if (!(byId[id].occurrences || []).some(function (o) { return has(pageIndex, o.page_id); })) { return false; }
+        return goTo(id, true).then(function () { return true; });
+      });
+    },
+    navigate: function (h) { return command(function () { return navigate(h, true); }); },
+    back: function () {
+      return command(function () {
+        if (localAt === 0) { return false; }
+        localAt -= 1; restoring = true;
+        return navigate(localRoutes[localAt]).finally(function () { restoring = false; });
+      });
+    },
+    getState: state,
+    ready: null
+  };
+
   function fromHash() { return route(location.hash || ''); }
   function onNav() {                                   // back / forward / an edited address: show that route
     var h = location.hash || '';
     if (h === '#selftest' || h === lastHash) { return; }
+    var remembered = localRoutes.lastIndexOf(h);
+    if (remembered >= 0) { localAt = remembered; }
     lastHash = h;
     if ((h === '' || h === '#/' || h === '#') && current >= 0) { showWall(); return; }
     fromHash();
@@ -731,7 +799,7 @@
     var palette = !$('#palette').hidden;
     if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'k') { ev.preventDefault(); palette ? closePalette() : openPalette(); return; }
     if (palette) {
-      if (ev.key === 'Escape') { closePalette(); }
+      if (ev.key === 'Escape') { ev.preventDefault(); closePalette(); }
       else if (ev.key === 'ArrowDown') { ev.preventDefault(); moveSel(1); }
       else if (ev.key === 'ArrowUp') { ev.preventDefault(); moveSel(-1); }
       else if (ev.key === 'Enter') { ev.preventDefault(); choose(sel); }
@@ -765,6 +833,7 @@
     var d = document.documentElement;
     if (document.fullscreenElement) { document.exitFullscreen(); } else if (d.requestFullscreen) { d.requestFullscreen(); }
   });
+  $('#palette').addEventListener('cancel', function (ev) { ev.preventDefault(); closePalette(); });
   $('#palette').addEventListener('click', function (ev) { if (ev.target === $('#palette')) { closePalette(); } });
   $('#palette input').addEventListener('input', function (ev) { renderResults(ev.target.value); });
   window.addEventListener('beforeprint', buildPrint);
@@ -772,7 +841,15 @@
   window.addEventListener('popstate', onNav);
   var cspViolations = 0;
   document.addEventListener('securitypolicyviolation', function () { cspViolations += 1; });
-  if (location.hash === '#selftest') { selftest(); } else { lastHash = location.hash; fromHash(); }
+  if (location.hash === '#selftest') { selftest(); }
+  else {
+    lastHash = location.hash;
+    var start = location.hash || document.documentElement.getAttribute('data-edgy-start') || '';
+    if (start) { route(start); }
+  }
+  commands = navPromise;
+  publicAPI.ready = navPromise.then(state);
+  window.EDGY_PRESENT = Object.freeze(publicAPI);
 
   // ---- self-test (CI: headless Chrome --dump-dom file://…#selftest) ------------------------------------------
   function waitNav(ms) {                              // the next back / forward / hash route, or the time-out
@@ -797,7 +874,7 @@
       check('trace-card', current === traceIndex && $$('.card[data-view="' + traceIndex + '"]').length === 1);
       var g = $$('g.el.linked', svg)[0];
       a = g && g.getAttribute('data-id');
-      g.querySelector('g.drill').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      svg.querySelector('g.drill[data-drill-for="' + cssEscape(a) + '"]').dispatchEvent(new MouseEvent('click', { bubbles: true }));
       return navPromise;
     }).then(function () {
       check('drill', focusIs(a, 1) && location.hash === traceHash([a], null));

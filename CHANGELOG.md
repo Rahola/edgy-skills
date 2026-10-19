@@ -6,6 +6,16 @@ Install a release with `EDGY_SKILLS_REF=<tag>` (see README → Versions).
 
 ## Unreleased
 
+Candidate v2.6.0 (human facilitation and assistive-technology acceptance pending):
+
+- edgy-diagram 2.10.0: discussion-led presentation guidance; navigation API 1
+  for explicit-ID targeting, initial routes and reliable local Back in srcdoc.
+  Graph/notation contract 1 and the five atlas effects remain unchanged.
+- Corrected fictional Acme walkthrough: return from every section, targeted
+  atlas drill, escaped dynamic data and explicit embedded Back. CI checks its
+  generated HTML, browser behaviour, accessibility findings and size budget.
+- No stakeholder-site builder, content lifecycle or approval workflow is added.
+
 - Zenodo DOI [10.5281/zenodo.23439782](https://doi.org/10.5281/zenodo.23439782) (all versions): a DOI badge in
   README and `doi:` in `CITATION.cff`. Metadata only.
 

@@ -1,5 +1,5 @@
 version: "2026-10"
-updated: "2026-10-17"
+updated: "2026-10-19"
 
 skills:
   - id: edgy-assessment
@@ -51,10 +51,10 @@ skills:
 
   - id: edgy-diagram
     path: skills/documentation/edgy-diagram
-    version: 2.9.0
+    version: 2.10.0
     category: documentation
     tags: [diagram, drawio, visualization, documentation, edgy, enterprise-design, fi, en, fr, de]
     agents: [claude-code, cursor, vibe, generic]
     description: >
-      Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML source and export them to PNG/SVG/PDF. Generator-first workflow (edgy_generator.py) with core-link pair validation, an influence-verb vocabulary, a drawio linter (edgy_lint.py) and a CLI-free SVG/PNG preview (edgy_render.py) that the agent must look at before delivery. Uses the EDGY facet model with draw.io CLI or the plantuml-stdlib `<edgy/edgy>` library for rendering. Architecture views from one model (application map, value chain and swimlane process maps, capability view, capability × application and CRUD matrices) and a self-contained offline presentation of every view.
+      Create EDGY-notation diagrams as draw.io XML (multi-page mxfile) or PlantUML source and export them to PNG/SVG/PDF. Generator-first workflow (edgy_generator.py) with core-link pair validation, an influence-verb vocabulary, a drawio linter (edgy_lint.py) and a CLI-free SVG/PNG preview (edgy_render.py) that the agent must look at before delivery. Uses the EDGY facet model with draw.io CLI or the plantuml-stdlib `<edgy/edgy>` library for rendering. Architecture views from one model (application map, value chain and swimlane process maps, capability view, capability × application and CRUD matrices) and a self-contained offline presentation of every view. Discussion-led presentation guidance and a versioned API for targeting model elements from a composition.
 

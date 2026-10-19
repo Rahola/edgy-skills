@@ -113,6 +113,11 @@ else
     run_step "validator" python3 tools/skill-validator.py skills/
 fi
 
+# Reproducible fictional composition (also covers docs/examples changes).
+if [ "$MODE" = "full" ]; then
+    run_step "walkthrough-build" python3 tools/check-walkthrough.py
+fi
+
 # --- Vaihe 2: registry-sync-diff --------------------------------------------
 if [ "$SKIP_REGISTRY" -eq 0 ]; then
     REG_TMP=$(mktemp)

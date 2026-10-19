@@ -154,3 +154,64 @@ not shaped by one of them:
 | SVG | C4 pages as static styled cells, drawn by the generic renderer (no shape hook) | `data-*` groups, decorations separated | `data-role` decorations, so effects never animate a legend or badge as if it were an element |
 | Notation | `notation.json`, `generate_page`, `lint_page`, E012 / E013 | must ignore foreign pages it does not understand | `edgyNotation` on every foreign cell, so a consumer can skip a page without loading its handler |
 | Change state | — | current ↔ target filter, later the paired-page morph | `data-change` on elements and edges; the paired-page morph (`{state: current \| target}`) stays outside contract 1 until F6b is built |
+
+## 7. Composition navigation API 1 (edgy-diagram 2.10.0)
+
+A standalone presentation or a **same-origin** embedding exposes
+`window.EDGY_PRESENT` after its script loads. Await iframe `load`, check
+`api.contract === 1`, then await `api.ready`. This is an additive navigation
+seam over the existing five effects, not a sixth effect or a content platform.
+No `postMessage`, network command listener or arbitrary script evaluation exists.
+Cross-origin/sandboxed embeddings cannot access this API; link to the standalone
+HTML instead. Keep the generated CSP; a srcdoc parent must permit its exact
+script/style hashes and required local frame, never `unsafe-inline`.
+
+| Member | Result / meaning |
+|---|---|
+| `contract` | `1` (navigation API version, independent of the graph contract). |
+| `ready` | Promise of initial state after optional initial route settles. |
+| `openElement(id)` | Promise<boolean>; open an explicit model ID's trace page, otherwise a drawn occurrence and inspector. Missing, malformed, slug-only or undrawn IDs return false without changing the view. IDs are data, not CSS selectors. |
+| `navigate(route)` | Promise<boolean>; accepted routes below; malformed/unavailable targets return false and retain the view. |
+| `back()` | Promise<boolean>; previous local route, false at start. Works even if native browser History is unavailable in srcdoc. |
+| `getState()` | Fresh plain object `{contract, route, pageId, elementId, canGoBack, history}`; elementId is the inspected target, otherwise the trace focal ID, otherwise null; null page when absent; `history` is `browser` until a History call fails, then `local`. It is not an estimate of browser Back availability. |
+
+Public command promises are serialised, so callers can submit several commands
+without stale animations selecting the wrong element. Always await a command
+before reading its settled state. Reopening the same target does not add a
+history step. Explicit local Back does not call browser `history.back()`.
+Browser Back/Forward still work in standalone HTML; in opaque local srcdoc
+origins they may not. Put a clearly labelled in-composition Back button next to
+the frame. Returning to the narrative is the composition's job: save section,
+selection and focus independently of atlas history.
+
+Routes (IDs are encoded with `encodeURIComponent`):
+
+- `#/` — all views;
+- `#/view/<page-id>` or `#/view/<page-id>/<element-id>`;
+- optionally `?state=current` or `?state=target` on a view route;
+- `#/trace` or `#/trace/<element-id>[/<element-id>…]`, optionally `/+above`
+  or `/+below` for an available list page.
+
+Use exported `page_id`/model IDs; do not guess slugs. A view's element target
+must actually occur on that view. A trace route must name available trace pages.
+For initial srcdoc routing, set `data-edgy-start` on the embedded document's
+`<html>` before loading (HTML-escape the attribute). A standalone fragment takes
+precedence. Invalid initial routes leave the wall visible. Alternatively call
+`openElement` after load, which needs no knowledge of page IDs.
+
+```js
+frame.addEventListener('load', async () => {
+  const api = frame.contentWindow.EDGY_PRESENT;
+  if (!api || api.contract !== 1) return; // show an honest unsupported message
+  await api.ready;
+  const opened = await api.openElement('CAP-02');
+  // If false, tell the reader the target is absent; do not imply a successful drill.
+});
+```
+
+The exported graph, SVG attributes (§2–3) and generated atlas remain the shared
+source. Explicit model IDs connect views and survive a rename. A fallback slug
+is not a cross-view identity. This contract does **not** promise permanent website
+URLs, published-version archives, ID migrations, approval workflows or source
+freshness. External platforms own those concerns. API/graph breaking changes need
+versioned contracts; additions must preserve existing consumers and tests.
