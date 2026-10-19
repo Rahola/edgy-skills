@@ -619,8 +619,9 @@
       li.addEventListener('click', function () { choose(n); });
       ul.appendChild(li);
     });
-    $('#palette input').setAttribute('aria-activedescendant', results.length ? 'edgy-option-0' : '');
-    if (!results.length) { ul.appendChild(el('li', { 'aria-selected': 'false' }, 'No element matches')); }
+    if (results.length) { $('#palette input').setAttribute('aria-activedescendant', 'edgy-option-0'); }
+    else { $('#palette input').removeAttribute('aria-activedescendant'); }
+    if (!results.length) { ul.appendChild(el('li', { role: 'option', 'aria-disabled': 'true', 'aria-selected': 'false' }, 'No element matches')); }
   }
   function moveSel(d) {
     if (!results.length) { return; }

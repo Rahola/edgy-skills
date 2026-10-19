@@ -2,9 +2,10 @@
 
 What edgy-diagram (2.8.0 and later) publishes for code that builds on it
 without patching it: a notation skill such as `edgy-c4` (v2.5.0), the
-presenter effects (F6b), or a companion project. Everything here is covered
-by `scripts/test_contract.py`, which runs in `tools/check.sh`, so a change
-that breaks the contract fails in this repository — not in an extension.
+presenter effects (F6b), or a companion project. The graph/SVG/notation contract below is covered by `scripts/test_contract.py`,
+which runs in `tools/check.sh`. The additive browser navigation API (§7) is
+exercised by `tools/test-walkthrough.cjs`, separately required in CI. Breaking
+changes must fail here rather than in an extension.
 
 **Versioning.** The contract number is `1`. Adding an optional key, a new
 `data-role` value or a new element type is compatible and keeps the number.

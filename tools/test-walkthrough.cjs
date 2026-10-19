@@ -130,6 +130,7 @@ let browser, server, base;
   const frame=page.frameLocator('#atlas-frame');await page.locator('.nav[data-step="8"]').click();await page.locator('#atlas-frame').evaluate(async f=>{await f.contentWindow.EDGY_PRESENT.ready;await f.contentWindow.EDGY_PRESENT.openElement('CAP-02');});
   scans.push({trace:true,violations:(await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa']).analyze()).violations});
   await frame.locator('#btn-search').click();scans.push({search:true,violations:(await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa']).analyze()).violations});
+  await frame.locator('#palette input').fill('NO-SUCH-XYZ-999');scans.push({emptySearch:true,violations:(await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa']).analyze()).violations});
   await frame.locator('#palette input').press('Escape');assert.equal(await frame.locator('#btn-search').evaluate(e=>e===document.activeElement),true);
   fs.writeFileSync(path.join(reportDir,'accessibility.json'),JSON.stringify(scans,null,2));assert.equal(scans.flatMap(s=>s.violations).length,0,JSON.stringify(scans.flatMap(s=>s.violations).map(v=>({id:v.id,impact:v.impact,nodes:v.nodes.map(n=>n.target)}))));
  });
